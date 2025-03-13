@@ -20,7 +20,8 @@ import {
   RefreshCw,
   Zap,
   ArrowRight,
-  Shield
+  Shield,
+  Coins
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -57,8 +58,8 @@ const Index = () => {
             setBalance(prevBalance => prevBalance + miningRate);
             setMiningSession(prev => prev + 1);
             toast({
-              title: "Madencilik başarılı!",
-              description: `${miningRate} Pi kazandınız.`,
+              title: "Mining successful!",
+              description: `You earned ${miningRate} FC.`,
             });
             return 0;
           }
@@ -75,16 +76,16 @@ const Index = () => {
   const handleStartMining = () => {
     setMiningActive(true);
     toast({
-      title: "Madencilik başladı",
-      description: "Her 30 saniyede bir ödül kazanacaksınız.",
+      title: "Mining started",
+      description: "You will earn rewards every 30 seconds.",
     });
   };
 
   const handleStopMining = () => {
     setMiningActive(false);
     toast({
-      title: "Madencilik durduruldu",
-      description: `Bu oturumda toplam ${miningRate * miningSession} Pi kazandınız.`,
+      title: "Mining stopped",
+      description: `You earned a total of ${miningRate * miningSession} FC in this session.`,
     });
     setMiningSession(0);
     setMiningTime(0);
@@ -102,7 +103,7 @@ const Index = () => {
       <div className="flex items-center justify-center min-h-screen bg-purple-50">
         <div className="text-center">
           <RefreshCw className="mx-auto h-12 w-12 text-purple-600 animate-spin" />
-          <h2 className="mt-4 text-xl font-semibold text-purple-800">Yükleniyor...</h2>
+          <h2 className="mt-4 text-xl font-semibold text-purple-800">Loading...</h2>
         </div>
       </div>
     );
@@ -113,7 +114,7 @@ const Index = () => {
       {/* Header */}
       <header className="bg-white p-4 flex justify-between items-center shadow-sm">
         <MenuIcon className="h-6 w-6 text-purple-700" />
-        <h1 className="text-2xl font-bold text-purple-700">Pi Network</h1>
+        <h1 className="text-2xl font-bold text-purple-700">Future Coin</h1>
         <Bell className="h-6 w-6 text-purple-700" />
       </header>
 
@@ -122,14 +123,14 @@ const Index = () => {
         {/* Balance Card */}
         <Card className="mb-6 bg-gradient-to-r from-purple-500 to-indigo-600 text-white overflow-hidden">
           <CardHeader>
-            <CardTitle className="text-lg">Pi Bakiyeniz</CardTitle>
+            <CardTitle className="text-lg">Your FC Balance</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-baseline">
               <span className="text-4xl font-bold">{balance.toFixed(2)}</span>
-              <span className="ml-1 text-xl">π</span>
+              <span className="ml-1 text-xl">FC</span>
             </div>
-            <p className="text-purple-100 mt-2">Toplam kazanılan Pi</p>
+            <p className="text-purple-100 mt-2">Total earned Future Coin</p>
           </CardContent>
         </Card>
 
@@ -138,10 +139,10 @@ const Index = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Zap className="h-5 w-5 text-yellow-500" />
-              Pi Madencilik
+              FC Mining
             </CardTitle>
             <CardDescription>
-              Madencilik yaparak Pi kripto para birimi kazanın
+              Mine to earn Future Coin cryptocurrency
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -154,11 +155,11 @@ const Index = () => {
                 <div className="absolute inset-0 flex items-center justify-center flex-col">
                   {miningActive ? (
                     <>
-                      <span className="text-sm font-medium">DURDUR</span>
+                      <span className="text-sm font-medium">STOP</span>
                       <span className="text-xs mt-1">{formatTime(miningTime)}</span>
                     </>
                   ) : (
-                    <span className="text-sm font-medium">BAŞLAT</span>
+                    <span className="text-sm font-medium">START</span>
                   )}
                 </div>
               </div>
@@ -166,7 +167,7 @@ const Index = () => {
                 <div className="mt-4">
                   <Progress value={progress} className="h-2" />
                   <p className="text-sm text-gray-600 mt-2">
-                    Madencilik devam ediyor... {progress}%
+                    Mining in progress... {progress}%
                   </p>
                 </div>
               )}
@@ -175,10 +176,10 @@ const Index = () => {
           <CardFooter className="flex justify-between text-sm text-gray-600 bg-gray-50">
             <div className="flex items-center">
               <Users className="h-4 w-4 mr-1" />
-              <span>Madenci Ağı</span>
+              <span>Miner Network</span>
             </div>
             <div className="flex items-center">
-              <span>Kazanç Oranı: {miningRate} π/saat</span>
+              <span>Earning Rate: {miningRate} FC/hour</span>
             </div>
           </CardFooter>
         </Card>
@@ -190,7 +191,7 @@ const Index = () => {
               <CardTitle className="text-md flex justify-between items-center">
                 <div className="flex items-center">
                   <Shield className="h-5 w-5 mr-2 text-purple-600" />
-                  <span>Güvenlik Merkezi</span>
+                  <span>Security Center</span>
                 </div>
                 <ChevronRight className="h-5 w-5 text-gray-400" />
               </CardTitle>
@@ -202,7 +203,7 @@ const Index = () => {
               <CardTitle className="text-md flex justify-between items-center">
                 <div className="flex items-center">
                   <ArrowUpRight className="h-5 w-5 mr-2 text-purple-600" />
-                  <span>Pi'yi Transfer Et</span>
+                  <span>Transfer FC</span>
                 </div>
                 <ChevronRight className="h-5 w-5 text-gray-400" />
               </CardTitle>
@@ -214,7 +215,7 @@ const Index = () => {
           className="w-full mt-6 bg-purple-600 hover:bg-purple-700 text-white" 
           size="lg"
         >
-          <span>Pi Ekosistemini Keşfet</span>
+          <span>Explore FC Ecosystem</span>
           <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </main>
@@ -224,11 +225,11 @@ const Index = () => {
         <nav className="bg-white border-t border-gray-200 fixed bottom-0 left-0 right-0 flex justify-around p-3">
           <div className="flex flex-col items-center text-purple-600">
             <Zap className="h-6 w-6" />
-            <span className="text-xs mt-1">Madencilik</span>
+            <span className="text-xs mt-1">Mining</span>
           </div>
           <div className="flex flex-col items-center text-gray-500">
             <Users className="h-6 w-6" />
-            <span className="text-xs mt-1">Ekip</span>
+            <span className="text-xs mt-1">Team</span>
           </div>
           <div className="flex flex-col items-center text-gray-500">
             <ArrowUpRight className="h-6 w-6" />
@@ -236,7 +237,7 @@ const Index = () => {
           </div>
           <div className="flex flex-col items-center text-gray-500">
             <Shield className="h-6 w-6" />
-            <span className="text-xs mt-1">Güvenlik</span>
+            <span className="text-xs mt-1">Security</span>
           </div>
         </nav>
       )}
