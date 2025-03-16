@@ -100,33 +100,33 @@ const Index = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-50 to-indigo-50">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 to-indigo-950">
         <div className="text-center">
           <div className="relative">
-            <RefreshCw className="mx-auto h-16 w-16 text-purple-600 animate-spin" />
-            <div className="absolute inset-0 rounded-full bg-purple-200/20 blur-xl"></div>
+            <RefreshCw className="mx-auto h-16 w-16 text-indigo-400 animate-spin" />
+            <div className="absolute inset-0 rounded-full bg-indigo-400/20 blur-xl"></div>
           </div>
-          <h2 className="mt-6 text-2xl font-semibold text-purple-800">Loading Future Coin</h2>
+          <h2 className="mt-6 text-2xl font-semibold text-indigo-200">Loading Future Coin</h2>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-50 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-indigo-950 flex flex-col">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md p-4 flex justify-between items-center shadow-sm sticky top-0 z-10">
-        <button className="p-2 rounded-full hover:bg-purple-100 transition-colors">
-          <MenuIcon className="h-6 w-6 text-purple-700" />
+      <header className="bg-gray-900/80 backdrop-blur-md p-4 flex justify-between items-center shadow-md sticky top-0 z-10 border-b border-gray-800">
+        <button className="p-2 rounded-full hover:bg-gray-800 transition-colors">
+          <MenuIcon className="h-6 w-6 text-indigo-300" />
         </button>
         <div className="flex items-center">
-          <Coins className="h-6 w-6 mr-2 text-purple-700" />
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-700 to-indigo-600 bg-clip-text text-transparent">
+          <Coins className="h-6 w-6 mr-2 text-indigo-400" />
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
             Future Coin
           </h1>
         </div>
-        <button className="p-2 rounded-full hover:bg-purple-100 transition-colors relative">
-          <Bell className="h-6 w-6 text-purple-700" />
+        <button className="p-2 rounded-full hover:bg-gray-800 transition-colors relative">
+          <Bell className="h-6 w-6 text-indigo-300" />
           <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>
         </button>
       </header>
@@ -134,17 +134,17 @@ const Index = () => {
       {/* Main Content */}
       <main className="flex-1 p-5 max-w-3xl mx-auto w-full pb-24 md:pb-5">
         {/* Balance Card */}
-        <Card className="mb-6 overflow-hidden border-none shadow-lg">
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-indigo-600 opacity-90"></div>
+        <Card className="mb-6 overflow-hidden border-none shadow-lg bg-gray-800">
+          <div className="absolute inset-0 bg-gradient-to-r from-indigo-900 to-purple-900 opacity-90"></div>
           <CardHeader className="relative z-10">
-            <CardTitle className="text-lg font-medium text-white/90">Your FC Balance</CardTitle>
+            <CardTitle className="text-lg font-medium text-gray-200">Your FC Balance</CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
             <div className="flex items-baseline">
               <span className="text-5xl font-bold text-white">{balance.toFixed(2)}</span>
-              <span className="ml-2 text-xl text-white/80">FC</span>
+              <span className="ml-2 text-xl text-indigo-200">FC</span>
             </div>
-            <p className="text-purple-100 mt-2 opacity-80">Total earned Future Coin</p>
+            <p className="text-indigo-200 mt-2 opacity-80">Total earned Future Coin</p>
           </CardContent>
           <div className="absolute bottom-0 right-0 p-6 opacity-10">
             <Coins className="h-32 w-32 text-white" />
@@ -152,13 +152,13 @@ const Index = () => {
         </Card>
 
         {/* Mining Card */}
-        <Card className="mb-6 border-none shadow-md hover:shadow-lg transition-shadow">
+        <Card className="mb-6 border-none shadow-md hover:shadow-lg transition-shadow bg-gray-800 text-gray-100">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-xl">
-              <Zap className="h-5 w-5 text-yellow-500" />
+              <Zap className="h-5 w-5 text-yellow-400" />
               FC Mining
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-gray-400">
               Mine to earn Future Coin cryptocurrency
             </CardDescription>
           </CardHeader>
@@ -167,37 +167,37 @@ const Index = () => {
               <div 
                 className={`relative mx-auto w-44 h-44 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 ${
                   miningActive 
-                    ? 'bg-gradient-to-br from-green-100 to-emerald-100 shadow-lg shadow-green-200/50' 
-                    : 'bg-gradient-to-br from-gray-100 to-slate-100 hover:shadow-md'
+                    ? 'bg-gradient-to-br from-green-900 to-emerald-800 shadow-lg shadow-green-900/50' 
+                    : 'bg-gradient-to-br from-gray-800 to-gray-900 hover:shadow-md'
                 }`}
                 onClick={miningActive ? handleStopMining : handleStartMining}
               >
                 <div className={`absolute inset-2 rounded-full border-4 ${
-                  miningActive ? 'border-green-400 border-t-transparent' : 'border-gray-300 border-t-transparent'
+                  miningActive ? 'border-green-500 border-t-transparent' : 'border-gray-600 border-t-transparent'
                 } animate-spin opacity-20`}></div>
                 
                 <Circle className={`h-36 w-36 ${
                   miningActive 
-                    ? 'text-green-500 animate-pulse' 
-                    : 'text-gray-400 hover:text-purple-400 transition-colors'
+                    ? 'text-green-400 animate-pulse' 
+                    : 'text-gray-500 hover:text-indigo-400 transition-colors'
                 }`} />
                 
                 <div className="absolute inset-0 flex items-center justify-center flex-col">
                   {miningActive ? (
                     <>
-                      <span className="text-sm font-semibold bg-white/80 px-3 py-1 rounded-full shadow-sm text-green-700">STOP</span>
-                      <span className="text-xs mt-2 font-mono bg-black/10 px-2 py-1 rounded-md">{formatTime(miningTime)}</span>
+                      <span className="text-sm font-semibold bg-gray-900/80 px-3 py-1 rounded-full shadow-sm text-green-400">STOP</span>
+                      <span className="text-xs mt-2 font-mono bg-gray-900/80 px-2 py-1 rounded-md text-green-400">{formatTime(miningTime)}</span>
                     </>
                   ) : (
-                    <span className="text-sm font-semibold bg-purple-600 px-4 py-1.5 rounded-full shadow-sm text-white">START</span>
+                    <span className="text-sm font-semibold bg-indigo-700 px-4 py-1.5 rounded-full shadow-sm text-white">START</span>
                   )}
                 </div>
               </div>
               
               {miningActive && (
                 <div className="mt-6 animate-fade-in">
-                  <Progress value={progress} className="h-3 bg-gray-200" />
-                  <div className="flex justify-between mt-2 text-sm text-gray-600">
+                  <Progress value={progress} className="h-3 bg-gray-700" />
+                  <div className="flex justify-between mt-2 text-sm text-gray-400">
                     <p>Mining... {progress}%</p>
                     <p>+{miningRate} FC</p>
                   </div>
@@ -205,9 +205,9 @@ const Index = () => {
               )}
             </div>
           </CardContent>
-          <CardFooter className="flex justify-between text-sm text-gray-600 bg-gray-50/80 py-4 px-6">
+          <CardFooter className="flex justify-between text-sm text-gray-400 bg-gray-850 py-4 px-6 border-t border-gray-700">
             <div className="flex items-center">
-              <Users className="h-4 w-4 mr-2 text-purple-600" />
+              <Users className="h-4 w-4 mr-2 text-indigo-400" />
               <span>Active Miners</span>
             </div>
             <div className="flex items-center font-medium">
@@ -218,37 +218,37 @@ const Index = () => {
 
         {/* Function Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <Card className="border-none shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
+          <Card className="border-none shadow-sm hover:shadow-md transition-shadow cursor-pointer group bg-gray-800 text-gray-100">
             <CardHeader className="p-4">
               <CardTitle className="text-md flex justify-between items-center">
                 <div className="flex items-center">
-                  <div className="p-2 rounded-full bg-purple-100 group-hover:bg-purple-200 transition-colors mr-3">
-                    <Shield className="h-5 w-5 text-purple-600" />
+                  <div className="p-2 rounded-full bg-gray-700 group-hover:bg-indigo-900 transition-colors mr-3">
+                    <Shield className="h-5 w-5 text-indigo-400" />
                   </div>
                   <span>Security Center</span>
                 </div>
-                <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-purple-500 transition-colors" />
+                <ChevronRight className="h-5 w-5 text-gray-500 group-hover:text-indigo-400 transition-colors" />
               </CardTitle>
             </CardHeader>
           </Card>
 
-          <Card className="border-none shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
+          <Card className="border-none shadow-sm hover:shadow-md transition-shadow cursor-pointer group bg-gray-800 text-gray-100">
             <CardHeader className="p-4">
               <CardTitle className="text-md flex justify-between items-center">
                 <div className="flex items-center">
-                  <div className="p-2 rounded-full bg-purple-100 group-hover:bg-purple-200 transition-colors mr-3">
-                    <ArrowUpRight className="h-5 w-5 text-purple-600" />
+                  <div className="p-2 rounded-full bg-gray-700 group-hover:bg-indigo-900 transition-colors mr-3">
+                    <ArrowUpRight className="h-5 w-5 text-indigo-400" />
                   </div>
                   <span>Transfer FC</span>
                 </div>
-                <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-purple-500 transition-colors" />
+                <ChevronRight className="h-5 w-5 text-gray-500 group-hover:text-indigo-400 transition-colors" />
               </CardTitle>
             </CardHeader>
           </Card>
         </div>
 
         <Button 
-          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-md transition-all hover:shadow-lg" 
+          className="w-full bg-gradient-to-r from-indigo-700 to-purple-700 hover:from-indigo-800 hover:to-purple-800 text-white shadow-md transition-all hover:shadow-lg border-none" 
           size="lg"
         >
           <span>Explore FC Ecosystem</span>
@@ -258,9 +258,9 @@ const Index = () => {
 
       {/* Bottom navigation for mobile */}
       {isMobile && (
-        <nav className="bg-white/90 backdrop-blur-md border-t border-gray-200 fixed bottom-0 left-0 right-0 flex justify-around p-3 z-10 shadow-[0_-1px_5px_rgba(0,0,0,0.05)]">
-          <div className="flex flex-col items-center text-purple-600">
-            <div className="p-1.5 rounded-full bg-purple-100">
+        <nav className="bg-gray-900/90 backdrop-blur-md border-t border-gray-800 fixed bottom-0 left-0 right-0 flex justify-around p-3 z-10 shadow-[0_-1px_5px_rgba(0,0,0,0.3)]">
+          <div className="flex flex-col items-center text-indigo-400">
+            <div className="p-1.5 rounded-full bg-indigo-900/50">
               <Zap className="h-5 w-5" />
             </div>
             <span className="text-xs mt-1 font-medium">Mining</span>
