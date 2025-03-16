@@ -19,12 +19,15 @@ import {
   ArrowRight,
   Shield,
   Coins,
-  ChevronRight
+  ChevronRight,
+  Gamepad
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useCoinContext } from "@/contexts/CoinContext";
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import MobileNavigation from "@/components/MobileNavigation";
 
@@ -32,13 +35,14 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [miningActive, setMiningActive] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [balance, setBalance] = useState(0);
   const [miningRate, setMiningRate] = useState(0.1);
   const [miningSession, setMiningSession] = useState(0);
   const [miningTime, setMiningTime] = useState(0);
   const isMobile = useIsMobile();
   const { t } = useLanguage();
   const { theme } = useTheme();
+  const { balance, addCoins } = useCoinContext();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Sayfa yüklendiğinde loading'i kapatalım
@@ -59,11 +63,11 @@ const Index = () => {
         setProgress(prev => {
           if (prev >= 100) {
             // Mining tamamlandı, balance'ı artıralım
-            setBalance(prevBalance => prevBalance + miningRate);
+            addCoins(miningRate);
             setMiningSession(prev => prev + 1);
             toast({
               title: t('mining.successful'),
-              description: t('mining.successfulDesc', miningRate.toString()),
+              description: t('mining.successfulDesc', miningRate.toString())
             });
             return 0;
           }
@@ -75,13 +79,13 @@ const Index = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [miningActive, miningRate, t]);
+  }, [miningActive, miningRate, t, addCoins]);
 
   const handleStartMining = () => {
     setMiningActive(true);
     toast({
       title: t('mining.started'),
-      description: t('mining.startedDesc'),
+      description: t('mining.startedDesc')
     });
   };
 
@@ -89,10 +93,14 @@ const Index = () => {
     setMiningActive(false);
     toast({
       title: t('mining.stopped'),
-      description: t('mining.stoppedDesc', (miningRate * miningSession).toString()),
+      description: t('mining.stoppedDesc', (miningRate * miningSession).toString())
     });
     setMiningSession(0);
     setMiningTime(0);
+  };
+
+  const handlePlayGame = () => {
+    navigate('/game');
   };
 
   // Madencilik süresini dakika ve saniye olarak formatlayalım
@@ -203,6 +211,25 @@ const Index = () => {
               <span>{t('mining.rate')}: {miningRate} FC/cycle</span>
             </div>
           </CardFooter>
+        </Card>
+
+        {/* Mini-Game Card */}
+        <Card className="mb-6 border-none shadow-md hover:shadow-lg transition-shadow bg-gray-800 text-gray-100 dark:bg-gray-850 overflow-hidden cursor-pointer group" onClick={handlePlayGame}>
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-900 to-indigo-900 opacity-0 group-hover:opacity-30 transition-opacity"></div>
+          <CardHeader className="p-4">
+            <CardTitle className="text-xl flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="p-2 rounded-full bg-purple-900/80 group-hover:bg-purple-700 transition-colors mr-3">
+                  <Gamepad className="h-6 w-6 text-purple-300" />
+                </div>
+                <div>
+                  <span className="block">{t('game.title')}</span>
+                  <span className="text-sm font-normal text-indigo-300">{t('game.playtoearn')}</span>
+                </div>
+              </div>
+              <ChevronRight className="h-5 w-5 text-indigo-400 group-hover:translate-x-1 transition-transform" />
+            </CardTitle>
+          </CardHeader>
         </Card>
 
         {/* Function Cards Grid */}
