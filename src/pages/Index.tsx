@@ -13,18 +13,20 @@ import { Progress } from "@/components/ui/progress";
 import { 
   Circle, 
   Users, 
-  ArrowUpRight, 
-  MenuIcon, 
-  Bell, 
-  ChevronRight,
+  ArrowUpRight,
   RefreshCw,
   Zap,
   ArrowRight,
   Shield,
-  Coins
+  Coins,
+  ChevronRight
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useTheme } from "@/contexts/ThemeContext";
+import Header from "@/components/Header";
+import MobileNavigation from "@/components/MobileNavigation";
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -35,6 +37,8 @@ const Index = () => {
   const [miningSession, setMiningSession] = useState(0);
   const [miningTime, setMiningTime] = useState(0);
   const isMobile = useIsMobile();
+  const { t } = useLanguage();
+  const { theme } = useTheme();
 
   useEffect(() => {
     // Sayfa yüklendiğinde loading'i kapatalım
@@ -58,8 +62,8 @@ const Index = () => {
             setBalance(prevBalance => prevBalance + miningRate);
             setMiningSession(prev => prev + 1);
             toast({
-              title: "Mining successful!",
-              description: `You earned ${miningRate} FC.`,
+              title: t('mining.successful'),
+              description: t('mining.successfulDesc', miningRate.toString()),
             });
             return 0;
           }
@@ -71,21 +75,21 @@ const Index = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [miningActive, miningRate]);
+  }, [miningActive, miningRate, t]);
 
   const handleStartMining = () => {
     setMiningActive(true);
     toast({
-      title: "Mining started",
-      description: "You will earn rewards every 30 seconds.",
+      title: t('mining.started'),
+      description: t('mining.startedDesc'),
     });
   };
 
   const handleStopMining = () => {
     setMiningActive(false);
     toast({
-      title: "Mining stopped",
-      description: `You earned a total of ${miningRate * miningSession} FC in this session.`,
+      title: t('mining.stopped'),
+      description: t('mining.stoppedDesc', (miningRate * miningSession).toString()),
     });
     setMiningSession(0);
     setMiningTime(0);
@@ -100,51 +104,36 @@ const Index = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 to-indigo-950">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 to-indigo-950 dark:from-gray-950 dark:to-indigo-950">
         <div className="text-center">
           <div className="relative">
             <RefreshCw className="mx-auto h-16 w-16 text-indigo-400 animate-spin" />
             <div className="absolute inset-0 rounded-full bg-indigo-400/20 blur-xl"></div>
           </div>
-          <h2 className="mt-6 text-2xl font-semibold text-indigo-200">Loading Future Coin</h2>
+          <h2 className="mt-6 text-2xl font-semibold text-indigo-200">{t('app.title')}</h2>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-indigo-950 flex flex-col">
-      {/* Header */}
-      <header className="bg-gray-900/80 backdrop-blur-md p-4 flex justify-between items-center shadow-md sticky top-0 z-10 border-b border-gray-800">
-        <button className="p-2 rounded-full hover:bg-gray-800 transition-colors">
-          <MenuIcon className="h-6 w-6 text-indigo-300" />
-        </button>
-        <div className="flex items-center">
-          <Coins className="h-6 w-6 mr-2 text-indigo-400" />
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-            Future Coin
-          </h1>
-        </div>
-        <button className="p-2 rounded-full hover:bg-gray-800 transition-colors relative">
-          <Bell className="h-6 w-6 text-indigo-300" />
-          <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>
-        </button>
-      </header>
+    <div className={`min-h-screen bg-gradient-to-br from-gray-900 to-indigo-950 dark:from-gray-950 dark:to-indigo-950 flex flex-col`}>
+      <Header />
 
       {/* Main Content */}
       <main className="flex-1 p-5 max-w-3xl mx-auto w-full pb-24 md:pb-5">
         {/* Balance Card */}
-        <Card className="mb-6 overflow-hidden border-none shadow-lg bg-gray-800">
+        <Card className="mb-6 overflow-hidden border-none shadow-lg bg-gray-800 dark:bg-gray-850">
           <div className="absolute inset-0 bg-gradient-to-r from-indigo-900 to-purple-900 opacity-90"></div>
           <CardHeader className="relative z-10">
-            <CardTitle className="text-lg font-medium text-gray-200">Your FC Balance</CardTitle>
+            <CardTitle className="text-lg font-medium text-gray-200">{t('balance.title')}</CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
             <div className="flex items-baseline">
               <span className="text-5xl font-bold text-white">{balance.toFixed(2)}</span>
               <span className="ml-2 text-xl text-indigo-200">FC</span>
             </div>
-            <p className="text-indigo-200 mt-2 opacity-80">Total earned Future Coin</p>
+            <p className="text-indigo-200 mt-2 opacity-80">{t('balance.total')}</p>
           </CardContent>
           <div className="absolute bottom-0 right-0 p-6 opacity-10">
             <Coins className="h-32 w-32 text-white" />
@@ -152,14 +141,14 @@ const Index = () => {
         </Card>
 
         {/* Mining Card */}
-        <Card className="mb-6 border-none shadow-md hover:shadow-lg transition-shadow bg-gray-800 text-gray-100">
+        <Card className="mb-6 border-none shadow-md hover:shadow-lg transition-shadow bg-gray-800 text-gray-100 dark:bg-gray-850">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-xl">
               <Zap className="h-5 w-5 text-yellow-400" />
-              FC Mining
+              {t('mining.title')}
             </CardTitle>
             <CardDescription className="text-gray-400">
-              Mine to earn Future Coin cryptocurrency
+              {t('mining.description')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -185,11 +174,11 @@ const Index = () => {
                 <div className="absolute inset-0 flex items-center justify-center flex-col">
                   {miningActive ? (
                     <>
-                      <span className="text-sm font-semibold bg-gray-900/80 px-3 py-1 rounded-full shadow-sm text-green-400">STOP</span>
+                      <span className="text-sm font-semibold bg-gray-900/80 px-3 py-1 rounded-full shadow-sm text-green-400">{t('mining.active')}</span>
                       <span className="text-xs mt-2 font-mono bg-gray-900/80 px-2 py-1 rounded-md text-green-400">{formatTime(miningTime)}</span>
                     </>
                   ) : (
-                    <span className="text-sm font-semibold bg-indigo-700 px-4 py-1.5 rounded-full shadow-sm text-white">START</span>
+                    <span className="text-sm font-semibold bg-indigo-700 px-4 py-1.5 rounded-full shadow-sm text-white">{t('mining.inactive')}</span>
                   )}
                 </div>
               </div>
@@ -208,38 +197,38 @@ const Index = () => {
           <CardFooter className="flex justify-between text-sm text-gray-400 bg-gray-850 py-4 px-6 border-t border-gray-700">
             <div className="flex items-center">
               <Users className="h-4 w-4 mr-2 text-indigo-400" />
-              <span>Active Miners</span>
+              <span>{t('mining.activeminers')}</span>
             </div>
             <div className="flex items-center font-medium">
-              <span>Rate: {miningRate} FC/cycle</span>
+              <span>{t('mining.rate')}: {miningRate} FC/cycle</span>
             </div>
           </CardFooter>
         </Card>
 
         {/* Function Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <Card className="border-none shadow-sm hover:shadow-md transition-shadow cursor-pointer group bg-gray-800 text-gray-100">
+          <Card className="border-none shadow-sm hover:shadow-md transition-shadow cursor-pointer group bg-gray-800 text-gray-100 dark:bg-gray-850">
             <CardHeader className="p-4">
               <CardTitle className="text-md flex justify-between items-center">
                 <div className="flex items-center">
                   <div className="p-2 rounded-full bg-gray-700 group-hover:bg-indigo-900 transition-colors mr-3">
                     <Shield className="h-5 w-5 text-indigo-400" />
                   </div>
-                  <span>Security Center</span>
+                  <span>{t('security.title')}</span>
                 </div>
                 <ChevronRight className="h-5 w-5 text-gray-500 group-hover:text-indigo-400 transition-colors" />
               </CardTitle>
             </CardHeader>
           </Card>
 
-          <Card className="border-none shadow-sm hover:shadow-md transition-shadow cursor-pointer group bg-gray-800 text-gray-100">
+          <Card className="border-none shadow-sm hover:shadow-md transition-shadow cursor-pointer group bg-gray-800 text-gray-100 dark:bg-gray-850">
             <CardHeader className="p-4">
               <CardTitle className="text-md flex justify-between items-center">
                 <div className="flex items-center">
                   <div className="p-2 rounded-full bg-gray-700 group-hover:bg-indigo-900 transition-colors mr-3">
                     <ArrowUpRight className="h-5 w-5 text-indigo-400" />
                   </div>
-                  <span>Transfer FC</span>
+                  <span>{t('transfer.title')}</span>
                 </div>
                 <ChevronRight className="h-5 w-5 text-gray-500 group-hover:text-indigo-400 transition-colors" />
               </CardTitle>
@@ -251,40 +240,12 @@ const Index = () => {
           className="w-full bg-gradient-to-r from-indigo-700 to-purple-700 hover:from-indigo-800 hover:to-purple-800 text-white shadow-md transition-all hover:shadow-lg border-none" 
           size="lg"
         >
-          <span>Explore FC Ecosystem</span>
+          <span>{t('explore.button')}</span>
           <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </main>
 
-      {/* Bottom navigation for mobile */}
-      {isMobile && (
-        <nav className="bg-gray-900/90 backdrop-blur-md border-t border-gray-800 fixed bottom-0 left-0 right-0 flex justify-around p-3 z-10 shadow-[0_-1px_5px_rgba(0,0,0,0.3)]">
-          <div className="flex flex-col items-center text-indigo-400">
-            <div className="p-1.5 rounded-full bg-indigo-900/50">
-              <Zap className="h-5 w-5" />
-            </div>
-            <span className="text-xs mt-1 font-medium">Mining</span>
-          </div>
-          <div className="flex flex-col items-center text-gray-500">
-            <div className="p-1.5 rounded-full">
-              <Users className="h-5 w-5" />
-            </div>
-            <span className="text-xs mt-1">Team</span>
-          </div>
-          <div className="flex flex-col items-center text-gray-500">
-            <div className="p-1.5 rounded-full">
-              <ArrowUpRight className="h-5 w-5" />
-            </div>
-            <span className="text-xs mt-1">Transfer</span>
-          </div>
-          <div className="flex flex-col items-center text-gray-500">
-            <div className="p-1.5 rounded-full">
-              <Shield className="h-5 w-5" />
-            </div>
-            <span className="text-xs mt-1">Security</span>
-          </div>
-        </nav>
-      )}
+      <MobileNavigation />
     </div>
   );
 };
