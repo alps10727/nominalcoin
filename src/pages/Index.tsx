@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -93,6 +94,15 @@ const Index = () => {
     });
     setMiningSession(0);
     setMiningTime(0);
+  };
+
+  // Add the missing handlePlayGame function
+  const handlePlayGame = () => {
+    toast({
+      title: t('game.unavailable'),
+      description: t('game.comingSoon'),
+      variant: "destructive"
+    });
   };
 
   const formatTime = (seconds: number) => {
