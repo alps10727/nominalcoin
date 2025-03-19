@@ -94,6 +94,24 @@ const Header = () => {
             >
               Türkçe {language === "tr" && "✓"}
             </DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={() => setLanguage("zh")}
+              className={`cursor-pointer ${language === "zh" ? "bg-indigo-900/50 text-indigo-200" : ""}`}
+            >
+              中文 {language === "zh" && "✓"}
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={() => setLanguage("es")}
+              className={`cursor-pointer ${language === "es" ? "bg-indigo-900/50 text-indigo-200" : ""}`}
+            >
+              Español {language === "es" && "✓"}
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={() => setLanguage("ru")}
+              className={`cursor-pointer ${language === "ru" ? "bg-indigo-900/50 text-indigo-200" : ""}`}
+            >
+              Русский {language === "ru" && "✓"}
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
