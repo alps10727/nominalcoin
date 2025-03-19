@@ -19,7 +19,12 @@ import {
   ArrowRight,
   Shield,
   Coins,
-  ChevronRight
+  ChevronRight,
+  User,
+  History,
+  UserPlus,
+  Award,
+  BarChart2
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -27,6 +32,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import Header from "@/components/Header";
 import MobileNavigation from "@/components/MobileNavigation";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -193,6 +199,14 @@ const Index = () => {
                 </div>
               )}
             </div>
+            <div className="mt-4 text-center">
+              <Link to="/mining/upgrades">
+                <Button variant="outline" className="border-indigo-800 bg-gray-800/50 text-indigo-300 hover:bg-indigo-900/30">
+                  {t('mining.upgrades')}
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </Link>
+            </div>
           </CardContent>
           <CardFooter className="flex justify-between text-sm text-gray-400 bg-gray-850 py-4 px-6 border-t border-gray-700">
             <div className="flex items-center">
@@ -206,43 +220,82 @@ const Index = () => {
         </Card>
 
         {/* Function Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <Card className="border-none shadow-sm hover:shadow-md transition-shadow cursor-pointer group bg-gray-800 text-gray-100 dark:bg-gray-850">
-            <CardHeader className="p-4">
-              <CardTitle className="text-md flex justify-between items-center">
-                <div className="flex items-center">
-                  <div className="p-2 rounded-full bg-gray-700 group-hover:bg-indigo-900 transition-colors mr-3">
-                    <Shield className="h-5 w-5 text-indigo-400" />
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <Link to="/profile">
+            <Card className="border-none shadow-sm hover:shadow-md transition-shadow cursor-pointer group bg-gray-800 text-gray-100 dark:bg-gray-850">
+              <CardHeader className="p-4">
+                <CardTitle className="text-md flex justify-between items-center">
+                  <div className="flex items-center">
+                    <div className="p-2 rounded-full bg-gray-700 group-hover:bg-indigo-900 transition-colors mr-3">
+                      <User className="h-5 w-5 text-indigo-400" />
+                    </div>
+                    <span>{t('profile.title')}</span>
                   </div>
-                  <span>{t('security.title')}</span>
-                </div>
-                <ChevronRight className="h-5 w-5 text-gray-500 group-hover:text-indigo-400 transition-colors" />
-              </CardTitle>
-            </CardHeader>
-          </Card>
+                  <ChevronRight className="h-5 w-5 text-gray-500 group-hover:text-indigo-400 transition-colors" />
+                </CardTitle>
+              </CardHeader>
+            </Card>
+          </Link>
 
-          <Card className="border-none shadow-sm hover:shadow-md transition-shadow cursor-pointer group bg-gray-800 text-gray-100 dark:bg-gray-850">
-            <CardHeader className="p-4">
-              <CardTitle className="text-md flex justify-between items-center">
-                <div className="flex items-center">
-                  <div className="p-2 rounded-full bg-gray-700 group-hover:bg-indigo-900 transition-colors mr-3">
-                    <ArrowUpRight className="h-5 w-5 text-indigo-400" />
+          <Link to="/history">
+            <Card className="border-none shadow-sm hover:shadow-md transition-shadow cursor-pointer group bg-gray-800 text-gray-100 dark:bg-gray-850">
+              <CardHeader className="p-4">
+                <CardTitle className="text-md flex justify-between items-center">
+                  <div className="flex items-center">
+                    <div className="p-2 rounded-full bg-gray-700 group-hover:bg-indigo-900 transition-colors mr-3">
+                      <History className="h-5 w-5 text-indigo-400" />
+                    </div>
+                    <span>{t('history.title')}</span>
                   </div>
-                  <span>{t('transfer.title')}</span>
-                </div>
-                <ChevronRight className="h-5 w-5 text-gray-500 group-hover:text-indigo-400 transition-colors" />
-              </CardTitle>
-            </CardHeader>
-          </Card>
+                  <ChevronRight className="h-5 w-5 text-gray-500 group-hover:text-indigo-400 transition-colors" />
+                </CardTitle>
+              </CardHeader>
+            </Card>
+          </Link>
+
+          <Link to="/referral">
+            <Card className="border-none shadow-sm hover:shadow-md transition-shadow cursor-pointer group bg-gray-800 text-gray-100 dark:bg-gray-850">
+              <CardHeader className="p-4">
+                <CardTitle className="text-md flex justify-between items-center">
+                  <div className="flex items-center">
+                    <div className="p-2 rounded-full bg-gray-700 group-hover:bg-indigo-900 transition-colors mr-3">
+                      <UserPlus className="h-5 w-5 text-indigo-400" />
+                    </div>
+                    <span>{t('referral.title')}</span>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-gray-500 group-hover:text-indigo-400 transition-colors" />
+                </CardTitle>
+              </CardHeader>
+            </Card>
+          </Link>
+
+          <Link to="/tasks">
+            <Card className="border-none shadow-sm hover:shadow-md transition-shadow cursor-pointer group bg-gray-800 text-gray-100 dark:bg-gray-850">
+              <CardHeader className="p-4">
+                <CardTitle className="text-md flex justify-between items-center">
+                  <div className="flex items-center">
+                    <div className="p-2 rounded-full bg-gray-700 group-hover:bg-indigo-900 transition-colors mr-3">
+                      <Award className="h-5 w-5 text-indigo-400" />
+                    </div>
+                    <span>{t('tasks.title')}</span>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-gray-500 group-hover:text-indigo-400 transition-colors" />
+                </CardTitle>
+              </CardHeader>
+            </Card>
+          </Link>
         </div>
 
-        <Button 
-          className="w-full bg-gradient-to-r from-indigo-700 to-purple-700 hover:from-indigo-800 hover:to-purple-800 text-white shadow-md transition-all hover:shadow-lg border-none" 
-          size="lg"
-        >
-          <span>{t('explore.button')}</span>
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
+        <Link to="/statistics">
+          <Button 
+            className="w-full bg-gradient-to-r from-indigo-700 to-purple-700 hover:from-indigo-800 hover:to-purple-800 text-white shadow-md transition-all hover:shadow-lg border-none" 
+            size="lg"
+          >
+            <BarChart2 className="mr-2 h-5 w-5" />
+            <span>{t('stats.title')}</span>
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </Link>
       </main>
 
       <MobileNavigation />

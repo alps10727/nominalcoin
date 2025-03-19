@@ -8,6 +8,12 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import Profile from "./pages/Profile";
+import History from "./pages/History";
+import Referral from "./pages/Referral";
+import Tasks from "./pages/Tasks";
+import MiningUpgrades from "./pages/MiningUpgrades";
+import Statistics from "./pages/Statistics";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +27,12 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/history" element={<History />} />
+              <Route path="/referral" element={<Referral />} />
+              <Route path="/tasks" element={<Tasks />} />
+              <Route path="/mining/upgrades" element={<MiningUpgrades />} />
+              <Route path="/statistics" element={<Statistics />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
