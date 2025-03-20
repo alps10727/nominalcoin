@@ -103,4 +103,53 @@
     from { opacity: 0; }
     to { opacity: 1; }
   }
+  
+  .mining-button-inactive {
+    background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+  }
+  
+  .mining-button-inactive:hover {
+    background: linear-gradient(135deg, #2a2a2a, #3a3a3a);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  }
+  
+  .mining-button-active {
+    background: linear-gradient(135deg, #264224, #1e3a1e);
+    box-shadow: 0 0 15px rgba(46, 125, 50, 0.3);
+  }
+  
+  .mining-ring-inactive {
+    border: 4px solid;
+    border-image: linear-gradient(45deg, #000000, #9b87f5, #FEF7CD) 1;
+    opacity: 0.4;
+    transition: all 0.3s ease;
+  }
+  
+  .mining-ring-inactive:hover {
+    opacity: 0.6;
+  }
+  
+  .mining-ring-active {
+    border: 4px solid;
+    border-image: linear-gradient(45deg, #FEF7CD, #000000, #9b87f5) 1;
+    animation: colorSpin 3s linear infinite;
+    opacity: 0.8;
+  }
+  
+  @keyframes colorSpin {
+    0% {
+      border-image: linear-gradient(0deg, #FEF7CD, #000000, #9b87f5) 1;
+    }
+    33% {
+      border-image: linear-gradient(120deg, #FEF7CD, #000000, #9b87f5) 1;
+    }
+    66% {
+      border-image: linear-gradient(240deg, #FEF7CD, #000000, #9b87f5) 1;
+    }
+    100% {
+      border-image: linear-gradient(360deg, #FEF7CD, #000000, #9b87f5) 1;
+    }
+  }
 }
