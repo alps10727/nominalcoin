@@ -162,14 +162,14 @@ const Index = () => {
               <div 
                 className={`relative mx-auto w-44 h-44 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 ${
                   miningActive 
-                    ? 'mining-button-active' 
-                    : 'mining-button-inactive'
+                    ? 'bg-gradient-to-br from-green-900 to-emerald-800 shadow-lg shadow-green-900/50' 
+                    : 'bg-gradient-to-br from-gray-800 to-gray-900 hover:shadow-md'
                 }`}
                 onClick={miningActive ? handleStopMining : handleStartMining}
               >
-                <div className={`absolute inset-2 rounded-full ${
-                  miningActive ? 'mining-ring-active animate-spin' : 'mining-ring-inactive'
-                }`}></div>
+                <div className={`absolute inset-2 rounded-full border-4 ${
+                  miningActive ? 'border-green-500 border-t-transparent' : 'border-gray-600 border-t-transparent'
+                } animate-spin opacity-20`}></div>
                 
                 <Circle className={`h-36 w-36 ${
                   miningActive 
