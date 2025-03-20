@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, ReactNode } from "react";
 
 type Language = "en" | "tr" | "zh" | "es" | "ru" | "fr" | "de" | "ar" | "pt";
@@ -502,5 +503,137 @@ const translations = {
     "history.title": "سجل المعاملات",
     "history.empty": "لم يتم العثور على معاملات",
     "history.mining": "مكافأة التعدين",
-    "history.referral": "كاف
+    "history.referral": "مكافأة الإحالة",
+    "history.purchase": "شراء",
+    "history.date": "التاريخ",
+    "history.amount": "المبلغ",
+    "history.type": "النوع",
+    "referral.title": "دعوة الأصدقاء",
+    "referral.description": "ادعُ أصدقاءك واكسب مكافآت FC",
+    "referral.code": "رمز الإحالة الخاص بك",
+    "referral.link": "رابط المشاركة",
+    "referral.reward": "اكسب {0} FC لكل صديق ينضم",
+    "referral.copy": "نسخ",
+    "referral.copied": "تم النسخ!",
+    "tasks.title": "المهام والشارات",
+    "tasks.daily": "المهام اليومية",
+    "tasks.achievements": "الإنجازات",
+    "tasks.claim": "المطالبة",
+    "tasks.completed": "مكتمل",
+    "tasks.progress": "قيد التقدم",
+    "mining.upgrades": "ترقيات التعدين",
+    "mining.speed": "تعزيز السرعة",
+    "mining.efficiency": "الكفاءة",
+    "mining.upgrade": "ترقية",
+    "mining.level": "المستوى {0}",
+    "mining.cost": "التكلفة: {0} FC",
+    "stats.title": "الإحصائيات",
+    "stats.totalMined": "إجمالي التعدين",
+    "stats.miningTime": "إجمالي وقت التعدين",
+    "stats.upgrades": "إجمالي الترقيات",
+    "stats.referrals": "إجمالي الإحالات",
+    "nav.profile": "الملف الشخصي",
+    "nav.history": "السجل",
+    "nav.referral": "الإحالة",
+    "nav.tasks": "المهام",
+    "nav.stats": "الإحصائيات",
+  },
+  pt: {
+    "app.title": "Future Coin",
+    "balance.title": "Seu Saldo FC",
+    "balance.total": "Total de Future Coin ganho",
+    "mining.title": "Mineração FC",
+    "mining.description": "Minere para ganhar criptomoeda Future Coin",
+    "mining.active": "PARAR",
+    "mining.inactive": "INICIAR",
+    "mining.activeminers": "Mineradores Ativos",
+    "mining.rate": "Taxa",
+    "security.title": "Centro de Segurança",
+    "transfer.title": "Transferir FC",
+    "explore.button": "Explorar Ecossistema FC",
+    "nav.mining": "Mineração",
+    "nav.team": "Equipe",
+    "nav.transfer": "Transferir",
+    "nav.security": "Segurança",
+    "mining.started": "Mineração iniciada",
+    "mining.startedDesc": "Você receberá recompensas a cada 30 segundos.",
+    "mining.stopped": "Mineração parada",
+    "mining.stoppedDesc": "Você ganhou um total de {0} FC nesta sessão.",
+    "mining.successful": "Mineração bem-sucedida!",
+    "mining.successfulDesc": "Você ganhou {0} FC.",
+    "profile.title": "Perfil do Usuário",
+    "profile.joinDate": "Ingressou em",
+    "profile.totalMined": "Total Minerado",
+    "profile.level": "Nível",
+    "profile.edit": "Editar Perfil",
+    "history.title": "Histórico de Transações",
+    "history.empty": "Nenhuma transação encontrada",
+    "history.mining": "Recompensa de Mineração",
+    "history.referral": "Bônus de Indicação",
+    "history.purchase": "Compra",
+    "history.date": "Data",
+    "history.amount": "Valor",
+    "history.type": "Tipo",
+    "referral.title": "Indicar Amigos",
+    "referral.description": "Convide amigos e ganhe recompensas FC",
+    "referral.code": "Seu Código de Indicação",
+    "referral.link": "Link para Compartilhar",
+    "referral.reward": "Ganhe {0} FC para cada amigo que se juntar",
+    "referral.copy": "Copiar",
+    "referral.copied": "Copiado!",
+    "tasks.title": "Tarefas e Emblemas",
+    "tasks.daily": "Tarefas Diárias",
+    "tasks.achievements": "Conquistas",
+    "tasks.claim": "Resgatar",
+    "tasks.completed": "Concluído",
+    "tasks.progress": "Em Andamento",
+    "mining.upgrades": "Melhorias de Mineração",
+    "mining.speed": "Aumento de Velocidade",
+    "mining.efficiency": "Eficiência",
+    "mining.upgrade": "Melhorar",
+    "mining.level": "Nível {0}",
+    "mining.cost": "Custo: {0} FC",
+    "stats.title": "Estatísticas",
+    "stats.totalMined": "Total Minerado",
+    "stats.miningTime": "Tempo Total de Mineração",
+    "stats.upgrades": "Total de Melhorias",
+    "stats.referrals": "Total de Indicações",
+    "nav.profile": "Perfil",
+    "nav.history": "Histórico",
+    "nav.referral": "Indicações",
+    "nav.tasks": "Tarefas",
+    "nav.stats": "Estatísticas",
+  },
+};
 
+const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+
+export const LanguageProvider = ({ children }: { children: ReactNode }) => {
+  const [language, setLanguage] = useState<Language>("en");
+
+  const t = (key: string, ...args: string[]): string => {
+    const translation = translations[language][key as keyof typeof translations[typeof language]];
+    if (!translation) return key;
+
+    if (args.length === 0) return translation;
+
+    return args.reduce(
+      (str, arg, i) => str.replace(`{${i}}`, arg),
+      translation
+    );
+  };
+
+  return (
+    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+      {children}
+    </LanguageContext.Provider>
+  );
+};
+
+export const useLanguage = (): LanguageContextType => {
+  const context = useContext(LanguageContext);
+  if (context === undefined) {
+    throw new Error("useLanguage must be used within a LanguageProvider");
+  }
+  return context;
+};
