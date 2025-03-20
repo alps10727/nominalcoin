@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -47,12 +46,10 @@ const Index = () => {
   const { theme } = useTheme();
 
   useEffect(() => {
-    // Sayfa yüklendiğinde loading'i kapatalım
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 1000);
     
-    // Cleanup timer
     return () => clearTimeout(timer);
   }, []);
 
@@ -64,7 +61,6 @@ const Index = () => {
         setMiningTime(prev => prev + 1);
         setProgress(prev => {
           if (prev >= 100) {
-            // Mining tamamlandı, balance'ı artıralım
             setBalance(prevBalance => prevBalance + miningRate);
             setMiningSession(prev => prev + 1);
             toast({
@@ -101,7 +97,6 @@ const Index = () => {
     setMiningTime(0);
   };
 
-  // Madencilik süresini dakika ve saniye olarak formatlayalım
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -126,9 +121,7 @@ const Index = () => {
     <div className={`min-h-screen bg-gradient-to-br from-gray-900 to-indigo-950 dark:from-gray-950 dark:to-indigo-950 flex flex-col`}>
       <Header />
 
-      {/* Main Content */}
       <main className="flex-1 p-5 max-w-3xl mx-auto w-full pb-24 md:pb-5">
-        {/* Balance Card */}
         <Card className="mb-6 overflow-hidden border-none shadow-lg bg-gray-800 dark:bg-gray-850">
           <div className="absolute inset-0 bg-gradient-to-r from-indigo-900 to-purple-900 opacity-90"></div>
           <CardHeader className="relative z-10">
@@ -146,7 +139,6 @@ const Index = () => {
           </div>
         </Card>
 
-        {/* Mining Card */}
         <Card className="mb-6 border-none shadow-md hover:shadow-lg transition-shadow bg-gray-800 text-gray-100 dark:bg-gray-850">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-xl">
@@ -167,8 +159,8 @@ const Index = () => {
                 }`}
                 onClick={miningActive ? handleStopMining : handleStartMining}
               >
-                <div className={`absolute inset-2 rounded-full ${
-                  miningActive ? 'mining-ring-active animate-spin' : 'mining-ring-inactive'
+                <div className={`absolute inset-0 rounded-full ${
+                  miningActive ? 'mining-ring-active' : 'mining-ring-inactive'
                 }`}></div>
                 
                 <Circle className={`h-36 w-36 ${
@@ -219,7 +211,6 @@ const Index = () => {
           </CardFooter>
         </Card>
 
-        {/* Function Cards Grid */}
         <div className="grid grid-cols-2 gap-4 mb-6">
           <Link to="/profile">
             <Card className="border-none shadow-sm hover:shadow-md transition-shadow cursor-pointer group bg-gray-800 text-gray-100 dark:bg-gray-850">
