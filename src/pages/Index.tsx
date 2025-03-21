@@ -160,7 +160,7 @@ const Index = () => {
                 onClick={miningActive ? handleStopMining : handleStartMining}
               >
                 <div className={`absolute inset-2 rounded-full border-4 ${
-                  miningActive ? 'border-red-500 border-t-transparent' : 'border-red-600 border-t-transparent'
+                  miningActive ? 'border-indigo-500 border-t-transparent' : 'border-indigo-600 border-t-transparent'
                 } animate-spin opacity-70`}></div>
                 
                 <Circle className={`h-36 w-36 ${
