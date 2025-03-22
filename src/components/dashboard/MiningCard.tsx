@@ -54,7 +54,27 @@ const MiningCard = ({
       <CardContent>
         <div className="text-center mb-6">
           <div className="relative mx-auto w-48 h-48">
-            {/* Circular progress indicator */}
+            {/* Continuous spinning animation ring */}
+            <svg className="absolute inset-0 w-full h-full animate-spin" style={{ animationDuration: '8s' }} viewBox="0 0 256 256">
+              <defs>
+                <linearGradient id="spinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#8B5CF6" />
+                  <stop offset="50%" stopColor="#6366F1" />
+                  <stop offset="100%" stopColor="#3B82F6" />
+                </linearGradient>
+              </defs>
+              <circle 
+                cx="128" 
+                cy="128" 
+                r="120" 
+                fill="none" 
+                strokeWidth="3" 
+                stroke="url(#spinGradient)" 
+                strokeDasharray="30 15"
+              />
+            </svg>
+            
+            {/* Mining progress indicator - only visible when mining is active */}
             {miningActive && (
               <svg className="absolute inset-0 w-full h-full -rotate-90 transform" viewBox="0 0 256 256">
                 {/* Background circle */}
