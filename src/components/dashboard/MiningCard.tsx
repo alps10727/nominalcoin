@@ -6,7 +6,6 @@ import { Progress } from "@/components/ui/progress";
 import { Zap, Users, Circle, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { toast } from "@/hooks/use-toast";
 
 interface MiningCardProps {
   miningActive: boolean;
@@ -48,6 +47,17 @@ const MiningCard = ({
       </CardHeader>
       <CardContent>
         <div className="text-center mb-6">
+          {/* Countdown progress bar above the mining button */}
+          {miningActive && (
+            <div className="mb-5 animate-fade-in">
+              <div className="flex justify-between mb-2 text-sm text-indigo-300 font-medium">
+                <p>{formatTime(miningTime)}</p>
+                <p>+{miningRate} FC</p>
+              </div>
+              <Progress value={progress} className="h-2.5 bg-gray-700" />
+            </div>
+          )}
+          
           <div 
             className={`relative mx-auto w-44 h-44 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 ${
               miningActive 
@@ -77,16 +87,6 @@ const MiningCard = ({
               )}
             </div>
           </div>
-          
-          {miningActive && (
-            <div className="mt-6 animate-fade-in">
-              <Progress value={progress} className="h-3 bg-gray-700" />
-              <div className="flex justify-between mt-2 text-sm text-gray-400">
-                <p>{t('mining.countdown')}: {miningTime}s</p>
-                <p>+{miningRate} FC</p>
-              </div>
-            </div>
-          )}
         </div>
         <div className="mt-4 text-center">
           <Link to="/mining/upgrades">

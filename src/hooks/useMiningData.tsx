@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { toast } from "@/hooks/use-toast";
 
 interface UserData {
   balance: number;
@@ -28,17 +27,6 @@ export function useMiningData() {
           const userData: UserData = JSON.parse(savedData);
           setBalance(userData.balance);
           setMiningRate(userData.miningRate);
-          
-          const now = Date.now();
-          const lastSaved = userData.lastSaved || 0;
-          const dayInMs = 24 * 60 * 60 * 1000;
-          
-          if (now - lastSaved < dayInMs) {
-            toast({
-              title: t('balance.restored'),
-              description: t('balance.restoredDesc'),
-            });
-          }
         }
       } catch (err) {
         console.error('Kullanıcı verisi yüklenirken hata oluştu:', err);
@@ -101,10 +89,6 @@ export function useMiningData() {
               return newBalance;
             });
             setMiningSession(prev => prev + 1);
-            toast({
-              title: t('mining.successful'),
-              description: t('mining.successfulDesc', miningRate.toString()),
-            });
             return 30; // Reset to 30 seconds
           }
           return prev - 1; // Count down
