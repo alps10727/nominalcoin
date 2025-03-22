@@ -82,7 +82,7 @@ const MiningCard = ({
             <div className="mt-6 animate-fade-in">
               <Progress value={progress} className="h-3 bg-gray-700" />
               <div className="flex justify-between mt-2 text-sm text-gray-400">
-                <p>Mining... {progress}%</p>
+                <p>{t('mining.countdown')}: {miningTime}s</p>
                 <p>+{miningRate} FC</p>
               </div>
             </div>

@@ -16,7 +16,7 @@ export function useMiningData() {
   const [balance, setBalance] = useState(0);
   const [miningRate, setMiningRate] = useState(0.1);
   const [miningSession, setMiningSession] = useState(0);
-  const [miningTime, setMiningTime] = useState(0);
+  const [miningTime, setMiningTime] = useState(30); // Start from 30 seconds
   const { t } = useLanguage();
 
   // Load user data from localStorage
@@ -84,9 +84,8 @@ export function useMiningData() {
     
     if (miningActive) {
       interval = window.setInterval(() => {
-        setMiningTime(prev => prev + 1);
-        setProgress(prev => {
-          if (prev >= 100) {
+        setMiningTime(prev => {
+          if (prev <= 1) {
             setBalance(prevBalance => {
               const newBalance = prevBalance + miningRate;
               try {
@@ -106,32 +105,34 @@ export function useMiningData() {
               title: t('mining.successful'),
               description: t('mining.successfulDesc', miningRate.toString()),
             });
+            return 30; // Reset to 30 seconds
+          }
+          return prev - 1; // Count down
+        });
+        
+        setProgress(prev => {
+          // Calculate progress based on time remaining (30 seconds to 0)
+          const newProgress = ((30 - miningTime) / 30) * 100;
+          if (newProgress >= 100) {
             return 0;
           }
-          return prev + 1;
+          return newProgress;
         });
-      }, 300);
+      }, 1000); // Update every second
     }
     
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [miningActive, miningRate, t]);
+  }, [miningActive, miningRate, miningTime, t]);
 
   const handleStartMining = () => {
     setMiningActive(true);
-    toast({
-      title: t('mining.started'),
-      description: t('mining.startedDesc'),
-    });
+    setMiningTime(30); // Reset to 30 seconds when starting
   };
 
   const handleStopMining = () => {
     setMiningActive(false);
-    toast({
-      title: t('mining.stopped'),
-      description: t('mining.stoppedDesc', (miningRate * miningSession).toString()),
-    });
     
     try {
       const userData: UserData = {
@@ -145,7 +146,7 @@ export function useMiningData() {
     }
     
     setMiningSession(0);
-    setMiningTime(0);
+    setMiningTime(30); // Reset to 30 seconds
   };
 
   return {
