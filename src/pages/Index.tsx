@@ -39,7 +39,7 @@ const Index = () => {
     <div className={`min-h-screen bg-gradient-to-br from-gray-900 to-indigo-950 dark:from-gray-950 dark:to-indigo-950 flex flex-col`}>
       <Header />
 
-      <main className="flex-1 p-5 max-w-3xl mx-auto w-full pb-24 md:pb-5">
+      <main className={`flex-1 ${isMobile ? 'p-3' : 'p-5'} max-w-3xl mx-auto w-full ${isMobile ? 'pb-20' : 'pb-5'}`}>
         <BalanceCard balance={balance} />
 
         <MiningCard 
@@ -52,7 +52,7 @@ const Index = () => {
           onStopMining={handleStopMining}
         />
 
-        <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-2 gap-3 mb-6">
           <MenuCard 
             title={t('profile.title')}
             icon={User}

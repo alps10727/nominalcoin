@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Zap, Users, Circle, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface MiningCardProps {
   miningActive: boolean;
@@ -26,6 +27,7 @@ const MiningCard = ({
   onStopMining
 }: MiningCardProps) => {
   const { t } = useLanguage();
+  const isMobile = useIsMobile();
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -44,7 +46,7 @@ const MiningCard = ({
 
   return (
     <Card className="mb-6 border-none shadow-md hover:shadow-lg transition-shadow bg-gray-800 text-gray-100 dark:bg-gray-850">
-      <CardHeader>
+      <CardHeader className={isMobile ? "px-4 py-3" : ""}>
         <CardTitle className="flex items-center gap-2 text-xl">
           <Zap className="h-5 w-5 text-yellow-400" />
           {t('mining.title')}
@@ -53,10 +55,10 @@ const MiningCard = ({
           {t('mining.description')}
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className={isMobile ? "px-4 py-2" : ""}>
         <div className="text-center mb-6">
           <div 
-            className={`relative mx-auto w-44 h-44 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 ${
+            className={`relative mx-auto ${isMobile ? 'w-36 h-36' : 'w-44 h-44'} rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 ${
               miningActive 
                 ? 'bg-gradient-to-br from-green-900 to-emerald-800 shadow-lg shadow-green-900/50' 
                 : 'bg-gradient-to-br from-gray-800 to-gray-900 hover:shadow-md'
@@ -70,22 +72,22 @@ const MiningCard = ({
             {miningActive && (
               <svg className="absolute inset-0 w-full h-full -rotate-90">
                 <circle 
-                  cx="88" 
-                  cy="88" 
-                  r="70" 
+                  cx={isMobile ? "72" : "88"} 
+                  cy={isMobile ? "72" : "88"} 
+                  r={isMobile ? "56" : "70"} 
                   stroke="currentColor" 
                   strokeWidth="4"
                   fill="transparent"
                   className="text-black/20"
                 />
                 <circle 
-                  cx="88" 
-                  cy="88" 
-                  r="70" 
+                  cx={isMobile ? "72" : "88"} 
+                  cy={isMobile ? "72" : "88"} 
+                  r={isMobile ? "56" : "70"} 
                   stroke="currentColor" 
                   strokeWidth="4"
                   fill="transparent"
-                  strokeDasharray={2 * Math.PI * 70}
+                  strokeDasharray={2 * Math.PI * (isMobile ? 56 : 70)}
                   strokeDashoffset={calculateCircleProgress(progress)}
                   strokeLinecap="round"
                   className="text-black transition-all duration-200"
@@ -93,7 +95,7 @@ const MiningCard = ({
               </svg>
             )}
             
-            <Circle className={`h-36 w-36 ${
+            <Circle className={`${isMobile ? 'h-28 w-28' : 'h-36 w-36'} ${
               miningActive 
                 ? 'text-green-400 animate-pulse' 
                 : 'text-gray-500 hover:text-indigo-400 transition-colors'
@@ -120,7 +122,7 @@ const MiningCard = ({
           </Link>
         </div>
       </CardContent>
-      <CardFooter className="flex justify-between text-sm text-gray-400 bg-gray-850 py-4 px-6 border-t border-gray-700">
+      <CardFooter className={`flex justify-between text-sm text-gray-400 bg-gray-850 py-4 ${isMobile ? 'px-4' : 'px-6'} border-t border-gray-700`}>
         <div className="flex items-center">
           <Users className="h-4 w-4 mr-2 text-indigo-400" />
           <span>{t('mining.activeminers')}</span>
