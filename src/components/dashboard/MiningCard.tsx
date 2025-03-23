@@ -35,15 +35,6 @@ const MiningCard = ({
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
-  // Calculate the stroke-dashoffset for the circle progress
-  const calculateCircleProgress = (progress: number) => {
-    // The circumference of a circle is 2πr
-    // Using r=70 (the radius of our circle from the CSS)
-    const circumference = 2 * Math.PI * 70;
-    // Calculate the dashoffset based on progress percentage
-    return circumference - (progress / 100) * circumference;
-  };
-
   return (
     <Card className="mb-6 border-none shadow-md hover:shadow-lg transition-shadow bg-gray-800 text-gray-100 dark:bg-gray-850">
       <CardHeader className={isMobile ? "px-4 py-3" : ""}>
@@ -67,33 +58,6 @@ const MiningCard = ({
           >
             {/* Continuous spinning animation */}
             <div className="absolute inset-2 rounded-full border-4 border-indigo-600/60 border-t-transparent animate-spin opacity-70"></div>
-            
-            {/* New circular progress indicator with black color */}
-            {miningActive && (
-              <svg className="absolute inset-0 w-full h-full -rotate-90">
-                <circle 
-                  cx={isMobile ? "72" : "88"} 
-                  cy={isMobile ? "72" : "88"} 
-                  r={isMobile ? "56" : "70"} 
-                  stroke="currentColor" 
-                  strokeWidth="4"
-                  fill="transparent"
-                  className="text-black/20"
-                />
-                <circle 
-                  cx={isMobile ? "72" : "88"} 
-                  cy={isMobile ? "72" : "88"} 
-                  r={isMobile ? "56" : "70"} 
-                  stroke="currentColor" 
-                  strokeWidth="4"
-                  fill="transparent"
-                  strokeDasharray={2 * Math.PI * (isMobile ? 56 : 70)}
-                  strokeDashoffset={calculateCircleProgress(progress)}
-                  strokeLinecap="round"
-                  className="text-black transition-all duration-200"
-                />
-              </svg>
-            )}
             
             <Circle className={`${isMobile ? 'h-28 w-28' : 'h-36 w-36'} ${
               miningActive 
