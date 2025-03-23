@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Zap, Users, Circle, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -34,6 +33,15 @@ const MiningCard = ({
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
+  // Calculate the stroke-dashoffset for the circle progress
+  const calculateCircleProgress = (progress: number) => {
+    // The circumference of a circle is 2πr
+    // Using r=70 (the radius of our circle from the CSS)
+    const circumference = 2 * Math.PI * 70;
+    // Calculate the dashoffset based on progress percentage
+    return circumference - (progress / 100) * circumference;
+  };
+
   return (
     <Card className="mb-6 border-none shadow-md hover:shadow-lg transition-shadow bg-gray-800 text-gray-100 dark:bg-gray-850">
       <CardHeader>
@@ -47,17 +55,6 @@ const MiningCard = ({
       </CardHeader>
       <CardContent>
         <div className="text-center mb-6">
-          {/* Countdown progress bar above the mining button */}
-          {miningActive && (
-            <div className="mb-5 animate-fade-in">
-              <div className="flex justify-between mb-2 text-sm text-indigo-300 font-medium">
-                <p>{formatTime(miningTime)}</p>
-                <p>+{miningRate} FC</p>
-              </div>
-              <Progress value={progress} className="h-2.5 bg-gray-700" />
-            </div>
-          )}
-          
           <div 
             className={`relative mx-auto w-44 h-44 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 ${
               miningActive 
@@ -66,9 +63,35 @@ const MiningCard = ({
             }`}
             onClick={miningActive ? onStopMining : onStartMining}
           >
-            <div className={`absolute inset-2 rounded-full border-4 ${
-              miningActive ? 'border-indigo-500 border-t-transparent' : 'border-indigo-600 border-t-transparent'
-            } animate-spin opacity-70`}></div>
+            {/* Continuous spinning animation */}
+            <div className="absolute inset-2 rounded-full border-4 border-indigo-600/60 border-t-transparent animate-spin opacity-70"></div>
+            
+            {/* New circular progress indicator */}
+            {miningActive && (
+              <svg className="absolute inset-0 w-full h-full -rotate-90">
+                <circle 
+                  cx="88" 
+                  cy="88" 
+                  r="70" 
+                  stroke="currentColor" 
+                  strokeWidth="4"
+                  fill="transparent"
+                  className="text-indigo-500/20"
+                />
+                <circle 
+                  cx="88" 
+                  cy="88" 
+                  r="70" 
+                  stroke="currentColor" 
+                  strokeWidth="4"
+                  fill="transparent"
+                  strokeDasharray={2 * Math.PI * 70}
+                  strokeDashoffset={calculateCircleProgress(progress)}
+                  strokeLinecap="round"
+                  className="text-indigo-500 transition-all duration-200"
+                />
+              </svg>
+            )}
             
             <Circle className={`h-36 w-36 ${
               miningActive 

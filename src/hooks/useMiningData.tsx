@@ -94,12 +94,11 @@ export function useMiningData() {
           return prev - 1; // Count down
         });
         
+        // Update progress calculation to be smoother for circular progress
         setProgress(prev => {
-          // Calculate progress based on time remaining (30 seconds to 0)
-          const newProgress = ((30 - miningTime) / 30) * 100;
-          if (newProgress >= 100) {
-            return 0;
-          }
+          // Calculate progress percentage (from 0 to 100)
+          const timeElapsed = 30 - miningTime;
+          const newProgress = (timeElapsed / 30) * 100;
           return newProgress;
         });
       }, 1000); // Update every second
@@ -113,6 +112,7 @@ export function useMiningData() {
   const handleStartMining = () => {
     setMiningActive(true);
     setMiningTime(30); // Reset to 30 seconds when starting
+    setProgress(0); // Reset progress when starting
   };
 
   const handleStopMining = () => {
@@ -131,6 +131,7 @@ export function useMiningData() {
     
     setMiningSession(0);
     setMiningTime(30); // Reset to 30 seconds
+    setProgress(0); // Reset progress when stopping
   };
 
   return {
