@@ -66,7 +66,7 @@ const MiningCard = ({
             {/* Continuous spinning animation */}
             <div className="absolute inset-2 rounded-full border-4 border-indigo-600/60 border-t-transparent animate-spin opacity-70"></div>
             
-            {/* New circular progress indicator */}
+            {/* New circular progress indicator with black color */}
             {miningActive && (
               <svg className="absolute inset-0 w-full h-full -rotate-90">
                 <circle 
@@ -76,7 +76,7 @@ const MiningCard = ({
                   stroke="currentColor" 
                   strokeWidth="4"
                   fill="transparent"
-                  className="text-indigo-500/20"
+                  className="text-black/20"
                 />
                 <circle 
                   cx="88" 
@@ -88,7 +88,7 @@ const MiningCard = ({
                   strokeDasharray={2 * Math.PI * 70}
                   strokeDashoffset={calculateCircleProgress(progress)}
                   strokeLinecap="round"
-                  className="text-indigo-500 transition-all duration-200"
+                  className="text-black transition-all duration-200"
                 />
               </svg>
             )}
