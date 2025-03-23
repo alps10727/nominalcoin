@@ -14,6 +14,8 @@ import Referral from "./pages/Referral";
 import Tasks from "./pages/Tasks";
 import MiningUpgrades from "./pages/MiningUpgrades";
 import Statistics from "./pages/Statistics";
+import SignIn from "./pages/SignIn";
+import SignUp from "./pages/SignUp";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +35,8 @@ const App = () => (
               <Route path="/tasks" element={<Tasks />} />
               <Route path="/mining/upgrades" element={<MiningUpgrades />} />
               <Route path="/statistics" element={<Statistics />} />
+              <Route path="/sign-in" element={<SignIn />} />
+              <Route path="/sign-up" element={<SignUp />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
