@@ -56,9 +56,6 @@ const MiningCard = ({
             }`}
             onClick={miningActive ? onStopMining : onStartMining}
           >
-            {/* Continuous spinning animation */}
-            <div className="absolute inset-2 rounded-full border-4 border-indigo-600/60 border-t-transparent animate-spin opacity-70"></div>
-            
             <Circle className={`${isMobile ? 'h-28 w-28' : 'h-36 w-36'} ${
               miningActive 
                 ? 'text-green-400 animate-pulse' 
@@ -92,7 +89,7 @@ const MiningCard = ({
           <span>{t('mining.activeminers')}</span>
         </div>
         <div className="flex items-center font-medium">
-          <span>{t('mining.rate')}: {miningRate} FC/cycle</span>
+          <span>{t('mining.rate')}: {miningRate.toFixed(2)} FC/cycle</span>
         </div>
       </CardFooter>
     </Card>

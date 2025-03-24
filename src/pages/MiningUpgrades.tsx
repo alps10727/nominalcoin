@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Zap, TrendingUp, Coins, Bolt, BarChart, CornerRightUp } from "lucide-react";
@@ -21,10 +21,17 @@ interface Upgrade {
   icon: JSX.Element;
 }
 
+interface UserData {
+  balance: number;
+  miningRate: number;
+  lastSaved: number;
+  upgrades?: Upgrade[];
+}
+
 const MiningUpgrades = () => {
   const { t } = useLanguage();
   const { theme } = useTheme();
-  const [balance, setBalance] = useState(25);
+  const [balance, setBalance] = useState(0);
   
   const [upgrades, setUpgrades] = useState<Upgrade[]>([
     {
@@ -69,6 +76,42 @@ const MiningUpgrades = () => {
     },
   ]);
 
+  // Load user data from localStorage
+  useEffect(() => {
+    try {
+      const savedData = localStorage.getItem('fcMinerUserData');
+      if (savedData) {
+        const userData: UserData = JSON.parse(savedData);
+        setBalance(userData.balance);
+        
+        // Load saved upgrades if available
+        if (userData.upgrades) {
+          setUpgrades(userData.upgrades);
+        }
+      }
+    } catch (err) {
+      console.error('Kullanıcı verisi yüklenirken hata oluştu:', err);
+    }
+  }, []);
+
+  // Save data when balance or upgrades change
+  useEffect(() => {
+    try {
+      const savedData = localStorage.getItem('fcMinerUserData');
+      if (savedData) {
+        const userData: UserData = JSON.parse(savedData);
+        const updatedUserData = {
+          ...userData,
+          balance: balance,
+          upgrades: upgrades
+        };
+        localStorage.setItem('fcMinerUserData', JSON.stringify(updatedUserData));
+      }
+    } catch (err) {
+      console.error('Kullanıcı verisi kaydedilirken hata oluştu:', err);
+    }
+  }, [balance, upgrades]);
+
   const purchaseUpgrade = (upgradeId: string) => {
     const upgradeIndex = upgrades.findIndex(upgrade => upgrade.id === upgradeId);
     if (upgradeIndex !== -1) {
@@ -98,6 +141,26 @@ const MiningUpgrades = () => {
           title: "Upgrade Purchased",
           description: `${upgrade.title} upgraded to level ${upgrade.level + 1}`,
         });
+
+        // Update mining rate for rate upgrades
+        if (upgradeId === "rate") {
+          try {
+            const savedData = localStorage.getItem('fcMinerUserData');
+            if (savedData) {
+              const userData: UserData = JSON.parse(savedData);
+              const newMiningRate = 0.1 + (upgrade.level + 1) * 0.05; // Base rate + level bonus
+              const updatedUserData = {
+                ...userData,
+                miningRate: newMiningRate,
+                balance: balance - upgrade.cost,
+                upgrades: newUpgrades
+              };
+              localStorage.setItem('fcMinerUserData', JSON.stringify(updatedUserData));
+            }
+          } catch (err) {
+            console.error('Mining rate update failed:', err);
+          }
+        }
       } else {
         toast({
           title: "Insufficient Funds",
