@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,6 +24,9 @@ interface UserData {
   balance: number;
   miningRate: number;
   lastSaved: number;
+  miningActive?: boolean;
+  miningTime?: number;
+  miningSession?: number;
   upgrades?: Upgrade[];
 }
 
@@ -32,6 +34,7 @@ const MiningUpgrades = () => {
   const { t } = useLanguage();
   const { theme } = useTheme();
   const [balance, setBalance] = useState(0);
+  const [miningRate, setMiningRate] = useState(0.1);
   
   const [upgrades, setUpgrades] = useState<Upgrade[]>([
     {
@@ -83,10 +86,22 @@ const MiningUpgrades = () => {
       if (savedData) {
         const userData: UserData = JSON.parse(savedData);
         setBalance(userData.balance);
+        setMiningRate(userData.miningRate);
         
         // Load saved upgrades if available
         if (userData.upgrades) {
           setUpgrades(userData.upgrades);
+        } else {
+          // Initialize rate upgrade level based on mining rate
+          const currentRateLevel = Math.round((userData.miningRate - 0.1) / 0.05);
+          if (currentRateLevel > 0) {
+            const updatedUpgrades = [...upgrades];
+            const rateUpgradeIndex = updatedUpgrades.findIndex(u => u.id === "rate");
+            if (rateUpgradeIndex !== -1) {
+              updatedUpgrades[rateUpgradeIndex].level = currentRateLevel;
+              setUpgrades(updatedUpgrades);
+            }
+          }
         }
       }
     } catch (err) {
@@ -103,6 +118,7 @@ const MiningUpgrades = () => {
         const updatedUserData = {
           ...userData,
           balance: balance,
+          miningRate: miningRate,
           upgrades: upgrades
         };
         localStorage.setItem('fcMinerUserData', JSON.stringify(updatedUserData));
@@ -110,7 +126,7 @@ const MiningUpgrades = () => {
     } catch (err) {
       console.error('Kullanıcı verisi kaydedilirken hata oluştu:', err);
     }
-  }, [balance, upgrades]);
+  }, [balance, miningRate, upgrades]);
 
   const purchaseUpgrade = (upgradeId: string) => {
     const upgradeIndex = upgrades.findIndex(upgrade => upgrade.id === upgradeId);
@@ -137,18 +153,16 @@ const MiningUpgrades = () => {
         };
         setUpgrades(newUpgrades);
         
-        toast({
-          title: "Upgrade Purchased",
-          description: `${upgrade.title} upgraded to level ${upgrade.level + 1}`,
-        });
-
         // Update mining rate for rate upgrades
         if (upgradeId === "rate") {
+          const newLevel = upgrade.level + 1;
+          const newMiningRate = 0.1 + newLevel * 0.05; // Base rate + level bonus
+          setMiningRate(newMiningRate);
+          
           try {
             const savedData = localStorage.getItem('fcMinerUserData');
             if (savedData) {
               const userData: UserData = JSON.parse(savedData);
-              const newMiningRate = 0.1 + (upgrade.level + 1) * 0.05; // Base rate + level bonus
               const updatedUserData = {
                 ...userData,
                 miningRate: newMiningRate,
@@ -161,6 +175,11 @@ const MiningUpgrades = () => {
             console.error('Mining rate update failed:', err);
           }
         }
+        
+        toast({
+          title: "Upgrade Purchased",
+          description: `${upgrade.title} upgraded to level ${upgrade.level + 1}`,
+        });
       } else {
         toast({
           title: "Insufficient Funds",

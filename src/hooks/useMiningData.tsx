@@ -51,8 +51,8 @@ export function useMiningData() {
     };
 
     const timer = setTimeout(() => {
-      setIsLoading(false);
       loadUserData();
+      setIsLoading(false);
     }, 1000);
     
     return () => clearTimeout(timer);
@@ -77,14 +77,14 @@ export function useMiningData() {
         }
       };
 
-      const saveInterval = setInterval(saveUserData, 10000); // Save more frequently
+      const saveInterval = setInterval(saveUserData, 5000); // Save every 5 seconds
       
       // Save when mining state changes
       saveUserData();
       
       return () => {
         clearInterval(saveInterval);
-        saveUserData();
+        saveUserData(); // Save one last time when cleaning up
       };
     }
   }, [balance, miningRate, miningActive, miningTime, miningSession, isLoading]);
