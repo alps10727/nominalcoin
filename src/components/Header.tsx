@@ -1,23 +1,21 @@
 
-import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileMenu } from "./header/MobileMenu";
 import { Logo } from "./header/Logo";
 import { LanguageSwitcher } from "./header/LanguageSwitcher";
 import { ThemeToggle } from "./header/ThemeToggle";
 import { NotificationsDropdown } from "./header/NotificationsDropdown";
 import { Stars } from "lucide-react";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Header = () => {
-  const isMobile = useIsMobile();
-  const { language } = useLanguage();
+  const { currentUser } = useAuth();
 
   return (
-    <header className="bg-gradient-to-r from-darkPurple-900/95 via-navy-900/90 to-darkPurple-900/95 backdrop-blur-xl p-4 flex justify-between items-center shadow-lg sticky top-0 z-10 border-b border-violet-500/20">
-      {/* Decorative grid pattern */}
+    <header className="bg-gradient-to-r from-darkPurple-900/95 via-navy-900/90 to-darkPurple-900/95 backdrop-blur-xl pt-safe p-4 flex justify-between items-center shadow-lg sticky top-0 z-10 border-b border-violet-500/20">
+      {/* Dekoratif arka plan deseni */}
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0YzAtMi4yMDktMS43OTEtNC00LTRzLTQgMS43OTEtNCA0IDEuNzkxIDQgNCA0IDQtMS43OTEgNC00Wm0wLTIwYzAtMi4yMDktMS43OTEtNC00LTRzLTQgMS43OTEtNCA0IDEuNzkxIDQgNCA0IDQtMS43OTEgNC00Wm0tMjAgMjBjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTRabTAtMjBjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTRabTQwIDIwYzAtMi4yMDktMS43OTEtNC00LTRzLTQgMS43OTEtNCA0IDEuNzkxIDQgNCA0IDQtMS43OTEgNC00Wm0wLTIwYzAtMi4yMDktMS43OTEtNC00LTRzLTQgMS43OTEtNCA0IDEuNzkxIDQgNCA0IDQtMS43OTEgNC00WiIvPjwvZz48L2c+PC9zdmc+')] bg-fixed opacity-70"></div>
       
-      {/* Header glow effect */}
+      {/* Header parlama efekti */}
       <div className="absolute inset-0 bg-gradient-to-b from-darkPurple-400/10 to-transparent"></div>
       
       <MobileMenu />
@@ -32,7 +30,7 @@ const Header = () => {
       <div className="flex items-center gap-3">
         <LanguageSwitcher />
         <ThemeToggle />
-        <NotificationsDropdown />
+        {currentUser && <NotificationsDropdown />}
       </div>
     </header>
   );
