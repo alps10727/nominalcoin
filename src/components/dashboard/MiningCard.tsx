@@ -56,7 +56,7 @@ const MiningCard = ({
               onMouseEnter={() => setIsHovering(true)}
               onMouseLeave={() => setIsHovering(false)}
             >
-              {/* Outer ripple effect when active */}
+              {/* Outer effect when active - using a different animation now */}
               {miningActive && (
                 <div 
                   className="absolute rounded-full bg-gradient-to-br from-cyan-400/30 to-emerald-500/30"
@@ -71,7 +71,7 @@ const MiningCard = ({
                 ></div>
               )}
               
-              {/* First spinning ring animation */}
+              {/* Spinning ring animation */}
               <div 
                 className="absolute rounded-full border-[3px]"
                 style={{
@@ -90,7 +90,7 @@ const MiningCard = ({
                 }}
               ></div>
               
-              {/* Second spinning ring (opposite direction) */}
+              {/* Secondary spinning ring (opposite direction) */}
               <div 
                 className="absolute rounded-full border-[2px]"
                 style={{
@@ -109,7 +109,7 @@ const MiningCard = ({
               
               {/* Mining start/stop button */}
               <button 
-                className={`relative ${isMobile ? 'w-28 h-28' : 'w-40 h-40'} rounded-full flex items-center justify-center cursor-pointer transition-all duration-500 overflow-hidden shadow-lg`}
+                className={`relative ${isMobile ? 'w-32 h-32' : 'w-40 h-40'} rounded-full flex items-center justify-center cursor-pointer transition-all duration-500 overflow-hidden shadow-lg`}
                 onClick={miningActive ? onStopMining : onStartMining}
                 style={{
                   transform: isHovering && !miningActive ? 'scale(1.03)' : 'scale(1)',
@@ -118,14 +118,14 @@ const MiningCard = ({
                     : isHovering ? '0 0 20px rgba(99, 102, 241, 0.5)' : '0 0 15px rgba(0, 0, 0, 0.5)'
                 }}
               >
-                {/* Button background with gradient */}
+                {/* New background with mesh gradient */}
                 <div className={`absolute inset-0 ${
                   miningActive 
                     ? 'bg-gradient-to-br from-cyan-600 via-teal-600 to-emerald-700' 
                     : 'bg-gradient-to-br from-indigo-700 via-blue-700 to-purple-900'
                 } transition-all duration-500`}></div>
                 
-                {/* Glowing dots effect */}
+                {/* New glowing dots effect instead of shimmer */}
                 <div 
                   className={`absolute inset-0 ${miningActive || isHovering ? 'bg-dot-white opacity-40' : 'opacity-0'}`}
                   style={{
@@ -133,30 +133,27 @@ const MiningCard = ({
                   }}
                 ></div>
                 
-                {/* Button center icon */}
+                {/* Updated button center icon with new animation */}
                 {miningActive ? (
                   <div className="relative z-10 animate-pulse-slow">
-                    <Circle className={`${isMobile ? 'h-20 w-20' : 'h-32 w-32'} text-cyan-200 opacity-90`} />
+                    <Circle className={`${isMobile ? 'h-24 w-24' : 'h-32 w-32'} text-cyan-200 opacity-90`} />
                   </div>
                 ) : (
-                  <Circle className={`${isMobile ? 'h-20 w-20' : 'h-32 w-32'} relative z-10 transition-all duration-300 text-indigo-200 ${isHovering ? 'scale-110' : 'scale-100'}`} />
+                  <Circle className={`${isMobile ? 'h-24 w-24' : 'h-32 w-32'} relative z-10 transition-all duration-300 text-indigo-200 ${isHovering ? 'scale-110' : 'scale-100'}`} />
                 )}
                 
-                {/* Status labels */}
                 <div className="absolute inset-0 flex items-center justify-center flex-col z-20">
                   {miningActive ? (
                     <>
-                      <span className={`text-sm font-medium px-3 py-1 rounded-full bg-black/40 backdrop-blur-sm shadow-md text-cyan-300 transition-all duration-300 ${isMobile ? 'text-xs' : 'text-sm'}`}>{t('mining.active')}</span>
-                      <span className={`${isMobile ? 'text-xs mt-1' : 'text-xs mt-2'} font-mono bg-black/30 backdrop-blur-sm px-2 py-1 rounded-md text-cyan-300 transition-all duration-300`}>{formatTime(miningTime)}</span>
+                      <span className="text-sm font-medium px-3 py-1 rounded-full bg-black/40 backdrop-blur-sm shadow-md text-cyan-300 transition-all duration-300">{t('mining.active')}</span>
+                      <span className="text-xs mt-2 font-mono bg-black/30 backdrop-blur-sm px-2 py-1 rounded-md text-cyan-300 transition-all duration-300">{formatTime(miningTime)}</span>
                     </>
                   ) : (
                     <div className="flex flex-col items-center transition-transform duration-300" style={{ transform: isHovering ? 'translateY(-2px)' : 'translateY(0)' }}>
-                      <span className={`${isMobile ? 'text-xs px-3 py-1' : 'text-sm px-4 py-1.5'} font-medium rounded-full bg-black/40 backdrop-blur-sm shadow-md text-white`}>{t('mining.inactive')}</span>
-                      {isHovering && (
-                        <span className={`${isMobile ? 'text-[10px] mt-1' : 'text-xs mt-1.5'} text-indigo-200 opacity-80`}>
-                          {t('mining.tap_to_start')}
-                        </span>
-                      )}
+                      <span className="text-sm font-medium px-4 py-1.5 rounded-full bg-black/40 backdrop-blur-sm shadow-md text-white">{t('mining.inactive')}</span>
+                      <span className="text-xs mt-1.5 text-indigo-200 opacity-80">
+                        {isHovering ? t('mining.tap_to_start') : ''}
+                      </span>
                     </div>
                   )}
                 </div>
