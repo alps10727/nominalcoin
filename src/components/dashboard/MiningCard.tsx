@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Zap, Users, Circle, ChevronRight } from "lucide-react";
+import { Zap, Circle, ChevronRight, Award } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -77,20 +77,23 @@ const MiningCard = ({
             </div>
           </div>
         </div>
-        <div className="mt-4 text-center">
+        <div className="mt-4 text-center flex justify-center gap-3">
           <Link to="/mining/upgrades">
             <Button variant="outline" className="border-indigo-800 bg-gray-800/50 text-indigo-300 hover:bg-indigo-900/30">
               {t('mining.upgrades')}
               <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </Link>
+          
+          <Link to="/tasks">
+            <Button variant="outline" className="border-green-800 bg-gray-800/50 text-green-300 hover:bg-green-900/30">
+              <Award className="h-4 w-4 mr-1" />
+              {t('tasks.title')}
+            </Button>
+          </Link>
         </div>
       </CardContent>
-      <CardFooter className={`flex justify-between text-sm text-gray-400 bg-gray-850 py-4 ${isMobile ? 'px-4' : 'px-6'} border-t border-gray-700`}>
-        <div className="flex items-center">
-          <Users className="h-4 w-4 mr-2 text-indigo-400" />
-          <span>{t('mining.activeminers')}</span>
-        </div>
+      <CardFooter className={`flex justify-center text-sm text-gray-400 bg-gray-850 py-4 ${isMobile ? 'px-4' : 'px-6'} border-t border-gray-700`}>
         <div className="flex items-center font-medium">
           <span>{t('mining.rate')}: {miningRate.toFixed(4)} FC/3min</span>
         </div>
