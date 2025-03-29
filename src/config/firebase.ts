@@ -3,14 +3,14 @@ import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
-// Firebase yapılandırma bilgileri
+// Firebase yapılandırma bilgileri - Kendi Firebase hesabınızın bilgileriyle değiştirin
 const firebaseConfig = {
-  apiKey: "AIzaSyBZ7C50TQYVVoj5KBr-xtdMFfhj7GBDXtk",
-  authDomain: "future-coin-app.firebaseapp.com",
-  projectId: "future-coin-app",
-  storageBucket: "future-coin-app.appspot.com",
-  messagingSenderId: "628461041667",
-  appId: "1:628461041667:web:39c70a231f45c07e7d54ed"
+  apiKey: "BURAYA_KENDİ_FIREBASE_API_KEY_BİLGİNİZİ_YAZIN",
+  authDomain: "BURAYA_KENDİ_FIREBASE_AUTH_DOMAIN_BİLGİNİZİ_YAZIN",
+  projectId: "BURAYA_KENDİ_FIREBASE_PROJECT_ID_BİLGİNİZİ_YAZIN",
+  storageBucket: "BURAYA_KENDİ_FIREBASE_STORAGE_BUCKET_BİLGİNİZİ_YAZIN",
+  messagingSenderId: "BURAYA_KENDİ_FIREBASE_MESSAGING_SENDER_ID_BİLGİNİZİ_YAZIN",
+  appId: "BURAYA_KENDİ_FIREBASE_APP_ID_BİLGİNİZİ_YAZIN"
 };
 
 // Firebase'i başlat
