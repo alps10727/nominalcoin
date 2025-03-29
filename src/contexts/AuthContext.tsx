@@ -98,11 +98,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log("Kayıt işlemi başlatılıyor:", email);
       const user = await registerUser(email, password, {});
+      
+      // Eğer null olmayan bir kullanıcı değeri döndüyse, işlem başarılıdır
       if (user) {
         console.log("Kayıt işlemi başarılı:", user.uid);
-        toast.success("Hesap başarıyla oluşturuldu!");
         return true;
       }
+      
       console.log("Kayıt işlemi başarısız: Kullanıcı verisi döndürülmedi");
       return false;
     } catch (error) {
