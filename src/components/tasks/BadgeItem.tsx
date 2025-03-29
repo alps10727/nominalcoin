@@ -2,12 +2,15 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/types/tasks";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface BadgeItemProps {
   badge: Badge;
 }
 
 const BadgeItem = ({ badge }: BadgeItemProps) => {
+  const { t } = useLanguage();
+  
   return (
     <Card className={`border-none shadow-md text-gray-100 dark:bg-gray-850 overflow-hidden ${badge.earned ? 'bg-gradient-to-br from-gray-800 to-indigo-900/50' : 'bg-gray-800'}`}>
       <CardContent className="p-4">
@@ -22,7 +25,7 @@ const BadgeItem = ({ badge }: BadgeItemProps) => {
         </div>
         <div className="mt-3">
           <div className="flex justify-between text-xs text-gray-400 mb-1">
-            <span>{badge.earned ? 'Earned' : 'Progress'}</span>
+            <span>{badge.earned ? t('tasks.completed') : t('tasks.progress')}</span>
             <span>{badge.progress}%</span>
           </div>
           <Progress value={badge.progress} className="h-2 bg-gray-700" />
