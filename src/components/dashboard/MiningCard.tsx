@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Zap, Circle } from "lucide-react";
+import { Zap, Circle, Loader } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -49,29 +49,38 @@ const MiningCard = ({
       </CardHeader>
       <CardContent className={isMobile ? "px-4 py-2" : ""}>
         <div className="text-center mb-6">
-          <div 
-            className={`relative mx-auto ${isMobile ? 'w-36 h-36' : 'w-44 h-44'} rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 ${
-              miningActive 
-                ? 'bg-gradient-to-br from-green-900 to-emerald-800 shadow-lg shadow-green-900/50' 
-                : 'bg-gradient-to-br from-gray-800 to-gray-900 hover:shadow-md'
-            }`}
-            onClick={miningActive ? onStopMining : onStartMining}
-          >
-            <Circle className={`${isMobile ? 'h-28 w-28' : 'h-36 w-36'} ${
-              miningActive 
-                ? 'text-green-400 animate-pulse' 
-                : 'text-gray-500 hover:text-indigo-400 transition-colors'
-            }`} />
+          <div className="relative mx-auto">
+            {/* Rotating animation ring */}
+            {!miningActive && (
+              <div className={`absolute inset-0 ${isMobile ? 'w-36 h-36' : 'w-44 h-44'} rounded-full`}>
+                <Loader className={`${isMobile ? 'h-36 w-36' : 'h-44 w-44'} text-indigo-500/30 animate-spin`} />
+              </div>
+            )}
             
-            <div className="absolute inset-0 flex items-center justify-center flex-col">
-              {miningActive ? (
-                <>
-                  <span className="text-sm font-semibold bg-gray-900/80 px-3 py-1 rounded-full shadow-sm text-green-400">{t('mining.active')}</span>
-                  <span className="text-xs mt-2 font-mono bg-gray-900/80 px-2 py-1 rounded-md text-green-400">{formatTime(miningTime)}</span>
-                </>
-              ) : (
-                <span className="text-sm font-semibold bg-indigo-700 px-4 py-1.5 rounded-full shadow-sm text-white">{t('mining.inactive')}</span>
-              )}
+            <div 
+              className={`relative mx-auto ${isMobile ? 'w-36 h-36' : 'w-44 h-44'} rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 ${
+                miningActive 
+                  ? 'bg-gradient-to-br from-green-900 to-emerald-800 shadow-lg shadow-green-900/50' 
+                  : 'bg-gradient-to-br from-gray-800 to-gray-900 hover:shadow-md'
+              }`}
+              onClick={miningActive ? onStopMining : onStartMining}
+            >
+              <Circle className={`${isMobile ? 'h-28 w-28' : 'h-36 w-36'} ${
+                miningActive 
+                  ? 'text-green-400 animate-pulse' 
+                  : 'text-gray-500 hover:text-indigo-400 transition-colors'
+              }`} />
+              
+              <div className="absolute inset-0 flex items-center justify-center flex-col">
+                {miningActive ? (
+                  <>
+                    <span className="text-sm font-semibold bg-gray-900/80 px-3 py-1 rounded-full shadow-sm text-green-400">{t('mining.active')}</span>
+                    <span className="text-xs mt-2 font-mono bg-gray-900/80 px-2 py-1 rounded-md text-green-400">{formatTime(miningTime)}</span>
+                  </>
+                ) : (
+                  <span className="text-sm font-semibold bg-indigo-700 px-4 py-1.5 rounded-full shadow-sm text-white">{t('mining.inactive')}</span>
+                )}
+              </div>
             </div>
           </div>
         </div>
