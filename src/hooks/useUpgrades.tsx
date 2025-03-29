@@ -7,7 +7,7 @@ import { loadUserData, saveUserData } from "@/utils/storage";
 
 export function useUpgrades() {
   const [balance, setBalance] = useState(0);
-  const [miningRate, setMiningRate] = useState(0.1);
+  const [miningRate, setMiningRate] = useState(0.001); // Değiştirildi
   
   const [upgrades, setUpgrades] = useState<Upgrade[]>([
     {
@@ -27,7 +27,7 @@ export function useUpgrades() {
       level: 1,
       maxLevel: 10,
       cost: 15,
-      effect: "+0.05 FC per level",
+      effect: "+0.0005 FC per level", // Değiştirildi
       icon: <TrendingUp className="h-5 w-5 text-green-400" />
     },
     {
@@ -57,14 +57,14 @@ export function useUpgrades() {
     const userData = loadUserData();
     if (userData) {
       setBalance(userData.balance);
-      setMiningRate(userData.miningRate);
+      setMiningRate(userData.miningRate || 0.001); // Default değer değiştirildi
       
       // Load saved upgrades if available
       if (userData.upgrades) {
         setUpgrades(userData.upgrades);
       } else {
         // Initialize rate upgrade level based on mining rate
-        const currentRateLevel = Math.round((userData.miningRate - 0.1) / 0.05);
+        const currentRateLevel = Math.round((userData.miningRate - 0.001) / 0.0005); // Değiştirildi
         if (currentRateLevel > 0) {
           const updatedUpgrades = [...upgrades];
           const rateUpgradeIndex = updatedUpgrades.findIndex(u => u.id === "rate");
@@ -119,7 +119,7 @@ export function useUpgrades() {
         // Update mining rate for rate upgrades
         if (upgradeId === "rate") {
           const newLevel = upgrade.level + 1;
-          const newMiningRate = 0.1 + newLevel * 0.05; // Base rate + level bonus
+          const newMiningRate = 0.001 + newLevel * 0.0005; // Değiştirildi
           setMiningRate(newMiningRate);
           
           const userData = loadUserData();

@@ -11,6 +11,7 @@ export interface MiningState {
   miningRate: number;
   miningSession: number;
   miningTime: number;
+  miningPeriod: number; // Toplam madencilik periyodu (sn olarak)
 }
 
 export function useMiningData() {
@@ -19,9 +20,10 @@ export function useMiningData() {
     miningActive: false,
     progress: 0,
     balance: 0,
-    miningRate: 0.1,
+    miningRate: 0.001, // Değiştirildi: Her döngüde 0.001 FC eklenir
     miningSession: 0,
-    miningTime: 30
+    miningTime: 21600, // Değiştirildi: 6 saat = 21600 saniye
+    miningPeriod: 21600 // Değiştirildi: Toplam periyot 6 saat
   });
   
   const { t } = useLanguage();
@@ -34,11 +36,12 @@ export function useMiningData() {
         setState(prevState => ({
           ...prevState,
           balance: userData.balance,
-          miningRate: userData.miningRate,
+          miningRate: userData.miningRate || 0.001, // Default değer değiştirildi
           miningActive: userData.miningActive || false,
-          miningTime: userData.miningTime || 30,
+          miningTime: userData.miningTime || 21600, // Default değer değiştirildi
+          miningPeriod: userData.miningPeriod || 21600, // Yeni eklenen alan
           miningSession: userData.miningSession || 0,
-          progress: calculateProgress(userData.miningTime || 30)
+          progress: calculateProgress(userData.miningTime || 21600, userData.miningPeriod || 21600)
         }));
       }
     };
@@ -52,9 +55,9 @@ export function useMiningData() {
   }, [t]);
 
   // Calculate progress based on remaining time
-  const calculateProgress = useCallback((remainingTime: number): number => {
-    const timeElapsed = 30 - remainingTime;
-    return (timeElapsed / 30) * 100;
+  const calculateProgress = useCallback((remainingTime: number, totalPeriod: number): number => {
+    const timeElapsed = totalPeriod - remainingTime;
+    return (timeElapsed / totalPeriod) * 100;
   }, []);
 
   // Persist user data
@@ -67,6 +70,7 @@ export function useMiningData() {
           lastSaved: Date.now(),
           miningActive: state.miningActive,
           miningTime: state.miningTime,
+          miningPeriod: state.miningPeriod,
           miningSession: state.miningSession
         };
         saveUserData(userData);
@@ -84,7 +88,8 @@ export function useMiningData() {
     state.balance, 
     state.miningRate, 
     state.miningActive, 
-    state.miningTime, 
+    state.miningTime,
+    state.miningPeriod,
     state.miningSession, 
     state.isLoading
   ]);
@@ -101,13 +106,14 @@ export function useMiningData() {
             const newBalance = prev.balance + prev.miningRate;
             const newSession = prev.miningSession + 1;
             
-            // Save state on cycle completion
+            // Madencilik periyodu tamamlandı - durduralım
             saveUserData({
               balance: newBalance,
               miningRate: prev.miningRate,
               lastSaved: Date.now(),
-              miningActive: prev.miningActive,
-              miningTime: 30,
+              miningActive: false, // Madenciliği durdur
+              miningTime: prev.miningPeriod, // Zamanı sıfırla
+              miningPeriod: prev.miningPeriod,
               miningSession: newSession
             });
             
@@ -115,7 +121,8 @@ export function useMiningData() {
             return {
               ...prev,
               balance: newBalance,
-              miningTime: 30,
+              miningTime: prev.miningPeriod,
+              miningActive: false, // Madencilik otomatik olarak duracak
               miningSession: newSession,
               progress: 0 // Reset progress
             };
@@ -126,7 +133,7 @@ export function useMiningData() {
           return {
             ...prev,
             miningTime: newTime,
-            progress: calculateProgress(newTime)
+            progress: calculateProgress(newTime, prev.miningPeriod)
           };
         });
       }, 1000);
@@ -142,7 +149,7 @@ export function useMiningData() {
     setState(prev => ({
       ...prev,
       miningActive: true,
-      miningTime: 30,
+      miningTime: prev.miningPeriod, // Toplam periyoda ayarla
       progress: 0
     }));
     
@@ -151,17 +158,18 @@ export function useMiningData() {
       miningRate: state.miningRate,
       lastSaved: Date.now(),
       miningActive: true,
-      miningTime: 30,
+      miningTime: state.miningPeriod, // Toplam periyoda ayarla
+      miningPeriod: state.miningPeriod,
       miningSession: state.miningSession
     });
-  }, [state.balance, state.miningRate, state.miningSession]);
+  }, [state.balance, state.miningRate, state.miningSession, state.miningPeriod]);
 
   const handleStopMining = useCallback(() => {
     setState(prev => ({
       ...prev,
       miningActive: false,
       miningSession: 0,
-      miningTime: 30,
+      miningTime: prev.miningPeriod, // Toplam periyoda ayarla
       progress: 0
     }));
     
@@ -170,10 +178,11 @@ export function useMiningData() {
       miningRate: state.miningRate,
       lastSaved: Date.now(),
       miningActive: false,
-      miningTime: 30,
+      miningTime: state.miningPeriod, // Toplam periyoda ayarla
+      miningPeriod: state.miningPeriod,
       miningSession: 0
     });
-  }, [state.balance, state.miningRate]);
+  }, [state.balance, state.miningRate, state.miningPeriod]);
 
   return {
     ...state,

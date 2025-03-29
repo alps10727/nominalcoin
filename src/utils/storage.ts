@@ -7,6 +7,7 @@ interface UserData {
   miningTime?: number;
   miningSession?: number;
   upgrades?: any[];
+  miningPeriod?: number; // Toplam madencilik periyodu (sn olarak)
 }
 
 /**

@@ -30,9 +30,12 @@ const MiningCard = ({
   const isMobile = useIsMobile();
 
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
+    // 6 saatlik bir periyot için daha uygun bir format
+    const hours = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    
+    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -89,7 +92,7 @@ const MiningCard = ({
           <span>{t('mining.activeminers')}</span>
         </div>
         <div className="flex items-center font-medium">
-          <span>{t('mining.rate')}: {miningRate.toFixed(2)} FC/cycle</span>
+          <span>{t('mining.rate')}: {miningRate.toFixed(4)} FC/cycle</span>
         </div>
       </CardFooter>
     </Card>
