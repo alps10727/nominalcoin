@@ -1,25 +1,66 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { User, Calendar, BarChart2, Edit } from "lucide-react";
+import { User, Calendar, BarChart2, Edit, Mail } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useAuth } from "@/contexts/AuthContext";
 import Header from "@/components/Header";
 import MobileNavigation from "@/components/MobileNavigation";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const Profile = () => {
   const { t } = useLanguage();
   const { theme } = useTheme();
+  const { currentUser, userData } = useAuth();
   const [username, setUsername] = useState("FutureMiner");
   const [avatar, setAvatar] = useState("https://api.dicebear.com/7.x/micah/svg?seed=FutureMiner");
   const [level, setLevel] = useState(3);
   const [totalMined, setTotalMined] = useState(120.5);
   const [joinDate, setJoinDate] = useState("2023-06-15");
+  const [email, setEmail] = useState("");
+  const [fullName, setFullName] = useState("");
+
+  // Get user data from auth context
+  useEffect(() => {
+    if (currentUser) {
+      setEmail(currentUser.email || "");
+      
+      // Get display name or use the first part of email as fallback
+      if (currentUser.displayName) {
+        setFullName(currentUser.displayName);
+      } else if (userData && userData.fullName) {
+        setFullName(userData.fullName);
+      } else if (email) {
+        // Use the part before @ as a fallback name
+        setFullName(email.split('@')[0]);
+      }
+      
+      // Update username based on available info
+      if (userData && userData.username) {
+        setUsername(userData.username);
+      } else if (currentUser.displayName) {
+        setUsername(currentUser.displayName.split(' ')[0]);
+      } else if (email) {
+        setUsername(email.split('@')[0]);
+      }
+      
+      // Update avatar to use email for consistency
+      if (email) {
+        setAvatar(`https://api.dicebear.com/7.x/micah/svg?seed=${email}`);
+      }
+      
+      // Update join date if available in auth
+      if (currentUser.metadata && currentUser.metadata.creationTime) {
+        setJoinDate(currentUser.metadata.creationTime);
+      }
+    }
+  }, [currentUser, userData, email]);
 
   const form = useForm({
     defaultValues: {
@@ -57,6 +98,18 @@ const Profile = () => {
                 <Calendar className="h-4 w-4 mr-1" />
                 <span>{t('profile.joinDate')}: {new Date(joinDate).toLocaleDateString()}</span>
               </div>
+              {email && (
+                <div className="flex items-center text-gray-400 text-sm mt-1">
+                  <Mail className="h-4 w-4 mr-1" />
+                  <span>{email}</span>
+                </div>
+              )}
+              {fullName && fullName !== username && (
+                <div className="flex items-center text-gray-400 text-sm mt-1">
+                  <User className="h-4 w-4 mr-1" />
+                  <span>{fullName}</span>
+                </div>
+              )}
             </div>
             <Dialog>
               <DialogTrigger asChild>
