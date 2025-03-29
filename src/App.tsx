@@ -64,6 +64,7 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const AppRoutes = () => {
+  // Moved inside AuthProvider
   return (
     <Routes>
       <Route path="/" element={
@@ -143,6 +144,7 @@ const App = () => {
                       </div>
                     )}
                     <AppRoutes />
+                    {/* MobileNavigation moved inside Suspense and after AppRoutes */}
                     <MobileNavigation />
                   </div>
                 </Suspense>
