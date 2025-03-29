@@ -38,8 +38,22 @@ const MiningCard = ({
 
   return (
     <Card className="mb-6 border-none overflow-hidden shadow-xl transition-all duration-500 relative">
-      {/* Background color */}
-      <div className="absolute inset-0 bg-gradient-to-br from-darkPurple-800 to-navy-700"></div>
+      {/* Background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-darkPurple-800/90 via-darkPurple-900/95 to-navy-900/90"></div>
+      
+      {/* Glass overlay */}
+      <div className="absolute inset-0 backdrop-blur-sm bg-black/5"></div>
+      
+      {/* Particle effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {miningActive && (
+          <>
+            <div className="absolute w-1 h-1 rounded-full bg-darkPurple-300/80 top-1/4 left-1/4 animate-float-1"></div>
+            <div className="absolute w-1 h-1 rounded-full bg-darkPurple-400/80 top-3/4 left-1/3 animate-float-2" style={{animationDelay: '1s'}}></div>
+            <div className="absolute w-1 h-1 rounded-full bg-navy-300/80 top-2/4 left-2/3 animate-float-3" style={{animationDelay: '0.5s'}}></div>
+          </>
+        )}
+      </div>
       
       <CardHeader className={`relative z-10 ${isMobile ? "px-4 py-3" : ""} text-white`}>
         <CardTitle className="flex items-center gap-2 text-xl font-bold text-white">
@@ -56,61 +70,46 @@ const MiningCard = ({
           <div className="relative mx-auto">
             {/* Main button container */}
             <div className="relative mx-auto flex items-center justify-center">
-              {/* Outer circle */}
-              <div className="absolute w-52 h-52 rounded-full border border-darkPurple-500/30"></div>
-              
-              {/* Middle circle */}
-              <div className="absolute w-44 h-44 rounded-full border border-darkPurple-400/40"></div>
-              
-              {/* Inner circle with animation */}
-              <div className={`absolute w-36 h-36 rounded-full border-2 border-darkPurple-400/50 ${
-                miningActive 
-                  ? 'animate-spin-slow' 
-                  : ''
-              }`}></div>
-              
-              {/* Small decorative dots */}
-              <div className="absolute w-52 h-52 rounded-full">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-darkPurple-300 rounded-full"></div>
-                <div className="absolute top-1/2 -translate-y-1/2 left-0 w-2 h-2 bg-darkPurple-300 rounded-full"></div>
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-darkPurple-300 rounded-full"></div>
-                <div className="absolute top-1/2 -translate-y-1/2 right-0 w-2 h-2 bg-darkPurple-300 rounded-full"></div>
-              </div>
+              {/* Circles */}
+              <div className={`absolute w-52 h-52 rounded-full border border-darkPurple-500/20 ${miningActive ? 'animate-pulse-slow' : ''}`}></div>
+              <div className={`absolute w-44 h-44 rounded-full border border-darkPurple-400/30 ${miningActive ? 'animate-reverse-spin' : ''}`} style={{animationDuration: '15s'}}></div>
+              <div className={`absolute w-36 h-36 rounded-full border-2 border-darkPurple-400/40 ${miningActive ? 'animate-spin-slow' : ''}`}></div>
               
               {/* The actual button */}
               <button 
-                className="relative w-32 h-32 rounded-full flex items-center justify-center cursor-pointer transition-all duration-500 z-10 overflow-hidden"
+                className="relative w-32 h-32 rounded-full flex items-center justify-center cursor-pointer z-10 overflow-hidden group"
                 onClick={miningActive ? onStopMining : onStartMining}
                 onMouseEnter={() => setIsHovering(true)}
                 onMouseLeave={() => setIsHovering(false)}
               >
-                {/* Button background */}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-darkPurple-600 to-navy-600 border-2 border-darkPurple-500"></div>
+                {/* Button background with gradient */}
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-darkPurple-600 to-navy-700 border-2 border-darkPurple-500/50 group-hover:from-darkPurple-500 group-hover:to-navy-600 transition-all duration-500"></div>
                 
-                {/* Button inner content */}
-                <div className="absolute inset-0 rounded-full flex flex-col items-center justify-center overflow-hidden">
-                  {/* Animated shine effect */}
-                  <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-darkPurple-400/20 to-transparent -translate-x-full ${isHovering ? 'animate-sheen' : ''}`}></div>
-                  
-                  {/* Icon and timer */}
-                  <div className="relative flex flex-col items-center justify-center w-full h-full">
-                    {miningActive ? (
-                      <>
-                        <div className="mb-2">
-                          <Sparkles className="h-6 w-6 text-white/90 animate-pulse" style={{ animationDuration: '2s' }} />
-                        </div>
-                        <span className="text-sm font-mono text-white font-semibold tracking-wider">
-                          {formatTime(miningTime)}
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles 
-                          className={`h-8 w-8 text-white/90 ${isHovering ? 'animate-pulse-slow' : ''}`} 
-                        />
-                      </>
-                    )}
-                  </div>
+                {/* Shine effect on hover */}
+                <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full ${isHovering ? 'animate-sheen' : ''}`}></div>
+                
+                {/* Button inner glow */}
+                <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="absolute inset-0 rounded-full bg-darkPurple-500/20 blur-md"></div>
+                </div>
+                
+                {/* Icon and content */}
+                <div className="relative flex flex-col items-center justify-center w-full h-full">
+                  {miningActive ? (
+                    <>
+                      <div className="mb-2">
+                        <Sparkles className="h-6 w-6 text-white animate-pulse" style={{animationDuration: '2s'}} />
+                      </div>
+                      <span className="text-sm font-mono text-white font-semibold tracking-wider">
+                        {formatTime(miningTime)}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className={`h-8 w-8 text-white ${isHovering ? 'animate-pulse-slow' : ''}`} />
+                      <span className="text-xs mt-1 text-white/80">START</span>
+                    </>
+                  )}
                 </div>
               </button>
             </div>
@@ -118,7 +117,14 @@ const MiningCard = ({
         </div>
       </CardContent>
       
-      <CardFooter className="flex justify-center text-sm bg-navy-800/90 py-4 border-t border-darkPurple-700/30 rounded-b-lg relative z-10">
+      <CardFooter className="flex justify-between items-center text-sm bg-navy-900/80 py-4 border-t border-darkPurple-700/30 rounded-b-lg relative z-10">
+        <div className="flex items-center font-medium text-white">
+          <div className="flex items-center gap-2">
+            <Activity className="h-4 w-4 text-darkPurple-300" />
+            <span>Session: <span className="text-darkPurple-200 font-semibold">{miningSession.toFixed(4)} FC</span></span>
+          </div>
+        </div>
+        
         <div className="flex items-center font-medium text-white">
           <div className="flex items-center gap-2">
             <Zap className="h-4 w-4 text-darkPurple-300" />

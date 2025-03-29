@@ -14,39 +14,51 @@ const BalanceCard = ({ balance }: BalanceCardProps) => {
 
   return (
     <Card className="mb-6 overflow-hidden border-none shadow-lg hover:shadow-xl transition-all duration-300 group">
-      {/* Gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-r from-darkPurple-700 via-navy-600 to-darkPurple-700"></div>
+      {/* Main background */}
+      <div className="absolute inset-0 bg-gradient-to-r from-darkPurple-700/90 via-navy-600/90 to-darkPurple-700/90"></div>
       
-      {/* Light overlay effects */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-0 right-0 h-40 w-40 bg-white/10 rounded-full blur-3xl transform translate-x-10 -translate-y-20"></div>
-        <div className="absolute bottom-0 left-0 h-30 w-30 bg-darkPurple-300/10 rounded-full blur-2xl transform -translate-x-10 translate-y-10"></div>
+      {/* Glass effect */}
+      <div className="absolute inset-0 backdrop-blur-sm bg-black/5"></div>
+      
+      {/* Animated light effects */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-0 right-0 h-40 w-40 bg-darkPurple-400/10 rounded-full blur-3xl transform translate-x-10 -translate-y-20"></div>
+        <div className="absolute bottom-0 left-0 h-40 w-40 bg-navy-400/10 rounded-full blur-3xl transform -translate-x-10 translate-y-10"></div>
+        
+        {/* Subtle moving glow */}
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2 h-1/2 bg-darkPurple-500/20 rounded-full blur-3xl animate-pulse-slow"></div>
+        </div>
       </div>
-      
-      {/* Pattern overlay */}
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTRabTAtMjBjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTRabS0yMCAyMGMwLTIuMjA5LTEuNzkxLTQtNC00cy00IDEuNzkxLTQgNCAxLjc5MSA0IDQgNCA0LTEuNzkxIDQtNFptMC0yMGMwLTIuMjA5LTEuNzkxLTQtNC00cy00IDEuNzkxLTQgNCAxLjc5MSA0IDQgNCA0LTEuNzkxIDQtNFptNDAgMjBjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTRabTAtMjBjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTRaIi8+PC9nPjwvZz48L3N2Zz4=')] bg-fixed opacity-[0.05] group-hover:opacity-[0.08] transition-opacity duration-500 pointer-events-none"></div>
       
       {/* Content */}
       <CardHeader className={`relative z-10 ${isMobile ? 'px-4 py-3' : ''}`}>
         <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-darkPurple-200 opacity-80" />
+          <div className="p-1.5 bg-darkPurple-700/50 rounded-lg">
+            <Sparkles className="h-4 w-4 text-darkPurple-300" />
+          </div>
           {t('balance.title')}
         </CardTitle>
       </CardHeader>
       
       <CardContent className={`relative z-10 ${isMobile ? 'px-4 pb-4' : ''}`}>
         <div className="flex items-baseline">
-          <span className={`${isMobile ? 'text-4xl' : 'text-5xl'} font-bold text-white`}>{balance.toFixed(3)}</span>
-          <span className="ml-2 text-xl text-darkPurple-200 font-medium">FC</span>
+          <span className={`${isMobile ? 'text-4xl' : 'text-5xl'} font-bold text-transparent bg-clip-text bg-gradient-to-r from-darkPurple-200 to-white`}>
+            {balance.toFixed(3)}
+          </span>
+          <span className="ml-2 text-xl text-darkPurple-300 font-medium">FC</span>
         </div>
         <p className="text-navy-200 mt-2 opacity-80 text-sm">{t('balance.total')}</p>
         
-        {/* Highlight bar */}
-        <div className="mt-3 h-1 w-1/3 bg-gradient-to-r from-darkPurple-400 to-transparent rounded-full"></div>
+        {/* Highlight bar with glowing effect */}
+        <div className="relative mt-3">
+          <div className="h-1 w-1/3 bg-gradient-to-r from-darkPurple-400 to-navy-600 rounded-full"></div>
+          <div className="absolute inset-0 h-1 w-1/3 bg-gradient-to-r from-darkPurple-400 to-navy-600 rounded-full blur-sm"></div>
+        </div>
       </CardContent>
       
       {/* Decorative coin icon */}
-      <div className="absolute bottom-0 right-0 p-6 opacity-10 group-hover:opacity-15 transition-opacity duration-500">
+      <div className="absolute bottom-0 right-0 p-6 opacity-10 transition-opacity duration-500">
         <Coins className={`${isMobile ? 'h-24 w-24' : 'h-32 w-32'} text-white`} />
       </div>
     </Card>

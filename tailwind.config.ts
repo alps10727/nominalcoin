@@ -132,6 +132,11 @@ export default {
 				sheen: {
 					'0%': { transform: 'translateX(-100%)' },
 					'100%': { transform: 'translateX(100%)' }
+				},
+				float: {
+					'0%': { transform: 'translateY(0)', opacity: '0' },
+					'50%': { opacity: '1' },
+					'100%': { transform: 'translateY(-20px)', opacity: '0' }
 				}
 			},
 			animation: {
@@ -141,7 +146,8 @@ export default {
 				'flow': 'flow 2s linear infinite',
 				'pulse-slow': 'pulse 3s ease-in-out infinite',
 				'spin-slow': 'spin 8s linear infinite',
-				'sheen': 'sheen 0.8s ease-in-out'
+				'sheen': 'sheen 0.8s ease-in-out',
+				'float': 'float 3s ease-in-out infinite',
 			}
 		}
 	},
