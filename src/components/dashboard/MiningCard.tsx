@@ -50,12 +50,10 @@ const MiningCard = ({
       <CardContent className={isMobile ? "px-4 py-2" : ""}>
         <div className="text-center mb-6">
           <div className="relative mx-auto">
-            {/* Rotating animation ring */}
-            {!miningActive && (
-              <div className={`absolute inset-0 ${isMobile ? 'w-36 h-36' : 'w-44 h-44'} rounded-full`}>
-                <Loader className={`${isMobile ? 'h-36 w-36' : 'h-44 w-44'} text-indigo-500/30 animate-spin`} />
-              </div>
-            )}
+            {/* Animated rotating outer ring */}
+            <div className={`absolute inset-0 ${isMobile ? 'w-36 h-36' : 'w-44 h-44'} rounded-full`}>
+              <div className={`absolute inset-0 ${isMobile ? 'w-36 h-36' : 'w-44 h-44'} rounded-full border-4 border-indigo-500/30 border-t-indigo-500/80 animate-spin`}></div>
+            </div>
             
             <div 
               className={`relative mx-auto ${isMobile ? 'w-36 h-36' : 'w-44 h-44'} rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 ${
