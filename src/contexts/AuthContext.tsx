@@ -5,10 +5,12 @@ import { User, onAuthStateChanged } from "firebase/auth";
 import { 
   loginUser, 
   logoutUser, 
-  registerUser,
+  registerUser 
+} from "@/services/authService";
+import {
   saveUserDataToFirebase,
   loadUserDataFromFirebase
-} from "@/services/firebaseService";
+} from "@/services/userService";
 import { toast } from "sonner";
 
 interface AuthContextProps {
