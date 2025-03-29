@@ -13,13 +13,10 @@ const BalanceCard = ({ balance }: BalanceCardProps) => {
   const isMobile = useIsMobile();
 
   return (
-    <Card className="mb-6 overflow-hidden border-none shadow-xl relative">
-      <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600"></div>
-      <div className="absolute inset-0 bg-grid-white/[0.05]"></div>
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-      
+    <Card className="mb-6 overflow-hidden border-none shadow-lg bg-gray-800 dark:bg-gray-850">
+      <div className="absolute inset-0 bg-gradient-to-r from-indigo-900 to-purple-900 opacity-90"></div>
       <CardHeader className={`relative z-10 ${isMobile ? 'px-4 py-3' : ''}`}>
-        <CardTitle className="text-lg font-medium text-gray-100">{t('balance.title')}</CardTitle>
+        <CardTitle className="text-lg font-medium text-gray-200">{t('balance.title')}</CardTitle>
       </CardHeader>
       <CardContent className={`relative z-10 ${isMobile ? 'px-4 pb-4' : ''}`}>
         <div className="flex items-baseline">
