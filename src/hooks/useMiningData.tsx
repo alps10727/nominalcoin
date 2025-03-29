@@ -1,192 +1,182 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { loadUserData, saveUserData } from "@/utils/storage";
 
-interface UserData {
+export interface MiningState {
+  isLoading: boolean;
+  miningActive: boolean;
+  progress: number;
   balance: number;
   miningRate: number;
-  lastSaved: number;
-  miningActive?: boolean;
-  miningTime?: number;
-  miningSession?: number;
+  miningSession: number;
+  miningTime: number;
 }
 
 export function useMiningData() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [miningActive, setMiningActive] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [balance, setBalance] = useState(0);
-  const [miningRate, setMiningRate] = useState(0.1);
-  const [miningSession, setMiningSession] = useState(0);
-  const [miningTime, setMiningTime] = useState(30); // Start from 30 seconds
+  const [state, setState] = useState<MiningState>({
+    isLoading: true,
+    miningActive: false,
+    progress: 0,
+    balance: 0,
+    miningRate: 0.1,
+    miningSession: 0,
+    miningTime: 30
+  });
+  
   const { t } = useLanguage();
 
   // Load user data from localStorage
   useEffect(() => {
-    const loadUserData = () => {
-      try {
-        const savedData = localStorage.getItem('fcMinerUserData');
-        if (savedData) {
-          const userData: UserData = JSON.parse(savedData);
-          setBalance(userData.balance);
-          setMiningRate(userData.miningRate);
-          
-          // Restore mining state if it was active when the app was closed
-          if (userData.miningActive) {
-            setMiningActive(userData.miningActive);
-            setMiningTime(userData.miningTime || 30);
-            setMiningSession(userData.miningSession || 0);
-            
-            // Calculate progress based on remaining time
-            if (userData.miningTime) {
-              const timeElapsed = 30 - userData.miningTime;
-              const newProgress = (timeElapsed / 30) * 100;
-              setProgress(newProgress);
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Kullanıcı verisi yüklenirken hata oluştu:', err);
+    const initializeUserData = () => {
+      const userData = loadUserData();
+      if (userData) {
+        setState(prevState => ({
+          ...prevState,
+          balance: userData.balance,
+          miningRate: userData.miningRate,
+          miningActive: userData.miningActive || false,
+          miningTime: userData.miningTime || 30,
+          miningSession: userData.miningSession || 0,
+          progress: calculateProgress(userData.miningTime || 30)
+        }));
       }
     };
 
     const timer = setTimeout(() => {
-      loadUserData();
-      setIsLoading(false);
+      initializeUserData();
+      setState(prev => ({ ...prev, isLoading: false }));
     }, 1000);
     
     return () => clearTimeout(timer);
   }, [t]);
 
-  // Save user data periodically and when mining state changes
+  // Calculate progress based on remaining time
+  const calculateProgress = useCallback((remainingTime: number): number => {
+    const timeElapsed = 30 - remainingTime;
+    return (timeElapsed / 30) * 100;
+  }, []);
+
+  // Persist user data
   useEffect(() => {
-    if (!isLoading) {
-      const saveUserData = () => {
-        try {
-          const userData: UserData = {
-            balance,
-            miningRate,
-            lastSaved: Date.now(),
-            miningActive,
-            miningTime,
-            miningSession
-          };
-          localStorage.setItem('fcMinerUserData', JSON.stringify(userData));
-        } catch (err) {
-          console.error('Kullanıcı verisi kaydedilirken hata oluştu:', err);
-        }
+    if (!state.isLoading) {
+      const persistUserData = () => {
+        const userData = {
+          balance: state.balance,
+          miningRate: state.miningRate,
+          lastSaved: Date.now(),
+          miningActive: state.miningActive,
+          miningTime: state.miningTime,
+          miningSession: state.miningSession
+        };
+        saveUserData(userData);
       };
 
-      const saveInterval = setInterval(saveUserData, 5000); // Save every 5 seconds
-      
-      // Save when mining state changes
-      saveUserData();
+      const saveInterval = setInterval(persistUserData, 5000);
+      persistUserData(); // Save immediately
       
       return () => {
         clearInterval(saveInterval);
-        saveUserData(); // Save one last time when cleaning up
+        persistUserData(); // Save one last time when unmounting
       };
     }
-  }, [balance, miningRate, miningActive, miningTime, miningSession, isLoading]);
+  }, [
+    state.balance, 
+    state.miningRate, 
+    state.miningActive, 
+    state.miningTime, 
+    state.miningSession, 
+    state.isLoading
+  ]);
 
-  // Mining process
+  // Mining process management
   useEffect(() => {
     let interval: number | undefined;
     
-    if (miningActive) {
+    if (state.miningActive) {
       interval = window.setInterval(() => {
-        setMiningTime(prev => {
-          if (prev <= 1) {
-            setBalance(prevBalance => {
-              const newBalance = prevBalance + miningRate;
-              try {
-                const userData: UserData = {
-                  balance: newBalance,
-                  miningRate,
-                  lastSaved: Date.now(),
-                  miningActive,
-                  miningTime: 30, // Reset to 30 seconds
-                  miningSession: miningSession + 1
-                };
-                localStorage.setItem('fcMinerUserData', JSON.stringify(userData));
-              } catch (err) {
-                console.error('Veri kaydedilirken hata oluştu:', err);
-              }
-              return newBalance;
+        setState(prev => {
+          // Check if mining cycle is complete
+          if (prev.miningTime <= 1) {
+            const newBalance = prev.balance + prev.miningRate;
+            const newSession = prev.miningSession + 1;
+            
+            // Save state on cycle completion
+            saveUserData({
+              balance: newBalance,
+              miningRate: prev.miningRate,
+              lastSaved: Date.now(),
+              miningActive: prev.miningActive,
+              miningTime: 30,
+              miningSession: newSession
             });
-            setMiningSession(prev => prev + 1);
-            return 30; // Reset to 30 seconds
+            
+            // Reset mining timer and update balance and session
+            return {
+              ...prev,
+              balance: newBalance,
+              miningTime: 30,
+              miningSession: newSession,
+              progress: 0 // Reset progress
+            };
           }
-          return prev - 1; // Count down
+          
+          // Continue mining cycle
+          const newTime = prev.miningTime - 1;
+          return {
+            ...prev,
+            miningTime: newTime,
+            progress: calculateProgress(newTime)
+          };
         });
-        
-        // Update progress calculation
-        setProgress(prev => {
-          // Calculate progress percentage (from 0 to 100)
-          const timeElapsed = 30 - miningTime;
-          const newProgress = (timeElapsed / 30) * 100;
-          return newProgress;
-        });
-      }, 1000); // Update every second
+      }, 1000);
     }
     
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [miningActive, miningRate, miningTime, miningSession, t]);
+  }, [state.miningActive, calculateProgress]);
 
-  const handleStartMining = () => {
-    setMiningActive(true);
-    setMiningTime(30); // Reset to 30 seconds when starting
-    setProgress(0); // Reset progress when starting
+  // Mining control functions
+  const handleStartMining = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      miningActive: true,
+      miningTime: 30,
+      progress: 0
+    }));
     
-    // Save the new mining state immediately
-    try {
-      const userData: UserData = {
-        balance,
-        miningRate,
-        lastSaved: Date.now(),
-        miningActive: true,
-        miningTime: 30,
-        miningSession
-      };
-      localStorage.setItem('fcMinerUserData', JSON.stringify(userData));
-    } catch (err) {
-      console.error('Veri kaydedilirken hata oluştu:', err);
-    }
-  };
+    saveUserData({
+      balance: state.balance,
+      miningRate: state.miningRate,
+      lastSaved: Date.now(),
+      miningActive: true,
+      miningTime: 30,
+      miningSession: state.miningSession
+    });
+  }, [state.balance, state.miningRate, state.miningSession]);
 
-  const handleStopMining = () => {
-    setMiningActive(false);
+  const handleStopMining = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      miningActive: false,
+      miningSession: 0,
+      miningTime: 30,
+      progress: 0
+    }));
     
-    // Save the stopped mining state immediately
-    try {
-      const userData: UserData = {
-        balance,
-        miningRate,
-        lastSaved: Date.now(),
-        miningActive: false,
-        miningTime: 30,
-        miningSession: 0
-      };
-      localStorage.setItem('fcMinerUserData', JSON.stringify(userData));
-    } catch (err) {
-      console.error('Veri kaydedilirken hata oluştu:', err);
-    }
-    
-    setMiningSession(0);
-    setMiningTime(30); // Reset to 30 seconds
-    setProgress(0); // Reset progress when stopping
-  };
+    saveUserData({
+      balance: state.balance,
+      miningRate: state.miningRate,
+      lastSaved: Date.now(),
+      miningActive: false,
+      miningTime: 30,
+      miningSession: 0
+    });
+  }, [state.balance, state.miningRate]);
 
   return {
-    isLoading,
-    miningActive,
-    progress,
-    balance,
-    miningRate,
-    miningSession,
-    miningTime,
+    ...state,
     handleStartMining,
     handleStopMining
   };

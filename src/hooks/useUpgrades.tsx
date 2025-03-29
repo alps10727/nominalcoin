@@ -3,16 +3,7 @@ import { useState, useEffect } from "react";
 import { Zap, TrendingUp, Coins, Bolt } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Upgrade } from "@/components/mining/UpgradeCard";
-
-interface UserData {
-  balance: number;
-  miningRate: number;
-  lastSaved: number;
-  miningActive?: boolean;
-  miningTime?: number;
-  miningSession?: number;
-  upgrades?: Upgrade[];
-}
+import { loadUserData, saveUserData } from "@/utils/storage";
 
 export function useUpgrades() {
   const [balance, setBalance] = useState(0);
@@ -63,50 +54,39 @@ export function useUpgrades() {
 
   // Load user data from localStorage
   useEffect(() => {
-    try {
-      const savedData = localStorage.getItem('fcMinerUserData');
-      if (savedData) {
-        const userData: UserData = JSON.parse(savedData);
-        setBalance(userData.balance);
-        setMiningRate(userData.miningRate);
-        
-        // Load saved upgrades if available
-        if (userData.upgrades) {
-          setUpgrades(userData.upgrades);
-        } else {
-          // Initialize rate upgrade level based on mining rate
-          const currentRateLevel = Math.round((userData.miningRate - 0.1) / 0.05);
-          if (currentRateLevel > 0) {
-            const updatedUpgrades = [...upgrades];
-            const rateUpgradeIndex = updatedUpgrades.findIndex(u => u.id === "rate");
-            if (rateUpgradeIndex !== -1) {
-              updatedUpgrades[rateUpgradeIndex].level = currentRateLevel;
-              setUpgrades(updatedUpgrades);
-            }
+    const userData = loadUserData();
+    if (userData) {
+      setBalance(userData.balance);
+      setMiningRate(userData.miningRate);
+      
+      // Load saved upgrades if available
+      if (userData.upgrades) {
+        setUpgrades(userData.upgrades);
+      } else {
+        // Initialize rate upgrade level based on mining rate
+        const currentRateLevel = Math.round((userData.miningRate - 0.1) / 0.05);
+        if (currentRateLevel > 0) {
+          const updatedUpgrades = [...upgrades];
+          const rateUpgradeIndex = updatedUpgrades.findIndex(u => u.id === "rate");
+          if (rateUpgradeIndex !== -1) {
+            updatedUpgrades[rateUpgradeIndex].level = currentRateLevel;
+            setUpgrades(updatedUpgrades);
           }
         }
       }
-    } catch (err) {
-      console.error('Kullanıcı verisi yüklenirken hata oluştu:', err);
     }
   }, []);
 
   // Save data when balance or upgrades change
   useEffect(() => {
-    try {
-      const savedData = localStorage.getItem('fcMinerUserData');
-      if (savedData) {
-        const userData: UserData = JSON.parse(savedData);
-        const updatedUserData = {
-          ...userData,
-          balance: balance,
-          miningRate: miningRate,
-          upgrades: upgrades
-        };
-        localStorage.setItem('fcMinerUserData', JSON.stringify(updatedUserData));
-      }
-    } catch (err) {
-      console.error('Kullanıcı verisi kaydedilirken hata oluştu:', err);
+    const userData = loadUserData();
+    if (userData) {
+      saveUserData({
+        ...userData,
+        balance: balance,
+        miningRate: miningRate,
+        upgrades: upgrades
+      });
     }
   }, [balance, miningRate, upgrades]);
 
@@ -125,7 +105,8 @@ export function useUpgrades() {
       }
       
       if (balance >= upgrade.cost) {
-        setBalance(prev => prev - upgrade.cost);
+        const newBalance = balance - upgrade.cost;
+        setBalance(newBalance);
         
         const newUpgrades = [...upgrades];
         newUpgrades[upgradeIndex] = { 
@@ -141,20 +122,14 @@ export function useUpgrades() {
           const newMiningRate = 0.1 + newLevel * 0.05; // Base rate + level bonus
           setMiningRate(newMiningRate);
           
-          try {
-            const savedData = localStorage.getItem('fcMinerUserData');
-            if (savedData) {
-              const userData: UserData = JSON.parse(savedData);
-              const updatedUserData = {
-                ...userData,
-                miningRate: newMiningRate,
-                balance: balance - upgrade.cost,
-                upgrades: newUpgrades
-              };
-              localStorage.setItem('fcMinerUserData', JSON.stringify(updatedUserData));
-            }
-          } catch (err) {
-            console.error('Mining rate update failed:', err);
+          const userData = loadUserData();
+          if (userData) {
+            saveUserData({
+              ...userData,
+              miningRate: newMiningRate,
+              balance: newBalance,
+              upgrades: newUpgrades
+            });
           }
         }
         
