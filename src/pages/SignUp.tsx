@@ -43,17 +43,21 @@ const SignUp = () => {
     setLoading(true);
     
     try {
+      console.log("Kayıt işlemi başlıyor...");
       const success = await register(email, password);
       
       if (success) {
+        console.log("Kayıt başarılı");
         toast.success("Hesabınız başarıyla oluşturuldu!");
         navigate("/sign-in");
       } else {
+        console.log("Kayıt başarısız");
         toast.error("Kayıt işlemi başarısız oldu.");
+        setLoading(false);
       }
     } catch (error) {
+      console.error("Kayıt hatası:", error);
       toast.error("Kayıt hatası: " + (error as Error).message);
-    } finally {
       setLoading(false);
     }
   };

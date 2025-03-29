@@ -39,12 +39,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Auth değişikliklerini dinle
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log("Auth durumu değişti:", user ? user.email : 'Kullanıcı yok');
       setCurrentUser(user);
       
       if (user) {
         // Kullanıcı oturum açtıysa verilerini yükle
-        const userDataFromFirebase = await loadUserDataFromFirebase(user.uid);
-        setUserData(userDataFromFirebase);
+        try {
+          const userDataFromFirebase = await loadUserDataFromFirebase(user.uid);
+          setUserData(userDataFromFirebase);
+        } catch (error) {
+          console.error("Kullanıcı verilerini yükleme hatası:", error);
+        }
       } else {
         setUserData(null);
       }
@@ -65,7 +70,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       return false;
     } catch (error) {
-      toast.error("Giriş yapılamadı: " + (error as Error).message);
+      console.error("Giriş hatası:", error);
+      const errorMessage = (error as Error).message;
+      // Firebase hata mesajlarını Türkçe'ye çevir
+      if (errorMessage.includes("user-not-found") || errorMessage.includes("wrong-password")) {
+        toast.error("Email veya şifre hatalı.");
+      } else {
+        toast.error("Giriş yapılamadı: " + errorMessage);
+      }
       return false;
     }
   };
@@ -76,6 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await logoutUser();
       toast.success("Çıkış yapıldı");
     } catch (error) {
+      console.error("Çıkış hatası:", error);
       toast.error("Çıkış yapılamadı: " + (error as Error).message);
     }
   };
@@ -83,14 +96,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Kayıt işlevi
   const register = async (email: string, password: string): Promise<boolean> => {
     try {
+      console.log("Kayıt işlemi başlatılıyor:", email);
       const user = await registerUser(email, password, {});
       if (user) {
+        console.log("Kayıt işlemi başarılı:", user.uid);
         toast.success("Hesap başarıyla oluşturuldu!");
         return true;
       }
+      console.log("Kayıt işlemi başarısız: Kullanıcı verisi döndürülmedi");
       return false;
     } catch (error) {
-      toast.error("Kayıt yapılamadı: " + (error as Error).message);
+      console.error("Kayıt işlemi hatası:", error);
+      const errorMessage = (error as Error).message;
+      
+      // Firebase hata mesajlarını Türkçe'ye çevir
+      if (errorMessage.includes("email-already-in-use")) {
+        toast.error("Bu email adresi zaten kullanılıyor.");
+      } else if (errorMessage.includes("weak-password")) {
+        toast.error("Şifre en az 6 karakter olmalıdır.");
+      } else if (errorMessage.includes("invalid-email")) {
+        toast.error("Geçersiz email adresi.");
+      } else {
+        toast.error("Kayıt yapılamadı: " + errorMessage);
+      }
       return false;
     }
   };
@@ -105,6 +133,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
         setUserData(prev => ({ ...prev, ...data }));
       } catch (error) {
+        console.error("Veri güncelleme hatası:", error);
         toast.error("Veriler güncellenemedi: " + (error as Error).message);
       }
     }

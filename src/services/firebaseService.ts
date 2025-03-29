@@ -63,8 +63,10 @@ export async function saveUserDataToFirebase(userId: string, userData: UserData)
     
     const docRef = doc(db, "users", userId);
     await setDoc(docRef, sanitizedData, { merge: true });
+    console.log("Kullanıcı verileri başarıyla kaydedildi:", userId);
   } catch (err) {
     console.error("Firebase'e veri kaydetme hatası:", err);
+    throw err; // Hataları yukarıya ilet
   }
 }
 
@@ -73,27 +75,34 @@ export async function saveUserDataToFirebase(userId: string, userData: UserData)
  */
 export async function registerUser(email: string, password: string, userData: Partial<UserData>): Promise<User | null> {
   try {
+    console.log("Firebase kayıt işlemi başlatılıyor:", email);
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
+    console.log("Firebase Auth kaydı başarılı:", user.uid);
     
     // Kullanıcı profilini oluştur
-    await saveUserDataToFirebase(user.uid, {
-      userId: user.uid,
-      email: email,
-      balance: 0,
-      miningRate: 0.01,
-      lastSaved: serverTimestamp(),
-      miningActive: false,
-      miningTime: 21600,
-      miningPeriod: 21600,
-      miningSession: 0,
-      ...userData
-    });
-    
-    return user;
+    try {
+      await saveUserDataToFirebase(user.uid, {
+        userId: user.uid,
+        email: email,
+        balance: 0,
+        miningRate: 0.01,
+        lastSaved: serverTimestamp(),
+        miningActive: false,
+        miningTime: 21600,
+        miningPeriod: 21600,
+        miningSession: 0,
+        ...userData
+      });
+      console.log("Kullanıcı profili başarıyla oluşturuldu");
+      return user;
+    } catch (profileError) {
+      console.error("Kullanıcı profili oluşturma hatası:", profileError);
+      return user; // Profil hatası olsa bile kullanıcıyı döndür, yine de kayıt başarılı oldu
+    }
   } catch (err) {
     console.error("Kayıt hatası:", err);
-    return null;
+    throw err; // Hataları üst katmana ilet
   }
 }
 
@@ -106,7 +115,7 @@ export async function loginUser(email: string, password: string): Promise<User |
     return userCredential.user;
   } catch (err) {
     console.error("Giriş hatası:", err);
-    return null;
+    throw err; // Hataları üst katmana ilet
   }
 }
 
@@ -118,6 +127,7 @@ export async function logoutUser(): Promise<void> {
     await signOut(auth);
   } catch (err) {
     console.error("Çıkış hatası:", err);
+    throw err; // Hataları üst katmana ilet
   }
 }
 
