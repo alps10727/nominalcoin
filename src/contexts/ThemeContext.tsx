@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from "react";
 
 type Theme = "light" | "dark";
@@ -11,7 +10,7 @@ type ThemeContextType = {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export const ThemeProvider = ({ children }: { children: ReactNode }) => {
+export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>(() => {
     // Check if theme is stored in localStorage
     const storedTheme = localStorage.getItem("futureCoinTheme") as Theme | null;
