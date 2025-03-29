@@ -20,10 +20,10 @@ export function useMiningData() {
     miningActive: false,
     progress: 0,
     balance: 0,
-    miningRate: 0.001, // Değiştirildi: Her döngüde 0.001 FC eklenir
+    miningRate: 0.001, // Her 30 saniyede 0.001 FC eklenir
     miningSession: 0,
-    miningTime: 21600, // Değiştirildi: 6 saat = 21600 saniye
-    miningPeriod: 21600 // Değiştirildi: Toplam periyot 6 saat
+    miningTime: 21600, // 6 saat = 21600 saniye
+    miningPeriod: 21600 // Toplam periyot 6 saat
   });
   
   const { t } = useLanguage();
@@ -36,10 +36,10 @@ export function useMiningData() {
         setState(prevState => ({
           ...prevState,
           balance: userData.balance,
-          miningRate: userData.miningRate || 0.001, // Default değer değiştirildi
+          miningRate: userData.miningRate || 0.001,
           miningActive: userData.miningActive || false,
-          miningTime: userData.miningTime || 21600, // Default değer değiştirildi
-          miningPeriod: userData.miningPeriod || 21600, // Yeni eklenen alan
+          miningTime: userData.miningTime || 21600,
+          miningPeriod: userData.miningPeriod || 21600,
           miningSession: userData.miningSession || 0,
           progress: calculateProgress(userData.miningTime || 21600, userData.miningPeriod || 21600)
         }));
@@ -99,32 +99,54 @@ export function useMiningData() {
     let interval: number | undefined;
     
     if (state.miningActive) {
+      // 30 saniyede bir çalışır
+      let counter = 0;
       interval = window.setInterval(() => {
+        counter++;
         setState(prev => {
           // Check if mining cycle is complete
           if (prev.miningTime <= 1) {
-            const newBalance = prev.balance + prev.miningRate;
-            const newSession = prev.miningSession + 1;
-            
             // Madencilik periyodu tamamlandı - durduralım
             saveUserData({
-              balance: newBalance,
+              balance: prev.balance,
               miningRate: prev.miningRate,
               lastSaved: Date.now(),
               miningActive: false, // Madenciliği durdur
               miningTime: prev.miningPeriod, // Zamanı sıfırla
               miningPeriod: prev.miningPeriod,
-              miningSession: newSession
+              miningSession: prev.miningSession
             });
             
             // Reset mining timer and update balance and session
             return {
               ...prev,
-              balance: newBalance,
               miningTime: prev.miningPeriod,
               miningActive: false, // Madencilik otomatik olarak duracak
-              miningSession: newSession,
               progress: 0 // Reset progress
+            };
+          }
+          
+          // Her 30 saniyede (30 tik) madencilik geliri eklenir
+          if (counter >= 30) {
+            counter = 0;
+            const newBalance = prev.balance + prev.miningRate;
+            const newSession = prev.miningSession + 1;
+            
+            // Yeni bakiye değerini güncelle
+            saveUserData({
+              balance: newBalance,
+              miningRate: prev.miningRate,
+              lastSaved: Date.now(),
+              miningActive: prev.miningActive,
+              miningTime: prev.miningTime,
+              miningPeriod: prev.miningPeriod,
+              miningSession: newSession
+            });
+            
+            return {
+              ...prev,
+              balance: newBalance,
+              miningSession: newSession
             };
           }
           
@@ -136,7 +158,7 @@ export function useMiningData() {
             progress: calculateProgress(newTime, prev.miningPeriod)
           };
         });
-      }, 1000);
+      }, 1000); // 1 saniyede bir çalışır
     }
     
     return () => {

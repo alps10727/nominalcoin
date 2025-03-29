@@ -92,7 +92,7 @@ const MiningCard = ({
           <span>{t('mining.activeminers')}</span>
         </div>
         <div className="flex items-center font-medium">
-          <span>{t('mining.rate')}: {miningRate.toFixed(4)} FC/cycle</span>
+          <span>{t('mining.rate')}: {miningRate.toFixed(4)} FC/30s</span>
         </div>
       </CardFooter>
     </Card>

@@ -20,7 +20,7 @@ const BalanceCard = ({ balance }: BalanceCardProps) => {
       </CardHeader>
       <CardContent className={`relative z-10 ${isMobile ? 'px-4 pb-4' : ''}`}>
         <div className="flex items-baseline">
-          <span className={`${isMobile ? 'text-4xl' : 'text-5xl'} font-bold text-white`}>{balance.toFixed(2)}</span>
+          <span className={`${isMobile ? 'text-4xl' : 'text-5xl'} font-bold text-white`}>{balance.toFixed(3)}</span>
           <span className="ml-2 text-xl text-indigo-200">FC</span>
         </div>
         <p className="text-indigo-200 mt-2 opacity-80">{t('balance.total')}</p>
