@@ -10,7 +10,7 @@ const StatisticsButton = () => {
   return (
     <Link to="/statistics">
       <Button 
-        className="w-full bg-gradient-to-r from-indigo-700 to-purple-700 hover:from-indigo-800 hover:to-purple-800 text-white shadow-md transition-all hover:shadow-lg border-none" 
+        className="w-full bg-gradient-to-r from-violet-700 to-indigo-800 hover:from-violet-600 hover:to-indigo-700 text-white shadow-md transition-all hover:shadow-lg border-none" 
         size="lg"
       >
         <BarChart2 className="mr-2 h-5 w-5" />
