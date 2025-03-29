@@ -37,10 +37,10 @@ const Index = () => {
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-gray-900 to-indigo-950 dark:from-gray-950 dark:to-indigo-950 flex flex-col`}>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-indigo-950 bg-dot-white flex flex-col">
       <Header />
 
-      <main className={`flex-1 ${isMobile ? 'p-3' : 'p-5'} max-w-3xl mx-auto w-full ${isMobile ? 'pb-20' : 'pb-5'}`}>
+      <main className={`flex-1 ${isMobile ? 'p-3' : 'p-5'} max-w-3xl mx-auto w-full ${isMobile ? 'pb-20' : 'pb-5'} animate-fade-in`}>
         <BalanceCard balance={balance} />
 
         <MiningCard 
