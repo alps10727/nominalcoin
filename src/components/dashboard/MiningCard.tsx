@@ -87,10 +87,10 @@ const MiningCard = ({
       <CardHeader className={`relative z-10 ${isMobile ? "px-4 py-3" : ""} text-white`}>
         <CardTitle className="flex items-center gap-2 text-xl font-bold text-white">
           <Gem className="h-5 w-5 text-darkPurple-300" />
-          <span className="text-shadow">FC Mining</span>
+          <span className="text-shadow">NC Mining</span>
         </CardTitle>
         <CardDescription className="text-gray-300">
-          Mine to earn Future Coin cryptocurrency
+          Mine to earn NOMINAL Coin cryptocurrency
         </CardDescription>
       </CardHeader>
       
@@ -174,14 +174,14 @@ const MiningCard = ({
         <div className="flex items-center font-medium text-white">
           <div className="flex items-center gap-2">
             <Activity className="h-4 w-4 text-darkPurple-300" />
-            <span>Session: <span className="text-darkPurple-200 font-semibold">{miningSession.toFixed(4)} FC</span></span>
+            <span>Session: <span className="text-darkPurple-200 font-semibold">{miningSession.toFixed(4)} NC</span></span>
           </div>
         </div>
         
         <div className="flex items-center font-medium text-white">
           <div className="flex items-center gap-2">
             <Zap className="h-4 w-4 text-darkPurple-300" />
-            <span>Rate: <span className="text-darkPurple-200 font-semibold">{miningRate.toFixed(4)} FC/3min</span></span>
+            <span>Rate: <span className="text-darkPurple-200 font-semibold">{miningRate.toFixed(4)} NC/3min</span></span>
           </div>
         </div>
       </CardFooter>

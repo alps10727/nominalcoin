@@ -25,11 +25,11 @@ export function useUpgrades() {
     {
       id: "rate",
       title: "Mining Rate",
-      description: "Increases FC earned per mining cycle",
+      description: "Increases NC earned per mining cycle",
       level: 0, // Start at level 0 for new users
       maxLevel: 10,
       cost: 15,
-      effect: "+0.005 FC per level",
+      effect: "+0.005 NC per level",
       icon: <TrendingUp className="h-5 w-5 text-green-400" />
     },
     {

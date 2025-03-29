@@ -40,7 +40,7 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
             </div>
             <span className="text-xs text-gray-400 mb-1">{t('mining.current') || 'Current'}</span>
             <p className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-darkPurple-300 to-darkPurple-200">{miningRate.toFixed(4)}</p>
-            <p className="text-xs text-gray-400 mt-1">FC/3min</p>
+            <p className="text-xs text-gray-400 mt-1">NC/3min</p>
           </div>
         </div>
         
@@ -52,7 +52,7 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
             </div>
             <span className="text-xs text-gray-400 mb-1">{t('mining.hourly') || 'Hourly'}</span>
             <p className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-navy-300 to-navy-200">{hourlyRate}</p>
-            <p className="text-xs text-gray-400 mt-1">FC/hour</p>
+            <p className="text-xs text-gray-400 mt-1">NC/hour</p>
           </div>
         </div>
         
@@ -64,7 +64,7 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
             </div>
             <span className="text-xs text-gray-400 mb-1">{t('mining.daily') || 'Daily'}</span>
             <p className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-darkPurple-300 to-darkPurple-200">{dailyRate}</p>
-            <p className="text-xs text-gray-400 mt-1">FC/day</p>
+            <p className="text-xs text-gray-400 mt-1">NC/day</p>
           </div>
         </div>
       </CardContent>

@@ -61,7 +61,7 @@ const BalanceCard = ({ balance }: BalanceCardProps) => {
           <span className={`${isMobile ? 'text-4xl' : 'text-5xl'} font-bold gradient-text animate-nebula-shift`}>
             {balance.toFixed(3)}
           </span>
-          <span className="ml-2 text-xl text-darkPurple-300 font-medium">FC</span>
+          <span className="ml-2 text-xl text-darkPurple-300 font-medium">NC</span>
         </div>
         <p className="text-navy-200 mt-2 opacity-80 text-sm">{t('balance.total')}</p>
         
