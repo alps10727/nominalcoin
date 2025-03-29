@@ -1,9 +1,10 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Zap, Circle, Activity, Sparkles } from "lucide-react";
+import { Zap, Activity, Sparkles, Star, Gem } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface MiningCardProps {
   miningActive: boolean;
@@ -26,7 +27,25 @@ const MiningCard = ({
 }: MiningCardProps) => {
   const { t } = useLanguage();
   const isMobile = useIsMobile();
+  const { isDarkMode } = useTheme();
   const [isHovering, setIsHovering] = useState(false);
+  const [particles, setParticles] = useState<Array<{id: number, delay: number, speed: number, x: number, size: number}>>([]);
+  
+  // Generate random particles when mining is active
+  useEffect(() => {
+    if (miningActive) {
+      const newParticles = Array.from({ length: 12 }).map((_, i) => ({
+        id: i,
+        delay: Math.random() * 5,
+        speed: 3 + Math.random() * 3,
+        x: Math.random() * 100,
+        size: 0.5 + Math.random() * 1.5
+      }));
+      setParticles(newParticles);
+    } else {
+      setParticles([]);
+    }
+  }, [miningActive]);
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -37,28 +56,45 @@ const MiningCard = ({
   };
 
   return (
-    <Card className="mb-6 border-none overflow-hidden shadow-xl transition-all duration-500 relative">
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-darkPurple-800/90 via-darkPurple-900/95 to-navy-900/90"></div>
+    <Card className="mb-6 border-none overflow-hidden shadow-xl transition-all duration-500 relative group">
+      {/* Background with cosmic gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-darkPurple-800/95 via-navy-900/98 to-darkPurple-900/95"></div>
+      
+      {/* Animated nebula background */}
+      <div className="absolute inset-0 opacity-30 nebula-bg"></div>
       
       {/* Glass overlay */}
       <div className="absolute inset-0 backdrop-blur-sm bg-black/5"></div>
       
-      {/* Particle effects */}
+      {/* Star particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {particles.map(particle => (
+          <div 
+            key={particle.id}
+            className="absolute w-1 h-1 rounded-full bg-darkPurple-300/80 animate-float-1"
+            style={{
+              width: `${particle.size}px`,
+              height: `${particle.size}px`,
+              left: `${particle.x}%`,
+              bottom: '10%',
+              animationDelay: `${particle.delay}s`,
+              animationDuration: `${particle.speed}s`
+            }}
+          />
+        ))}
+        
+        {/* Cosmic energy effect */}
         {miningActive && (
-          <>
-            <div className="absolute w-1 h-1 rounded-full bg-darkPurple-300/80 top-1/4 left-1/4 animate-float-1"></div>
-            <div className="absolute w-1 h-1 rounded-full bg-darkPurple-400/80 top-3/4 left-1/3 animate-float-2" style={{animationDelay: '1s'}}></div>
-            <div className="absolute w-1 h-1 rounded-full bg-navy-300/80 top-2/4 left-2/3 animate-float-3" style={{animationDelay: '0.5s'}}></div>
-          </>
+          <div className="absolute inset-0 overflow-hidden opacity-20">
+            <div className="absolute left-1/2 bottom-1/4 -translate-x-1/2 w-1/2 h-1/2 bg-darkPurple-400/40 rounded-full blur-2xl animate-cosmic-pulse"></div>
+          </div>
         )}
       </div>
       
       <CardHeader className={`relative z-10 ${isMobile ? "px-4 py-3" : ""} text-white`}>
         <CardTitle className="flex items-center gap-2 text-xl font-bold text-white">
-          <Zap className="h-5 w-5 text-darkPurple-300" />
-          FC Mining
+          <Gem className="h-5 w-5 text-darkPurple-300" />
+          <span className="text-shadow">FC Mining</span>
         </CardTitle>
         <CardDescription className="text-gray-300">
           Mine to earn Future Coin cryptocurrency
@@ -70,10 +106,30 @@ const MiningCard = ({
           <div className="relative mx-auto">
             {/* Main button container */}
             <div className="relative mx-auto flex items-center justify-center">
-              {/* Circles */}
-              <div className={`absolute w-52 h-52 rounded-full border border-darkPurple-500/20 ${miningActive ? 'animate-pulse-slow' : ''}`}></div>
+              {/* Orbital rings */}
+              <div className={`absolute w-52 h-52 rounded-full border border-darkPurple-500/20 ${miningActive ? 'animate-cosmic-pulse' : ''}`}></div>
               <div className={`absolute w-44 h-44 rounded-full border border-darkPurple-400/30 ${miningActive ? 'animate-reverse-spin' : ''}`} style={{animationDuration: '15s'}}></div>
               <div className={`absolute w-36 h-36 rounded-full border-2 border-darkPurple-400/40 ${miningActive ? 'animate-spin-slow' : ''}`}></div>
+              
+              {/* Energy field when active */}
+              {miningActive && (
+                <div className="absolute w-60 h-60 rounded-full">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div 
+                      key={i} 
+                      className="absolute w-2 h-2 rounded-full bg-darkPurple-400/40 animate-orbit-path"
+                      style={{
+                        top: '50%',
+                        left: '50%',
+                        marginLeft: '-1px',
+                        marginTop: '-1px',
+                        animationDelay: `${i * 0.5}s`,
+                        animationDuration: `${6 + i}s`
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
               
               {/* The actual button */}
               <button 
@@ -83,7 +139,7 @@ const MiningCard = ({
                 onMouseLeave={() => setIsHovering(false)}
               >
                 {/* Button background with gradient */}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-darkPurple-600 to-navy-700 border-2 border-darkPurple-500/50 group-hover:from-darkPurple-500 group-hover:to-navy-600 transition-all duration-500"></div>
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-darkPurple-600 to-navy-800 border-2 border-darkPurple-500/50 group-hover:from-darkPurple-500 group-hover:to-navy-700 transition-all duration-500 shadow-glow"></div>
                 
                 {/* Shine effect on hover */}
                 <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full ${isHovering ? 'animate-sheen' : ''}`}></div>
@@ -98,7 +154,7 @@ const MiningCard = ({
                   {miningActive ? (
                     <>
                       <div className="mb-2">
-                        <Sparkles className="h-6 w-6 text-white animate-pulse" style={{animationDuration: '2s'}} />
+                        <Star className="h-6 w-6 text-white animate-cosmic-pulse" style={{animationDuration: '2s'}} />
                       </div>
                       <span className="text-sm font-mono text-white font-semibold tracking-wider">
                         {formatTime(miningTime)}
@@ -106,8 +162,8 @@ const MiningCard = ({
                     </>
                   ) : (
                     <>
-                      <Sparkles className={`h-8 w-8 text-white ${isHovering ? 'animate-pulse-slow' : ''}`} />
-                      <span className="text-xs mt-1 text-white/80">START</span>
+                      <Sparkles className={`h-8 w-8 text-white ${isHovering ? 'animate-cosmic-pulse' : ''}`} />
+                      <span className="text-xs mt-1 text-white/80 gradient-text">START</span>
                     </>
                   )}
                 </div>

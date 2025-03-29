@@ -1,11 +1,12 @@
 
-import React, { createContext, useState, useContext, useEffect, ReactNode } from "react";
+import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from "react";
 
 type Theme = "light" | "dark";
 
 type ThemeContextType = {
   theme: Theme;
   toggleTheme: () => void;
+  isDarkMode: boolean;
 };
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -30,14 +31,24 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     
     // Store theme preference
     localStorage.setItem("futureCoinTheme", theme);
+    
+    // Apply transition class for smooth theme switching
+    document.documentElement.classList.add('theme-transition');
+    const timer = setTimeout(() => {
+      document.documentElement.classList.remove('theme-transition');
+    }, 300);
+    
+    return () => clearTimeout(timer);
   }, [theme]);
 
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     setTheme(prevTheme => prevTheme === "dark" ? "light" : "dark");
-  };
+  }, []);
+
+  const isDarkMode = theme === "dark";
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, isDarkMode }}>
       {children}
     </ThemeContext.Provider>
   );

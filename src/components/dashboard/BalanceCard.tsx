@@ -1,8 +1,9 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Coins, Sparkles } from "lucide-react";
+import { Coins, Sparkles, Gem } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface BalanceCardProps {
   balance: number;
@@ -11,39 +12,53 @@ interface BalanceCardProps {
 const BalanceCard = ({ balance }: BalanceCardProps) => {
   const { t } = useLanguage();
   const isMobile = useIsMobile();
+  const { isDarkMode } = useTheme();
 
   return (
-    <Card className="mb-6 overflow-hidden border-none shadow-lg hover:shadow-xl transition-all duration-300 group">
-      {/* Main background */}
-      <div className="absolute inset-0 bg-gradient-to-r from-darkPurple-700/90 via-navy-600/90 to-darkPurple-700/90"></div>
+    <Card className="mb-6 overflow-hidden border-none shadow-xl hover:shadow-glow-lg transition-all duration-500 group">
+      {/* Main background with cosmic effect */}
+      <div className="absolute inset-0 bg-gradient-to-br from-darkPurple-800/95 via-navy-800/95 to-darkPurple-800/95"></div>
+      
+      {/* Animated nebula background */}
+      <div className="absolute inset-0 opacity-40 nebula-bg"></div>
       
       {/* Glass effect */}
       <div className="absolute inset-0 backdrop-blur-sm bg-black/5"></div>
       
-      {/* Animated light effects */}
+      {/* Star particles */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 right-0 h-40 w-40 bg-darkPurple-400/10 rounded-full blur-3xl transform translate-x-10 -translate-y-20"></div>
-        <div className="absolute bottom-0 left-0 h-40 w-40 bg-navy-400/10 rounded-full blur-3xl transform -translate-x-10 translate-y-10"></div>
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div 
+            key={i}
+            className="absolute w-0.5 h-0.5 bg-white rounded-full animate-star-twinkle" 
+            style={{
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 3}s`,
+              animationDuration: `${1 + Math.random() * 2}s`
+            }}
+          />
+        ))}
         
         {/* Subtle moving glow */}
         <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2 h-1/2 bg-darkPurple-500/20 rounded-full blur-3xl animate-pulse-slow"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2 h-1/2 bg-darkPurple-500/30 rounded-full blur-3xl animate-cosmic-pulse"></div>
         </div>
       </div>
       
       {/* Content */}
-      <CardHeader className={`relative z-10 ${isMobile ? 'px-4 py-3' : ''}`}>
+      <CardHeader className={`relative z-10 ${isMobile ? 'px-4 py-3' : 'pb-2'}`}>
         <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
-          <div className="p-1.5 bg-darkPurple-700/50 rounded-lg">
-            <Sparkles className="h-4 w-4 text-darkPurple-300" />
+          <div className="p-1.5 bg-darkPurple-700/50 rounded-lg border border-darkPurple-600/30 shadow-glow">
+            <Gem className="h-4 w-4 text-darkPurple-300" />
           </div>
-          {t('balance.title')}
+          <span className="text-shadow">{t('balance.title')}</span>
         </CardTitle>
       </CardHeader>
       
       <CardContent className={`relative z-10 ${isMobile ? 'px-4 pb-4' : ''}`}>
         <div className="flex items-baseline">
-          <span className={`${isMobile ? 'text-4xl' : 'text-5xl'} font-bold text-transparent bg-clip-text bg-gradient-to-r from-darkPurple-200 to-white`}>
+          <span className={`${isMobile ? 'text-4xl' : 'text-5xl'} font-bold gradient-text animate-nebula-shift`}>
             {balance.toFixed(3)}
           </span>
           <span className="ml-2 text-xl text-darkPurple-300 font-medium">FC</span>
@@ -57,9 +72,9 @@ const BalanceCard = ({ balance }: BalanceCardProps) => {
         </div>
       </CardContent>
       
-      {/* Decorative coin icon */}
-      <div className="absolute bottom-0 right-0 p-6 opacity-10 transition-opacity duration-500">
-        <Coins className={`${isMobile ? 'h-24 w-24' : 'h-32 w-32'} text-white`} />
+      {/* Decorative coin icon with animation */}
+      <div className="absolute bottom-0 right-0 p-6 opacity-10 group-hover:opacity-15 transition-opacity duration-500">
+        <Coins className={`${isMobile ? 'h-24 w-24' : 'h-32 w-32'} text-white animate-cosmic-pulse`} style={{animationDuration: '8s'}} />
       </div>
     </Card>
   );
