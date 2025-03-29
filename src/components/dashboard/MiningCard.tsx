@@ -51,9 +51,15 @@ const MiningCard = ({
         <div className="text-center mb-6">
           <div className="flex justify-center items-center">
             {/* Button with rotation ring around it */}
-            <div className="relative">
-              {/* Spinning ring around the button */}
-              <div className={`absolute inset-0 ${isMobile ? 'w-36 h-36' : 'w-44 h-44'} rounded-full border-4 border-indigo-500/30 border-t-indigo-500/80 animate-spin`}></div>
+            <div className="relative inline-flex justify-center items-center">
+              {/* Spinning ring around the button - fixed positioning */}
+              <div className="absolute inset-0 rounded-full border-4 border-indigo-500/30 border-t-indigo-500/80 animate-spin" style={{
+                width: isMobile ? '140px' : '170px',
+                height: isMobile ? '140px' : '170px',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)'
+              }}></div>
               
               {/* Mining start/stop button */}
               <button 
