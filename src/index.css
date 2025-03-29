@@ -131,7 +131,7 @@
   }
 }
 
-/* Explicitly keep the spin animations as requested by user */
+/* Adding explicit spin animation */
 @keyframes spin {
   from { 
     transform: translate(-50%, -50%) rotate(0deg);
@@ -141,7 +141,7 @@
   }
 }
 
-/* Keep reverse spin animation */
+/* Adding reverse spin animation */
 @keyframes spin-reverse {
   from { 
     transform: translate(-50%, -50%) rotate(0deg);
@@ -151,56 +151,23 @@
   }
 }
 
-/* New ripple animation for the outer circle */
-@keyframes ripple {
-  0% {
-    transform: translate(-50%, -50%) scale(0.8);
-    opacity: 0.7;
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(1.1);
-    opacity: 0.3;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(0.8);
-    opacity: 0.7;
-  }
-}
-
-/* Updated pulse animation */
+/* Adding pulse animation */
 @keyframes pulse {
   0% {
-    opacity: 0.3;
+    transform: translate(-50%, -50%) scale(0.95);
+    opacity: 0.7;
   }
   50% {
-    opacity: 0.6;
-  }
-  100% {
+    transform: translate(-50%, -50%) scale(1.05);
     opacity: 0.3;
   }
-}
-
-/* Slower pulse animation for the mining icon */
-.animate-pulse-slow {
-  animation: pulseIcon 2s ease-in-out infinite;
-}
-
-@keyframes pulseIcon {
-  0% {
-    opacity: 0.8;
-    transform: scale(0.95);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.05); 
-  }
   100% {
-    opacity: 0.8;
-    transform: scale(0.95);
+    transform: translate(-50%, -50%) scale(0.95);
+    opacity: 0.7;
   }
 }
 
-/* Keep shimmer animation */
+/* Shimmer animation */
 @keyframes shimmer {
   0% { 
     --card-shine-left: -100%;
