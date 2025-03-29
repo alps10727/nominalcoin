@@ -3,7 +3,7 @@ import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
-// Firebase yapılandırma bilgileri - gerçek projede kendi bilgilerinizle değiştirin
+// Firebase yapılandırma bilgileri - lütfen kendi bilgilerinizle değiştirin
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_AUTH_DOMAIN",
