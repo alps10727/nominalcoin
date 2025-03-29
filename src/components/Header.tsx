@@ -6,9 +6,11 @@ import { LanguageSwitcher } from "./header/LanguageSwitcher";
 import { ThemeToggle } from "./header/ThemeToggle";
 import { NotificationsDropdown } from "./header/NotificationsDropdown";
 import { Stars } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Header = () => {
   const isMobile = useIsMobile();
+  const { language } = useLanguage();
 
   return (
     <header className="bg-gradient-to-r from-darkPurple-900/95 via-navy-900/90 to-darkPurple-900/95 backdrop-blur-xl p-4 flex justify-between items-center shadow-lg sticky top-0 z-10 border-b border-violet-500/20">

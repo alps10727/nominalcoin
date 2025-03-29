@@ -1,5 +1,5 @@
 
-import React, { createContext, useState, useContext, ReactNode } from "react";
+import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
 import { translations, LanguageCode } from "@/translations";
 
 type LanguageContextType = {
@@ -14,13 +14,43 @@ type LanguageProviderProps = {
   children: ReactNode;
 };
 
+// Tarayıcı dilini algılamak için yardımcı fonksiyon
+const getBrowserLanguage = (): LanguageCode => {
+  const browserLang = navigator.language.split('-')[0];
+  const availableLanguages: LanguageCode[] = ['en', 'tr', 'zh', 'es', 'ru', 'fr', 'de', 'ar', 'pt'];
+  
+  return availableLanguages.includes(browserLang as LanguageCode) 
+    ? browserLang as LanguageCode 
+    : 'en';
+};
+
 export const LanguageProvider = ({ children }: LanguageProviderProps) => {
-  const [language, setLanguage] = useState<LanguageCode>('en');
+  // Yerel depolamada kaydedilmiş dil tercihi veya tarayıcı dili
+  const [language, setLanguageState] = useState<LanguageCode>(() => {
+    const savedLanguage = localStorage.getItem('preferredLanguage');
+    return (savedLanguage as LanguageCode) || getBrowserLanguage();
+  });
+
+  const setLanguage = (lang: LanguageCode) => {
+    setLanguageState(lang);
+    localStorage.setItem('preferredLanguage', lang);
+    
+    // Debug için konsola yazdırma
+    console.log(`Language changed to: ${lang}`);
+  };
+
+  // Dil değiştiğinde HTML lang özniteliğini güncelle
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
 
   const t = (key: string, ...args: string[]): string => {
-    const translation = translations[language][key as keyof typeof translations.en] || key;
+    // Anahtarın mevcut dil çevirisinde bulunup bulunmadığını kontrol et
+    const translationObj = translations[language] || translations.en;
+    const translation = translationObj[key as keyof typeof translations.en] || key;
     
     if (typeof translation !== 'string') {
+      console.warn(`Translation for key "${key}" is not a string`);
       return key;
     }
     
