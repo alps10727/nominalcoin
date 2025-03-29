@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -91,7 +92,7 @@ const MiningCard = ({
           <span>{t('mining.activeminers')}</span>
         </div>
         <div className="flex items-center font-medium">
-          <span>{t('mining.rate')}: {miningRate.toFixed(4)} FC/30s</span>
+          <span>{t('mining.rate')}: {miningRate.toFixed(4)} FC/3min</span>
         </div>
       </CardFooter>
     </Card>

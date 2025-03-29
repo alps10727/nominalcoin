@@ -13,7 +13,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
     let interval: number | undefined;
     
     if (state.miningActive) {
-      // 30 saniyede bir çalışır
+      // 3 dakikada bir artış için sayaç (180 saniye)
       let counter = 0;
       interval = window.setInterval(() => {
         counter++;
@@ -40,8 +40,8 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
             };
           }
           
-          // Her 30 saniyede (30 tik) madencilik geliri eklenir
-          if (counter >= 30) {
+          // Her 180 saniyede (180 tik) madencilik geliri eklenir
+          if (counter >= 180) {
             counter = 0;
             const newBalance = prev.balance + prev.miningRate;
             const newSession = prev.miningSession + 1;
