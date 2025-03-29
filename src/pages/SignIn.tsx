@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { 
   Card, 
@@ -16,20 +16,44 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Mail, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import LoadingScreen from "@/components/dashboard/LoadingScreen";
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [submitDisabled, setSubmitDisabled] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, loading: authLoading } = useAuth();
+  
+  // Giriş işlemi uzun sürdüğünde kurtarma mekanizması
+  useEffect(() => {
+    console.log("SignIn component mounted");
+    
+    // Eğer giriş işlemi başlayıp 30 saniyeden fazla sürerse, otomatik olarak form sıfırlanır
+    const timeoutId = setTimeout(() => {
+      if (loading) {
+        console.log("Giriş zaman aşımına uğradı, durum sıfırlanıyor");
+        setLoading(false);
+        setSubmitDisabled(false);
+        toast.error("Giriş işlemi zaman aşımına uğradı. Lütfen tekrar deneyin.");
+      }
+    }, 30000);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      console.log("SignIn component unmounted");
+    };
+  }, [loading]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setSubmitDisabled(true);
     
     try {
+      console.log("Giriş işlemi başlatılıyor:", email);
       const success = await login(email, password);
       if (success) {
         navigate("/");
@@ -37,11 +61,24 @@ const SignIn = () => {
         toast.error("Giriş yapılamadı, lütfen bilgilerinizi kontrol edin.");
       }
     } catch (error) {
-      toast.error("Giriş yapılamadı: " + (error as Error).message);
+      console.error("Giriş hatası:", error);
+      const errorMessage = (error as Error).message;
+      
+      if (errorMessage.includes("timeout") || errorMessage.includes("network")) {
+        toast.error("Bağlantı sorunu. İnternet bağlantınızı kontrol edin.");
+      } else {
+        toast.error("Giriş yapılamadı: " + errorMessage);
+      }
     } finally {
       setLoading(false);
+      setSubmitDisabled(false);
     }
   };
+  
+  // Ana sayfa yüklenirken ekranı göster
+  if (authLoading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
@@ -67,6 +104,7 @@ const SignIn = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    disabled={loading}
                   />
                 </div>
               </div>
@@ -87,6 +125,7 @@ const SignIn = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    disabled={loading}
                   />
                 </div>
               </div>
@@ -97,6 +136,7 @@ const SignIn = () => {
                   onCheckedChange={(checked) => {
                     setRememberMe(checked as boolean);
                   }}
+                  disabled={loading}
                 />
                 <label
                   htmlFor="remember"
@@ -105,7 +145,7 @@ const SignIn = () => {
                   Beni hatırla
                 </label>
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button type="submit" className="w-full" disabled={loading || submitDisabled}>
                 {loading ? (
                   <div className="flex items-center justify-center">
                     <div className="h-4 w-4 border-2 border-current border-t-transparent animate-spin rounded-full mr-2" />

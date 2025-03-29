@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { 
   Card, 
@@ -16,6 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Mail, Lock, User } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import LoadingScreen from "@/components/dashboard/LoadingScreen";
 
 const SignUp = () => {
   const [name, setName] = useState("");
@@ -24,8 +25,30 @@ const SignUp = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [submitDisabled, setSubmitDisabled] = useState(false);
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const { register, loading: authLoading } = useAuth();
+  
+  // Kayıt işlemi uzun sürdüğünde kurtarma mekanizması
+  useEffect(() => {
+    // Sayfa yüklendiğinde
+    console.log("SignUp component mounted");
+    
+    // Eğer kayıt işlemi başlayıp 30 saniyeden fazla sürerse, otomatik olarak form sıfırlanır
+    const timeoutId = setTimeout(() => {
+      if (loading) {
+        console.log("Kayıt zaman aşımına uğradı, durum sıfırlanıyor");
+        setLoading(false);
+        setSubmitDisabled(false);
+        toast.error("Kayıt işlemi zaman aşımına uğradı. Lütfen tekrar deneyin.");
+      }
+    }, 30000);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      console.log("SignUp component unmounted");
+    };
+  }, [loading]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +64,7 @@ const SignUp = () => {
     }
 
     setLoading(true);
+    setSubmitDisabled(true);
     
     try {
       console.log("Kayıt işlemi başlıyor...");
@@ -56,12 +80,24 @@ const SignUp = () => {
       }
     } catch (error) {
       console.error("Kayıt hatası:", error);
-      toast.error("Kayıt hatası: " + (error as Error).message);
+      const errorMessage = (error as Error).message;
+      
+      if (errorMessage.includes("timeout") || errorMessage.includes("network")) {
+        toast.error("Bağlantı sorunu. İnternet bağlantınızı kontrol edin.");
+      } else {
+        toast.error("Kayıt hatası: " + errorMessage);
+      }
     } finally {
       // Her durumda yükleme durumunu kapat
       setLoading(false);
+      setSubmitDisabled(false);
     }
   };
+  
+  // Ana sayfa yüklenirken ekranı göster
+  if (authLoading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
@@ -87,6 +123,7 @@ const SignUp = () => {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
+                    disabled={loading}
                   />
                 </div>
               </div>
@@ -102,6 +139,7 @@ const SignUp = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    disabled={loading}
                   />
                 </div>
               </div>
@@ -117,6 +155,8 @@ const SignUp = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    disabled={loading}
+                    minLength={6}
                   />
                 </div>
               </div>
@@ -132,6 +172,8 @@ const SignUp = () => {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
+                    disabled={loading}
+                    minLength={6}
                   />
                 </div>
               </div>
@@ -142,6 +184,7 @@ const SignUp = () => {
                   onCheckedChange={(checked) => {
                     setAgreeTerms(checked as boolean);
                   }}
+                  disabled={loading}
                 />
                 <label
                   htmlFor="terms"
@@ -157,7 +200,7 @@ const SignUp = () => {
                   kabul ediyorum
                 </label>
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button type="submit" className="w-full" disabled={loading || submitDisabled}>
                 {loading ? (
                   <div className="flex items-center justify-center">
                     <div className="h-4 w-4 border-2 border-current border-t-transparent animate-spin rounded-full mr-2" />

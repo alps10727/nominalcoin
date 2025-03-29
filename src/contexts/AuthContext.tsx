@@ -38,6 +38,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Auth değişikliklerini dinle
   useEffect(() => {
+    console.log("Auth Provider başlatılıyor...");
+    setLoading(true);
+    
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       console.log("Auth durumu değişti:", user ? user.email : 'Kullanıcı yok');
       setCurrentUser(user);
@@ -62,19 +65,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Giriş işlevi
   const login = async (email: string, password: string): Promise<boolean> => {
+    setLoading(true);
     try {
       const user = await loginUser(email, password);
       if (user) {
         toast.success("Başarıyla giriş yapıldı!");
         return true;
       }
+      setLoading(false);
       return false;
     } catch (error) {
+      setLoading(false);
       console.error("Giriş hatası:", error);
       const errorMessage = (error as Error).message;
       // Firebase hata mesajlarını Türkçe'ye çevir
       if (errorMessage.includes("user-not-found") || errorMessage.includes("wrong-password")) {
         toast.error("Email veya şifre hatalı.");
+      } else if (errorMessage.includes("too-many-requests")) {
+        toast.error("Çok fazla deneme yapıldı. Lütfen daha sonra tekrar deneyin.");
+      } else if (errorMessage.includes("network-request-failed") || errorMessage.includes("timeout")) {
+        toast.error("İnternet bağlantınızı kontrol edin.");
       } else {
         toast.error("Giriş yapılamadı: " + errorMessage);
       }
@@ -93,8 +103,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Kayıt işlevi
+  // Kayıt işlevi - Timeout kontrolü eklendi, hata işleme iyileştirildi
   const register = async (email: string, password: string): Promise<boolean> => {
+    setLoading(true);
     try {
       console.log("Kayıt işlemi başlatılıyor:", email);
       const user = await registerUser(email, password, {});
@@ -102,12 +113,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Eğer null olmayan bir kullanıcı değeri döndüyse, işlem başarılıdır
       if (user) {
         console.log("Kayıt işlemi başarılı:", user.uid);
+        setLoading(false);
         return true;
       }
       
       console.log("Kayıt işlemi başarısız: Kullanıcı verisi döndürülmedi");
+      setLoading(false);
       return false;
     } catch (error) {
+      setLoading(false);
       console.error("Kayıt işlemi hatası:", error);
       const errorMessage = (error as Error).message;
       
@@ -118,6 +132,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         toast.error("Şifre en az 6 karakter olmalıdır.");
       } else if (errorMessage.includes("invalid-email")) {
         toast.error("Geçersiz email adresi.");
+      } else if (errorMessage.includes("network-request-failed") || errorMessage.includes("timeout")) {
+        toast.error("İnternet bağlantınızı kontrol edin.");
       } else {
         toast.error("Kayıt yapılamadı: " + errorMessage);
       }
@@ -153,7 +169,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 }
