@@ -48,7 +48,7 @@ const DailyTaskItem = ({ task, onClaim }: DailyTaskItemProps) => {
         {!task.completed && (
           <div className="mt-3">
             <div className="flex justify-between text-xs text-gray-400 mb-1">
-              <span>Progress</span>
+              <span>{t('tasks.progress')}</span>
               <span>{task.progress}/{task.totalRequired}</span>
             </div>
             <Progress value={(task.progress / task.totalRequired) * 100} className="h-2 bg-gray-700" />

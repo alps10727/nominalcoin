@@ -3,13 +3,16 @@ import { useState } from "react";
 import { CheckCircle, Clock, Award, CheckCheck } from "lucide-react";
 import { Task, Badge } from "@/types/tasks";
 import { toast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const useTasksData = () => {
+  const { t } = useLanguage();
+  
   const [dailyTasks, setDailyTasks] = useState<Task[]>([
     {
       id: 1,
-      title: "Mine for 5 minutes",
-      description: "Keep mining active for at least 5 minutes",
+      title: t("tasks.mineTask"),
+      description: t("tasks.mineTaskDesc"),
       reward: 1,
       progress: 3,
       totalRequired: 5,
@@ -17,8 +20,8 @@ export const useTasksData = () => {
     },
     {
       id: 2,
-      title: "Visit the Profile Page",
-      description: "Check out your profile",
+      title: t("tasks.profileTask"),
+      description: t("tasks.profileTaskDesc"),
       reward: 0.5,
       progress: 1,
       totalRequired: 1,
@@ -26,8 +29,8 @@ export const useTasksData = () => {
     },
     {
       id: 3,
-      title: "Invite a Friend",
-      description: "Share your referral code with a friend",
+      title: t("tasks.inviteTask"),
+      description: t("tasks.inviteTaskDesc"),
       reward: 2,
       progress: 0,
       totalRequired: 1,
@@ -38,32 +41,32 @@ export const useTasksData = () => {
   const [badges, setBadges] = useState<Badge[]>([
     {
       id: 1,
-      title: "First Miner",
-      description: "Complete your first mining session",
+      title: t("badges.firstMiner"),
+      description: t("badges.firstMinerDesc"),
       icon: <CheckCircle className="h-6 w-6 text-green-400" />,
       earned: true,
       progress: 100
     },
     {
       id: 2,
-      title: "Mining Pro",
-      description: "Mine for a total of 1 hour",
+      title: t("badges.miningPro"),
+      description: t("badges.miningProDesc"),
       icon: <Clock className="h-6 w-6 text-indigo-400" />,
       earned: false,
       progress: 45
     },
     {
       id: 3,
-      title: "Social Networker",
-      description: "Refer 5 friends to FC",
+      title: t("badges.socialNetworker"),
+      description: t("badges.socialNetworkerDesc"),
       icon: <Award className="h-6 w-6 text-yellow-400" />,
       earned: false,
       progress: 40
     },
     {
       id: 4,
-      title: "Upgrade Master",
-      description: "Purchase 3 mining upgrades",
+      title: t("badges.upgradeMaster"),
+      description: t("badges.upgradeMasterDesc"),
       icon: <CheckCheck className="h-6 w-6 text-purple-400" />,
       earned: false,
       progress: 33
@@ -80,8 +83,8 @@ export const useTasksData = () => {
         setDailyTasks(newTasks);
         
         toast({
-          title: "Reward Claimed!",
-          description: `You earned ${task.reward} FC from ${task.title}`,
+          title: t("tasks.rewardClaimed"),
+          description: t("tasks.rewardClaimedDesc", task.reward.toString(), task.title),
         });
       }
     }

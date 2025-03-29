@@ -74,6 +74,26 @@ const translations = {
     "nav.referral": "Referral",
     "nav.tasks": "Tasks",
     "nav.stats": "Stats",
+    
+    // Task translations
+    "tasks.mineTask": "Mine for 5 minutes",
+    "tasks.mineTaskDesc": "Keep mining active for at least 5 minutes",
+    "tasks.profileTask": "Visit the Profile Page",
+    "tasks.profileTaskDesc": "Check out your profile",
+    "tasks.inviteTask": "Invite a Friend",
+    "tasks.inviteTaskDesc": "Share your referral code with a friend",
+    "tasks.rewardClaimed": "Reward Claimed!",
+    "tasks.rewardClaimedDesc": "You earned {0} FC from {1}",
+    
+    // Badge translations
+    "badges.firstMiner": "First Miner",
+    "badges.firstMinerDesc": "Complete your first mining session",
+    "badges.miningPro": "Mining Pro",
+    "badges.miningProDesc": "Mine for a total of 1 hour",
+    "badges.socialNetworker": "Social Networker",
+    "badges.socialNetworkerDesc": "Refer 5 friends to FC",
+    "badges.upgradeMaster": "Upgrade Master",
+    "badges.upgradeMasterDesc": "Purchase 3 mining upgrades",
   },
   tr: {
     "app.title": "Gelecek Coin",
@@ -140,6 +160,26 @@ const translations = {
     "nav.referral": "Referans",
     "nav.tasks": "Görevler",
     "nav.stats": "İstatistikler",
+    
+    // Task translations
+    "tasks.mineTask": "5 dakika madencilik yap",
+    "tasks.mineTaskDesc": "Madenciliği en az 5 dakika aktif tut",
+    "tasks.profileTask": "Profil Sayfasını Ziyaret Et",
+    "tasks.profileTaskDesc": "Profilini kontrol et",
+    "tasks.inviteTask": "Bir Arkadaş Davet Et",
+    "tasks.inviteTaskDesc": "Referans kodunu bir arkadaşınla paylaş",
+    "tasks.rewardClaimed": "Ödül Alındı!",
+    "tasks.rewardClaimedDesc": "{1} görevinden {0} FC kazandınız",
+    
+    // Badge translations
+    "badges.firstMiner": "İlk Madenci",
+    "badges.firstMinerDesc": "İlk madencilik oturumunu tamamla",
+    "badges.miningPro": "Madencilik Uzmanı",
+    "badges.miningProDesc": "Toplam 1 saat madencilik yap",
+    "badges.socialNetworker": "Sosyal Ağ Kurucusu",
+    "badges.socialNetworkerDesc": "FC'ye 5 arkadaş yönlendir",
+    "badges.upgradeMaster": "Yükseltme Ustası",
+    "badges.upgradeMasterDesc": "3 madencilik yükseltmesi satın al",
   },
   zh: {
     "app.title": "未来币",
@@ -206,6 +246,26 @@ const translations = {
     "nav.referral": "推荐",
     "nav.tasks": "任务",
     "nav.stats": "统计",
+    
+    // Task translations
+    "tasks.mineTask": "开采5分钟",
+    "tasks.mineTaskDesc": "保持挖矿至少活跃5分钟",
+    "tasks.profileTask": "访问个人资料页面",
+    "tasks.profileTaskDesc": "查看您的个人资料",
+    "tasks.inviteTask": "邀请一位朋友",
+    "tasks.inviteTaskDesc": "与朋友分享您的推荐码",
+    "tasks.rewardClaimed": "奖励已领取！",
+    "tasks.rewardClaimedDesc": "您从{1}获得了{0} FC",
+    
+    // Badge translations
+    "badges.firstMiner": "首位矿工",
+    "badges.firstMinerDesc": "完成您的第一次挖矿会话",
+    "badges.miningPro": "挖矿专家",
+    "badges.miningProDesc": "总共挖矿1小时",
+    "badges.socialNetworker": "社交网络专家",
+    "badges.socialNetworkerDesc": "向FC推荐5位朋友",
+    "badges.upgradeMaster": "升级大师",
+    "badges.upgradeMasterDesc": "购买3次挖矿升级",
   },
   es: {
     "app.title": "Moneda Futura",
@@ -272,6 +332,26 @@ const translations = {
     "nav.referral": "Referidos",
     "nav.tasks": "Tareas",
     "nav.stats": "Estadísticas",
+    
+    // Task translations
+    "tasks.mineTask": "Minar durante 5 minutos",
+    "tasks.mineTaskDesc": "Mantén la minería activa durante al menos 5 minutos",
+    "tasks.profileTask": "Visita la página de Perfil",
+    "tasks.profileTaskDesc": "Revisa tu perfil",
+    "tasks.inviteTask": "Invita a un Amigo",
+    "tasks.inviteTaskDesc": "Comparte tu código de referido con un amigo",
+    "tasks.rewardClaimed": "¡Recompensa Reclamada!",
+    "tasks.rewardClaimedDesc": "Has ganado {0} FC de {1}",
+    
+    // Badge translations
+    "badges.firstMiner": "Primer Minero",
+    "badges.firstMinerDesc": "Completa tu primera sesión de minería",
+    "badges.miningPro": "Minero Profesional",
+    "badges.miningProDesc": "Mina durante un total de 1 hora",
+    "badges.socialNetworker": "Networker Social",
+    "badges.socialNetworkerDesc": "Refiere a 5 amigos a FC",
+    "badges.upgradeMaster": "Maestro de Mejoras",
+    "badges.upgradeMasterDesc": "Compra 3 mejoras de minería",
   },
   ru: {
     "app.title": "Будущая Монета",
@@ -338,6 +418,26 @@ const translations = {
     "nav.referral": "Рефералы",
     "nav.tasks": "Задания",
     "nav.stats": "Статистика",
+    
+    // Task translations
+    "tasks.mineTask": "Майнить в течение 5 минут",
+    "tasks.mineTaskDesc": "Поддерживайте майнинг активным не менее 5 минут",
+    "tasks.profileTask": "Посетить страницу профиля",
+    "tasks.profileTaskDesc": "Проверьте свой профиль",
+    "tasks.inviteTask": "Пригласить друга",
+    "tasks.inviteTaskDesc": "Поделитесь своим реферальным кодом с другом",
+    "tasks.rewardClaimed": "Награда получена!",
+    "tasks.rewardClaimedDesc": "Вы заработали {0} FC от {1}",
+    
+    // Badge translations
+    "badges.firstMiner": "Первый майнер",
+    "badges.firstMinerDesc": "Завершите свою первую сессию майнинга",
+    "badges.miningPro": "Профессиональный майнер",
+    "badges.miningProDesc": "Майните в общей сложности 1 час",
+    "badges.socialNetworker": "Социальный нетворкер",
+    "badges.socialNetworkerDesc": "Пригласите 5 друзей в FC",
+    "badges.upgradeMaster": "Мастер апгрейдов",
+    "badges.upgradeMasterDesc": "Приобретите 3 улучшения для майнинга",
   },
   fr: {
     "app.title": "Future Coin",
@@ -404,6 +504,26 @@ const translations = {
     "nav.referral": "Parrainage",
     "nav.tasks": "Tâches",
     "nav.stats": "Stats",
+    
+    // Task translations
+    "tasks.mineTask": "Miner pendant 5 minutes",
+    "tasks.mineTaskDesc": "Gardez le minage actif pendant au moins 5 minutes",
+    "tasks.profileTask": "Visitez la page de profil",
+    "tasks.profileTaskDesc": "Consultez votre profil",
+    "tasks.inviteTask": "Invitez un ami",
+    "tasks.inviteTaskDesc": "Partagez votre code de parrainage avec un ami",
+    "tasks.rewardClaimed": "Récompense réclamée !",
+    "tasks.rewardClaimedDesc": "Vous avez gagné {0} FC de {1}",
+    
+    // Badge translations
+    "badges.firstMiner": "Premier mineur",
+    "badges.firstMinerDesc": "Terminez votre première session de minage",
+    "badges.miningPro": "Pro du minage",
+    "badges.miningProDesc": "Minez pendant un total d'1 heure",
+    "badges.socialNetworker": "Réseauteur social",
+    "badges.socialNetworkerDesc": "Parrainez 5 amis à FC",
+    "badges.upgradeMaster": "Maître des améliorations",
+    "badges.upgradeMasterDesc": "Achetez 3 améliorations de minage",
   },
   de: {
     "app.title": "Future Coin",
@@ -470,172 +590,30 @@ const translations = {
     "nav.referral": "Empfehlung",
     "nav.tasks": "Aufgaben",
     "nav.stats": "Statistiken",
+    
+    // Task translations
+    "tasks.mineTask": "5 Minuten lang minen",
+    "tasks.mineTaskDesc": "Halte Mining für mindestens 5 Minuten aktiv",
+    "tasks.profileTask": "Profilseite besuchen",
+    "tasks.profileTaskDesc": "Überprüfe dein Profil",
+    "tasks.inviteTask": "Einen Freund einladen",
+    "tasks.inviteTaskDesc": "Teile deinen Empfehlungscode mit einem Freund",
+    "tasks.rewardClaimed": "Belohnung eingefordert!",
+    "tasks.rewardClaimedDesc": "Du hast {0} FC von {1} verdient",
+    
+    // Badge translations
+    "badges.firstMiner": "Erster Miner",
+    "badges.firstMinerDesc": "Schließe deine erste Mining-Sitzung ab",
+    "badges.miningPro": "Mining-Profi",
+    "badges.miningProDesc": "Mine insgesamt 1 Stunde lang",
+    "badges.socialNetworker": "Sozialer Netzwerker",
+    "badges.socialNetworkerDesc": "Empfehle 5 Freunde an FC",
+    "badges.upgradeMaster": "Verbesserungsmeister",
+    "badges.upgradeMasterDesc": "Kaufe 3 Mining-Verbesserungen",
   },
   ar: {
     "app.title": "عملة المستقبل",
     "balance.title": "رصيدك من FC",
     "balance.total": "إجمالي عملة المستقبل المكتسبة",
     "mining.title": "تعدين FC",
-    "mining.description": "قم بالتعدين لكسب عملة المستقبل المشفرة",
-    "mining.active": "إيقاف",
-    "mining.inactive": "بدء",
-    "mining.activeminers": "المعدنين النشطين",
-    "mining.rate": "المعدل",
-    "security.title": "مركز الأمان",
-    "transfer.title": "تحويل FC",
-    "explore.button": "استكشاف نظام FC",
-    "nav.mining": "التعدين",
-    "nav.team": "الفريق",
-    "nav.transfer": "تحويل",
-    "nav.security": "الأمان",
-    "mining.started": "بدأ التعدين",
-    "mining.startedDesc": "ستحصل على مكافآت كل 30 ثانية.",
-    "mining.stopped": "توقف التعدين",
-    "mining.stoppedDesc": "لقد ربحت ما مجموعه {0} FC في هذه الجلسة.",
-    "mining.successful": "تم التعدين بنجاح!",
-    "mining.successfulDesc": "لقد ربحت {0} FC.",
-    "profile.title": "الملف الشخصي",
-    "profile.joinDate": "تاريخ الانضمام",
-    "profile.totalMined": "إجمالي التعدين",
-    "profile.level": "المستوى",
-    "profile.edit": "تعديل الملف الشخصي",
-    "history.title": "سجل المعاملات",
-    "history.empty": "لم يتم العثور على معاملات",
-    "history.mining": "مكافأة التعدين",
-    "history.referral": "مكافأة الإحالة",
-    "history.purchase": "شراء",
-    "history.date": "التاريخ",
-    "history.amount": "المبلغ",
-    "history.type": "النوع",
-    "referral.title": "دعوة الأصدقاء",
-    "referral.description": "ادعُ أصدقاءك واربح مكافآت FC",
-    "referral.code": "رمز الإحالة الخاص بك",
-    "referral.link": "رابط المشاركة",
-    "referral.reward": "اربح {0} FC لكل صديق ينضم",
-    "referral.copy": "نسخ",
-    "referral.copied": "تم النسخ!",
-    "tasks.title": "المهام والشارات",
-    "tasks.daily": "المهام اليومية",
-    "tasks.achievements": "الإنجازات",
-    "tasks.claim": "المطالبة",
-    "tasks.completed": "مكتمل",
-    "tasks.progress": "قيد التقدم",
-    "mining.upgrades": "ترقيات التعدين",
-    "mining.speed": "تعزيز السرعة",
-    "mining.efficiency": "الكفاءة",
-    "mining.upgrade": "ترقية",
-    "mining.level": "المستوى {0}",
-    "mining.cost": "التكلفة: {0} FC",
-    "stats.title": "الإحصائيات",
-    "stats.totalMined": "إجمالي التعدين",
-    "stats.miningTime": "إجمالي وقت التعدين",
-    "stats.upgrades": "إجمالي الترقيات",
-    "stats.referrals": "إجمالي الإحالات",
-    "nav.profile": "الملف الشخصي",
-    "nav.history": "السجل",
-    "nav.referral": "الإحالة",
-    "nav.tasks": "المهام",
-    "nav.stats": "الإحصائيات",
-  },
-  pt: {
-    "app.title": "Moeda do Futuro",
-    "balance.title": "Seu Saldo FC",
-    "balance.total": "Total de Moeda do Futuro ganho",
-    "mining.title": "Mineração FC",
-    "mining.description": "Minere para ganhar criptomoeda Moeda do Futuro",
-    "mining.active": "PARAR",
-    "mining.inactive": "INICIAR",
-    "mining.activeminers": "Mineradores Ativos",
-    "mining.rate": "Taxa",
-    "security.title": "Centro de Segurança",
-    "transfer.title": "Transferir FC",
-    "explore.button": "Explorar Ecossistema FC",
-    "nav.mining": "Mineração",
-    "nav.team": "Equipe",
-    "nav.transfer": "Transferir",
-    "nav.security": "Segurança",
-    "mining.started": "Mineração iniciada",
-    "mining.startedDesc": "Você receberá recompensas a cada 30 segundos.",
-    "mining.stopped": "Mineração parada",
-    "mining.stoppedDesc": "Você ganhou um total de {0} FC nesta sessão.",
-    "mining.successful": "Mineração bem-sucedida!",
-    "mining.successfulDesc": "Você ganhou {0} FC.",
-    "profile.title": "Perfil do Usuário",
-    "profile.joinDate": "Ingressou em",
-    "profile.totalMined": "Total Minerado",
-    "profile.level": "Nível",
-    "profile.edit": "Editar Perfil",
-    "history.title": "Histórico de Transações",
-    "history.empty": "Nenhuma transação encontrada",
-    "history.mining": "Recompensa de Mineração",
-    "history.referral": "Bônus de Indicação",
-    "history.purchase": "Compra",
-    "history.date": "Data",
-    "history.amount": "Valor",
-    "history.type": "Tipo",
-    "referral.title": "Indicar Amigos",
-    "referral.description": "Convide amigos e ganhe recompensas FC",
-    "referral.code": "Seu Código de Indicação",
-    "referral.link": "Link para Compartilhar",
-    "referral.reward": "Ganhe {0} FC para cada amigo que se juntar",
-    "referral.copy": "Copiar",
-    "referral.copied": "Copiado!",
-    "tasks.title": "Tarefas e Distintivos",
-    "tasks.daily": "Tarefas Diárias",
-    "tasks.achievements": "Conquistas",
-    "tasks.claim": "Reivindicar",
-    "tasks.completed": "Concluído",
-    "tasks.progress": "Em Progresso",
-    "mining.upgrades": "Atualizações de Mineração",
-    "mining.speed": "Aumento de Velocidade",
-    "mining.efficiency": "Eficiência",
-    "mining.upgrade": "Atualizar",
-    "mining.level": "Nível {0}",
-    "mining.cost": "Custo: {0} FC",
-    "stats.title": "Estatísticas",
-    "stats.totalMined": "Total Minerado",
-    "stats.miningTime": "Tempo Total de Mineração",
-    "stats.upgrades": "Total de Atualizações",
-    "stats.referrals": "Total de Indicações",
-    "nav.profile": "Perfil",
-    "nav.history": "Histórico",
-    "nav.referral": "Indicação",
-    "nav.tasks": "Tarefas",
-    "nav.stats": "Estatísticas",
-  },
-};
-
-const defaultLanguage: Language = "en";
-
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
-
-export const LanguageProvider = ({ children }: { children: ReactNode }) => {
-  const [language, setLanguage] = useState<Language>(defaultLanguage);
-
-  const t = (key: string, ...args: string[]): string => {
-    const translation = translations[language]?.[key] || translations.en[key] || key;
-    
-    if (args.length === 0) return translation;
-    
-    return translation.replace(/{(\d+)}/g, (match, number) => {
-      const index = parseInt(number, 10);
-      return typeof args[index] !== 'undefined' ? args[index] : match;
-    });
-  };
-
-  return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
-      {children}
-    </LanguageContext.Provider>
-  );
-};
-
-export const useLanguage = (): LanguageContextType => {
-  const context = useContext(LanguageContext);
-  if (context === undefined) {
-    throw new Error("useLanguage must be used within a LanguageProvider");
-  }
-  return context;
-};
-
-export default LanguageContext;
+    "mining.description": "قم بالتعد
