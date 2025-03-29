@@ -13,9 +13,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Mail, Lock, ArrowRight } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { loadUserData } from "@/utils/storage";
+import { Mail, Lock } from "lucide-react";
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
@@ -23,39 +23,24 @@ const SignIn = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { login } = useAuth();
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
-    // This is a placeholder for Firebase authentication
-    // We'll add the actual Firebase code later
-    setTimeout(() => {
-      setLoading(false);
-      
-      // Check if this is a new user (no data in localStorage)
-      const userData = loadUserData();
-      if (!userData) {
-        // First time signing in - we'll keep default values for everything
-        toast({
-          title: "Welcome!",
-          description: "It looks like your first time using our app. Enjoy mining!",
-        });
+    try {
+      const success = await login(email, password);
+      if (success) {
+        navigate("/");
       } else {
-        // If the user has a userId, display it in the welcome message
-        const userIdMessage = userData.userId 
-          ? `User ID: ${userData.userId}. Welcome back!` 
-          : "Welcome back!";
-          
-        toast({
-          title: userIdMessage,
-          description: "You've successfully signed in.",
-        });
+        toast.error("Giriş yapılamadı, lütfen bilgilerinizi kontrol edin.");
       }
-      
-      navigate("/");
-    }, 1000);
+    } catch (error) {
+      toast.error("Giriş yapılamadı: " + (error as Error).message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -63,9 +48,9 @@ const SignIn = () => {
       <div className="w-full max-w-md animate-fade-in">
         <Card className="border-none shadow-lg">
           <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
+            <CardTitle className="text-2xl font-bold">Tekrar Hoşgeldiniz</CardTitle>
             <CardDescription>
-              Sign in to your account to continue
+              Devam etmek için hesabınıza giriş yapın
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -77,7 +62,7 @@ const SignIn = () => {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder="Email adresinizi girin"
                     className="pl-10"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -87,9 +72,9 @@ const SignIn = () => {
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">Şifre</Label>
                   <Link to="/forgot-password" className="text-xs text-primary hover:underline">
-                    Forgot password?
+                    Şifremi unuttum?
                   </Link>
                 </div>
                 <div className="relative">
@@ -97,7 +82,7 @@ const SignIn = () => {
                   <Input
                     id="password"
                     type="password"
-                    placeholder="Enter your password"
+                    placeholder="Şifrenizi girin"
                     className="pl-10"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -117,26 +102,26 @@ const SignIn = () => {
                   htmlFor="remember"
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
-                  Remember me
+                  Beni hatırla
                 </label>
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? (
                   <div className="flex items-center justify-center">
                     <div className="h-4 w-4 border-2 border-current border-t-transparent animate-spin rounded-full mr-2" />
-                    Signing in...
+                    Giriş yapılıyor...
                   </div>
                 ) : (
-                  "Sign In"
+                  "Giriş Yap"
                 )}
               </Button>
             </form>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <div className="text-center text-sm">
-              Don't have an account?{" "}
+              Hesabınız yok mu?{" "}
               <Link to="/sign-up" className="text-primary hover:underline">
-                Sign up
+                Kayıt ol
               </Link>
             </div>
           </CardFooter>

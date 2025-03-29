@@ -3,9 +3,11 @@ import { useState, useEffect } from "react";
 import { Zap, TrendingUp, Coins, Bolt } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Upgrade } from "@/components/mining/UpgradeCard";
-import { loadUserData, saveUserData } from "@/utils/storage";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function useUpgrades() {
+  const { currentUser, userData, updateUserData } = useAuth();
+  
   // Initialize with default values for new users
   const [balance, setBalance] = useState(0);
   const [miningRate, setMiningRate] = useState(0.01);
@@ -55,17 +57,15 @@ export function useUpgrades() {
   ]);
 
   useEffect(() => {
-    const userData = loadUserData();
     if (userData) {
-      // Only set stored values if they exist
+      // Firebase'den gelen verileri kullan
       setBalance(userData.balance || 0);
       setMiningRate(userData.miningRate || 0.01);
       
       if (userData.upgrades && userData.upgrades.length > 0) {
         setUpgrades(userData.upgrades);
       } else if (userData.miningRate && userData.miningRate > 0.01) {
-        // This is for backward compatibility with old data format
-        // If no upgrades array but increased mining rate, calculate level
+        // Eski veri formatı uyumluluğu için
         const currentRateLevel = Math.round((userData.miningRate - 0.01) / 0.005);
         if (currentRateLevel > 0) {
           const updatedUpgrades = [...upgrades];
@@ -77,29 +77,36 @@ export function useUpgrades() {
         }
       }
     }
-  }, []);
+  }, [userData]);
 
   useEffect(() => {
-    const userData = loadUserData();
-    if (userData) {
-      saveUserData({
-        ...userData,
+    if (currentUser && userData) {
+      updateUserData({
         balance: balance,
         miningRate: miningRate,
         upgrades: upgrades
       });
     }
-  }, [balance, miningRate, upgrades]);
+  }, [balance, miningRate, upgrades, currentUser, updateUserData, userData]);
 
   const purchaseUpgrade = (upgradeId: string) => {
+    if (!currentUser) {
+      toast({
+        title: "Giriş Gerekli",
+        description: "Yükseltmeleri satın almak için giriş yapmalısınız.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     const upgradeIndex = upgrades.findIndex(upgrade => upgrade.id === upgradeId);
     if (upgradeIndex !== -1) {
       const upgrade = upgrades[upgradeIndex];
       
       if (upgrade.level >= upgrade.maxLevel) {
         toast({
-          title: "Maximum Level Reached",
-          description: `${upgrade.title} is already at maximum level.`,
+          title: "Maksimum Seviyeye Ulaşıldı",
+          description: `${upgrade.title} zaten maksimum seviyede.`,
           variant: "destructive"
         });
         return;
@@ -122,25 +129,21 @@ export function useUpgrades() {
           const newMiningRate = 0.01 + newLevel * 0.005;
           setMiningRate(newMiningRate);
           
-          const userData = loadUserData();
-          if (userData) {
-            saveUserData({
-              ...userData,
-              miningRate: newMiningRate,
-              balance: newBalance,
-              upgrades: newUpgrades
-            });
-          }
+          updateUserData({
+            miningRate: newMiningRate,
+            balance: newBalance,
+            upgrades: newUpgrades
+          });
         }
         
         toast({
-          title: "Upgrade Purchased",
-          description: `${upgrade.title} upgraded to level ${upgrade.level + 1}`,
+          title: "Yükseltme Satın Alındı",
+          description: `${upgrade.title} seviye ${upgrade.level + 1}'e yükseltildi`,
         });
       } else {
         toast({
-          title: "Insufficient Funds",
-          description: `You need ${upgrade.cost} FC to purchase this upgrade.`,
+          title: "Yetersiz Bakiye",
+          description: `Bu yükseltmeyi satın almak için ${upgrade.cost} NC'ye ihtiyacınız var.`,
           variant: "destructive"
         });
       }

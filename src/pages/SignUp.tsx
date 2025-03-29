@@ -13,9 +13,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Mail, Lock, User, ArrowRight } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { clearUserData, saveUserData, getNextUserId } from "@/utils/storage"; // Import the getNextUserId function
+import { Mail, Lock, User } from "lucide-react";
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 const SignUp = () => {
   const [name, setName] = useState("");
@@ -25,59 +25,37 @@ const SignUp = () => {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { register } = useAuth();
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (password !== confirmPassword) {
-      toast({
-        title: "Passwords don't match",
-        description: "Please make sure your passwords match.",
-        variant: "destructive",
-      });
+      toast.error("Şifreler eşleşmiyor, lütfen kontrol edin.");
       return;
     }
 
     if (!agreeTerms) {
-      toast({
-        title: "Terms not accepted",
-        description: "You must agree to the terms of service.",
-        variant: "destructive",
-      });
+      toast.error("Devam etmek için kullanım şartlarını kabul etmelisiniz.");
       return;
     }
 
     setLoading(true);
     
-    // Clear any existing user data to ensure a fresh start for the new user
-    clearUserData();
-    
-    // Generate a unique user ID for this user
-    const userId = getNextUserId();
-    
-    // Initialize new user data with the unique ID
-    saveUserData({
-      userId,
-      balance: 0,
-      miningRate: 0.01,
-      lastSaved: Date.now(),
-      miningActive: false,
-      miningTime: 21600,
-      miningPeriod: 21600,
-      miningSession: 0
-    });
-    
-    // This is a placeholder for Firebase authentication
-    // We'll add the actual Firebase code later
-    setTimeout(() => {
+    try {
+      const success = await register(email, password);
+      
+      if (success) {
+        toast.success("Hesabınız başarıyla oluşturuldu!");
+        navigate("/sign-in");
+      } else {
+        toast.error("Kayıt işlemi başarısız oldu.");
+      }
+    } catch (error) {
+      toast.error("Kayıt hatası: " + (error as Error).message);
+    } finally {
       setLoading(false);
-      toast({
-        title: "Account created",
-        description: `Your account has been created successfully with ID: ${userId}. You can now sign in.`,
-      });
-      navigate("/sign-in");
-    }, 1000);
+    }
   };
 
   return (
@@ -85,21 +63,21 @@ const SignUp = () => {
       <div className="w-full max-w-md animate-fade-in">
         <Card className="border-none shadow-lg">
           <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
+            <CardTitle className="text-2xl font-bold">Hesap Oluştur</CardTitle>
             <CardDescription>
-              Enter your details to create your account
+              Hesabınızı oluşturmak için bilgilerinizi girin
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSignUp} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="name">Ad Soyad</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="name"
                     type="text"
-                    placeholder="Enter your full name"
+                    placeholder="Adınızı ve soyadınızı girin"
                     className="pl-10"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -114,7 +92,7 @@ const SignUp = () => {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder="Email adresinizi girin"
                     className="pl-10"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -123,13 +101,13 @@ const SignUp = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Şifre</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="password"
                     type="password"
-                    placeholder="Create a password"
+                    placeholder="Şifre oluşturun"
                     className="pl-10"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -138,13 +116,13 @@ const SignUp = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Label htmlFor="confirmPassword">Şifre Tekrar</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="confirmPassword"
                     type="password"
-                    placeholder="Confirm your password"
+                    placeholder="Şifrenizi tekrar girin"
                     className="pl-10"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
@@ -164,33 +142,33 @@ const SignUp = () => {
                   htmlFor="terms"
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
-                  I agree to the{" "}
                   <Link to="/terms" className="text-primary hover:underline">
-                    terms of service
+                    Kullanım şartlarını
                   </Link>{" "}
-                  and{" "}
+                  ve{" "}
                   <Link to="/privacy" className="text-primary hover:underline">
-                    privacy policy
-                  </Link>
+                    gizlilik politikasını
+                  </Link>{" "}
+                  kabul ediyorum
                 </label>
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? (
                   <div className="flex items-center justify-center">
                     <div className="h-4 w-4 border-2 border-current border-t-transparent animate-spin rounded-full mr-2" />
-                    Creating account...
+                    Hesap oluşturuluyor...
                   </div>
                 ) : (
-                  "Sign Up"
+                  "Kayıt Ol"
                 )}
               </Button>
             </form>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <div className="text-center text-sm">
-              Already have an account?{" "}
+              Zaten hesabınız var mı?{" "}
               <Link to="/sign-in" className="text-primary hover:underline">
-                Sign in
+                Giriş yap
               </Link>
             </div>
           </CardFooter>
