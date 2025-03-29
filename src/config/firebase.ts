@@ -5,7 +5,7 @@ import { getAuth } from "firebase/auth";
 
 // Firebase yapılandırma bilgileri
 const firebaseConfig = {
-  apiKey: "BURAYA_FIREBASE_KONSOLUNDAN_ALDIĞINIZ_API_KEY",
+  apiKey: "AIzaSyA25GTCK5zJIgrDR1RQK5cesSpJCqTmw1A",
   authDomain: "nominal.firebaseapp.com", 
   projectId: "nominal",
   storageBucket: "nominal.appspot.com",
