@@ -50,34 +50,36 @@ const MiningCard = ({
       <CardContent className={isMobile ? "px-4 py-2" : ""}>
         <div className="text-center mb-6">
           <div className="relative mx-auto">
-            {/* Animated rotating outer ring */}
-            <div className={`absolute inset-0 ${isMobile ? 'w-36 h-36' : 'w-44 h-44'} rounded-full`}>
-              <div className={`absolute inset-0 ${isMobile ? 'w-36 h-36' : 'w-44 h-44'} rounded-full border-4 border-indigo-500/30 border-t-indigo-500/80 animate-spin`}></div>
-            </div>
-            
-            <div 
-              className={`relative mx-auto ${isMobile ? 'w-36 h-36' : 'w-44 h-44'} rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 ${
-                miningActive 
-                  ? 'bg-gradient-to-br from-green-900 to-emerald-800 shadow-lg shadow-green-900/50' 
-                  : 'bg-gradient-to-br from-gray-800 to-gray-900 hover:shadow-md'
-              }`}
-              onClick={miningActive ? onStopMining : onStartMining}
-            >
-              <Circle className={`${isMobile ? 'h-28 w-28' : 'h-36 w-36'} ${
-                miningActive 
-                  ? 'text-green-400 animate-pulse' 
-                  : 'text-gray-500 hover:text-indigo-400 transition-colors'
-              }`} />
+            {/* Main button container - both button and ring are positioned relative to this */}
+            <div className="relative mx-auto flex items-center justify-center">
+              {/* Animated rotating outer ring - now properly centered */}
+              <div className={`absolute ${isMobile ? 'w-36 h-36' : 'w-44 h-44'} rounded-full border-4 border-indigo-500/30 border-t-indigo-500/80 animate-spin`}></div>
               
-              <div className="absolute inset-0 flex items-center justify-center flex-col">
-                {miningActive ? (
-                  <>
-                    <span className="text-sm font-semibold bg-gray-900/80 px-3 py-1 rounded-full shadow-sm text-green-400">{t('mining.active')}</span>
-                    <span className="text-xs mt-2 font-mono bg-gray-900/80 px-2 py-1 rounded-md text-green-400">{formatTime(miningTime)}</span>
-                  </>
-                ) : (
-                  <span className="text-sm font-semibold bg-indigo-700 px-4 py-1.5 rounded-full shadow-sm text-white">{t('mining.inactive')}</span>
-                )}
+              {/* The actual button */}
+              <div 
+                className={`relative ${isMobile ? 'w-36 h-36' : 'w-44 h-44'} rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 ${
+                  miningActive 
+                    ? 'bg-gradient-to-br from-green-900 to-emerald-800 shadow-lg shadow-green-900/50' 
+                    : 'bg-gradient-to-br from-gray-800 to-gray-900 hover:shadow-md'
+                }`}
+                onClick={miningActive ? onStopMining : onStartMining}
+              >
+                <Circle className={`${isMobile ? 'h-28 w-28' : 'h-36 w-36'} ${
+                  miningActive 
+                    ? 'text-green-400 animate-pulse' 
+                    : 'text-gray-500 hover:text-indigo-400 transition-colors'
+                }`} />
+                
+                <div className="absolute inset-0 flex items-center justify-center flex-col">
+                  {miningActive ? (
+                    <>
+                      <span className="text-sm font-semibold bg-gray-900/80 px-3 py-1 rounded-full shadow-sm text-green-400">{t('mining.active')}</span>
+                      <span className="text-xs mt-2 font-mono bg-gray-900/80 px-2 py-1 rounded-md text-green-400">{formatTime(miningTime)}</span>
+                    </>
+                  ) : (
+                    <span className="text-sm font-semibold bg-indigo-700 px-4 py-1.5 rounded-full shadow-sm text-white">{t('mining.inactive')}</span>
+                  )}
+                </div>
               </div>
             </div>
           </div>
