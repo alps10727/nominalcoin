@@ -4,7 +4,22 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useEffect, useState } from "react";
 
 const LoadingScreen = ({ message }: { message?: string }) => {
-  const { t } = useLanguage();
+  // Use try-catch to safely access the language context
+  let translationFunction: (key: string, ...args: string[]) => string;
+  try {
+    const { t } = useLanguage();
+    translationFunction = t;
+  } catch (error) {
+    // Fallback function if useLanguage fails
+    translationFunction = (key: string) => {
+      // Basic translations for loading screen when outside language context
+      const fallbackTranslations: Record<string, string> = {
+        'app.title': 'FutureMining',
+      };
+      return fallbackTranslations[key] || key;
+    };
+  }
+
   const [offlineDetected, setOfflineDetected] = useState(!navigator.onLine);
   const [loadingTime, setLoadingTime] = useState(0);
   const [loadingMessage, setLoadingMessage] = useState(message || "Yükleniyor...");
@@ -98,7 +113,7 @@ const LoadingScreen = ({ message }: { message?: string }) => {
           </div>
           
           <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-darkPurple-300 to-navy-300">
-            {t('app.title')}
+            {translationFunction('app.title')}
           </h2>
           <p className="mt-2 text-darkPurple-400">
             {loadingMessage}

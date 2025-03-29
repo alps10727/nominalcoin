@@ -164,6 +164,7 @@ const App = () => {
   }, []);
   
   if (!ready) {
+    // Note: This initial loading screen is directly used without any context providers
     return <LoadingScreen message="Uygulama başlatılıyor..." />;
   }
   
