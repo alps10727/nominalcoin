@@ -27,6 +27,12 @@ export const ThemeToggle = () => {
       {/* Border highlight */}
       <div className="absolute inset-0 rounded-full border border-darkPurple-400/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       
+      {/* Outer rotating ring */}
+      <div className={`absolute inset-0 rounded-full border-2 border-dashed border-darkPurple-400/30 ${isAnimating ? 'animate-spin-slow' : ''} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
+      
+      {/* Inner counter-rotating ring */}
+      <div className={`absolute inset-[3px] rounded-full border border-dotted border-darkPurple-300/40 ${isAnimating ? 'animate-reverse-spin' : ''} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
+      
       {/* Icon container with rotation animation */}
       <div className={`relative z-10 transition-transform duration-500 ${isAnimating ? 'scale-0 rotate-180' : 'scale-100'}`}>
         {theme === "dark" ? 
