@@ -7,18 +7,39 @@ const LoadingScreen = ({ message }: { message?: string }) => {
   const { t } = useLanguage();
   const [offlineDetected, setOfflineDetected] = useState(!navigator.onLine);
   const [loadingTime, setLoadingTime] = useState(0);
+  const [loadingMessage, setLoadingMessage] = useState(message || "Yükleniyor...");
   
   // Offline durumunu takip et
   useEffect(() => {
-    const handleOnline = () => setOfflineDetected(false);
-    const handleOffline = () => setOfflineDetected(true);
+    const handleOnline = () => {
+      setOfflineDetected(false);
+      setLoadingMessage("Bağlantı kuruldu, yükleniyor...");
+    };
+    
+    const handleOffline = () => {
+      setOfflineDetected(true);
+      setLoadingMessage("İnternet bağlantınız kapalı. Lütfen kontrol edin...");
+    };
     
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     
-    // Yükleme süresini takip et, 5 saniyeden fazla sürerse farklı mesaj göster
+    // Yükleme süresini takip et, daha hızlı feedback için
     const timer = setInterval(() => {
-      setLoadingTime(prev => prev + 1);
+      setLoadingTime(prev => {
+        const newTime = prev + 1;
+        
+        // Yükleme süresine göre mesajları güncelle (daha hızlı)
+        if (newTime === 2) {
+          setLoadingMessage("Veriler yükleniyor...");
+        } else if (newTime === 4) {
+          setLoadingMessage("Yükleme beklenenden uzun sürüyor. Lütfen bekleyin...");
+        } else if (newTime === 7) {
+          setLoadingMessage("Sayfa yukleniyor, çok az kaldı...");
+        }
+        
+        return newTime;
+      });
     }, 1000);
     
     return () => {
@@ -28,22 +49,21 @@ const LoadingScreen = ({ message }: { message?: string }) => {
     };
   }, []);
   
-  // Yükleme mesajını belirle
-  const getLoadingMessage = () => {
-    if (offlineDetected) {
-      return "İnternet bağlantınız kapalı. Lütfen kontrol edin...";
+  // 10 saniyeden fazla yükleme durumu için sayfayı otomatik yenile
+  useEffect(() => {
+    let reloadTimer: NodeJS.Timeout;
+    
+    if (loadingTime > 10 && !offlineDetected) {
+      // 10 saniyeden fazla beklediyse sayfayı otomatik yenile
+      reloadTimer = setTimeout(() => {
+        window.location.reload();
+      }, 2000); // 2 saniye sonra yenile
     }
     
-    if (loadingTime > 10) {
-      return "Yükleme beklenenden uzun sürüyor. Lütfen bekleyin...";
-    }
-    
-    if (loadingTime > 5) {
-      return "Veriler yükleniyor...";
-    }
-    
-    return message || "Loading your experience...";
-  };
+    return () => {
+      if (reloadTimer) clearTimeout(reloadTimer);
+    };
+  }, [loadingTime, offlineDetected]);
   
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-darkPurple-900 to-navy-900">
@@ -81,13 +101,16 @@ const LoadingScreen = ({ message }: { message?: string }) => {
             {t('app.title')}
           </h2>
           <p className="mt-2 text-darkPurple-400">
-            {getLoadingMessage()}
+            {loadingMessage}
           </p>
           
-          {/* Uzun süre yükleme durumunda ipucu göster */}
-          {loadingTime > 15 && (
+          {/* Uzun süre yükleme durumunda bilgi göster */}
+          {loadingTime > 8 && (
             <div className="mt-4 p-3 bg-darkPurple-800/50 border border-darkPurple-700 rounded-md text-sm text-darkPurple-300">
               <p>Sayfayı yenilemeyi deneyin veya daha sonra tekrar giriş yapmayı deneyin.</p>
+              {loadingTime > 10 && !offlineDetected && (
+                <p className="mt-2 font-semibold">Sayfa otomatik olarak yenilenecek...</p>
+              )}
             </div>
           )}
         </div>

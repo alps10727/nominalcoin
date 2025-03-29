@@ -24,27 +24,31 @@ const SignIn = lazy(() => import("./pages/SignIn"));
 const SignUp = lazy(() => import("./pages/SignUp"));
 const MobileNavigation = lazy(() => import("./components/MobileNavigation"));
 
+// QueryClient konfig - daha hızlı hata denemesi, daha az bekleme
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 1,
-      refetchOnWindowFocus: false
+      retry: 1, // Sadece 1 kez dene
+      retryDelay: 500, // Hızlı tekrar dene
+      refetchOnWindowFocus: false,
+      staleTime: 10000, // 10 saniye cache
+      gcTime: 300000, // 5 dakika garbage collection
     }
   }
 });
 
-// Oturum kontrolü için wrapper component - doğru hata yönetimi için iyileştirildi
+// Oturum kontrolü için wrapper component - daha hızlı zaman aşımı
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { currentUser, loading } = useAuth();
   const [waitingTooLong, setWaitingTooLong] = useState(false);
   
-  // Eğer yükleme 5 saniyeden fazla sürerse, kullanıcıya farklı bir mesaj göster
+  // Eğer yükleme 3 saniyeden fazla sürerse, kullanıcıya farklı bir mesaj göster
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (loading) {
       timer = setTimeout(() => {
         setWaitingTooLong(true);
-      }, 5000);
+      }, 3000); // 3 saniye timeout (daha hızlı)
     }
     
     return () => {
@@ -52,8 +56,24 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
     };
   }, [loading]);
   
+  // Otomatik yeniden yönlendirme - 8 saniyeden fazla beklerse
+  useEffect(() => {
+    let redirectTimer: NodeJS.Timeout;
+    
+    if (loading && waitingTooLong) {
+      redirectTimer = setTimeout(() => {
+        // 8 saniye beklediyse giriş sayfasına yönlendir
+        window.location.href = "/sign-in";
+      }, 5000); 
+    }
+    
+    return () => {
+      if (redirectTimer) clearTimeout(redirectTimer);
+    };
+  }, [loading, waitingTooLong]);
+  
   if (loading) {
-    return <LoadingScreen message={waitingTooLong ? "Kullanıcı bilgileri beklenenden uzun süredir yükleniyor..." : "Kullanıcı bilgileri yükleniyor..."} />;
+    return <LoadingScreen message={waitingTooLong ? "Kullanıcı bilgileri yüklenemiyor. Lütfen internet bağlantınızı kontrol edin..." : "Kullanıcı bilgileri yükleniyor..."} />;
   }
   
   if (!currentUser) {
@@ -64,7 +84,6 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const AppRoutes = () => {
-  // Moved inside AuthProvider
   return (
     <Routes>
       <Route path="/" element={
@@ -121,11 +140,32 @@ const App = () => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     
+    // App başlatma iyileştirmesi - yükleme süresini ölç
+    const startTime = performance.now();
+    
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      
+      // Çıkışta yükleme süresini kaydet
+      const loadTime = performance.now() - startTime;
+      console.log(`Uygulama yükleme süresi: ${loadTime.toFixed(0)}ms`);
     };
   }, []);
+  
+  // Sayfa yüklenirken ekranın donmasını önlemek için kısa bir gecikme ekle
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setReady(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
+  
+  if (!ready) {
+    return <LoadingScreen message="Uygulama başlatılıyor..." />;
+  }
   
   return (
     <QueryClientProvider client={queryClient}>
@@ -136,7 +176,7 @@ const App = () => {
               <TooltipProvider>
                 <Toaster />
                 <Sonner />
-                <Suspense fallback={<LoadingScreen />}>
+                <Suspense fallback={<LoadingScreen message="Sayfa yükleniyor..." />}>
                   <div className="flex flex-col min-h-screen pb-16"> {/* Alt navigasyon için boşluk */}
                     {isOffline && (
                       <div className="fixed top-0 left-0 w-full bg-red-500 text-white text-center text-sm py-1 z-50">
@@ -144,7 +184,6 @@ const App = () => {
                       </div>
                     )}
                     <AppRoutes />
-                    {/* MobileNavigation moved inside Suspense and after AppRoutes */}
                     <MobileNavigation />
                   </div>
                 </Suspense>

@@ -12,6 +12,7 @@ import {
   loadUserDataFromFirebase
 } from "@/services/userService";
 import { toast } from "sonner";
+import { saveUserData, loadUserData } from "@/utils/storage";
 
 interface AuthContextProps {
   currentUser: User | null;
@@ -39,20 +40,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [authInitialized, setAuthInitialized] = useState(false);
 
-  // Auth değişikliklerini dinle
+  // Auth değişikliklerini dinle - timeout süresini kısalttık (5 sn -> 3 sn)
   useEffect(() => {
     console.log("Auth Provider başlatılıyor...");
     let authTimeoutId: NodeJS.Timeout;
     
-    // Firebase Auth'un 10 saniyeden fazla yanıt vermemesi durumunda loading durumunu kapat
+    // Firebase Auth'un 3 saniyeden fazla yanıt vermemesi durumunda loading durumunu kapat
     authTimeoutId = setTimeout(() => {
       if (loading && !authInitialized) {
         console.log("Firebase Auth zaman aşımına uğradı, kullanıcıyı çıkış yapmış olarak işaretle");
         setLoading(false);
         setCurrentUser(null);
         setAuthInitialized(true);
+        
+        // Offline modda yerel depodan verileri yükle
+        try {
+          const localUserData = loadUserData();
+          if (localUserData) {
+            setUserData(localUserData);
+            console.log("Yerel depodan kullanıcı verileri yüklendi (offline mod)");
+          }
+        } catch (e) {
+          console.error("Yerel depodan veri yükleme hatası:", e);
+        }
       }
-    }, 5000);
+    }, 3000); // 3 saniye timeout - daha hızlı kontrol
     
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       console.log("Auth durumu değişti:", user ? user.email : 'Kullanıcı yok');
@@ -63,10 +75,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (user) {
         // Kullanıcı oturum açtıysa verilerini yükle
         try {
+          // Önce yerel depodan veri yükle (hızlı yanıt için)
+          const localData = loadUserData();
+          if (localData) {
+            setUserData(localData);
+          }
+          
+          // Sonra Firebase'den veri almayı dene
           const userDataFromFirebase = await loadUserDataFromFirebase(user.uid);
-          setUserData(userDataFromFirebase);
+          if (userDataFromFirebase) {
+            setUserData(userDataFromFirebase);
+            // Yerel depoda kaydet
+            saveUserData(userDataFromFirebase);
+          }
         } catch (error) {
           console.error("Kullanıcı verilerini yükleme hatası:", error);
+          
+          // Hata durumunda yerel depodaki verileri kullan
+          const localData = loadUserData();
+          if (localData) {
+            console.log("Offline mod: Yerel depodan kullanıcı verileri kullanılıyor");
+            setUserData(localData);
+          }
         }
       } else {
         setUserData(null);
@@ -157,14 +187,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const updateUserData = async (data: any): Promise<void> => {
     if (currentUser) {
       try {
-        await saveUserDataToFirebase(currentUser.uid, {
+        const updatedData = {
           ...userData,
           ...data
-        });
+        };
+        
+        // Hem Firebase'e hem de yerel depoya kaydet
+        await saveUserDataToFirebase(currentUser.uid, updatedData);
+        saveUserData(updatedData); // Yerel depoya da kaydet
+        
         setUserData(prev => ({ ...prev, ...data }));
       } catch (error) {
         console.error("Veri güncelleme hatası:", error);
         toast.error("Veriler güncellenemedi: " + (error as Error).message);
+        
+        // Çevrimdışı durumda sadece yerel depoya kaydet
+        if ((error as any)?.code === 'unavailable') {
+          const updatedData = {
+            ...userData,
+            ...data
+          };
+          saveUserData(updatedData);
+          setUserData(prev => ({ ...prev, ...data }));
+          toast.info("Veriler çevrimdışı modda kaydedildi. İnternet bağlantısı kurulduğunda otomatik olarak senkronize edilecek.");
+        }
       }
     }
   };
