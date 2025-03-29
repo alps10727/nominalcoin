@@ -10,12 +10,12 @@ export const ThemeToggle = () => {
     <Button 
       variant="ghost" 
       size="icon" 
-      className="p-2 rounded-full hover:bg-gray-800 transition-colors" 
+      className="p-2 rounded-full hover:bg-darkPurple-800 transition-colors" 
       onClick={toggleTheme}
     >
       {theme === "dark" ? 
-        <Sun className="h-6 w-6 text-indigo-300" /> : 
-        <Moon className="h-6 w-6 text-indigo-300" />
+        <Sun className="h-6 w-6 text-darkPurple-300" /> : 
+        <Moon className="h-6 w-6 text-darkPurple-300" />
       }
     </Button>
   );

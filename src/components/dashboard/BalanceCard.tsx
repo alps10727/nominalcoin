@@ -15,12 +15,12 @@ const BalanceCard = ({ balance }: BalanceCardProps) => {
   return (
     <Card className="mb-6 overflow-hidden border-none shadow-lg hover:shadow-xl transition-all duration-300 group">
       {/* Gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-r from-violet-900 via-indigo-800 to-purple-900"></div>
+      <div className="absolute inset-0 bg-gradient-to-r from-darkPurple-700 via-navy-600 to-darkPurple-700"></div>
       
       {/* Light overlay effects */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute top-0 right-0 h-40 w-40 bg-white/10 rounded-full blur-3xl transform translate-x-10 -translate-y-20"></div>
-        <div className="absolute bottom-0 left-0 h-30 w-30 bg-violet-300/10 rounded-full blur-2xl transform -translate-x-10 translate-y-10"></div>
+        <div className="absolute bottom-0 left-0 h-30 w-30 bg-darkPurple-300/10 rounded-full blur-2xl transform -translate-x-10 translate-y-10"></div>
       </div>
       
       {/* Pattern overlay */}
@@ -29,7 +29,7 @@ const BalanceCard = ({ balance }: BalanceCardProps) => {
       {/* Content */}
       <CardHeader className={`relative z-10 ${isMobile ? 'px-4 py-3' : ''}`}>
         <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-violet-200 opacity-80" />
+          <Sparkles className="h-5 w-5 text-darkPurple-200 opacity-80" />
           {t('balance.title')}
         </CardTitle>
       </CardHeader>
@@ -37,12 +37,12 @@ const BalanceCard = ({ balance }: BalanceCardProps) => {
       <CardContent className={`relative z-10 ${isMobile ? 'px-4 pb-4' : ''}`}>
         <div className="flex items-baseline">
           <span className={`${isMobile ? 'text-4xl' : 'text-5xl'} font-bold text-white`}>{balance.toFixed(3)}</span>
-          <span className="ml-2 text-xl text-violet-200 font-medium">FC</span>
+          <span className="ml-2 text-xl text-darkPurple-200 font-medium">FC</span>
         </div>
-        <p className="text-indigo-200 mt-2 opacity-80 text-sm">{t('balance.total')}</p>
+        <p className="text-navy-200 mt-2 opacity-80 text-sm">{t('balance.total')}</p>
         
         {/* Highlight bar */}
-        <div className="mt-3 h-1 w-1/3 bg-gradient-to-r from-violet-400 to-transparent rounded-full"></div>
+        <div className="mt-3 h-1 w-1/3 bg-gradient-to-r from-darkPurple-400 to-transparent rounded-full"></div>
       </CardContent>
       
       {/* Decorative coin icon */}

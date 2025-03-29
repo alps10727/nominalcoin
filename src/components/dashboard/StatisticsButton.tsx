@@ -12,7 +12,7 @@ const StatisticsButton = () => {
   return (
     <Link to="/statistics">
       <Button 
-        className="w-full relative overflow-hidden group bg-purple-900 hover:bg-purple-800 text-white shadow-md transition-all hover:shadow-lg border-none py-6"
+        className="w-full relative overflow-hidden group bg-gradient-to-r from-darkPurple-700 to-navy-700 hover:from-darkPurple-600 hover:to-navy-600 text-white shadow-md transition-all hover:shadow-lg border-none py-6"
         size="lg"
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
@@ -23,7 +23,7 @@ const StatisticsButton = () => {
         </div>
         
         {/* Energy wave effect on hover */}
-        <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full ${isHovering ? 'animate-[sheen_1s_ease_forwards]' : ''}`}></div>
+        <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full ${isHovering ? 'animate-sheen' : ''}`}></div>
         
         {/* Content */}
         <div className="flex items-center justify-center relative z-10 py-1">

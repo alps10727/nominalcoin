@@ -66,6 +66,29 @@ export default {
 				gray: {
 					850: '#1a1d23',
 					950: '#0f1015'
+				},
+				// New custom colors
+				navy: {
+					100: '#d0d5e9',
+					200: '#a1acd4',
+					300: '#7282be',
+					400: '#4359a9',
+					500: '#142f93',
+					600: '#102676',
+					700: '#0c1c58',
+					800: '#08133b',
+					900: '#04091d'
+				},
+				darkPurple: {
+					100: '#dcd0e9',
+					200: '#b9a1d4',
+					300: '#9772be',
+					400: '#7443a9',
+					500: '#511493',
+					600: '#411076',
+					700: '#310c58',
+					800: '#21083b',
+					900: '#10041d'
 				}
 			},
 			borderRadius: {
@@ -93,12 +116,32 @@ export default {
 				fadeIn: {
 					'0%': { opacity: '0' },
 					'100%': { opacity: '1' }
+				},
+				flow: {
+					'0%': { transform: 'translateX(-100%)' },
+					'100%': { transform: 'translateX(100%)' }
+				},
+				pulse: {
+					'0%, 100%': { transform: 'scale(1)' },
+					'50%': { transform: 'scale(1.1)' }
+				},
+				spin: {
+					'0%': { transform: 'rotate(0deg)' },
+					'100%': { transform: 'rotate(360deg)' }
+				},
+				sheen: {
+					'0%': { transform: 'translateX(-100%)' },
+					'100%': { transform: 'translateX(100%)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-				'fade-in': 'fadeIn 0.5s ease-out forwards'
+				'fade-in': 'fadeIn 0.5s ease-out forwards',
+				'flow': 'flow 2s linear infinite',
+				'pulse-slow': 'pulse 3s ease-in-out infinite',
+				'spin-slow': 'spin 8s linear infinite',
+				'sheen': 'sheen 0.8s ease-in-out'
 			}
 		}
 	},

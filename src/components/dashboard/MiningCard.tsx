@@ -39,11 +39,11 @@ const MiningCard = ({
   return (
     <Card className="mb-6 border-none overflow-hidden shadow-xl transition-all duration-500 relative">
       {/* Background color */}
-      <div className="absolute inset-0 bg-purple-900"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-darkPurple-800 to-navy-700"></div>
       
       <CardHeader className={`relative z-10 ${isMobile ? "px-4 py-3" : ""} text-white`}>
         <CardTitle className="flex items-center gap-2 text-xl font-bold text-white">
-          <Zap className="h-5 w-5 text-violet-300" />
+          <Zap className="h-5 w-5 text-darkPurple-300" />
           FC Mining
         </CardTitle>
         <CardDescription className="text-gray-300">
@@ -57,24 +57,24 @@ const MiningCard = ({
             {/* Main button container */}
             <div className="relative mx-auto flex items-center justify-center">
               {/* Outer circle */}
-              <div className="absolute w-52 h-52 rounded-full border border-purple-500/30"></div>
+              <div className="absolute w-52 h-52 rounded-full border border-darkPurple-500/30"></div>
               
               {/* Middle circle */}
-              <div className="absolute w-44 h-44 rounded-full border border-purple-400/40"></div>
+              <div className="absolute w-44 h-44 rounded-full border border-darkPurple-400/40"></div>
               
               {/* Inner circle with animation */}
-              <div className={`absolute w-36 h-36 rounded-full border-2 border-purple-400/50 ${
+              <div className={`absolute w-36 h-36 rounded-full border-2 border-darkPurple-400/50 ${
                 miningActive 
-                  ? 'animate-spin' 
+                  ? 'animate-spin-slow' 
                   : ''
-              }`} style={{ animationDuration: '12s' }}></div>
+              }`}></div>
               
               {/* Small decorative dots */}
               <div className="absolute w-52 h-52 rounded-full">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-purple-300 rounded-full"></div>
-                <div className="absolute top-1/2 -translate-y-1/2 left-0 w-2 h-2 bg-purple-300 rounded-full"></div>
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-purple-300 rounded-full"></div>
-                <div className="absolute top-1/2 -translate-y-1/2 right-0 w-2 h-2 bg-purple-300 rounded-full"></div>
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-darkPurple-300 rounded-full"></div>
+                <div className="absolute top-1/2 -translate-y-1/2 left-0 w-2 h-2 bg-darkPurple-300 rounded-full"></div>
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-darkPurple-300 rounded-full"></div>
+                <div className="absolute top-1/2 -translate-y-1/2 right-0 w-2 h-2 bg-darkPurple-300 rounded-full"></div>
               </div>
               
               {/* The actual button */}
@@ -85,12 +85,12 @@ const MiningCard = ({
                 onMouseLeave={() => setIsHovering(false)}
               >
                 {/* Button background */}
-                <div className="absolute inset-0 rounded-full bg-purple-700 border-2 border-purple-500"></div>
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-darkPurple-600 to-navy-600 border-2 border-darkPurple-500"></div>
                 
                 {/* Button inner content */}
                 <div className="absolute inset-0 rounded-full flex flex-col items-center justify-center overflow-hidden">
                   {/* Animated shine effect */}
-                  <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-purple-400/20 to-transparent -translate-x-full ${isHovering ? 'animate-[sheen_1s_ease_forwards]' : ''}`}></div>
+                  <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-darkPurple-400/20 to-transparent -translate-x-full ${isHovering ? 'animate-sheen' : ''}`}></div>
                   
                   {/* Icon and timer */}
                   <div className="relative flex flex-col items-center justify-center w-full h-full">
@@ -106,7 +106,7 @@ const MiningCard = ({
                     ) : (
                       <>
                         <Sparkles 
-                          className={`h-8 w-8 text-white/90 ${isHovering ? 'animate-[pulse_1s_ease_infinite]' : ''}`} 
+                          className={`h-8 w-8 text-white/90 ${isHovering ? 'animate-pulse-slow' : ''}`} 
                         />
                       </>
                     )}
@@ -118,11 +118,11 @@ const MiningCard = ({
         </div>
       </CardContent>
       
-      <CardFooter className="flex justify-center text-sm bg-purple-900/90 py-4 border-t border-purple-700/30 rounded-b-lg relative z-10">
+      <CardFooter className="flex justify-center text-sm bg-navy-800/90 py-4 border-t border-darkPurple-700/30 rounded-b-lg relative z-10">
         <div className="flex items-center font-medium text-white">
           <div className="flex items-center gap-2">
-            <Zap className="h-4 w-4 text-purple-300" />
-            <span>Rate: <span className="text-purple-200 font-semibold">{miningRate.toFixed(4)} FC/3min</span></span>
+            <Zap className="h-4 w-4 text-darkPurple-300" />
+            <span>Rate: <span className="text-darkPurple-200 font-semibold">{miningRate.toFixed(4)} FC/3min</span></span>
           </div>
         </div>
       </CardFooter>
