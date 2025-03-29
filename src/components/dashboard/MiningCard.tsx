@@ -56,17 +56,17 @@ const MiningCard = ({
               onMouseEnter={() => setIsHovering(true)}
               onMouseLeave={() => setIsHovering(false)}
             >
-              {/* Outer pulsating circle - only shows when active */}
+              {/* Outer effect when active - using a different animation now */}
               {miningActive && (
                 <div 
-                  className="absolute rounded-full bg-gradient-to-r from-emerald-400/20 to-emerald-500/20"
+                  className="absolute rounded-full bg-gradient-to-br from-cyan-400/30 to-emerald-500/30"
                   style={{
                     width: isMobile ? '170px' : '200px',
                     height: isMobile ? '170px' : '200px',
                     top: '50%',
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
-                    animation: 'pulse 2s ease-in-out infinite'
+                    animation: 'ripple 3s ease-out infinite'
                   }}
                 ></div>
               )}
@@ -114,37 +114,39 @@ const MiningCard = ({
                 style={{
                   transform: isHovering && !miningActive ? 'scale(1.03)' : 'scale(1)',
                   boxShadow: miningActive 
-                    ? '0 0 25px rgba(16, 185, 129, 0.5)' 
+                    ? '0 0 25px rgba(6, 182, 212, 0.6)' 
                     : isHovering ? '0 0 20px rgba(99, 102, 241, 0.5)' : '0 0 15px rgba(0, 0, 0, 0.5)'
                 }}
               >
-                {/* Background gradients */}
+                {/* New background with mesh gradient */}
                 <div className={`absolute inset-0 ${
                   miningActive 
-                    ? 'bg-gradient-to-br from-emerald-600 to-emerald-800' 
-                    : 'bg-gradient-to-br from-indigo-700 to-purple-900'
+                    ? 'bg-gradient-to-br from-cyan-600 via-teal-600 to-emerald-700' 
+                    : 'bg-gradient-to-br from-indigo-700 via-blue-700 to-purple-900'
                 } transition-all duration-500`}></div>
                 
-                {/* Animated shimmer effect */}
+                {/* New glowing dots effect instead of shimmer */}
                 <div 
-                  className="absolute inset-0 card-shine"
+                  className={`absolute inset-0 ${miningActive || isHovering ? 'bg-dot-white opacity-40' : 'opacity-0'}`}
                   style={{
-                    animation: isHovering || miningActive ? 'shimmer 3s linear infinite' : 'none'
+                    animation: isHovering || miningActive ? 'pulse 4s ease-in-out infinite' : 'none'
                   }}
                 ></div>
                 
-                {/* Button circle icon */}
-                <Circle className={`${isMobile ? 'h-24 w-24' : 'h-32 w-32'} relative z-10 transition-all duration-300 ${
-                  miningActive 
-                    ? 'text-emerald-300 animate-pulse' 
-                    : 'text-indigo-300 group-hover:text-indigo-200'
-                }`} />
+                {/* Updated button center icon with new animation */}
+                {miningActive ? (
+                  <div className="relative z-10 animate-pulse-slow">
+                    <Circle className={`${isMobile ? 'h-24 w-24' : 'h-32 w-32'} text-cyan-200 opacity-90`} />
+                  </div>
+                ) : (
+                  <Circle className={`${isMobile ? 'h-24 w-24' : 'h-32 w-32'} relative z-10 transition-all duration-300 text-indigo-200 ${isHovering ? 'scale-110' : 'scale-100'}`} />
+                )}
                 
                 <div className="absolute inset-0 flex items-center justify-center flex-col z-20">
                   {miningActive ? (
                     <>
-                      <span className="text-sm font-medium px-3 py-1 rounded-full bg-black/40 backdrop-blur-sm shadow-md text-emerald-300 transition-all duration-300">{t('mining.active')}</span>
-                      <span className="text-xs mt-2 font-mono bg-black/30 backdrop-blur-sm px-2 py-1 rounded-md text-emerald-300 transition-all duration-300">{formatTime(miningTime)}</span>
+                      <span className="text-sm font-medium px-3 py-1 rounded-full bg-black/40 backdrop-blur-sm shadow-md text-cyan-300 transition-all duration-300">{t('mining.active')}</span>
+                      <span className="text-xs mt-2 font-mono bg-black/30 backdrop-blur-sm px-2 py-1 rounded-md text-cyan-300 transition-all duration-300">{formatTime(miningTime)}</span>
                     </>
                   ) : (
                     <div className="flex flex-col items-center transition-transform duration-300" style={{ transform: isHovering ? 'translateY(-2px)' : 'translateY(0)' }}>
