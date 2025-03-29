@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from "react";
 import { saveUserData } from "@/utils/storage";
 import { MiningState, MiningData } from "@/types/mining";
@@ -12,7 +11,7 @@ export function useMiningData(): MiningData {
     miningActive: false,
     progress: 0,
     balance: 0,
-    miningRate: 0.001, // Her 30 saniyede 0.001 FC eklenir
+    miningRate: 0.01, // Changed from 0.001 to 0.01 FC per 30 seconds
     miningSession: 0,
     miningTime: 21600, // 6 saat = 21600 saniye
     miningPeriod: 21600 // Toplam periyot 6 saat
