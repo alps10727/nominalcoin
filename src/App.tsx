@@ -8,7 +8,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import LoadingScreen from "./components/dashboard/LoadingScreen";
 
 // Sayfaları lazy loading ile yükle
@@ -33,12 +33,27 @@ const queryClient = new QueryClient({
   }
 });
 
-// Oturum kontrolü için wrapper component
+// Oturum kontrolü için wrapper component - doğru hata yönetimi için iyileştirildi
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { currentUser, loading } = useAuth();
+  const [waitingTooLong, setWaitingTooLong] = useState(false);
+  
+  // Eğer yükleme 5 saniyeden fazla sürerse, kullanıcıya farklı bir mesaj göster
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (loading) {
+      timer = setTimeout(() => {
+        setWaitingTooLong(true);
+      }, 5000);
+    }
+    
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [loading]);
   
   if (loading) {
-    return <LoadingScreen />;
+    return <LoadingScreen message={waitingTooLong ? "Kullanıcı bilgileri beklenenden uzun süredir yükleniyor..." : "Kullanıcı bilgileri yükleniyor..."} />;
   }
   
   if (!currentUser) {
@@ -95,7 +110,22 @@ const AppRoutes = () => {
 };
 
 const App = () => {
-  // Mobil durum çubuğunu yönetmek için
+  // Offline durumunu izle
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+  
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
@@ -107,6 +137,11 @@ const App = () => {
                 <Sonner />
                 <Suspense fallback={<LoadingScreen />}>
                   <div className="flex flex-col min-h-screen pb-16"> {/* Alt navigasyon için boşluk */}
+                    {isOffline && (
+                      <div className="fixed top-0 left-0 w-full bg-red-500 text-white text-center text-sm py-1 z-50">
+                        İnternet bağlantınız yok. Bazı özellikler çalışmayabilir.
+                      </div>
+                    )}
                     <AppRoutes />
                     <MobileNavigation />
                   </div>

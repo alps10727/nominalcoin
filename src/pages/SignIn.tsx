@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Mail, Lock } from "lucide-react";
+import { Mail, Lock, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
@@ -23,23 +23,30 @@ const SignIn = () => {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [submitDisabled, setSubmitDisabled] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { login, loading: authLoading } = useAuth();
+  const { login, loading: authLoading, currentUser } = useAuth();
+  
+  // Eğer kullanıcı zaten giriş yapmışsa, ana sayfaya yönlendir
+  useEffect(() => {
+    if (currentUser && !authLoading) {
+      navigate("/");
+    }
+  }, [currentUser, authLoading, navigate]);
   
   // Giriş işlemi uzun sürdüğünde kurtarma mekanizması
   useEffect(() => {
     console.log("SignIn component mounted");
     
-    // Eğer giriş işlemi başlayıp 30 saniyeden fazla sürerse, otomatik olarak form sıfırlanır
+    // Eğer giriş işlemi başlayıp 15 saniyeden fazla sürerse, otomatik olarak form sıfırlanır
     const timeoutId = setTimeout(() => {
       if (loading) {
         console.log("Giriş zaman aşımına uğradı, durum sıfırlanıyor");
         setLoading(false);
-        setSubmitDisabled(false);
+        setError("İşlem zaman aşımına uğradı. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.");
         toast.error("Giriş işlemi zaman aşımına uğradı. Lütfen tekrar deneyin.");
       }
-    }, 30000);
+    }, 15000); // 15 saniye
     
     return () => {
       clearTimeout(timeoutId);
@@ -49,8 +56,8 @@ const SignIn = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     setLoading(true);
-    setSubmitDisabled(true);
     
     try {
       console.log("Giriş işlemi başlatılıyor:", email);
@@ -58,20 +65,19 @@ const SignIn = () => {
       if (success) {
         navigate("/");
       } else {
-        toast.error("Giriş yapılamadı, lütfen bilgilerinizi kontrol edin.");
+        setError("Giriş yapılamadı, lütfen bilgilerinizi kontrol edin.");
       }
     } catch (error) {
       console.error("Giriş hatası:", error);
       const errorMessage = (error as Error).message;
       
       if (errorMessage.includes("timeout") || errorMessage.includes("network")) {
-        toast.error("Bağlantı sorunu. İnternet bağlantınızı kontrol edin.");
+        setError("Bağlantı sorunu. İnternet bağlantınızı kontrol edin.");
       } else {
-        toast.error("Giriş yapılamadı: " + errorMessage);
+        setError("Giriş yapılamadı: " + errorMessage);
       }
     } finally {
       setLoading(false);
-      setSubmitDisabled(false);
     }
   };
   
@@ -91,6 +97,13 @@ const SignIn = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-md flex items-start">
+                <AlertCircle className="h-5 w-5 mr-2 shrink-0 mt-0.5" />
+                <span className="text-sm">{error}</span>
+              </div>
+            )}
+            
             <form onSubmit={handleSignIn} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
@@ -145,7 +158,7 @@ const SignIn = () => {
                   Beni hatırla
                 </label>
               </div>
-              <Button type="submit" className="w-full" disabled={loading || submitDisabled}>
+              <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? (
                   <div className="flex items-center justify-center">
                     <div className="h-4 w-4 border-2 border-current border-t-transparent animate-spin rounded-full mr-2" />

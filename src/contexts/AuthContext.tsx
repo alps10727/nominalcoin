@@ -35,15 +35,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authInitialized, setAuthInitialized] = useState(false);
 
   // Auth değişikliklerini dinle
   useEffect(() => {
     console.log("Auth Provider başlatılıyor...");
-    setLoading(true);
+    let authTimeoutId: NodeJS.Timeout;
+    
+    // Firebase Auth'un 10 saniyeden fazla yanıt vermemesi durumunda loading durumunu kapat
+    authTimeoutId = setTimeout(() => {
+      if (loading && !authInitialized) {
+        console.log("Firebase Auth zaman aşımına uğradı, kullanıcıyı çıkış yapmış olarak işaretle");
+        setLoading(false);
+        setCurrentUser(null);
+        setAuthInitialized(true);
+      }
+    }, 5000);
     
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       console.log("Auth durumu değişti:", user ? user.email : 'Kullanıcı yok');
+      clearTimeout(authTimeoutId);
       setCurrentUser(user);
+      setAuthInitialized(true);
       
       if (user) {
         // Kullanıcı oturum açtıysa verilerini yükle
@@ -60,22 +73,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
 
-    return unsubscribe;
+    return () => {
+      clearTimeout(authTimeoutId);
+      unsubscribe();
+    };
   }, []);
 
   // Giriş işlevi
   const login = async (email: string, password: string): Promise<boolean> => {
-    setLoading(true);
     try {
       const user = await loginUser(email, password);
       if (user) {
         toast.success("Başarıyla giriş yapıldı!");
         return true;
       }
-      setLoading(false);
       return false;
     } catch (error) {
-      setLoading(false);
       console.error("Giriş hatası:", error);
       const errorMessage = (error as Error).message;
       // Firebase hata mesajlarını Türkçe'ye çevir
@@ -103,9 +116,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Kayıt işlevi - Timeout kontrolü eklendi, hata işleme iyileştirildi
+  // Kayıt işlevi - Timeout kontrolü iyileştirildi
   const register = async (email: string, password: string): Promise<boolean> => {
-    setLoading(true);
     try {
       console.log("Kayıt işlemi başlatılıyor:", email);
       const user = await registerUser(email, password, {});
@@ -113,15 +125,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Eğer null olmayan bir kullanıcı değeri döndüyse, işlem başarılıdır
       if (user) {
         console.log("Kayıt işlemi başarılı:", user.uid);
-        setLoading(false);
+        toast.success("Hesabınız başarıyla oluşturuldu!");
         return true;
       }
       
       console.log("Kayıt işlemi başarısız: Kullanıcı verisi döndürülmedi");
-      setLoading(false);
       return false;
     } catch (error) {
-      setLoading(false);
       console.error("Kayıt işlemi hatası:", error);
       const errorMessage = (error as Error).message;
       

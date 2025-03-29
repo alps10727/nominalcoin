@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Mail, Lock, User } from "lucide-react";
+import { Mail, Lock, User, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
@@ -25,7 +25,7 @@ const SignUp = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [submitDisabled, setSubmitDisabled] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { register, loading: authLoading } = useAuth();
   
@@ -34,15 +34,15 @@ const SignUp = () => {
     // Sayfa yüklendiğinde
     console.log("SignUp component mounted");
     
-    // Eğer kayıt işlemi başlayıp 30 saniyeden fazla sürerse, otomatik olarak form sıfırlanır
+    // Eğer kayıt işlemi başlayıp 15 saniyeden fazla sürerse, otomatik olarak form sıfırlanır
     const timeoutId = setTimeout(() => {
       if (loading) {
         console.log("Kayıt zaman aşımına uğradı, durum sıfırlanıyor");
         setLoading(false);
-        setSubmitDisabled(false);
+        setError("İşlem zaman aşımına uğradı. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.");
         toast.error("Kayıt işlemi zaman aşımına uğradı. Lütfen tekrar deneyin.");
       }
-    }, 30000);
+    }, 15000); // 15 saniye
     
     return () => {
       clearTimeout(timeoutId);
@@ -53,18 +53,28 @@ const SignUp = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Formu sıfırla
+    setError(null);
+    
     if (password !== confirmPassword) {
+      setError("Şifreler eşleşmiyor, lütfen kontrol edin.");
       toast.error("Şifreler eşleşmiyor, lütfen kontrol edin.");
       return;
     }
 
     if (!agreeTerms) {
+      setError("Devam etmek için kullanım şartlarını kabul etmelisiniz.");
       toast.error("Devam etmek için kullanım şartlarını kabul etmelisiniz.");
+      return;
+    }
+    
+    if (password.length < 6) {
+      setError("Şifre en az 6 karakter olmalıdır.");
+      toast.error("Şifre en az 6 karakter olmalıdır.");
       return;
     }
 
     setLoading(true);
-    setSubmitDisabled(true);
     
     try {
       console.log("Kayıt işlemi başlıyor...");
@@ -72,28 +82,22 @@ const SignUp = () => {
       
       if (success) {
         console.log("Kayıt başarılı, yönlendiriliyor...");
-        toast.success("Hesabınız başarıyla oluşturuldu!");
         navigate("/sign-in");
       } else {
         console.log("Kayıt başarısız oldu");
-        toast.error("Kayıt işlemi başarısız oldu.");
+        setError("Kayıt işlemi başarısız oldu. Lütfen tekrar deneyin.");
       }
     } catch (error) {
       console.error("Kayıt hatası:", error);
       const errorMessage = (error as Error).message;
       
-      if (errorMessage.includes("timeout") || errorMessage.includes("network")) {
-        toast.error("Bağlantı sorunu. İnternet bağlantınızı kontrol edin.");
-      } else {
-        toast.error("Kayıt hatası: " + errorMessage);
-      }
+      setError(errorMessage);
     } finally {
       // Her durumda yükleme durumunu kapat
       setLoading(false);
-      setSubmitDisabled(false);
     }
   };
-  
+
   // Ana sayfa yüklenirken ekranı göster
   if (authLoading) {
     return <LoadingScreen />;
@@ -110,6 +114,13 @@ const SignUp = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-md flex items-start">
+                <AlertCircle className="h-5 w-5 mr-2 shrink-0 mt-0.5" />
+                <span className="text-sm">{error}</span>
+              </div>
+            )}
+            
             <form onSubmit={handleSignUp} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Ad Soyad</Label>
@@ -200,7 +211,7 @@ const SignUp = () => {
                   kabul ediyorum
                 </label>
               </div>
-              <Button type="submit" className="w-full" disabled={loading || submitDisabled}>
+              <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? (
                   <div className="flex items-center justify-center">
                     <div className="h-4 w-4 border-2 border-current border-t-transparent animate-spin rounded-full mr-2" />
