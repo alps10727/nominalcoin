@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Zap, TrendingUp, Coins, Bolt } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
@@ -5,15 +6,17 @@ import { Upgrade } from "@/components/mining/UpgradeCard";
 import { loadUserData, saveUserData } from "@/utils/storage";
 
 export function useUpgrades() {
+  // Initialize with default values for new users
   const [balance, setBalance] = useState(0);
   const [miningRate, setMiningRate] = useState(0.01);
   
+  // Default upgrade configurations for new users
   const [upgrades, setUpgrades] = useState<Upgrade[]>([
     {
       id: "speed",
       title: "Mining Speed",
       description: "Decreases time needed for each mining cycle",
-      level: 2,
+      level: 0, // Start at level 0 for new users
       maxLevel: 10,
       cost: 10,
       effect: "-10% time per level",
@@ -23,7 +26,7 @@ export function useUpgrades() {
       id: "rate",
       title: "Mining Rate",
       description: "Increases FC earned per mining cycle",
-      level: 1,
+      level: 0, // Start at level 0 for new users
       maxLevel: 10,
       cost: 15,
       effect: "+0.005 FC per level",
@@ -54,12 +57,15 @@ export function useUpgrades() {
   useEffect(() => {
     const userData = loadUserData();
     if (userData) {
-      setBalance(userData.balance);
+      // Only set stored values if they exist
+      setBalance(userData.balance || 0);
       setMiningRate(userData.miningRate || 0.01);
       
-      if (userData.upgrades) {
+      if (userData.upgrades && userData.upgrades.length > 0) {
         setUpgrades(userData.upgrades);
-      } else {
+      } else if (userData.miningRate && userData.miningRate > 0.01) {
+        // This is for backward compatibility with old data format
+        // If no upgrades array but increased mining rate, calculate level
         const currentRateLevel = Math.round((userData.miningRate - 0.01) / 0.005);
         if (currentRateLevel > 0) {
           const updatedUpgrades = [...upgrades];

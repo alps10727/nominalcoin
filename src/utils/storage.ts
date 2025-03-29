@@ -7,7 +7,7 @@ interface UserData {
   miningTime?: number;
   miningSession?: number;
   upgrades?: any[];
-  miningPeriod?: number; // Toplam madencilik periyodu (sn olarak)
+  miningPeriod?: number; // Total mining period in seconds
 }
 
 /**
@@ -22,6 +22,7 @@ export function loadUserData(): UserData | null {
   } catch (err) {
     console.error('Error loading user data:', err);
   }
+  // Return null if no data found - this ensures new users get default values
   return null;
 }
 
@@ -33,5 +34,16 @@ export function saveUserData(userData: UserData): void {
     localStorage.setItem('fcMinerUserData', JSON.stringify(userData));
   } catch (err) {
     console.error('Error saving user data:', err);
+  }
+}
+
+/**
+ * Clear user data from localStorage (for sign out)
+ */
+export function clearUserData(): void {
+  try {
+    localStorage.removeItem('fcMinerUserData');
+  } catch (err) {
+    console.error('Error clearing user data:', err);
   }
 }

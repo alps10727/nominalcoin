@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from "react";
 import { saveUserData } from "@/utils/storage";
 import { MiningState, MiningData } from "@/types/mining";
@@ -6,15 +7,16 @@ import { useMiningPersistence } from "./useMiningPersistence";
 import { useMiningProcess } from "./useMiningProcess";
 
 export function useMiningData(): MiningData {
+  // Default initial state for new users
   const [state, setState] = useState<MiningState>({
     isLoading: true,
     miningActive: false,
     progress: 0,
     balance: 0,
-    miningRate: 0.01, // Changed from 0.001 to 0.01 FC per 30 seconds
+    miningRate: 0.01, // Default mining rate
     miningSession: 0,
-    miningTime: 21600, // 6 saat = 21600 saniye
-    miningPeriod: 21600 // Toplam periyot 6 saat
+    miningTime: 21600, // 6 hours in seconds
+    miningPeriod: 21600 // Total period 6 hours
   });
 
   // Initialize mining data from storage
@@ -31,7 +33,7 @@ export function useMiningData(): MiningData {
     setState(prev => ({
       ...prev,
       miningActive: true,
-      miningTime: prev.miningPeriod, // Toplam periyoda ayarla
+      miningTime: prev.miningPeriod,
       progress: 0
     }));
     
@@ -40,7 +42,7 @@ export function useMiningData(): MiningData {
       miningRate: state.miningRate,
       lastSaved: Date.now(),
       miningActive: true,
-      miningTime: state.miningPeriod, // Toplam periyoda ayarla
+      miningTime: state.miningPeriod,
       miningPeriod: state.miningPeriod,
       miningSession: state.miningSession
     });
@@ -51,7 +53,7 @@ export function useMiningData(): MiningData {
       ...prev,
       miningActive: false,
       miningSession: 0,
-      miningTime: prev.miningPeriod, // Toplam periyoda ayarla
+      miningTime: prev.miningPeriod,
       progress: 0
     }));
     
@@ -60,7 +62,7 @@ export function useMiningData(): MiningData {
       miningRate: state.miningRate,
       lastSaved: Date.now(),
       miningActive: false,
-      miningTime: state.miningPeriod, // Toplam periyoda ayarla
+      miningTime: state.miningPeriod,
       miningPeriod: state.miningPeriod,
       miningSession: 0
     });

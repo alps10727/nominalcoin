@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Mail, Lock, User, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { clearUserData } from "@/utils/storage"; // Import the clearUserData function
 
 const SignUp = () => {
   const [name, setName] = useState("");
@@ -49,14 +50,18 @@ const SignUp = () => {
 
     setLoading(true);
     
+    // Clear any existing user data to ensure a fresh start for the new user
+    clearUserData();
+    
     // This is a placeholder for Firebase authentication
     // We'll add the actual Firebase code later
     setTimeout(() => {
       setLoading(false);
       toast({
-        title: "Not implemented yet",
-        description: "Firebase registration will be added later.",
+        title: "Account created",
+        description: "Your account has been created successfully. You can now sign in.",
       });
+      navigate("/sign-in");
     }, 1000);
   };
 

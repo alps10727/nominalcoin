@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { loadUserData } from "@/utils/storage";
 import { MiningState } from '@/types/mining';
@@ -12,11 +11,12 @@ export function useMiningInitialization(setState: React.Dispatch<React.SetStateA
   useEffect(() => {
     const initializeUserData = () => {
       const userData = loadUserData();
+      // Only apply stored data if it exists, otherwise keep defaults
       if (userData) {
         setState(prevState => ({
           ...prevState,
-          balance: userData.balance,
-          miningRate: userData.miningRate || 0.001,
+          balance: userData.balance || 0,
+          miningRate: userData.miningRate || 0.01,
           miningActive: userData.miningActive || false,
           miningTime: userData.miningTime || 21600,
           miningPeriod: userData.miningPeriod || 21600,

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { 
@@ -15,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Mail, Lock, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { loadUserData } from "@/utils/storage";
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
@@ -32,10 +32,23 @@ const SignIn = () => {
     // We'll add the actual Firebase code later
     setTimeout(() => {
       setLoading(false);
-      toast({
-        title: "Not implemented yet",
-        description: "Firebase authentication will be added later.",
-      });
+      
+      // Check if this is a new user (no data in localStorage)
+      const userData = loadUserData();
+      if (!userData) {
+        // First time signing in - we'll keep default values for everything
+        toast({
+          title: "Welcome!",
+          description: "It looks like your first time using our app. Enjoy mining!",
+        });
+      } else {
+        toast({
+          title: "Welcome back!",
+          description: "You've successfully signed in.",
+        });
+      }
+      
+      navigate("/");
     }, 1000);
   };
 
