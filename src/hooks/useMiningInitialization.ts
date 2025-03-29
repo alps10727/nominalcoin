@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { loadUserData } from "@/utils/storage";
 import { MiningState } from '@/types/mining';
@@ -15,6 +16,7 @@ export function useMiningInitialization(setState: React.Dispatch<React.SetStateA
       if (userData) {
         setState(prevState => ({
           ...prevState,
+          userId: userData.userId || undefined,
           balance: userData.balance || 0,
           miningRate: userData.miningRate || 0.01,
           miningActive: userData.miningActive || false,

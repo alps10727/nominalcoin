@@ -8,6 +8,7 @@ export interface MiningState {
   miningSession: number;
   miningTime: number;
   miningPeriod: number; // Toplam madencilik periyodu (sn olarak)
+  userId?: string; // Optional user ID
 }
 
 export interface MiningActions {

@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Mail, Lock, User, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { clearUserData } from "@/utils/storage"; // Import the clearUserData function
+import { clearUserData, saveUserData, getNextUserId } from "@/utils/storage"; // Import the getNextUserId function
 
 const SignUp = () => {
   const [name, setName] = useState("");
@@ -53,13 +53,28 @@ const SignUp = () => {
     // Clear any existing user data to ensure a fresh start for the new user
     clearUserData();
     
+    // Generate a unique user ID for this user
+    const userId = getNextUserId();
+    
+    // Initialize new user data with the unique ID
+    saveUserData({
+      userId,
+      balance: 0,
+      miningRate: 0.01,
+      lastSaved: Date.now(),
+      miningActive: false,
+      miningTime: 21600,
+      miningPeriod: 21600,
+      miningSession: 0
+    });
+    
     // This is a placeholder for Firebase authentication
     // We'll add the actual Firebase code later
     setTimeout(() => {
       setLoading(false);
       toast({
         title: "Account created",
-        description: "Your account has been created successfully. You can now sign in.",
+        description: `Your account has been created successfully with ID: ${userId}. You can now sign in.`,
       });
       navigate("/sign-in");
     }, 1000);

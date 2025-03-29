@@ -1,5 +1,6 @@
 
 interface UserData {
+  userId?: string;
   balance: number;
   miningRate: number;
   lastSaved: number;
@@ -45,5 +46,30 @@ export function clearUserData(): void {
     localStorage.removeItem('fcMinerUserData');
   } catch (err) {
     console.error('Error clearing user data:', err);
+  }
+}
+
+/**
+ * Get next available user ID
+ * This function reads the last assigned ID from localStorage and increments it
+ */
+export function getNextUserId(): string {
+  try {
+    const lastIdData = localStorage.getItem('fcMinerLastUserId');
+    let nextId = 1; // Default start at 1
+    
+    if (lastIdData) {
+      nextId = parseInt(lastIdData, 10) + 1;
+    }
+    
+    // Save the new last ID
+    localStorage.setItem('fcMinerLastUserId', nextId.toString());
+    
+    // Format with leading zeros to create 8-digit ID
+    return nextId.toString().padStart(8, '0');
+  } catch (err) {
+    console.error('Error generating user ID:', err);
+    // Fallback to timestamp-based ID if something goes wrong
+    return Date.now().toString().slice(-8).padStart(8, '0');
   }
 }

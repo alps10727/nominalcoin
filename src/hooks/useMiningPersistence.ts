@@ -12,6 +12,7 @@ export function useMiningPersistence(state: MiningState, isLoading: boolean) {
     if (!isLoading) {
       const persistUserData = () => {
         const userData = {
+          userId: state.userId,
           balance: state.balance,
           miningRate: state.miningRate,
           lastSaved: Date.now(),
@@ -32,6 +33,7 @@ export function useMiningPersistence(state: MiningState, isLoading: boolean) {
       };
     }
   }, [
+    state.userId,
     state.balance, 
     state.miningRate, 
     state.miningActive, 

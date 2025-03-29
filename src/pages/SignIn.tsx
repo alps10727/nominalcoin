@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { 
@@ -42,8 +43,13 @@ const SignIn = () => {
           description: "It looks like your first time using our app. Enjoy mining!",
         });
       } else {
+        // If the user has a userId, display it in the welcome message
+        const userIdMessage = userData.userId 
+          ? `User ID: ${userData.userId}. Welcome back!` 
+          : "Welcome back!";
+          
         toast({
-          title: "Welcome back!",
+          title: userIdMessage,
           description: "You've successfully signed in.",
         });
       }
