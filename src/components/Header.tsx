@@ -10,7 +10,7 @@ const Header = () => {
   const isMobile = useIsMobile();
 
   return (
-    <header className="bg-gradient-to-r from-gray-900/90 to-indigo-950/90 backdrop-blur-xl p-4 flex justify-between items-center shadow-md sticky top-0 z-10 border-b border-indigo-500/20">
+    <header className="bg-gradient-to-r from-gray-950/95 via-indigo-950/90 to-purple-950/95 backdrop-blur-xl p-4 flex justify-between items-center shadow-lg sticky top-0 z-10 border-b border-violet-500/20">
       <MobileMenu />
 
       <div className="flex items-center">

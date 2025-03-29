@@ -12,36 +12,50 @@ const MobileNavigation = () => {
   if (!isMobile) return null;
 
   return (
-    <nav className="bg-gray-900/80 backdrop-blur-xl border-t border-violet-900/30 fixed bottom-0 left-0 right-0 flex justify-around p-3 z-10 shadow-[0_-4px_20px_rgba(0,0,0,0.3)]">
-      <Link to="/" className="flex flex-col items-center text-gray-500 transition-all duration-300">
-        <div className={`p-2 rounded-full transition-all duration-300 ${location.pathname === '/' ? 'bg-violet-900/60 text-violet-300 shadow-lg shadow-violet-900/30' : 'hover:bg-gray-800/60'}`}>
+    <nav className="bg-gradient-to-r from-gray-950/95 via-indigo-950/90 to-purple-950/95 backdrop-blur-xl border-t border-violet-900/20 fixed bottom-0 left-0 right-0 flex justify-around p-2 z-10 shadow-[0_-4px_20px_rgba(0,0,0,0.3)]">
+      <Link to="/" className="flex flex-col items-center transition-all duration-300">
+        <div className={`p-2 rounded-lg transition-all duration-300 ${location.pathname === '/' 
+          ? 'bg-gradient-to-br from-violet-800/80 to-indigo-900/80 text-white shadow-lg shadow-violet-900/30' 
+          : 'text-gray-500 hover:bg-gray-800/60 hover:text-gray-300'}`}>
           <Zap className="h-5 w-5" />
         </div>
-        <span className={`text-xs mt-1 transition-all duration-300 ${location.pathname === '/' ? 'font-medium text-violet-300' : ''}`}>{t('nav.mining')}</span>
+        <span className={`text-xs mt-1 transition-all duration-300 ${location.pathname === '/' ? 'font-medium text-white' : 'text-gray-500'}`}>{t('nav.mining')}</span>
       </Link>
-      <Link to="/referral" className="flex flex-col items-center text-gray-500 transition-all duration-300">
-        <div className={`p-2 rounded-full transition-all duration-300 ${location.pathname === '/referral' ? 'bg-violet-900/60 text-violet-300 shadow-lg shadow-violet-900/30' : 'hover:bg-gray-800/60'}`}>
+      
+      <Link to="/referral" className="flex flex-col items-center transition-all duration-300">
+        <div className={`p-2 rounded-lg transition-all duration-300 ${location.pathname === '/referral' 
+          ? 'bg-gradient-to-br from-violet-800/80 to-indigo-900/80 text-white shadow-lg shadow-violet-900/30' 
+          : 'text-gray-500 hover:bg-gray-800/60 hover:text-gray-300'}`}>
           <Users className="h-5 w-5" />
         </div>
-        <span className={`text-xs mt-1 transition-all duration-300 ${location.pathname === '/referral' ? 'font-medium text-violet-300' : ''}`}>{t('nav.team')}</span>
+        <span className={`text-xs mt-1 transition-all duration-300 ${location.pathname === '/referral' ? 'font-medium text-white' : 'text-gray-500'}`}>{t('nav.team')}</span>
       </Link>
-      <Link to="/tasks" className="flex flex-col items-center text-gray-500 transition-all duration-300">
-        <div className={`p-2 rounded-full transition-all duration-300 ${location.pathname === '/tasks' ? 'bg-violet-900/60 text-violet-300 shadow-lg shadow-violet-900/30' : 'hover:bg-gray-800/60'}`}>
+      
+      <Link to="/tasks" className="flex flex-col items-center transition-all duration-300">
+        <div className={`p-2 rounded-lg transition-all duration-300 ${location.pathname === '/tasks' 
+          ? 'bg-gradient-to-br from-violet-800/80 to-indigo-900/80 text-white shadow-lg shadow-violet-900/30' 
+          : 'text-gray-500 hover:bg-gray-800/60 hover:text-gray-300'}`}>
           <Award className="h-5 w-5" />
         </div>
-        <span className={`text-xs mt-1 transition-all duration-300 ${location.pathname === '/tasks' ? 'font-medium text-violet-300' : ''}`}>{t('nav.tasks')}</span>
+        <span className={`text-xs mt-1 transition-all duration-300 ${location.pathname === '/tasks' ? 'font-medium text-white' : 'text-gray-500'}`}>{t('nav.tasks')}</span>
       </Link>
-      <Link to="/history" className="flex flex-col items-center text-gray-500 transition-all duration-300">
-        <div className={`p-2 rounded-full transition-all duration-300 ${location.pathname === '/history' ? 'bg-violet-900/60 text-violet-300 shadow-lg shadow-violet-900/30' : 'hover:bg-gray-800/60'}`}>
+      
+      <Link to="/history" className="flex flex-col items-center transition-all duration-300">
+        <div className={`p-2 rounded-lg transition-all duration-300 ${location.pathname === '/history' 
+          ? 'bg-gradient-to-br from-violet-800/80 to-indigo-900/80 text-white shadow-lg shadow-violet-900/30' 
+          : 'text-gray-500 hover:bg-gray-800/60 hover:text-gray-300'}`}>
           <ArrowUpRight className="h-5 w-5" />
         </div>
-        <span className={`text-xs mt-1 transition-all duration-300 ${location.pathname === '/history' ? 'font-medium text-violet-300' : ''}`}>{t('nav.transfer')}</span>
+        <span className={`text-xs mt-1 transition-all duration-300 ${location.pathname === '/history' ? 'font-medium text-white' : 'text-gray-500'}`}>{t('nav.transfer')}</span>
       </Link>
-      <Link to="/profile" className="flex flex-col items-center text-gray-500 transition-all duration-300">
-        <div className={`p-2 rounded-full transition-all duration-300 ${location.pathname === '/profile' ? 'bg-violet-900/60 text-violet-300 shadow-lg shadow-violet-900/30' : 'hover:bg-gray-800/60'}`}>
+      
+      <Link to="/profile" className="flex flex-col items-center transition-all duration-300">
+        <div className={`p-2 rounded-lg transition-all duration-300 ${location.pathname === '/profile' 
+          ? 'bg-gradient-to-br from-violet-800/80 to-indigo-900/80 text-white shadow-lg shadow-violet-900/30' 
+          : 'text-gray-500 hover:bg-gray-800/60 hover:text-gray-300'}`}>
           <Shield className="h-5 w-5" />
         </div>
-        <span className={`text-xs mt-1 transition-all duration-300 ${location.pathname === '/profile' ? 'font-medium text-violet-300' : ''}`}>{t('nav.security')}</span>
+        <span className={`text-xs mt-1 transition-all duration-300 ${location.pathname === '/profile' ? 'font-medium text-white' : 'text-gray-500'}`}>{t('nav.security')}</span>
       </Link>
     </nav>
   );
