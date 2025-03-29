@@ -8,7 +8,7 @@ import { calculateProgress } from '@/utils/miningUtils';
  * Hook for initializing mining data from storage
  */
 export function useMiningInitialization(setState: React.Dispatch<React.SetStateAction<MiningState>>) {
-  // Load user data from localStorage
+  // Load user data from localStorage immediately on component mount
   useEffect(() => {
     const initializeUserData = () => {
       const userData = loadUserData();
@@ -26,13 +26,13 @@ export function useMiningInitialization(setState: React.Dispatch<React.SetStateA
           progress: calculateProgress(userData.miningTime || 21600, userData.miningPeriod || 21600)
         }));
       }
+      // Set loading to false after we've loaded the data
+      setState(prev => ({ ...prev, isLoading: false }));
     };
 
-    const timer = setTimeout(() => {
-      initializeUserData();
-      setState(prev => ({ ...prev, isLoading: false }));
-    }, 1000);
+    // Initialize immediately without timeout
+    initializeUserData();
     
-    return () => clearTimeout(timer);
+    // No need to return a cleanup function as there's no timer to clear
   }, [setState]);
 }

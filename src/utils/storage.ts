@@ -1,4 +1,3 @@
-
 interface UserData {
   userId?: string;
   balance: number;
@@ -22,6 +21,8 @@ export function loadUserData(): UserData | null {
     }
   } catch (err) {
     console.error('Error loading user data:', err);
+    // If there's an error parsing, clean up the corrupt data
+    localStorage.removeItem('fcMinerUserData');
   }
   // Return null if no data found - this ensures new users get default values
   return null;
@@ -32,7 +33,15 @@ export function loadUserData(): UserData | null {
  */
 export function saveUserData(userData: UserData): void {
   try {
-    localStorage.setItem('fcMinerUserData', JSON.stringify(userData));
+    // Ensure we're not saving undefined or null values
+    const sanitizedData = {
+      ...userData,
+      balance: userData.balance || 0,
+      miningRate: userData.miningRate || 0.01,
+      lastSaved: userData.lastSaved || Date.now(),
+    };
+    
+    localStorage.setItem('fcMinerUserData', JSON.stringify(sanitizedData));
   } catch (err) {
     console.error('Error saving user data:', err);
   }
