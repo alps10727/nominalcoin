@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { NotificationItem } from "./NotificationItem";
 
 export const NotificationsDropdown = () => {
   const { t } = useLanguage();
@@ -25,17 +26,17 @@ export const NotificationsDropdown = () => {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700 text-gray-100">
         <DropdownMenuItem className="cursor-pointer">
-          <div className="flex flex-col">
-            <span className="font-medium">{t('mining.successful')}</span>
-            <span className="text-xs text-gray-400">{t('mining.successfulDesc', "0.1")}</span>
-          </div>
+          <NotificationItem 
+            title={t('mining.successful')} 
+            description={t('mining.successfulDesc', "0.1")} 
+          />
         </DropdownMenuItem>
         <DropdownMenuSeparator className="bg-gray-700" />
         <DropdownMenuItem className="cursor-pointer">
-          <div className="flex flex-col">
-            <span className="font-medium">{t('mining.started')}</span>
-            <span className="text-xs text-gray-400">{t('mining.startedDesc')}</span>
-          </div>
+          <NotificationItem 
+            title={t('mining.started')} 
+            description={t('mining.startedDesc')} 
+          />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
