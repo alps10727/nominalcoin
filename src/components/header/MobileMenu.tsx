@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { MenuIcon, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -14,22 +15,29 @@ import { MainNavigation } from "./MainNavigation";
 
 export const MobileMenu = () => {
   const { t } = useLanguage();
+  const [open, setOpen] = useState(false);
   
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="p-2 rounded-full hover:bg-gray-800 transition-colors">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="p-2 rounded-full hover:bg-gray-800 transition-colors focus:outline-none"
+          onClick={() => setOpen(true)}
+        >
           <MenuIcon className="h-6 w-6 text-indigo-300" />
+          <span className="sr-only">Menüyü Aç</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="bg-gray-850 border-r border-gray-800">
+      <SheetContent side="left" className="bg-gray-850 border-r border-gray-800 z-50">
         <SheetHeader className="border-b border-gray-800 pb-4">
           <SheetTitle className="flex items-center text-indigo-200">
             <Coins className="h-6 w-6 mr-2 text-indigo-400" />
-            <Link to="/" className="text-2xl font-bold">{t('app.title')}</Link>
+            <Link to="/" className="text-2xl font-bold" onClick={() => setOpen(false)}>{t('app.title')}</Link>
           </SheetTitle>
         </SheetHeader>
-        <MainNavigation />
+        <MainNavigation onNavigate={() => setOpen(false)} />
       </SheetContent>
     </Sheet>
   );
