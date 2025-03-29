@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Zap, TrendingUp, Coins, Bolt } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
@@ -7,7 +6,7 @@ import { loadUserData, saveUserData } from "@/utils/storage";
 
 export function useUpgrades() {
   const [balance, setBalance] = useState(0);
-  const [miningRate, setMiningRate] = useState(0.001); // Değiştirildi
+  const [miningRate, setMiningRate] = useState(0.001);
   
   const [upgrades, setUpgrades] = useState<Upgrade[]>([
     {
@@ -27,7 +26,7 @@ export function useUpgrades() {
       level: 1,
       maxLevel: 10,
       cost: 15,
-      effect: "+0.0005 FC per level", // Değiştirildi
+      effect: "+0.0005 FC per level",
       icon: <TrendingUp className="h-5 w-5 text-green-400" />
     },
     {
@@ -52,19 +51,16 @@ export function useUpgrades() {
     },
   ]);
 
-  // Load user data from localStorage
   useEffect(() => {
     const userData = loadUserData();
     if (userData) {
       setBalance(userData.balance);
-      setMiningRate(userData.miningRate || 0.001); // Default değer değiştirildi
+      setMiningRate(userData.miningRate || 0.001);
       
-      // Load saved upgrades if available
       if (userData.upgrades) {
         setUpgrades(userData.upgrades);
       } else {
-        // Initialize rate upgrade level based on mining rate
-        const currentRateLevel = Math.round((userData.miningRate - 0.001) / 0.0005); // Değiştirildi
+        const currentRateLevel = Math.round((userData.miningRate - 0.001) / 0.0005);
         if (currentRateLevel > 0) {
           const updatedUpgrades = [...upgrades];
           const rateUpgradeIndex = updatedUpgrades.findIndex(u => u.id === "rate");
@@ -77,7 +73,6 @@ export function useUpgrades() {
     }
   }, []);
 
-  // Save data when balance or upgrades change
   useEffect(() => {
     const userData = loadUserData();
     if (userData) {
@@ -112,14 +107,13 @@ export function useUpgrades() {
         newUpgrades[upgradeIndex] = { 
           ...upgrade, 
           level: upgrade.level + 1,
-          cost: Math.floor(upgrade.cost * 1.5) // Increase cost for next level
+          cost: Math.floor(upgrade.cost * 1.5)
         };
         setUpgrades(newUpgrades);
         
-        // Update mining rate for rate upgrades
         if (upgradeId === "rate") {
           const newLevel = upgrade.level + 1;
-          const newMiningRate = 0.001 + newLevel * 0.0005; // Değiştirildi
+          const newMiningRate = 0.001 + newLevel * 0.0005;
           setMiningRate(newMiningRate);
           
           const userData = loadUserData();
