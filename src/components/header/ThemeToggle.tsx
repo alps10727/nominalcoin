@@ -21,27 +21,11 @@ export const ThemeToggle = () => {
       className="relative w-10 h-10 rounded-full transition-all duration-300 overflow-hidden group"
       onClick={handleToggle}
     >
-      {/* Cosmos-inspired background */}
+      {/* Enhanced background effect */}
       <div className="absolute inset-0 rounded-full bg-gradient-to-br from-darkPurple-800/90 to-navy-800/90 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       
-      {/* Animated stars/particles */}
-      <div className="absolute inset-0 overflow-hidden">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div 
-            key={i}
-            className="absolute w-0.5 h-0.5 bg-white/80 rounded-full animate-float"
-            style={{
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 2}s`,
-              animationDuration: `${2 + Math.random() * 2}s`
-            }}
-          />
-        ))}
-      </div>
-      
-      {/* Glow effect */}
-      <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-darkPurple-500/20 to-navy-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+      {/* Border highlight */}
+      <div className="absolute inset-0 rounded-full border border-darkPurple-400/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       
       {/* Icon container with rotation animation */}
       <div className={`relative z-10 transition-transform duration-500 ${isAnimating ? 'scale-0 rotate-180' : 'scale-100'}`}>
@@ -51,8 +35,8 @@ export const ThemeToggle = () => {
         }
       </div>
       
-      {/* Orbit ring */}
-      <div className="absolute inset-0 rounded-full border border-darkPurple-400/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+      {/* Subtle glow effect */}
+      <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-darkPurple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
     </Button>
   );
 };

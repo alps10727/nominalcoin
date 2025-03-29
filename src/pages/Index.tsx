@@ -37,31 +37,38 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen nebula-bg flex flex-col">
-      {/* Background patterns */}
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-darkPurple-900 via-navy-900 to-darkPurple-950">
+      {/* Enhanced Background patterns */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Grid pattern */}
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0YzAtMi4yMDktMS43OTEtNC00LTRzLTQgMS43OTEtNCA0IDEuNzkxIDQgNCA0IDQtMS43OTEgNC00Wm0wLTIwYzAtMi4yMDktMS43OTEtNC00LTRzLTQgMS43OTEtNCA0IDEuNzkxIDQgNCA0IDQtMS43OTEgNC00Wm0tMjAgMjBjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTRabTAtMjBjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTRabTQwIDIwYzAtMi4yMDktMS43OTEtNC00LTRzLTQgMS43OTEtNCA0IDEuNzkxIDQgNCA0IDQtMS43OTEgNC00Wm0wLTIwYzAtMi4yMDktMS43OTEtNC00LTRzLTQgMS43OTEtNCA0IDEuNzkxIDQgNCA0IDQtMS43OTEgNC00WiIvPjwvZz48L2c+PC9zdmc+')] bg-fixed opacity-50"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0YzAtMi4yMDktMS43OTEtNC00LTRzLTQgMS43OTEtNCA0IDEuNzkxIDQgNCA0IDQtMS43OTEgNC00Wm0wLTIwYzAtMi4yMDktMS43OTEtNC00LTRzLTQgMS43OTEtNCA0IDEuNzkxIDQgNCA0IDQtMS43OTEgNC00Wm0tMjAgMjBjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTRabTAtMjBjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTRabTQwIDIwYzAtMi4yMDktMS43OTEtNC00LTRzLTQgMS43OTEtNCA0IDEuNzkxIDQgNCA0IDQtMS43OTEgNC00Wm0wLTIwYzAtMi4yMDktMS43OTEtNC00LTRzLTQgMS43OTEtNCA0IDEuNzkxIDQgNCA0IDQtMS43OTEgNC00WiIvPjwvZz48L2c+PC9zdmc+')] bg-fixed opacity-30"></div>
         
-        {/* Stars */}
-        {Array.from({ length: 30 }).map((_, i) => (
-          <div 
-            key={i}
-            className="absolute w-0.5 h-0.5 bg-white rounded-full animate-star-twinkle"
-            style={{
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${1 + Math.random() * 3}s`,
-              opacity: Math.random() * 0.7
-            }}
-          />
-        ))}
+        {/* Dots pattern */}
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMTAiIGN5PSIxMCIgcj0iMSIgZmlsbD0iI2ZmZiIgZmlsbC1vcGFjaXR5PSIwLjA1Ii8+PC9zdmc+')]"></div>
         
-        {/* Nebula effects */}
-        <div className="absolute top-1/4 left-1/4 w-1/2 h-1/2 bg-darkPurple-500/10 rounded-full blur-[150px] animate-cosmic-pulse" style={{animationDuration: '15s'}}></div>
-        <div className="absolute bottom-0 right-0 w-full h-full bg-navy-500/10 rounded-full blur-[180px] animate-cosmic-pulse" style={{animationDuration: '20s', animationDelay: '3s'}}></div>
-        <div className="absolute top-1/3 right-1/4 w-1/3 h-1/3 bg-darkPurple-400/5 rounded-full blur-[120px] animate-cosmic-pulse" style={{animationDuration: '12s', animationDelay: '1s'}}></div>
+        {/* Fixed stars */}
+        <div className="fixed inset-0">
+          {Array.from({ length: 100 }).map((_, i) => (
+            <div 
+              key={i}
+              className="absolute w-0.5 h-0.5 bg-white rounded-full"
+              style={{
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                opacity: Math.random() * 0.5 + 0.1
+              }}
+            />
+          ))}
+        </div>
+        
+        {/* Diagonal lines */}
+        <div className="absolute inset-0 opacity-10" style={{
+          backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.03) 10px, rgba(255,255,255,0.03) 11px)`
+        }}></div>
+        
+        {/* Gradient overlays */}
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-darkPurple-500/5 to-transparent"></div>
+        <div className="absolute bottom-0 right-0 w-full h-full bg-gradient-to-tl from-navy-500/5 to-transparent"></div>
         
         {/* Bottom gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-darkPurple-900 to-transparent"></div>
