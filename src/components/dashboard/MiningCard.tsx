@@ -54,7 +54,7 @@ const MiningCard = ({
             <div className="relative inline-flex justify-center items-center">
               {/* Spinning ring animation */}
               <div 
-                className="absolute rounded-full border-4 border-indigo-500/30 border-t-indigo-500/80 animate-spin" 
+                className="absolute rounded-full border-4 border-indigo-500/30 border-t-indigo-500/80" 
                 style={{
                   width: isMobile ? '140px' : '170px',
                   height: isMobile ? '140px' : '170px',
