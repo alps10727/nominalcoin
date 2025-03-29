@@ -132,6 +132,7 @@ const AppRoutes = () => {
 const App = () => {
   // Offline durumunu izle
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [ready, setReady] = useState(false);
   
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
@@ -143,9 +144,15 @@ const App = () => {
     // App başlatma iyileştirmesi - yükleme süresini ölç
     const startTime = performance.now();
     
+    // Sayfa yüklenirken ekranın donmasını önlemek için kısa bir gecikme ekle
+    const timer = setTimeout(() => {
+      setReady(true);
+    }, 100);
+    
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      clearTimeout(timer);
       
       // Çıkışta yükleme süresini kaydet
       const loadTime = performance.now() - startTime;
@@ -153,15 +160,10 @@ const App = () => {
     };
   }, []);
   
-  // Sayfa yüklenirken ekranın donmasını önlemek için kısa bir gecikme ekle
-  const [ready, setReady] = useState(false);
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setReady(true);
-    }, 100);
-    
-    return () => clearTimeout(timer);
-  }, []);
+  // Internet bağlantısı yoksa uygulamayı yükleme
+  if (isOffline) {
+    return <LoadingScreen forceOffline={true} message="İnternet bağlantısı bulunamadı" />;
+  }
   
   if (!ready) {
     // Note: This initial loading screen is directly used without any context providers
@@ -179,11 +181,6 @@ const App = () => {
                 <Sonner />
                 <Suspense fallback={<LoadingScreen message="Sayfa yükleniyor..." />}>
                   <div className="flex flex-col min-h-screen pb-16"> {/* Alt navigasyon için boşluk */}
-                    {isOffline && (
-                      <div className="fixed top-0 left-0 w-full bg-red-500 text-white text-center text-sm py-1 z-50">
-                        İnternet bağlantınız yok. Bazı özellikler çalışmayabilir.
-                      </div>
-                    )}
                     <AppRoutes />
                     <MobileNavigation />
                   </div>

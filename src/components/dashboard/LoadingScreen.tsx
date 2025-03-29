@@ -3,7 +3,7 @@ import { RefreshCw, Sparkles, Wifi, WifiOff } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useEffect, useState } from "react";
 
-const LoadingScreen = ({ message }: { message?: string }) => {
+const LoadingScreen = ({ message, forceOffline = false }: { message?: string, forceOffline?: boolean }) => {
   // Use try-catch to safely access the language context
   let translationFunction: (key: string, ...args: string[]) => string;
   try {
@@ -20,12 +20,22 @@ const LoadingScreen = ({ message }: { message?: string }) => {
     };
   }
 
-  const [offlineDetected, setOfflineDetected] = useState(!navigator.onLine);
+  const [offlineDetected, setOfflineDetected] = useState(!navigator.onLine || forceOffline);
   const [loadingTime, setLoadingTime] = useState(0);
-  const [loadingMessage, setLoadingMessage] = useState(message || "Yükleniyor...");
+  const [loadingMessage, setLoadingMessage] = useState(
+    forceOffline 
+      ? "İnternet bağlantısı bulunamadı. Uygulama internet olmadan çalışmaz." 
+      : message || "Yükleniyor..."
+  );
   
   // Offline durumunu takip et
   useEffect(() => {
+    if (forceOffline) {
+      setOfflineDetected(true);
+      setLoadingMessage("İnternet bağlantısı bulunamadı. Uygulama internet olmadan çalışmaz.");
+      return;
+    }
+
     const handleOnline = () => {
       setOfflineDetected(false);
       setLoadingMessage("Bağlantı kuruldu, yükleniyor...");
@@ -45,12 +55,14 @@ const LoadingScreen = ({ message }: { message?: string }) => {
         const newTime = prev + 1;
         
         // Yükleme süresine göre mesajları güncelle (daha hızlı)
-        if (newTime === 2) {
-          setLoadingMessage("Veriler yükleniyor...");
-        } else if (newTime === 4) {
-          setLoadingMessage("Yükleme beklenenden uzun sürüyor. Lütfen bekleyin...");
-        } else if (newTime === 7) {
-          setLoadingMessage("Sayfa yukleniyor, çok az kaldı...");
+        if (!offlineDetected) {
+          if (newTime === 2) {
+            setLoadingMessage("Veriler yükleniyor...");
+          } else if (newTime === 4) {
+            setLoadingMessage("Yükleme beklenenden uzun sürüyor. Lütfen bekleyin...");
+          } else if (newTime === 7) {
+            setLoadingMessage("Sayfa yukleniyor, çok az kaldı...");
+          }
         }
         
         return newTime;
@@ -62,17 +74,17 @@ const LoadingScreen = ({ message }: { message?: string }) => {
       window.removeEventListener('offline', handleOffline);
       clearInterval(timer);
     };
-  }, []);
+  }, [forceOffline, offlineDetected]);
   
-  // 10 saniyeden fazla yükleme durumu için sayfayı otomatik yenile
+  // Internet bağlantısı yoksa otomatik yenileme
   useEffect(() => {
     let reloadTimer: NodeJS.Timeout;
     
-    if (loadingTime > 10 && !offlineDetected) {
-      // 10 saniyeden fazla beklediyse sayfayı otomatik yenile
+    if (offlineDetected && loadingTime > 10) {
+      // İnternet yok ve uzun süredir bekliyorsa
       reloadTimer = setTimeout(() => {
         window.location.reload();
-      }, 2000); // 2 saniye sonra yenile
+      }, 5000); // 5 saniye sonra yeniden dene
     }
     
     return () => {
@@ -96,7 +108,11 @@ const LoadingScreen = ({ message }: { message?: string }) => {
             
             {/* Inner circle */}
             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-darkPurple-700 to-navy-700 flex items-center justify-center shadow-lg">
-              <RefreshCw className="h-8 w-8 text-darkPurple-300 animate-spin" />
+              {offlineDetected ? (
+                <WifiOff className="h-8 w-8 text-red-400" />
+              ) : (
+                <RefreshCw className="h-8 w-8 text-darkPurple-300 animate-spin" />
+              )}
             </div>
             
             {/* Decorative elements */}
@@ -120,10 +136,15 @@ const LoadingScreen = ({ message }: { message?: string }) => {
           </p>
           
           {/* Uzun süre yükleme durumunda bilgi göster */}
-          {loadingTime > 8 && (
+          {(loadingTime > 8 || forceOffline) && (
             <div className="mt-4 p-3 bg-darkPurple-800/50 border border-darkPurple-700 rounded-md text-sm text-darkPurple-300">
-              <p>Sayfayı yenilemeyi deneyin veya daha sonra tekrar giriş yapmayı deneyin.</p>
-              {loadingTime > 10 && !offlineDetected && (
+              {forceOffline ? (
+                <p>Bu uygulama internet bağlantısı gerektirmektedir. Lütfen internet bağlantınızı açın ve sayfayı yenileyin.</p>
+              ) : (
+                <p>Sayfayı yenilemeyi deneyin veya daha sonra tekrar giriş yapmayı deneyin.</p>
+              )}
+              
+              {(loadingTime > 10 && offlineDetected) && (
                 <p className="mt-2 font-semibold">Sayfa otomatik olarak yenilenecek...</p>
               )}
             </div>
