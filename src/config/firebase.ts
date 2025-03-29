@@ -3,14 +3,14 @@ import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
-// Firebase yapılandırma bilgileri
+// Firebase yapılandırma bilgileri - Firebase konsolunda proje ayarlarından aldığınız bilgilerle değiştirilmeli
 const firebaseConfig = {
-  apiKey: "AIzaSyDX_nominal_project_api_key_buraya",  // Firebase konsolundan aldığınız API key
-  authDomain: "nominal.firebaseapp.com",              // nominal.firebaseapp.com şeklinde olmalı
-  projectId: "nominal",                               // "nominal" projenizin ID'si
-  storageBucket: "nominal.appspot.com",               // nominal.appspot.com şeklinde olmalı
-  messagingSenderId: "123456789012",                  // Firebase konsolundan aldığınız messagingSenderId
-  appId: "1:123456789012:web:abc123def456"            // Firebase konsolundan aldığınız appId
+  apiKey: "BURAYA_FIREBASE_KONSOLUNDAN_API_KEY_YAZIN",
+  authDomain: "nominal.firebaseapp.com", 
+  projectId: "nominal",
+  storageBucket: "nominal.appspot.com",
+  messagingSenderId: "BURAYA_FIREBASE_KONSOLUNDAN_MESSAGING_SENDER_ID_YAZIN",
+  appId: "BURAYA_FIREBASE_KONSOLUNDAN_APP_ID_YAZIN"
 };
 
 // Firebase'i başlat
