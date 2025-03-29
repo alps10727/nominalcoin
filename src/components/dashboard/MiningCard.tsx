@@ -49,22 +49,22 @@ const MiningCard = ({
       </CardHeader>
       <CardContent className={isMobile ? "px-4 py-2" : ""}>
         <div className="text-center mb-6">
-          <div className="relative mx-auto">
-            {/* Main button container - both button and ring are positioned relative to this */}
-            <div className="relative mx-auto flex items-center justify-center">
-              {/* Animated rotating outer ring - now properly centered */}
-              <div className={`absolute ${isMobile ? 'w-36 h-36' : 'w-44 h-44'} rounded-full border-4 border-indigo-500/30 border-t-indigo-500/80 animate-spin`}></div>
+          <div className="flex justify-center items-center">
+            {/* Button with rotation ring around it */}
+            <div className="relative">
+              {/* Spinning ring around the button */}
+              <div className={`absolute inset-0 ${isMobile ? 'w-36 h-36' : 'w-44 h-44'} rounded-full border-4 border-indigo-500/30 border-t-indigo-500/80 animate-spin`}></div>
               
-              {/* The actual button */}
-              <div 
-                className={`relative ${isMobile ? 'w-36 h-36' : 'w-44 h-44'} rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 ${
+              {/* Mining start/stop button */}
+              <button 
+                className={`relative ${isMobile ? 'w-32 h-32' : 'w-40 h-40'} rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 ${
                   miningActive 
                     ? 'bg-gradient-to-br from-green-900 to-emerald-800 shadow-lg shadow-green-900/50' 
                     : 'bg-gradient-to-br from-gray-800 to-gray-900 hover:shadow-md'
                 }`}
                 onClick={miningActive ? onStopMining : onStartMining}
               >
-                <Circle className={`${isMobile ? 'h-28 w-28' : 'h-36 w-36'} ${
+                <Circle className={`${isMobile ? 'h-24 w-24' : 'h-32 w-32'} ${
                   miningActive 
                     ? 'text-green-400 animate-pulse' 
                     : 'text-gray-500 hover:text-indigo-400 transition-colors'
@@ -80,7 +80,7 @@ const MiningCard = ({
                     <span className="text-sm font-semibold bg-indigo-700 px-4 py-1.5 rounded-full shadow-sm text-white">{t('mining.inactive')}</span>
                   )}
                 </div>
-              </div>
+              </button>
             </div>
           </div>
         </div>
