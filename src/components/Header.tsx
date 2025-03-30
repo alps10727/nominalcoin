@@ -9,7 +9,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect, memo } from "react";
 import { Button } from "./ui/button";
 
-// Performans optimizasyonu için memoize
 const Header = memo(() => {
   const { currentUser } = useAuth();
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
@@ -34,12 +33,12 @@ const Header = memo(() => {
   };
 
   return (
-    <header className="bg-gradient-to-r from-darkPurple-900/95 via-navy-900/90 to-darkPurple-900/95 backdrop-blur-xl pt-safe p-4 flex justify-between items-center shadow-lg sticky top-0 z-50 border-b border-violet-500/20">
+    <header className="bg-gradient-to-r from-darkPurple-900/95 via-navy-900/90 to-darkPurple-900/95 backdrop-blur-xl pt-safe p-4 flex justify-between items-center shadow-lg sticky top-0 z-50 border-b border-purple-500/20">
       {/* Decorative background pattern */}
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0YzAtMi4yMDktMS43OTEtNC00LTRzLTQgMS43OTEtNCA0IDEuNzkxIDQgNCA0IDQtMS43OTEgNC00Wm0wLTIwYzAtMi4yMDktMS43OTEtNC00LTRzLTQgMS43OTEtNCA0IDEuNzkxIDQgNCA0IDQtMS43OTEgNC00Wm0tMjAgMjBjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTRabTAtMjBjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTRabTQwIDIwYzAtMi4yMDktMS43OTEtNC00LTRzLTQgMS43OTEtNCA0IDEuNzkxIDQgNCA0IDQtMS43OTEgNC00Wm0wLTIwYzAtMi4yMDktMS43OTEtNC00LTRzLTQgMS43OTEtNCA0IDEuNzkxIDQgNCA0IDQtMS43OTEgNC00WiIvPjwvZz48L2c+PC9zdmc+')] bg-fixed opacity-70"></div>
       
       {/* Header glow effect */}
-      <div className="absolute inset-0 bg-gradient-to-b from-darkPurple-400/10 to-transparent"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-purple-400/10 to-transparent"></div>
       
       {/* Offline warning */}
       {isOffline && (
@@ -71,7 +70,7 @@ const Header = memo(() => {
   );
 });
 
-// DisplayName ekleyerek React DevTools'da daha kolay tanımlanabilir
+// DisplayName for easier debugging
 Header.displayName = "Header";
 
 export default Header;

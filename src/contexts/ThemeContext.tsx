@@ -32,14 +32,14 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     // Store theme preference
     localStorage.setItem("futureCoinTheme", theme);
     
-    // Apply transition class for smooth theme switching
+    // Apply transition class for smoother theme switching
     document.documentElement.classList.add('theme-transition');
     
     // Remove transition class after animation completes to prevent transition
     // effects when other properties change
     const timer = setTimeout(() => {
       document.documentElement.classList.remove('theme-transition');
-    }, 500);
+    }, 700); // Increased duration for smoother transition
     
     return () => clearTimeout(timer);
   }, [theme]);

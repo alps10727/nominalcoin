@@ -12,7 +12,7 @@ const StatisticsButton = () => {
   return (
     <Link to="/statistics">
       <Button 
-        className="w-full relative overflow-hidden group bg-gradient-to-br from-darkPurple-700/90 via-navy-800/90 to-darkPurple-800/90 hover:from-darkPurple-600/90 hover:via-navy-700/90 hover:to-darkPurple-700/90 text-white shadow-lg transition-all hover:shadow-xl border-none py-6 backdrop-blur-sm"
+        className="w-full relative overflow-hidden group bg-gradient-to-br from-darkPurple-700/90 via-navy-800/90 to-darkPurple-800/90 hover:from-darkPurple-600/90 hover:via-navy-700/90 hover:to-darkPurple-700/90 text-white shadow-lg transition-all hover:shadow-xl border border-purple-500/20 py-6 backdrop-blur-sm rounded-xl"
         size="lg"
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
@@ -31,7 +31,7 @@ const StatisticsButton = () => {
           {Array.from({ length: 3 }).map((_, i) => (
             <div 
               key={i}
-              className="absolute w-1 h-1 rounded-full bg-darkPurple-300/60"
+              className="absolute w-1 h-1 rounded-full bg-purple-300/60"
               style={{
                 top: `${50 + 30 * Math.cos(Math.PI * 2 * i / 3)}%`,
                 left: `${50 + 30 * Math.sin(Math.PI * 2 * i / 3)}%`,
@@ -44,17 +44,17 @@ const StatisticsButton = () => {
         {/* Content */}
         <div className="flex items-center justify-center relative z-10 py-1">
           <div className="flex items-center mr-2">
-            <div className="p-2 rounded-full bg-gradient-to-br from-darkPurple-600/80 to-navy-700/80 group-hover:from-darkPurple-500/80 group-hover:to-navy-600/80 transition-colors mr-3 border border-darkPurple-500/20 backdrop-blur-sm group-hover:shadow-glow">
-              <BarChart2 className="h-5 w-5 text-darkPurple-300 group-hover:text-white transition-colors" />
+            <div className="p-2 rounded-full bg-gradient-to-br from-darkPurple-600/80 to-navy-700/80 group-hover:from-darkPurple-500/80 group-hover:to-navy-600/80 transition-colors mr-3 border border-purple-500/20 backdrop-blur-sm group-hover:shadow-glow">
+              <BarChart2 className="h-5 w-5 text-purple-300 group-hover:text-white transition-colors" />
             </div>
             <div className="flex flex-col items-start">
               <span className="text-lg font-medium group-hover:translate-x-0.5 transition-transform duration-300 text-white">{t('stats.title')}</span>
-              <span className="text-xs text-darkPurple-300/70">View detailed analytics</span>
+              <span className="text-xs text-purple-300/70">View detailed analytics</span>
             </div>
           </div>
           <div className="flex items-center ml-4">
             <ArrowRight className="ml-1 h-4 w-4 opacity-70 group-hover:translate-x-1 group-hover:opacity-100 transition-all" />
-            <Sparkles className="ml-1 h-3 w-3 text-darkPurple-300/70 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <Sparkles className="ml-1 h-3 w-3 text-purple-300/70 opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
         </div>
       </Button>
