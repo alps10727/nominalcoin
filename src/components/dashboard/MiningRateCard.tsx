@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Clock, TrendingUp, Zap, BarChart } from "lucide-react";
+import { Clock, TrendingUp, Zap, BarChart, Activity } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -13,58 +13,133 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
   const isMobile = useIsMobile();
   
   // Hourly and daily calculations
-  const hourlyRate = (miningRate * 20).toFixed(2); // 20 times per hour (60/3)
+  const hourlyRate = (miningRate * 20).toFixed(3); // 20 times per hour (60/3)
   const dailyRate = (miningRate * 20 * 24).toFixed(2); // 24 hours per day
   
   return (
-    <Card className="mb-6 border-none shadow-lg transition-all duration-300 overflow-hidden relative group">
-      {/* Background with glass effect */}
-      <div className="absolute inset-0 bg-gradient-to-br from-navy-800/95 via-darkPurple-800/80 to-navy-800/90 backdrop-blur-sm"></div>
+    <Card className="mb-6 border-none shadow-lg transition-all duration-300 overflow-hidden relative group bg-gradient-to-r from-indigo-900/90 to-blue-900/90">
+      {/* Background pattern */}
+      <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDgwIDgwIj48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMC41IiBkPSJNMTAgMTBoNjB2NjBIMTB6TTIwIDIwaDQwdjQwSDIweiIvPjwvc3ZnPg==')]"></div>
       
-      {/* Dot pattern overlay */}
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMTAiIGN5PSIxMCIgcj0iMSIgZmlsbD0id2hpdGUiIGZpbGwtb3BhY2l0eT0iMC4xIi8+PC9zdmc+')] opacity-20"></div>
+      {/* Glass effect */}
+      <div className="absolute inset-0 backdrop-blur-sm"></div>
       
       <CardHeader className={`relative z-10 ${isMobile ? "px-4 py-3" : ""}`}>
-        <CardTitle className="flex items-center gap-2 text-xl font-bold text-white">
-          <BarChart className="h-5 w-5 text-darkPurple-300" />
-          {t('mining.stats') || 'Mining Stats'}
+        <CardTitle className="flex items-center gap-2 text-xl font-bold">
+          <div className="p-1.5 bg-blue-500/20 rounded-lg border border-blue-400/30 backdrop-blur-sm">
+            <BarChart className="h-5 w-5 text-blue-300" />
+          </div>
+          <span className="bg-gradient-to-r from-blue-100 to-cyan-200 bg-clip-text text-transparent">{t('mining.stats')}</span>
         </CardTitle>
       </CardHeader>
       
-      <CardContent className={`${isMobile ? "px-4 pb-4" : "pb-6"} grid grid-cols-3 gap-4 relative z-10`}>
-        {/* Current rate card */}
-        <div className="bg-gradient-to-br from-darkPurple-800/70 to-navy-800/70 rounded-xl p-3 flex flex-col items-center justify-center border border-darkPurple-500/20 shadow-lg backdrop-blur-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1 group/card">
-          <div className="w-full flex flex-col items-center">
-            <div className="p-2 rounded-full bg-darkPurple-700/50 mb-2 group-hover/card:bg-darkPurple-600/50 transition-colors">
-              <Zap className="h-4 w-4 text-darkPurple-300 group-hover/card:text-darkPurple-200 transition-colors" />
+      <CardContent className={`${isMobile ? "px-4 pb-4" : "pb-6"} grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10`}>
+        {/* Main data card */}
+        <div className="bg-gradient-to-br from-indigo-900/50 to-blue-900/50 rounded-xl p-4 flex flex-col border border-blue-500/20 backdrop-blur-sm h-full">
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-blue-800/50">
+                <Activity className="h-4 w-4 text-cyan-300" />
+              </div>
+              <span className="text-sm font-medium text-blue-200">Mining Capacity</span>
             </div>
-            <span className="text-xs text-gray-400 mb-1">{t('mining.current') || 'Current'}</span>
-            <p className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-darkPurple-300 to-darkPurple-200">{miningRate.toFixed(4)}</p>
-            <p className="text-xs text-gray-400 mt-1">NC/3min</p>
+            <span className="text-xs text-cyan-300 bg-blue-900/50 px-2 py-0.5 rounded-full">Active</span>
+          </div>
+          
+          {/* Circular progress indicator */}
+          <div className="flex justify-center my-4">
+            <div className="relative w-28 h-28">
+              <svg className="w-full h-full" viewBox="0 0 100 100">
+                {/* Background circle */}
+                <circle 
+                  cx="50" 
+                  cy="50" 
+                  r="40" 
+                  stroke="#1e3a8a" 
+                  strokeWidth="8" 
+                  fill="none" 
+                  strokeOpacity="0.3"
+                />
+                {/* Progress circle */}
+                <circle 
+                  cx="50" 
+                  cy="50" 
+                  r="40" 
+                  stroke="url(#blue-gradient)" 
+                  strokeWidth="8" 
+                  fill="none" 
+                  strokeLinecap="round"
+                  strokeDasharray={`${Math.min(miningRate * 25000, 251)} 251`}
+                  transform="rotate(-90 50 50)"
+                />
+                {/* Gradient definition */}
+                <defs>
+                  <linearGradient id="blue-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#3b82f6" />
+                    <stop offset="100%" stopColor="#22d3ee" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center flex-col">
+                <span className="text-2xl font-bold text-white">{(miningRate * 100).toFixed(1)}</span>
+                <span className="text-xs text-blue-300">NC/cycle</span>
+              </div>
+            </div>
+          </div>
+          
+          {/* Efficiency bar */}
+          <div className="mt-2">
+            <div className="flex justify-between text-xs mb-1">
+              <span className="text-blue-300">Efficiency</span>
+              <span className="text-cyan-200">{Math.min(miningRate * 10000, 100).toFixed(0)}%</span>
+            </div>
+            <div className="h-1.5 bg-blue-900/50 rounded-full w-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full transition-all duration-500"
+                style={{width: `${Math.min(miningRate * 10000, 100)}%`}}
+              ></div>
+            </div>
           </div>
         </div>
         
-        {/* Hourly rate card */}
-        <div className="bg-gradient-to-br from-navy-800/70 to-darkPurple-800/70 rounded-xl p-3 flex flex-col items-center justify-center border border-navy-500/20 shadow-lg backdrop-blur-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1 group/card">
-          <div className="w-full flex flex-col items-center">
-            <div className="p-2 rounded-full bg-navy-700/50 mb-2 group-hover/card:bg-navy-600/50 transition-colors">
-              <Clock className="h-4 w-4 text-navy-300 group-hover/card:text-navy-200 transition-colors" />
+        {/* Rate cards */}
+        <div className="flex flex-col gap-4">
+          {/* Hourly rate */}
+          <div className="flex-1 bg-gradient-to-br from-blue-900/50 to-indigo-900/50 rounded-xl p-4 border border-blue-500/20 backdrop-blur-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-blue-800/50">
+                  <Clock className="h-4 w-4 text-blue-300" />
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-blue-200">Hourly Rate</div>
+                  <div className="text-xs text-blue-400">Based on current speed</div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-xl font-bold text-white">{hourlyRate}</div>
+                <div className="text-xs text-cyan-300">NC/hour</div>
+              </div>
             </div>
-            <span className="text-xs text-gray-400 mb-1">{t('mining.hourly') || 'Hourly'}</span>
-            <p className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-navy-300 to-navy-200">{hourlyRate}</p>
-            <p className="text-xs text-gray-400 mt-1">NC/hour</p>
           </div>
-        </div>
-        
-        {/* Daily rate card */}
-        <div className="bg-gradient-to-br from-darkPurple-800/70 to-navy-800/70 rounded-xl p-3 flex flex-col items-center justify-center border border-darkPurple-500/20 shadow-lg backdrop-blur-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1 group/card">
-          <div className="w-full flex flex-col items-center">
-            <div className="p-2 rounded-full bg-darkPurple-700/50 mb-2 group-hover/card:bg-darkPurple-600/50 transition-colors">
-              <Clock className="h-4 w-4 text-darkPurple-300 group-hover/card:text-darkPurple-200 transition-colors" />
+          
+          {/* Daily rate */}
+          <div className="flex-1 bg-gradient-to-br from-blue-900/50 to-indigo-900/50 rounded-xl p-4 border border-blue-500/20 backdrop-blur-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-blue-800/50">
+                  <Zap className="h-4 w-4 text-blue-300" />
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-blue-200">Daily Potential</div>
+                  <div className="text-xs text-blue-400">24 hour operation</div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-xl font-bold text-white">{dailyRate}</div>
+                <div className="text-xs text-cyan-300">NC/day</div>
+              </div>
             </div>
-            <span className="text-xs text-gray-400 mb-1">{t('mining.daily') || 'Daily'}</span>
-            <p className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-darkPurple-300 to-darkPurple-200">{dailyRate}</p>
-            <p className="text-xs text-gray-400 mt-1">NC/day</p>
           </div>
         </div>
       </CardContent>

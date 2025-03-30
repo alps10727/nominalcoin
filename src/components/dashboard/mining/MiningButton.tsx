@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Play, Pause } from "lucide-react";
+import { Play, Pause, Cpu } from "lucide-react";
 
 interface MiningButtonProps {
   miningActive: boolean;
@@ -41,63 +41,79 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
 
   return (
     <div className="relative mx-auto flex items-center justify-center">
-      {/* Orbital rings with double rotation */}
-      <div className={`absolute w-52 h-52 rounded-full border border-darkPurple-500/20 ${miningActive ? 'animate-spin-slow' : ''}`}></div>
-      <div className={`absolute w-44 h-44 rounded-full border border-darkPurple-400/30 ${miningActive ? 'animate-reverse-spin' : ''}`} style={{animationDuration: '12s'}}></div>
-      <div className={`absolute w-36 h-36 rounded-full border-2 border-darkPurple-400/40 ${miningActive ? 'animate-spin-slow' : ''}`} style={{animationDuration: '8s'}}></div>
+      {/* Energy field simulation */}
+      <div className={`absolute w-40 h-40 rounded-full border border-cyan-500/30 transition-all duration-500 ${miningActive ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}></div>
+      <div className={`absolute w-48 h-48 rounded-full border border-blue-400/20 transition-all duration-700 ${miningActive ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}></div>
+      <div className={`absolute w-56 h-56 rounded-full border border-indigo-500/10 transition-all duration-900 ${miningActive ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}></div>
       
-      {/* Double rotating rings when active */}
+      {/* Dynamic effects that only appear when active */}
       {miningActive && (
         <>
-          <div className="absolute w-60 h-60 rounded-full">
-            <div className="absolute w-full h-full border border-darkPurple-300/20 rounded-full animate-spin-slow" style={{animationDuration: '15s'}}></div>
-            <div className="absolute w-full h-full border border-darkPurple-400/10 rounded-full animate-reverse-spin" style={{animationDuration: '20s'}}></div>
+          <div className="absolute w-64 h-64 rounded-full animate-ping-slow opacity-10 border border-cyan-400/50"></div>
+          <div className="absolute inset-0 w-40 h-40 mx-auto my-auto">
+            <div className="absolute inset-0 bg-cyan-500/5 rounded-full animate-pulse-slow"></div>
           </div>
-          <div className="absolute w-28 h-28 rounded-full">
-            <div className="absolute w-full h-full border border-darkPurple-300/30 rounded-full animate-spin-slow" style={{animationDuration: '6s'}}></div>
-            <div className="absolute w-full h-full border border-darkPurple-400/20 rounded-full animate-reverse-spin" style={{animationDuration: '4s'}}></div>
+          
+          {/* Data stream particles */}
+          <div className="absolute w-full h-full pointer-events-none">
+            {[...Array(8)].map((_, i) => (
+              <div 
+                key={i}
+                className="absolute w-0.5 h-0.5 bg-cyan-300 rounded-full animate-particle-trace"
+                style={{
+                  left: '50%',
+                  top: '50%',
+                  animationDelay: `${i * 0.2}s`,
+                  transform: `rotate(${i * 45}deg) translateX(${20 + Math.random() * 20}px)`
+                }}
+              />
+            ))}
           </div>
         </>
       )}
       
-      {/* The actual button */}
+      {/* The main button */}
       <button 
-        className="relative w-32 h-32 rounded-full flex items-center justify-center cursor-pointer z-10 overflow-hidden group"
+        className={`relative w-28 h-28 rounded-full flex items-center justify-center cursor-pointer z-10 overflow-hidden transition-all duration-500 group ${miningActive ? 'scale-105' : 'scale-100'}`}
         onClick={handleClick}
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
       >
-        {/* Button background with gradient */}
-        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-darkPurple-600 to-navy-800 border-2 border-darkPurple-500/50 group-hover:from-darkPurple-500 group-hover:to-navy-700 transition-all duration-500 shadow-glow"></div>
+        {/* Button background with techno gradient */}
+        <div className={`absolute inset-0 rounded-full transition-all duration-500 ${miningActive 
+          ? 'bg-gradient-to-br from-cyan-600 via-blue-700 to-indigo-800 border-2 border-cyan-400/50' 
+          : 'bg-gradient-to-br from-indigo-700 via-blue-800 to-indigo-900 border-2 border-blue-500/30'
+        } group-hover:shadow-[0_0_15px_rgba(34,211,238,0.4)]`}></div>
         
-        {/* Rotating inner circle */}
-        <div className={`absolute inset-2 rounded-full border border-darkPurple-400/30 ${miningActive ? 'animate-spin-slow' : ''}`} style={{animationDuration: '10s'}}></div>
-        <div className={`absolute inset-4 rounded-full border border-darkPurple-300/20 ${miningActive ? 'animate-reverse-spin' : ''}`} style={{animationDuration: '7s'}}></div>
+        {/* Inner circle texture */}
+        <div className="absolute inset-3 rounded-full border border-blue-300/10"></div>
+        <div className="absolute inset-6 rounded-full border border-cyan-300/10"></div>
         
-        {/* Shine effect on hover */}
-        <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full ${isHovering ? 'animate-sheen' : ''}`}></div>
+        {/* Center CPU icon that shows when inactive */}
+        {!miningActive && (
+          <div className="absolute inset-0 flex items-center justify-center opacity-20">
+            <Cpu className="w-12 h-12 text-blue-200" />
+          </div>
+        )}
         
-        {/* Button inner glow */}
-        <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <div className="absolute inset-0 rounded-full bg-darkPurple-500/20 blur-md"></div>
-        </div>
+        {/* Pulsing highlight effect */}
+        <div className={`absolute inset-0 bg-gradient-to-t from-transparent via-cyan-400/10 to-transparent opacity-0 ${isHovering ? 'animate-pulse-gradient opacity-100' : ''}`}></div>
         
-        {/* Icon and content */}
-        <div className="relative flex flex-col items-center justify-center w-full h-full">
+        {/* Button content */}
+        <div className="relative flex flex-col items-center justify-center z-10">
           {miningActive ? (
             <>
-              {/* Timer display for active state */}
               <div className="flex flex-col items-center">
-                <Pause className="h-6 w-6 text-white mb-1" />
-                <span className="text-sm font-mono text-white font-semibold tracking-wider">
+                <Pause className="h-6 w-6 text-cyan-100 mb-1" />
+                <span className="text-sm font-mono text-cyan-100 font-semibold tracking-wider">
                   {displayTime}
                 </span>
               </div>
             </>
           ) : (
             <>
-              <Play className={`h-8 w-8 text-white ${isHovering ? 'animate-pulse-slow' : ''}`} />
-              <span className="text-xs mt-1 text-white/80 gradient-text">START</span>
+              <Play className={`h-8 w-8 text-blue-100 ${isHovering ? 'animate-pulse' : ''}`} />
+              <span className="text-xs mt-1 text-cyan-100 font-medium">INITIALIZE</span>
             </>
           )}
         </div>
