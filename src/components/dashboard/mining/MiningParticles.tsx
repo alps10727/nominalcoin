@@ -68,7 +68,7 @@ export const MiningParticles: React.FC<MiningParticlesProps> = ({ miningActive }
       {Array.from({ length: 6 }).map((_, i) => (
         <div
           key={`data-${i}`}
-          className="absolute flex items-center justify-center"
+          className={`absolute flex items-center justify-center data-point-${i} animate-float-data`}
           style={{
             left: `${20 + i * 12}%`,
             bottom: '10%',
@@ -79,8 +79,6 @@ export const MiningParticles: React.FC<MiningParticlesProps> = ({ miningActive }
             animationIterationCount: 'infinite',
             animationTimingFunction: 'ease-out',
           }}
-          // Using CSS variables in className rather than inline style
-          className={`data-point-${i} animate-float-data`}
         >
           <div className="w-1 h-1 rounded-full bg-purple-400/40"></div>
         </div>
