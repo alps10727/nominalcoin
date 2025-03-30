@@ -17,14 +17,22 @@ export const MobileMenu = () => {
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+  };
+  
+  const handleButtonClick = () => {
+    setOpen(true);
+  };
+  
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetTrigger asChild>
         <Button 
           variant="ghost" 
           size="icon" 
           className="p-2 rounded-full hover:bg-gray-800 transition-colors focus:outline-none"
-          onClick={() => setOpen(true)}
+          onClick={handleButtonClick}
         >
           <MenuIcon className="h-6 w-6 text-indigo-300" />
           <span className="sr-only">Menüyü Aç</span>
