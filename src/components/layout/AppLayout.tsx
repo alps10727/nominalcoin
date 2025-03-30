@@ -1,13 +1,11 @@
 
-import { Suspense, lazy } from "react";
+import { Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Header from "@/components/Header";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
-
-// Pre-import the MobileNavigation to reduce loading time
-const MobileNavigation = lazy(() => import("@/components/MobileNavigation"));
+import MobileNavigation from "@/components/MobileNavigation";
 
 interface AppLayoutProps {
   children: React.ReactNode;
