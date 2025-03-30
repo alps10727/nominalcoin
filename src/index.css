@@ -105,6 +105,14 @@
   button {
     @apply outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 transition-all duration-200;
   }
+  
+  /* Data point variations for particle movements */
+  .data-point-0 { --tx: -10px; }
+  .data-point-1 { --tx: 15px; }
+  .data-point-2 { --tx: -5px; }
+  .data-point-3 { --tx: 20px; }
+  .data-point-4 { --tx: -15px; }
+  .data-point-5 { --tx: 10px; }
 }
 
 @layer utilities {
@@ -167,7 +175,7 @@
     0% { transform: translateY(0) translateX(0); opacity: 0; }
     10% { opacity: 0.8; }
     90% { opacity: 0.3; }
-    100% { transform: translateY(-100px) translateX(var(--tx, 20px)); opacity: 0; }
+    100% { transform: translateY(-100px) translateX(var(--tx, 0px)); opacity: 0; }
   }
   
   @keyframes pulse-slow {

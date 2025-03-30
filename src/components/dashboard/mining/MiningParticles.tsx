@@ -78,8 +78,9 @@ export const MiningParticles: React.FC<MiningParticlesProps> = ({ miningActive }
             animationDelay: `${i * 0.9}s`,
             animationIterationCount: 'infinite',
             animationTimingFunction: 'ease-out',
-            '--tx': `${-10 + Math.random() * 20}px`,
           }}
+          // Using CSS variables in className rather than inline style
+          className={`data-point-${i} animate-float-data`}
         >
           <div className="w-1 h-1 rounded-full bg-purple-400/40"></div>
         </div>
