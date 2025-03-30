@@ -34,10 +34,10 @@ export function useMiningData(): MiningData {
         balance: userData.balance || 0,
         miningRate: userData.miningRate || 0.01,
         miningActive: userData.miningActive || false,
-        miningTime: userData.miningTime || 21600,
+        miningTime: userData.miningTime != null ? userData.miningTime : 21600,
         miningPeriod: userData.miningPeriod || 21600,
         miningSession: userData.miningSession || 0,
-        progress: (userData.miningTime && userData.miningPeriod) 
+        progress: (userData.miningTime != null && userData.miningPeriod) 
           ? ((userData.miningPeriod - userData.miningTime) / userData.miningPeriod) * 100 
           : 0
       }));

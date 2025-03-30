@@ -17,7 +17,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
     // Clear any existing interval first to prevent multiple timers
     if (intervalRef.current) {
       console.log("Clearing previous mining interval", intervalRef.current);
-      clearInterval(intervalRef.current);
+      window.clearInterval(intervalRef.current);
       intervalRef.current = undefined;
     }
     
@@ -34,6 +34,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
           
           // Calculate new time
           const newTime = Math.max(prev.miningTime - 1, 0);
+          console.log("Mining time updated:", newTime);
           
           // Calculate elapsed seconds for reward timing (modulo 180 seconds = 3 minutes)
           const totalElapsed = prev.miningPeriod - newTime;
@@ -42,6 +43,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
           
           // Check if mining cycle is complete
           if (newTime <= 0) {
+            console.log("Mining cycle completed");
             // Save final state
             saveUserData({
               balance: prev.balance,
@@ -67,6 +69,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
           
           // Add mining reward every 3 minutes (180 seconds)
           if (addReward) {
+            console.log("Adding mining reward");
             const newBalance = prev.balance + prev.miningRate;
             const newSession = prev.miningSession + prev.miningRate;
             
@@ -102,6 +105,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
         });
       }, 1000); // Run every second
       
+      // Use window.setInterval ID type
       intervalRef.current = id;
       console.log("Mining interval set with ID:", intervalRef.current);
     }
@@ -110,7 +114,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
     return () => {
       if (intervalRef.current) {
         console.log("Cleanup: Clearing mining interval", intervalRef.current);
-        clearInterval(intervalRef.current);
+        window.clearInterval(intervalRef.current);
         intervalRef.current = undefined;
       }
     };
