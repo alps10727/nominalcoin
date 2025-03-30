@@ -31,7 +31,11 @@ const NavigationItem = memo(({
 }) => {
   return (
     <Link to={to} onClick={onClick}>
-      <Button variant="ghost" className="w-full justify-start text-indigo-100 hover:bg-gray-800 transition-colors">
+      <Button 
+        variant="ghost" 
+        className="w-full justify-start text-indigo-100 hover:bg-gray-800 transition-colors"
+        tabIndex={0}
+      >
         <Icon className="mr-2 h-5 w-5" />
         {label}
       </Button>
@@ -46,6 +50,7 @@ export const MainNavigation = memo(({ onNavigate }: MainNavigationProps) => {
   const { t } = useLanguage();
   
   const handleClick = () => {
+    console.log("Navigation item clicked, closing menu");
     if (onNavigate) {
       onNavigate();
     }

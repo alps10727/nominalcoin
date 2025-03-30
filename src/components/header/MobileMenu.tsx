@@ -7,6 +7,8 @@ import {
   SheetContent, 
   SheetHeader, 
   SheetTitle,
+  SheetOverlay,
+  SheetPortal,
 } from "@/components/ui/sheet";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -16,31 +18,43 @@ export const MobileMenu = () => {
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   
-  // Fixed menu button functionality by separating it completely from Sheet component
+  const handleOpenMenu = () => {
+    console.log("Opening menu, current state:", !open);
+    setOpen(true);
+  };
+  
+  const handleCloseMenu = () => {
+    console.log("Closing menu");
+    setOpen(false);
+  };
+  
   return (
     <>
       <Button 
         variant="ghost" 
         size="icon" 
         className="p-2 rounded-full hover:bg-gray-800 transition-colors focus:outline-none"
-        onClick={() => setOpen(true)}
+        onClick={handleOpenMenu}
         aria-label="Open menu"
         type="button"
       >
         <MenuIcon className="h-6 w-6 text-indigo-300" />
-        <span className="sr-only">Menüyü Aç</span>
+        <span className="sr-only">{t('menu.open')}</span>
       </Button>
 
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="left" className="bg-gray-850 border-r border-gray-800 z-50">
-          <SheetHeader className="border-b border-gray-800 pb-4">
-            <SheetTitle className="flex items-center text-indigo-200">
-              <Coins className="h-6 w-6 mr-2 text-indigo-400" />
-              <Link to="/" className="text-2xl font-bold" onClick={() => setOpen(false)}>{t('app.title')}</Link>
-            </SheetTitle>
-          </SheetHeader>
-          <MainNavigation onNavigate={() => setOpen(false)} />
-        </SheetContent>
+        <SheetPortal>
+          <SheetOverlay onClick={handleCloseMenu} />
+          <SheetContent side="left" className="bg-gray-850 border-r border-gray-800 z-50 w-64">
+            <SheetHeader className="border-b border-gray-800 pb-4">
+              <SheetTitle className="flex items-center text-indigo-200">
+                <Coins className="h-6 w-6 mr-2 text-indigo-400" />
+                <Link to="/" className="text-2xl font-bold" onClick={handleCloseMenu}>{t('app.title')}</Link>
+              </SheetTitle>
+            </SheetHeader>
+            <MainNavigation onNavigate={handleCloseMenu} />
+          </SheetContent>
+        </SheetPortal>
       </Sheet>
     </>
   );
