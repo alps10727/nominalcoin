@@ -17,36 +17,30 @@ export const MobileMenu = () => {
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   
-  const handleOpenChange = (newOpen: boolean) => {
-    setOpen(newOpen);
-  };
-  
-  const handleButtonClick = () => {
-    setOpen(true);
-  };
-  
+  // Create a standalone button to ensure it works outside the Sheet context
   return (
-    <Sheet open={open} onOpenChange={handleOpenChange}>
-      <SheetTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="p-2 rounded-full hover:bg-gray-800 transition-colors focus:outline-none"
-          onClick={handleButtonClick}
-        >
-          <MenuIcon className="h-6 w-6 text-indigo-300" />
-          <span className="sr-only">Menüyü Aç</span>
-        </Button>
-      </SheetTrigger>
-      <SheetContent side="left" className="bg-gray-850 border-r border-gray-800 z-50">
-        <SheetHeader className="border-b border-gray-800 pb-4">
-          <SheetTitle className="flex items-center text-indigo-200">
-            <Coins className="h-6 w-6 mr-2 text-indigo-400" />
-            <Link to="/" className="text-2xl font-bold" onClick={() => setOpen(false)}>{t('app.title')}</Link>
-          </SheetTitle>
-        </SheetHeader>
-        <MainNavigation onNavigate={() => setOpen(false)} />
-      </SheetContent>
-    </Sheet>
+    <>
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        className="p-2 rounded-full hover:bg-gray-800 transition-colors focus:outline-none"
+        onClick={() => setOpen(true)}
+      >
+        <MenuIcon className="h-6 w-6 text-indigo-300" />
+        <span className="sr-only">Menüyü Aç</span>
+      </Button>
+
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent side="left" className="bg-gray-850 border-r border-gray-800 z-50">
+          <SheetHeader className="border-b border-gray-800 pb-4">
+            <SheetTitle className="flex items-center text-indigo-200">
+              <Coins className="h-6 w-6 mr-2 text-indigo-400" />
+              <Link to="/" className="text-2xl font-bold" onClick={() => setOpen(false)}>{t('app.title')}</Link>
+            </SheetTitle>
+          </SheetHeader>
+          <MainNavigation onNavigate={() => setOpen(false)} />
+        </SheetContent>
+      </Sheet>
+    </>
   );
 };
