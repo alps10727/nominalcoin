@@ -9,7 +9,7 @@ interface MiningButtonProps {
 }
 
 /**
- * Component that renders the mining button with all its visual effects
+ * Component that renders the mining button with clearer user feedback and state indicators
  */
 export const MiningButton: React.FC<MiningButtonProps> = ({ 
   miningActive,
@@ -39,32 +39,35 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
     onButtonClick();
   };
 
+  // Descriptive aria labels for better accessibility
+  const ariaLabel = miningActive ? "Stop mining" : "Start mining";
+
   return (
     <div className="relative mx-auto flex items-center justify-center">
-      {/* Energy field simulation */}
-      <div className={`absolute w-40 h-40 rounded-full border border-amber-500/30 transition-all duration-500 ${miningActive ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}></div>
-      <div className={`absolute w-48 h-48 rounded-full border border-orange-400/20 transition-all duration-700 ${miningActive ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}></div>
-      <div className={`absolute w-56 h-56 rounded-full border border-red-500/10 transition-all duration-900 ${miningActive ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}></div>
+      {/* Energy field simulation - more subtle and with better visual hierarchy */}
+      <div className={`absolute w-36 h-36 rounded-full border border-amber-500/20 transition-all duration-500 ${miningActive ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}></div>
+      <div className={`absolute w-44 h-44 rounded-full border border-orange-400/15 transition-all duration-700 ${miningActive ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}></div>
+      <div className={`absolute w-52 h-52 rounded-full border border-red-500/10 transition-all duration-900 ${miningActive ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}></div>
       
-      {/* Dynamic effects that only appear when active */}
+      {/* Dynamic effects that only appear when active - reduced for less distraction */}
       {miningActive && (
         <>
-          <div className="absolute w-64 h-64 rounded-full animate-ping-slow opacity-10 border border-orange-400/50"></div>
-          <div className="absolute inset-0 w-40 h-40 mx-auto my-auto">
+          <div className="absolute w-60 h-60 rounded-full animate-ping-slow opacity-5 border border-orange-400/30"></div>
+          <div className="absolute inset-0 w-36 h-36 mx-auto my-auto">
             <div className="absolute inset-0 bg-amber-500/5 rounded-full animate-pulse-slow"></div>
           </div>
           
-          {/* Ember particles */}
+          {/* Reduced ember particles for cleaner look */}
           <div className="absolute w-full h-full pointer-events-none">
-            {[...Array(8)].map((_, i) => (
+            {[...Array(6)].map((_, i) => (
               <div 
                 key={i}
                 className="absolute w-0.5 h-0.5 bg-amber-300 rounded-full animate-particle-trace"
                 style={{
                   left: '50%',
                   top: '50%',
-                  animationDelay: `${i * 0.2}s`,
-                  transform: `rotate(${i * 45}deg) translateX(${20 + Math.random() * 20}px)`
+                  animationDelay: `${i * 0.3}s`,
+                  transform: `rotate(${i * 60}deg) translateX(${20 + Math.random() * 15}px)`
                 }}
               />
             ))}
@@ -72,48 +75,50 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
         </>
       )}
       
-      {/* The main button */}
+      {/* The main button - larger touch target and clearer visual state */}
       <button 
-        className={`relative w-28 h-28 rounded-full flex items-center justify-center cursor-pointer z-10 overflow-hidden transition-all duration-500 group ${miningActive ? 'scale-105' : 'scale-100'}`}
+        className={`relative w-32 h-32 rounded-full flex items-center justify-center cursor-pointer z-10 overflow-hidden transition-all duration-500 group ${miningActive ? 'scale-105' : 'scale-100'}`}
         onClick={handleClick}
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
+        aria-label={ariaLabel}
+        title={ariaLabel}
       >
-        {/* Button background with warm gradient */}
+        {/* Button background with warm gradient - higher contrast for better visibility */}
         <div className={`absolute inset-0 rounded-full transition-all duration-500 ${miningActive 
-          ? 'bg-gradient-to-br from-amber-600 via-orange-700 to-red-800 border-2 border-amber-400/50' 
-          : 'bg-gradient-to-br from-amber-700 via-orange-800 to-red-900 border-2 border-amber-500/30'
-        } group-hover:shadow-[0_0_15px_rgba(251,191,36,0.4)]`}></div>
+          ? 'bg-gradient-to-br from-amber-500 via-orange-600 to-red-700 border-2 border-amber-400/60' 
+          : 'bg-gradient-to-br from-amber-600 via-orange-700 to-red-800 border-2 border-amber-500/40'
+        } group-hover:shadow-[0_0_20px_rgba(251,191,36,0.5)]`}></div>
         
-        {/* Inner circle texture */}
+        {/* Inner circle texture - more subtle */}
         <div className="absolute inset-3 rounded-full border border-amber-300/10"></div>
-        <div className="absolute inset-6 rounded-full border border-amber-300/10"></div>
+        <div className="absolute inset-6 rounded-full border border-amber-300/5"></div>
         
-        {/* Center Flame icon that shows when inactive */}
+        {/* Center Flame icon that shows when inactive - larger and more visible */}
         {!miningActive && (
-          <div className="absolute inset-0 flex items-center justify-center opacity-20">
-            <Flame className="w-12 h-12 text-amber-200" />
+          <div className="absolute inset-0 flex items-center justify-center opacity-30">
+            <Flame className="w-14 h-14 text-amber-200" />
           </div>
         )}
         
-        {/* Pulsing highlight effect */}
-        <div className={`absolute inset-0 bg-gradient-to-t from-transparent via-amber-400/10 to-transparent opacity-0 ${isHovering ? 'animate-pulse-gradient opacity-100' : ''}`}></div>
+        {/* Pulsing highlight effect - more noticeable for better feedback */}
+        <div className={`absolute inset-0 bg-gradient-to-t from-transparent via-amber-400/15 to-transparent opacity-0 ${isHovering ? 'animate-pulse-gradient opacity-100' : ''}`}></div>
         
-        {/* Button content */}
+        {/* Button content - larger text and icons for better visibility */}
         <div className="relative flex flex-col items-center justify-center z-10">
           {miningActive ? (
             <>
               <div className="flex flex-col items-center">
-                <Pause className="h-6 w-6 text-amber-100 mb-1" />
-                <span className="text-sm font-mono text-amber-100 font-semibold tracking-wider">
+                <Pause className="h-7 w-7 text-amber-100 mb-2" />
+                <span className="text-base font-mono text-amber-100 font-semibold tracking-wider">
                   {displayTime}
                 </span>
               </div>
             </>
           ) : (
             <>
-              <Play className={`h-8 w-8 text-amber-100 ${isHovering ? 'animate-pulse' : ''}`} />
-              <span className="text-xs mt-1 text-amber-100 font-medium">IGNITE</span>
+              <Play className={`h-9 w-9 text-amber-100 ${isHovering ? 'animate-pulse' : ''}`} />
+              <span className="text-sm mt-2 text-amber-100 font-medium">START</span>
             </>
           )}
         </div>

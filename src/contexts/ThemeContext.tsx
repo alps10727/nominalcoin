@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from "react";
 
 type Theme = "light" | "dark";
@@ -25,7 +26,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   });
 
   useEffect(() => {
-    // Apply theme to document element
+    // Apply theme to document element with improved transitions
     document.documentElement.classList.toggle("dark", theme === "dark");
     
     // Store theme preference
@@ -33,9 +34,12 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     
     // Apply transition class for smooth theme switching
     document.documentElement.classList.add('theme-transition');
+    
+    // Remove transition class after animation completes to prevent transition
+    // effects when other properties change
     const timer = setTimeout(() => {
       document.documentElement.classList.remove('theme-transition');
-    }, 300);
+    }, 500);
     
     return () => clearTimeout(timer);
   }, [theme]);

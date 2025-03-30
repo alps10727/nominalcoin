@@ -2,6 +2,7 @@
 import React from "react";
 import { Clock, Zap, Activity } from "lucide-react";
 import { CardFooter } from "@/components/ui/card";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface MiningCardFooterProps {
   miningSession: number;
@@ -10,26 +11,40 @@ interface MiningCardFooterProps {
 
 /**
  * Component that renders the footer of the mining card with session and rate information
+ * Improved for better user experience with clearer labels and visual hierarchy
  */
 export const MiningCardFooter: React.FC<MiningCardFooterProps> = ({ miningSession, miningRate }) => {
+  const { isDarkMode } = useTheme();
+  
   return (
-    <CardFooter className="flex justify-between items-center text-sm py-4 border-t border-amber-600/20 rounded-b-lg relative z-10 bg-gradient-to-b from-amber-900/30 to-orange-950/60">
-      <div className="flex items-center font-medium text-white">
-        <div className="flex items-center gap-2 bg-amber-900/30 px-3 py-1.5 rounded-full backdrop-blur-sm border border-amber-400/10">
-          <Activity className="h-4 w-4 text-amber-300" />
-          <span className="text-xs text-amber-200">Power: <span className="text-amber-300 font-semibold">{(miningRate * 100).toFixed(2)}%</span></span>
+    <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-3 text-sm py-4 px-4 border-t border-amber-600/20 rounded-b-lg relative z-10 bg-gradient-to-b from-amber-900/30 to-orange-950/60">
+      {/* Power indicator */}
+      <div className="flex items-center font-medium text-white w-full sm:w-auto">
+        <div className="flex items-center gap-2 bg-amber-900/40 px-4 py-2 rounded-xl backdrop-blur-sm border border-amber-400/20 w-full sm:w-auto justify-center sm:justify-start">
+          <Activity className="h-5 w-5 text-amber-300" />
+          <div className="flex flex-col">
+            <span className="text-xs text-amber-100 font-medium">Forge Power</span>
+            <span className="text-sm text-amber-300 font-bold">{(miningRate * 100).toFixed(2)}%</span>
+          </div>
         </div>
       </div>
       
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 bg-amber-900/30 px-3 py-1.5 rounded-full backdrop-blur-sm border border-amber-400/10">
-          <Clock className="h-4 w-4 text-amber-300" />
-          <span className="text-xs text-amber-200">Session: <span className="text-amber-300 font-semibold">{miningSession.toFixed(4)}</span></span>
+      {/* Mining stats */}
+      <div className="flex items-center gap-3 flex-wrap justify-center w-full sm:w-auto">
+        <div className="flex items-center gap-2 bg-amber-900/40 px-4 py-2 rounded-xl backdrop-blur-sm border border-amber-400/20">
+          <Clock className="h-5 w-5 text-amber-300" />
+          <div className="flex flex-col">
+            <span className="text-xs text-amber-100 font-medium">Session</span>
+            <span className="text-sm text-amber-300 font-bold">{miningSession.toFixed(4)}</span>
+          </div>
         </div>
         
-        <div className="flex items-center gap-2 bg-amber-900/30 px-3 py-1.5 rounded-full backdrop-blur-sm border border-amber-400/10">
-          <Zap className="h-4 w-4 text-amber-300" />
-          <span className="text-xs text-amber-200">Rate: <span className="text-amber-300 font-semibold">{miningRate.toFixed(4)}/3m</span></span>
+        <div className="flex items-center gap-2 bg-amber-900/40 px-4 py-2 rounded-xl backdrop-blur-sm border border-amber-400/20">
+          <Zap className="h-5 w-5 text-amber-300" />
+          <div className="flex flex-col">
+            <span className="text-xs text-amber-100 font-medium">Mining Rate</span>
+            <span className="text-sm text-amber-300 font-bold">{miningRate.toFixed(4)}/3m</span>
+          </div>
         </div>
       </div>
     </CardFooter>
