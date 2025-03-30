@@ -6,10 +6,11 @@ import { ThemeToggle } from "./header/ThemeToggle";
 import { NotificationsDropdown } from "./header/NotificationsDropdown";
 import { WifiOff } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { Button } from "./ui/button";
 
-const Header = () => {
+// Performans optimizasyonu için memoize
+const Header = memo(() => {
   const { currentUser } = useAuth();
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
@@ -68,6 +69,9 @@ const Header = () => {
       </div>
     </header>
   );
-};
+});
+
+// DisplayName ekleyerek React DevTools'da daha kolay tanımlanabilir
+Header.displayName = "Header";
 
 export default Header;

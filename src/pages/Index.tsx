@@ -2,8 +2,6 @@
 import { User, History, UserPlus, Award, BarChart2, Stars } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "@/contexts/ThemeContext";
-import Header from "@/components/Header";
-import MobileNavigation from "@/components/MobileNavigation";
 import { useMiningData } from "@/hooks/useMiningData";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -73,8 +71,6 @@ const Index = () => {
         {/* Bottom gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-darkPurple-900 to-transparent"></div>
       </div>
-      
-      <Header />
 
       <main className={`flex-1 ${isMobile ? 'p-3' : 'p-5'} max-w-3xl mx-auto w-full ${isMobile ? 'pb-20' : 'pb-5'} relative z-10`}>
         <BalanceCard balance={balance} />
@@ -116,8 +112,6 @@ const Index = () => {
 
         <StatisticsButton />
       </main>
-
-      <MobileNavigation />
     </div>
   );
 };

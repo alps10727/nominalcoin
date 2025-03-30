@@ -16,16 +16,19 @@ interface AppLayoutProps {
 const AppLayout = ({ children }: AppLayoutProps) => {
   return (
     <TooltipProvider>
-      <div className="flex flex-col min-h-screen bg-gray-950">
+      <div className="flex flex-col min-h-screen bg-gradient-to-b from-darkPurple-900 via-navy-900 to-darkPurple-950">
         <Toaster />
         <Sonner />
-        <Suspense fallback={<LoadingScreen message="Sayfa yükleniyor..." />}>
-          <Header />
-          <main className="flex-1">
+        
+        <Header />
+        
+        <main className="flex-1">
+          <Suspense fallback={<LoadingScreen message="Sayfa yükleniyor..." />}>
             {children}
-          </main>
-          <MobileNavigation />
-        </Suspense>
+          </Suspense>
+        </main>
+        
+        <MobileNavigation />
       </div>
     </TooltipProvider>
   );

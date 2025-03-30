@@ -1,5 +1,4 @@
-
-import { Suspense, lazy, useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useState, useMemo } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "../dashboard/LoadingScreen";
@@ -24,7 +23,6 @@ const ErrorBoundary = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Yakalanmayan hataları ele al
     const handleError = (event: ErrorEvent) => {
       event.preventDefault();
       errorLog("ErrorBoundary", "Kritik hata yakalandı:", event.error);
@@ -38,7 +36,6 @@ const ErrorBoundary = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (hasError) {
-      // 3 saniye sonra sayfayı yeniden yükle
       const timer = setTimeout(() => {
         window.location.reload();
       }, 3000);
@@ -53,38 +50,31 @@ const ErrorBoundary = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-// PrivateRoute component (geliştirildi)
+// PrivateRoute component - optimize edildi
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { currentUser, loading } = useAuth();
   const [waitingTooLong, setWaitingTooLong] = useState(false);
   
-  // Daha iyi kullanıcı deneyimi için daha erken yükleme mesajı göster
+  // Sadece yükleme durumunda zamanlayıcıyı başlat
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (loading) {
-      timer = setTimeout(() => {
-        setWaitingTooLong(true);
-      }, 1500);
-    }
+    if (!loading) return;
     
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
+    const timer = setTimeout(() => {
+      setWaitingTooLong(true);
+    }, 1500);
+    
+    return () => clearTimeout(timer);
   }, [loading]);
   
-  // Otomatik yönlendirme zamanlayıcısı
+  // Yükleme durumu değiştiğinde otomatik yönlendirme
   useEffect(() => {
-    let redirectTimer: NodeJS.Timeout;
+    if (!loading || !waitingTooLong) return;
     
-    if (loading && waitingTooLong) {
-      redirectTimer = setTimeout(() => {
-        window.location.href = "/sign-in";
-      }, 4000);
-    }
+    const redirectTimer = setTimeout(() => {
+      window.location.href = "/sign-in";
+    }, 4000);
     
-    return () => {
-      if (redirectTimer) clearTimeout(redirectTimer);
-    };
+    return () => clearTimeout(redirectTimer);
   }, [loading, waitingTooLong]);
   
   if (loading) {
@@ -99,23 +89,22 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const AppRoutes = () => {
-  // Ana sayfaları daha hızlı gezinme için önceden yükle
+  // Ana sayfaları önden yükleme - memoize edildi
   useEffect(() => {
     const prefetchPages = async () => {
-      const importPromises = [
-        import("@/pages/Index"),
-        import("@/pages/Profile"),
-        import("@/components/MobileNavigation")
-      ];
-      
       try {
-        await Promise.all(importPromises);
+        await Promise.all([
+          import("@/pages/Index"),
+          import("@/pages/Profile"),
+          import("@/components/MobileNavigation")
+        ]);
         console.log("Ana sayfalar daha hızlı gezinme için önceden yüklendi");
       } catch (error) {
         errorLog("AppRoutes", "Sayfaları önceden yükleme başarısız oldu:", error);
       }
     };
     
+    // Sadece bir kez çalıştır
     prefetchPages();
   }, []);
 
@@ -129,6 +118,8 @@ const AppRoutes = () => {
             </Suspense>
           </PrivateRoute>
         } />
+        
+        {/* Diğer rotaları koruyoruz */}
         <Route path="/profile" element={
           <PrivateRoute>
             <Suspense fallback={<LoadingScreen message="Profil yükleniyor..." />}>
