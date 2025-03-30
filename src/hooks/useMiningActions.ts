@@ -35,7 +35,7 @@ export function useMiningActions(state: MiningState, setState: React.Dispatch<Re
         miningSession: 0 // Reset session counter when starting new session
       };
       
-      // Immediately save to storage
+      // Immediately save to local storage only
       saveUserData({
         balance: prev.balance,
         miningRate: prev.miningRate,
@@ -72,7 +72,7 @@ export function useMiningActions(state: MiningState, setState: React.Dispatch<Re
         progress: 0
       };
       
-      // Immediately save to storage
+      // Immediately save to local storage only
       saveUserData({
         balance: prev.balance,
         miningRate: prev.miningRate,

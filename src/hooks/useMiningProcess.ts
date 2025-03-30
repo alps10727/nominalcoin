@@ -44,7 +44,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
           // Check if mining cycle is complete
           if (newTime <= 0) {
             console.log("Mining cycle completed");
-            // Save final state
+            // Save final state to local storage only
             saveUserData({
               balance: prev.balance,
               miningRate: prev.miningRate,
@@ -76,7 +76,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
             // Show reward toast
             toast.success(`+${prev.miningRate} NC kazandınız!`);
             
-            // Update new balance
+            // Update new balance in local storage only
             saveUserData({
               balance: newBalance,
               miningRate: prev.miningRate,

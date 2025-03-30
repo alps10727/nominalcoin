@@ -2,7 +2,6 @@
 import { MiningState, MiningData } from "@/types/mining";
 import { useMiningProcess } from "./useMiningProcess";
 import { useMiningInitialization } from "./useMiningInitialization";
-import { useMiningPersistence } from "./useMiningPersistence";
 import { useMiningActions } from "./useMiningActions";
 
 /**
@@ -11,9 +10,6 @@ import { useMiningActions } from "./useMiningActions";
 export function useMiningData(): MiningData {
   // Initialize mining data
   const { state, setState } = useMiningInitialization();
-  
-  // Set up persistence to Firebase
-  useMiningPersistence(state);
   
   // Handle mining process logic (countdown timer and rewards)
   useMiningProcess(state, setState);
