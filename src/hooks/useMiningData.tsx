@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { MiningState, MiningData } from "@/types/mining";
 import { useMiningProcess } from "./useMiningProcess";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,6 +8,7 @@ import { saveUserData } from "@/utils/storage";
 
 export function useMiningData(): MiningData {
   const { currentUser, userData, updateUserData } = useAuth();
+  const lastSaveTimeRef = useRef<number>(Date.now());
   
   // Default initial state for new users
   const [state, setState] = useState<MiningState>({
@@ -25,6 +26,7 @@ export function useMiningData(): MiningData {
   // Load user data from Firebase
   useEffect(() => {
     if (userData && currentUser) {
+      console.log("Loading user data:", userData);
       setState(prevState => ({
         ...prevState,
         isLoading: false,
@@ -52,6 +54,12 @@ export function useMiningData(): MiningData {
     if (currentUser && !state.isLoading) {
       const saveToFirebase = async () => {
         try {
+          console.log("Saving to Firebase:", {
+            miningActive: state.miningActive,
+            miningTime: state.miningTime,
+            balance: state.balance
+          });
+          
           await updateUserData({
             balance: state.balance,
             miningRate: state.miningRate,
@@ -60,6 +68,8 @@ export function useMiningData(): MiningData {
             miningPeriod: state.miningPeriod,
             miningSession: state.miningSession
           });
+          
+          lastSaveTimeRef.current = Date.now();
           console.log("Data saved to Firebase:", state.miningActive);
         } catch (error) {
           console.error("Error saving to Firebase:", error);
@@ -78,12 +88,16 @@ export function useMiningData(): MiningData {
       
       // Save when mining state changes
       if (state.miningActive !== userData?.miningActive) {
+        console.log("Mining state changed, saving to Firebase");
         saveToFirebase();
       }
       
       // Also set up an interval to periodically save, but less frequently
       const saveInterval = setInterval(() => {
-        saveToFirebase();
+        // Only save if it's been more than 5 seconds since the last save
+        if (Date.now() - lastSaveTimeRef.current > 5000) {
+          saveToFirebase();
+        }
       }, 10000); // Save every 10 seconds to reduce Firebase load
       
       return () => {
@@ -118,9 +132,11 @@ export function useMiningData(): MiningData {
     setState(prev => {
       // Only restart if not already mining
       if (prev.miningActive) {
+        console.log("Mining is already active, not starting again");
         return prev; // No change if already mining
       }
       
+      console.log("Setting mining to active");
       const newState = {
         ...prev,
         miningActive: true,
@@ -152,9 +168,11 @@ export function useMiningData(): MiningData {
     setState(prev => {
       // Only stop if actually mining
       if (!prev.miningActive) {
+        console.log("Mining is already inactive, not stopping");
         return prev; // No change if not mining
       }
       
+      console.log("Setting mining to inactive");
       const newState = {
         ...prev,
         miningActive: false,

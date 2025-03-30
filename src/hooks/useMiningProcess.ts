@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { saveUserData } from "@/utils/storage";
 import { MiningState } from '@/types/mining';
 import { calculateProgress } from '@/utils/miningUtils';
@@ -9,9 +9,17 @@ import { toast } from "sonner";
  * Hook for handling the mining process
  */
 export function useMiningProcess(state: MiningState, setState: React.Dispatch<React.SetStateAction<MiningState>>) {
+  // Reference to track interval ID
+  const intervalRef = useRef<number | undefined>();
+  
   // Mining process management
   useEffect(() => {
-    let interval: number | undefined;
+    // Clear any existing interval first to prevent multiple timers
+    if (intervalRef.current) {
+      console.log("Clearing previous mining interval", intervalRef.current);
+      clearInterval(intervalRef.current);
+      intervalRef.current = undefined;
+    }
     
     if (state.miningActive) {
       console.log("Starting mining process, active:", state.miningActive, "time:", state.miningTime);
@@ -25,17 +33,23 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
       }
       
       // Start interval for mining process
-      interval = window.setInterval(() => {
+      intervalRef.current = window.setInterval(() => {
         setState(prev => {
           // No countdown if mining is not active
-          if (!prev.miningActive) return prev;
+          if (!prev.miningActive) {
+            console.log("Mining not active, skipping tick");
+            return prev;
+          }
           
-          // Calculate elapsed seconds for reward timing
-          const elapsedSeconds = (prev.miningPeriod - prev.miningTime) % 180; 
           const newTime = Math.max(prev.miningTime - 1, 0);
-          const addReward = elapsedSeconds === 179; // Time to add reward (every 3 minutes)
+          console.log("Mining tick - old time:", prev.miningTime, "new time:", newTime);
           
-          console.log("Mining tick - time:", newTime, "elapsed:", elapsedSeconds, "reward:", addReward);
+          // Calculate elapsed seconds for reward timing (modulo 180 seconds = 3 minutes)
+          const totalElapsed = prev.miningPeriod - newTime;
+          const elapsedSeconds = totalElapsed % 180; 
+          const addReward = elapsedSeconds === 0 && totalElapsed > 0; // Every 3 minutes (180 seconds)
+          
+          console.log("Mining tick details - elapsed total:", totalElapsed, "elapsed mod 180:", elapsedSeconds, "reward:", addReward);
           
           // Check if mining cycle is complete
           if (newTime <= 0) {
@@ -101,14 +115,18 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
           };
         });
       }, 1000); // Run every second
+      
+      console.log("Mining interval set with ID:", intervalRef.current);
     } else {
       console.log("Mining inactive or stopped");
     }
     
+    // Cleanup function to clear interval when component unmounts or dependencies change
     return () => {
-      if (interval) {
-        console.log("Clearing mining interval");
-        clearInterval(interval);
+      if (intervalRef.current) {
+        console.log("Cleanup: Clearing mining interval", intervalRef.current);
+        clearInterval(intervalRef.current);
+        intervalRef.current = undefined;
       }
     };
   }, [state.miningActive, setState]);

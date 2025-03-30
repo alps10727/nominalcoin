@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { auth } from "@/config/firebase";
 import { User, onAuthStateChanged } from "firebase/auth";
@@ -40,12 +39,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [authInitialized, setAuthInitialized] = useState(false);
 
-  // Auth değişikliklerini dinle - timeout süresini kısalttık (5 sn -> 3 sn)
   useEffect(() => {
     console.log("Auth Provider başlatılıyor...");
     let authTimeoutId: NodeJS.Timeout;
     
-    // Firebase Auth'un 3 saniyeden fazla yanıt vermemesi durumunda loading durumunu kapat
     authTimeoutId = setTimeout(() => {
       if (loading && !authInitialized) {
         console.log("Firebase Auth zaman aşımına uğradı, kullanıcıyı çıkış yapmış olarak işaretle");
@@ -53,7 +50,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setCurrentUser(null);
         setAuthInitialized(true);
         
-        // Offline modda yerel depodan verileri yükle
         try {
           const localUserData = loadUserData();
           if (localUserData) {
@@ -64,8 +60,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.error("Yerel depodan veri yükleme hatası:", e);
         }
       }
-    }, 3000); // 3 saniye timeout - daha hızlı kontrol
-    
+    }, 3000);
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       console.log("Auth durumu değişti:", user ? user.email : 'Kullanıcı yok');
       clearTimeout(authTimeoutId);
@@ -73,25 +69,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setAuthInitialized(true);
       
       if (user) {
-        // Kullanıcı oturum açtıysa verilerini yükle
         try {
-          // Önce yerel depodan veri yükle (hızlı yanıt için)
           const localData = loadUserData();
           if (localData) {
             setUserData(localData);
           }
           
-          // Sonra Firebase'den veri almayı dene
           const userDataFromFirebase = await loadUserDataFromFirebase(user.uid);
           if (userDataFromFirebase) {
             setUserData(userDataFromFirebase);
-            // Yerel depoda kaydet
             saveUserData(userDataFromFirebase);
           }
         } catch (error) {
           console.error("Kullanıcı verilerini yükleme hatası:", error);
           
-          // Hata durumunda yerel depodaki verileri kullan
           const localData = loadUserData();
           if (localData) {
             console.log("Offline mod: Yerel depodan kullanıcı verileri kullanılıyor");
@@ -111,7 +102,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // Giriş işlevi
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       const user = await loginUser(email, password);
@@ -123,7 +113,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error("Giriş hatası:", error);
       const errorMessage = (error as Error).message;
-      // Firebase hata mesajlarını Türkçe'ye çevir
       if (errorMessage.includes("user-not-found") || errorMessage.includes("wrong-password")) {
         toast.error("Email veya şifre hatalı.");
       } else if (errorMessage.includes("too-many-requests")) {
@@ -137,7 +126,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Çıkış işlevi
   const logout = async (): Promise<void> => {
     try {
       await logoutUser();
@@ -148,13 +136,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Kayıt işlevi - Timeout kontrolü iyileştirildi
   const register = async (email: string, password: string): Promise<boolean> => {
     try {
       console.log("Kayıt işlemi başlatılıyor:", email);
       const user = await registerUser(email, password, {});
       
-      // Eğer null olmayan bir kullanıcı değeri döndüyse, işlem başarılıdır
       if (user) {
         console.log("Kayıt işlemi başarılı:", user.uid);
         toast.success("Hesabınız başarıyla oluşturuldu!");
@@ -167,7 +153,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error("Kayıt işlemi hatası:", error);
       const errorMessage = (error as Error).message;
       
-      // Firebase hata mesajlarını Türkçe'ye çevir
       if (errorMessage.includes("email-already-in-use")) {
         toast.error("Bu email adresi zaten kullanılıyor.");
       } else if (errorMessage.includes("weak-password")) {
@@ -183,25 +168,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Kullanıcı verilerini güncelleme işlevi
   const updateUserData = async (data: any): Promise<void> => {
     if (currentUser) {
       try {
+        console.log("Updating user data:", data);
         const updatedData = {
           ...userData,
           ...data
         };
         
-        // Hem Firebase'e hem de yerel depoya kaydet
         await saveUserDataToFirebase(currentUser.uid, updatedData);
-        saveUserData(updatedData); // Yerel depoya da kaydet
+        saveUserData(updatedData);
         
         setUserData(prev => ({ ...prev, ...data }));
+        console.log("User data updated successfully");
       } catch (error) {
         console.error("Veri güncelleme hatası:", error);
-        toast.error("Veriler güncellenemedi: " + (error as Error).message);
         
-        // Çevrimdışı durumda sadece yerel depoya kaydet
         if ((error as any)?.code === 'unavailable') {
           const updatedData = {
             ...userData,
@@ -210,8 +193,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           saveUserData(updatedData);
           setUserData(prev => ({ ...prev, ...data }));
           toast.info("Veriler çevrimdışı modda kaydedildi. İnternet bağlantısı kurulduğunda otomatik olarak senkronize edilecek.");
+        } else {
+          toast.error("Veriler güncellenemedi: " + (error as Error).message);
         }
       }
+    } else {
+      console.warn("Cannot update user data - no user is logged in");
     }
   };
 

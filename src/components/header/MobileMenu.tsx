@@ -46,7 +46,7 @@ export const MobileMenu = () => {
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetPortal>
           <SheetOverlay className="bg-black/60" />
-          <SheetContent side="left" className="w-64 bg-gray-850 border-r border-gray-800 p-0">
+          <SheetContent side="left" className="w-[280px] max-w-[85vw] bg-gray-850 border-r border-gray-800 p-0">
             <SheetHeader className="border-b border-gray-800 pb-4 px-4 pt-4">
               <SheetTitle className="flex items-center text-indigo-200">
                 <Coins className="h-6 w-6 mr-2 text-indigo-400" />
