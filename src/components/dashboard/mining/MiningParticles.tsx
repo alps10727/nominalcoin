@@ -14,7 +14,7 @@ export const MiningParticles: React.FC<MiningParticlesProps> = ({ miningActive }
   // Generate random particles when mining is active
   useEffect(() => {
     if (miningActive) {
-      const colors = ['cyan-400', 'blue-400', 'indigo-400'];
+      const colors = ['amber-400', 'orange-400', 'red-400'];
       const newParticles = Array.from({ length: 12 }).map((_, i) => ({
         id: i,
         delay: Math.random() * 6,
@@ -46,24 +46,24 @@ export const MiningParticles: React.FC<MiningParticlesProps> = ({ miningActive }
         />
       ))}
       
-      {/* Light beams that appear when mining is active */}
+      {/* Heat waves that appear when mining is active */}
       {miningActive && (
         <>
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32">
-            <div className="absolute h-px w-full bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent animate-pulse-slow rotate-45"></div>
-            <div className="absolute h-px w-full bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent animate-pulse-slow rotate-90"></div>
-            <div className="absolute h-px w-full bg-gradient-to-r from-transparent via-cyan-400/10 to-transparent animate-pulse-slow rotate-135"></div>
+            <div className="absolute h-px w-full bg-gradient-to-r from-transparent via-amber-400/30 to-transparent animate-pulse-slow rotate-45"></div>
+            <div className="absolute h-px w-full bg-gradient-to-r from-transparent via-amber-400/20 to-transparent animate-pulse-slow rotate-90"></div>
+            <div className="absolute h-px w-full bg-gradient-to-r from-transparent via-amber-400/10 to-transparent animate-pulse-slow rotate-135"></div>
           </div>
         </>
       )}
       
-      {/* Code-like data streams that flow when mining is active */}
+      {/* Fire-like effects that flow when mining is active */}
       {miningActive && (
         <div className="absolute inset-0">
           {[...Array(3)].map((_, i) => (
             <div 
               key={i}
-              className="absolute h-0.5 bg-gradient-to-r from-transparent via-blue-400/20 to-transparent animate-data-stream" 
+              className="absolute h-0.5 bg-gradient-to-r from-transparent via-amber-400/20 to-transparent animate-data-stream" 
               style={{
                 width: '50%',
                 top: `${20 + i * 30}%`,

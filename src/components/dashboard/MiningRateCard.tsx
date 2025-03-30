@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Clock, TrendingUp, Zap, BarChart, Activity } from "lucide-react";
+import { Clock, TrendingUp, Flame, BarChart, Activity } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -17,33 +17,33 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
   const dailyRate = (miningRate * 20 * 24).toFixed(2); // 24 hours per day
   
   return (
-    <Card className="mb-6 border-none shadow-lg transition-all duration-300 overflow-hidden relative group bg-gradient-to-r from-indigo-900/90 to-blue-900/90">
+    <Card className="mb-6 border-none shadow-lg transition-all duration-300 overflow-hidden relative group bg-gradient-to-r from-amber-900/90 to-orange-900/90">
       {/* Background pattern */}
-      <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDgwIDgwIj48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMC41IiBkPSJNMTAgMTBoNjB2NjBIMTB6TTIwIDIwaDQwdjQwSDIweiIvPjwvc3ZnPg==')]"></div>
+      <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMC41IiBkPSJNNTYgMEw1NiA2NEgwTDAgMHoiLz48L3N2Zz4=')]"></div>
       
       {/* Glass effect */}
       <div className="absolute inset-0 backdrop-blur-sm"></div>
       
       <CardHeader className={`relative z-10 ${isMobile ? "px-4 py-3" : ""}`}>
         <CardTitle className="flex items-center gap-2 text-xl font-bold">
-          <div className="p-1.5 bg-blue-500/20 rounded-lg border border-blue-400/30 backdrop-blur-sm">
-            <BarChart className="h-5 w-5 text-blue-300" />
+          <div className="p-1.5 bg-amber-500/20 rounded-lg border border-amber-400/30 backdrop-blur-sm">
+            <BarChart className="h-5 w-5 text-amber-300" />
           </div>
-          <span className="bg-gradient-to-r from-blue-100 to-cyan-200 bg-clip-text text-transparent">{t('mining.stats')}</span>
+          <span className="bg-gradient-to-r from-amber-100 to-orange-200 bg-clip-text text-transparent">{t('mining.stats')}</span>
         </CardTitle>
       </CardHeader>
       
       <CardContent className={`${isMobile ? "px-4 pb-4" : "pb-6"} grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10`}>
         {/* Main data card */}
-        <div className="bg-gradient-to-br from-indigo-900/50 to-blue-900/50 rounded-xl p-4 flex flex-col border border-blue-500/20 backdrop-blur-sm h-full">
+        <div className="bg-gradient-to-br from-amber-900/50 to-orange-900/50 rounded-xl p-4 flex flex-col border border-amber-500/20 backdrop-blur-sm h-full">
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-blue-800/50">
-                <Activity className="h-4 w-4 text-cyan-300" />
+              <div className="p-1.5 rounded-lg bg-amber-800/50">
+                <Activity className="h-4 w-4 text-amber-300" />
               </div>
-              <span className="text-sm font-medium text-blue-200">Mining Capacity</span>
+              <span className="text-sm font-medium text-amber-200">Mining Capacity</span>
             </div>
-            <span className="text-xs text-cyan-300 bg-blue-900/50 px-2 py-0.5 rounded-full">Active</span>
+            <span className="text-xs text-amber-300 bg-amber-900/50 px-2 py-0.5 rounded-full">Active</span>
           </div>
           
           {/* Circular progress indicator */}
@@ -55,7 +55,7 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
                   cx="50" 
                   cy="50" 
                   r="40" 
-                  stroke="#1e3a8a" 
+                  stroke="#92400e" 
                   strokeWidth="8" 
                   fill="none" 
                   strokeOpacity="0.3"
@@ -65,7 +65,7 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
                   cx="50" 
                   cy="50" 
                   r="40" 
-                  stroke="url(#blue-gradient)" 
+                  stroke="url(#amber-gradient)" 
                   strokeWidth="8" 
                   fill="none" 
                   strokeLinecap="round"
@@ -74,15 +74,15 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
                 />
                 {/* Gradient definition */}
                 <defs>
-                  <linearGradient id="blue-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#3b82f6" />
-                    <stop offset="100%" stopColor="#22d3ee" />
+                  <linearGradient id="amber-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#f59e0b" />
+                    <stop offset="100%" stopColor="#ea580c" />
                   </linearGradient>
                 </defs>
               </svg>
               <div className="absolute inset-0 flex items-center justify-center flex-col">
                 <span className="text-2xl font-bold text-white">{(miningRate * 100).toFixed(1)}</span>
-                <span className="text-xs text-blue-300">NC/cycle</span>
+                <span className="text-xs text-amber-300">NC/cycle</span>
               </div>
             </div>
           </div>
@@ -90,12 +90,12 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
           {/* Efficiency bar */}
           <div className="mt-2">
             <div className="flex justify-between text-xs mb-1">
-              <span className="text-blue-300">Efficiency</span>
-              <span className="text-cyan-200">{Math.min(miningRate * 10000, 100).toFixed(0)}%</span>
+              <span className="text-amber-300">Efficiency</span>
+              <span className="text-amber-200">{Math.min(miningRate * 10000, 100).toFixed(0)}%</span>
             </div>
-            <div className="h-1.5 bg-blue-900/50 rounded-full w-full overflow-hidden">
+            <div className="h-1.5 bg-amber-900/50 rounded-full w-full overflow-hidden">
               <div 
-                className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full transition-all duration-500"
+                className="h-full bg-gradient-to-r from-amber-500 to-orange-400 rounded-full transition-all duration-500"
                 style={{width: `${Math.min(miningRate * 10000, 100)}%`}}
               ></div>
             </div>
@@ -105,39 +105,39 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
         {/* Rate cards */}
         <div className="flex flex-col gap-4">
           {/* Hourly rate */}
-          <div className="flex-1 bg-gradient-to-br from-blue-900/50 to-indigo-900/50 rounded-xl p-4 border border-blue-500/20 backdrop-blur-sm">
+          <div className="flex-1 bg-gradient-to-br from-amber-900/50 to-orange-900/50 rounded-xl p-4 border border-amber-500/20 backdrop-blur-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-blue-800/50">
-                  <Clock className="h-4 w-4 text-blue-300" />
+                <div className="p-1.5 rounded-lg bg-amber-800/50">
+                  <Clock className="h-4 w-4 text-amber-300" />
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-blue-200">Hourly Rate</div>
-                  <div className="text-xs text-blue-400">Based on current speed</div>
+                  <div className="text-sm font-medium text-amber-200">Hourly Rate</div>
+                  <div className="text-xs text-amber-400">Based on current speed</div>
                 </div>
               </div>
               <div className="text-right">
                 <div className="text-xl font-bold text-white">{hourlyRate}</div>
-                <div className="text-xs text-cyan-300">NC/hour</div>
+                <div className="text-xs text-amber-300">NC/hour</div>
               </div>
             </div>
           </div>
           
           {/* Daily rate */}
-          <div className="flex-1 bg-gradient-to-br from-blue-900/50 to-indigo-900/50 rounded-xl p-4 border border-blue-500/20 backdrop-blur-sm">
+          <div className="flex-1 bg-gradient-to-br from-amber-900/50 to-orange-900/50 rounded-xl p-4 border border-amber-500/20 backdrop-blur-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-blue-800/50">
-                  <Zap className="h-4 w-4 text-blue-300" />
+                <div className="p-1.5 rounded-lg bg-amber-800/50">
+                  <Flame className="h-4 w-4 text-amber-300" />
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-blue-200">Daily Potential</div>
-                  <div className="text-xs text-blue-400">24 hour operation</div>
+                  <div className="text-sm font-medium text-amber-200">Daily Potential</div>
+                  <div className="text-xs text-amber-400">24 hour operation</div>
                 </div>
               </div>
               <div className="text-right">
                 <div className="text-xl font-bold text-white">{dailyRate}</div>
-                <div className="text-xs text-cyan-300">NC/day</div>
+                <div className="text-xs text-amber-300">NC/day</div>
               </div>
             </div>
           </div>
