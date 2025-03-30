@@ -15,6 +15,9 @@ const LoadingScreen = ({ message, forceOffline = false }: { message?: string, fo
       // Basic translations for loading screen when outside language context
       const fallbackTranslations: Record<string, string> = {
         'app.title': 'FutureMining',
+        'loading.message': 'Yükleniyor...',
+        'loading.offline': 'Çevrimdışı',
+        'loading.reconnecting': 'Yeniden bağlanıyor...'
       };
       return fallbackTranslations[key] || key;
     };
@@ -28,7 +31,7 @@ const LoadingScreen = ({ message, forceOffline = false }: { message?: string, fo
       : message || "Yükleniyor..."
   );
   
-  // Offline durumunu takip et
+  // Improved offline state tracking
   useEffect(() => {
     if (forceOffline) {
       setOfflineDetected(true);
@@ -49,19 +52,19 @@ const LoadingScreen = ({ message, forceOffline = false }: { message?: string, fo
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     
-    // Yükleme süresini takip et, daha hızlı feedback için
+    // More responsive loading feedback
     const timer = setInterval(() => {
       setLoadingTime(prev => {
         const newTime = prev + 1;
         
-        // Yükleme süresine göre mesajları güncelle (daha hızlı)
         if (!offlineDetected) {
-          if (newTime === 2) {
-            setLoadingMessage("Veriler yükleniyor...");
-          } else if (newTime === 4) {
-            setLoadingMessage("Yükleme beklenenden uzun sürüyor. Lütfen bekleyin...");
-          } else if (newTime === 7) {
-            setLoadingMessage("Sayfa yukleniyor, çok az kaldı...");
+          // More optimistic loading messages
+          if (newTime === 1) {
+            setLoadingMessage("Veriler hazırlanıyor...");
+          } else if (newTime === 3) {
+            setLoadingMessage("Neredeyse hazır...");
+          } else if (newTime === 5) {
+            setLoadingMessage("Son birkaç saniye...");
           }
         }
         
@@ -76,15 +79,14 @@ const LoadingScreen = ({ message, forceOffline = false }: { message?: string, fo
     };
   }, [forceOffline, offlineDetected]);
   
-  // Internet bağlantısı yoksa otomatik yenileme
+  // Faster auto-reload when offline
   useEffect(() => {
     let reloadTimer: NodeJS.Timeout;
     
-    if (offlineDetected && loadingTime > 10) {
-      // İnternet yok ve uzun süredir bekliyorsa
+    if (offlineDetected && loadingTime > 8) {  // Reduced from 10 to 8 seconds
       reloadTimer = setTimeout(() => {
         window.location.reload();
-      }, 5000); // 5 saniye sonra yeniden dene
+      }, 3000); // Reduced from 5000ms to 3000ms
     }
     
     return () => {
@@ -95,7 +97,7 @@ const LoadingScreen = ({ message, forceOffline = false }: { message?: string, fo
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-darkPurple-900 to-navy-900">
       <div className="text-center relative">
-        {/* Background elements */}
+        {/* Enhanced background elements */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-darkPurple-500/20 rounded-full blur-3xl"></div>
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-navy-500/30 rounded-full blur-2xl animate-pulse" style={{animationDuration: '4s'}}></div>
@@ -103,49 +105,50 @@ const LoadingScreen = ({ message, forceOffline = false }: { message?: string, fo
         
         <div className="relative z-10">
           <div className="relative flex items-center justify-center mb-4">
-            {/* Spinning outer circle */}
-            <div className="absolute w-24 h-24 rounded-full border-4 border-darkPurple-400/30 animate-spin-slow"></div>
+            {/* More dynamic animations */}
+            <div className="absolute w-24 h-24 rounded-full border-4 border-t-darkPurple-400/80 border-r-darkPurple-400/50 border-b-darkPurple-400/30 border-l-darkPurple-400/10 animate-spin-slow"></div>
             
-            {/* Inner circle */}
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-darkPurple-700 to-navy-700 flex items-center justify-center shadow-lg">
+            {/* Inner circle with better contrast */}
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-darkPurple-600 to-navy-700 flex items-center justify-center shadow-lg">
               {offlineDetected ? (
-                <WifiOff className="h-8 w-8 text-red-400" />
+                <WifiOff className="h-8 w-8 text-red-300" />
               ) : (
-                <RefreshCw className="h-8 w-8 text-darkPurple-300 animate-spin" />
+                <RefreshCw className="h-8 w-8 text-darkPurple-200 animate-spin" />
               )}
             </div>
             
-            {/* Decorative elements */}
-            <Sparkles className="absolute top-0 right-0 h-5 w-5 text-darkPurple-400/70 animate-pulse" />
-            <Sparkles className="absolute bottom-0 left-0 h-5 w-5 text-darkPurple-400/70 animate-pulse" style={{animationDelay: '0.5s'}} />
+            {/* Better decoration elements */}
+            <Sparkles className="absolute top-0 right-0 h-5 w-5 text-darkPurple-300/90 animate-pulse" />
+            <Sparkles className="absolute bottom-0 left-0 h-5 w-5 text-darkPurple-300/90 animate-pulse" style={{animationDelay: '0.5s'}} />
+            <Sparkles className="absolute top-4 left-4 h-3 w-3 text-darkPurple-300/70 animate-pulse" style={{animationDelay: '1s'}} />
             
-            {/* Offline indicator */}
+            {/* Improved offline indicator */}
             {offlineDetected && (
-              <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex items-center text-red-400 bg-red-900/20 px-2 py-1 rounded-full text-xs">
-                <WifiOff className="h-3 w-3 mr-1" />
+              <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex items-center text-red-300 bg-red-900/30 px-3 py-1 rounded-full text-xs font-medium">
+                <WifiOff className="h-3 w-3 mr-1.5" />
                 Offline
               </div>
             )}
           </div>
           
-          <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-darkPurple-300 to-navy-300">
+          <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-darkPurple-200 to-navy-200">
             {translationFunction('app.title')}
           </h2>
-          <p className="mt-2 text-darkPurple-400">
+          <p className="mt-2 text-darkPurple-300 font-medium">
             {loadingMessage}
           </p>
           
-          {/* Uzun süre yükleme durumunda bilgi göster */}
-          {(loadingTime > 8 || forceOffline) && (
-            <div className="mt-4 p-3 bg-darkPurple-800/50 border border-darkPurple-700 rounded-md text-sm text-darkPurple-300">
+          {/* More informative loading state for long waits */}
+          {(loadingTime > 6 || forceOffline) && (
+            <div className="mt-4 p-3 bg-darkPurple-800/60 border border-darkPurple-700/80 rounded-md text-sm text-darkPurple-300">
               {forceOffline ? (
                 <p>Bu uygulama internet bağlantısı gerektirmektedir. Lütfen internet bağlantınızı açın ve sayfayı yenileyin.</p>
               ) : (
                 <p>Sayfayı yenilemeyi deneyin veya daha sonra tekrar giriş yapmayı deneyin.</p>
               )}
               
-              {(loadingTime > 10 && offlineDetected) && (
-                <p className="mt-2 font-semibold">Sayfa otomatik olarak yenilenecek...</p>
+              {(loadingTime > 8 && offlineDetected) && (
+                <p className="mt-2 font-semibold text-darkPurple-200">Sayfa otomatik olarak yenilenecek...</p>
               )}
             </div>
           )}

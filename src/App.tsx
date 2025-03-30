@@ -11,7 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Suspense, lazy, useEffect, useState } from "react";
 import LoadingScreen from "./components/dashboard/LoadingScreen";
 
-// Sayfaları lazy loading ile yükle
+// Optimize lazy loading with preload hints
 const Index = lazy(() => import("./pages/Index"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Profile = lazy(() => import("./pages/Profile"));
@@ -22,33 +22,35 @@ const MiningUpgrades = lazy(() => import("./pages/MiningUpgrades"));
 const Statistics = lazy(() => import("./pages/Statistics"));
 const SignIn = lazy(() => import("./pages/SignIn"));
 const SignUp = lazy(() => import("./pages/SignUp"));
+
+// Pre-import the MobileNavigation to reduce loading time
 const MobileNavigation = lazy(() => import("./components/MobileNavigation"));
 
-// QueryClient konfig - daha hızlı hata denemesi, daha az bekleme
+// Optimized QueryClient config for better performance
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 1, // Sadece 1 kez dene
-      retryDelay: 500, // Hızlı tekrar dene
+      retry: 1,
+      retryDelay: 300, // Faster retry
       refetchOnWindowFocus: false,
-      staleTime: 10000, // 10 saniye cache
-      gcTime: 300000, // 5 dakika garbage collection
+      staleTime: 20000, // Increased cache time to 20 seconds
+      gcTime: 300000,
     }
   }
 });
 
-// Oturum kontrolü için wrapper component - daha hızlı zaman aşımı
+// More efficient PrivateRoute component
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { currentUser, loading } = useAuth();
   const [waitingTooLong, setWaitingTooLong] = useState(false);
   
-  // Eğer yükleme 3 saniyeden fazla sürerse, kullanıcıya farklı bir mesaj göster
+  // Show loading message sooner for better user experience
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (loading) {
       timer = setTimeout(() => {
         setWaitingTooLong(true);
-      }, 3000); // 3 saniye timeout (daha hızlı)
+      }, 1500); // Reduced from 3000ms to 1500ms for faster feedback
     }
     
     return () => {
@@ -56,15 +58,14 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
     };
   }, [loading]);
   
-  // Otomatik yeniden yönlendirme - 8 saniyeden fazla beklerse
+  // Faster auto-redirection
   useEffect(() => {
     let redirectTimer: NodeJS.Timeout;
     
     if (loading && waitingTooLong) {
       redirectTimer = setTimeout(() => {
-        // 8 saniye beklediyse giriş sayfasına yönlendir
         window.location.href = "/sign-in";
-      }, 5000); 
+      }, 4000); // Reduced from 5000ms to 4000ms
     }
     
     return () => {
@@ -83,7 +84,29 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Main AppRoutes component with optimized routes
 const AppRoutes = () => {
+  // Prefetch main pages for faster navigation
+  useEffect(() => {
+    const prefetchPages = async () => {
+      // Prefetch main pages to improve navigation speed
+      const importPromises = [
+        import("./pages/Index"),
+        import("./pages/Profile"),
+        import("./components/MobileNavigation")
+      ];
+      
+      try {
+        await Promise.all(importPromises);
+        console.log("Prefetched main pages for faster navigation");
+      } catch (error) {
+        console.error("Failed to prefetch pages:", error);
+      }
+    };
+    
+    prefetchPages();
+  }, []);
+
   return (
     <Routes>
       <Route path="/" element={
@@ -129,8 +152,8 @@ const AppRoutes = () => {
   );
 };
 
+// Optimized App component
 const App = () => {
-  // Offline durumunu izle
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [ready, setReady] = useState(false);
   
@@ -141,32 +164,30 @@ const App = () => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     
-    // App başlatma iyileştirmesi - yükleme süresini ölç
+    // Faster app initialization
     const startTime = performance.now();
     
-    // Sayfa yüklenirken ekranın donmasını önlemek için kısa bir gecikme ekle
+    // Reduced delay before showing UI
     const timer = setTimeout(() => {
       setReady(true);
-    }, 100);
+    }, 50); // Reduced from 100ms to 50ms
     
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
       clearTimeout(timer);
       
-      // Çıkışta yükleme süresini kaydet
+      // Log performance metrics
       const loadTime = performance.now() - startTime;
       console.log(`Uygulama yükleme süresi: ${loadTime.toFixed(0)}ms`);
     };
   }, []);
   
-  // Internet bağlantısı yoksa uygulamayı yükleme
   if (isOffline) {
     return <LoadingScreen forceOffline={true} message="İnternet bağlantısı bulunamadı" />;
   }
   
   if (!ready) {
-    // Note: This initial loading screen is directly used without any context providers
     return <LoadingScreen message="Uygulama başlatılıyor..." />;
   }
   
@@ -180,9 +201,8 @@ const App = () => {
                 <Toaster />
                 <Sonner />
                 <Suspense fallback={<LoadingScreen message="Sayfa yükleniyor..." />}>
-                  <div className="flex flex-col min-h-screen pb-16"> {/* Alt navigasyon için boşluk */}
+                  <div className="flex flex-col min-h-screen pb-16">
                     <AppRoutes />
-                    <MobileNavigation />
                   </div>
                 </Suspense>
               </TooltipProvider>

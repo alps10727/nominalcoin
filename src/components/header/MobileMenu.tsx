@@ -7,7 +7,6 @@ import {
   SheetContent, 
   SheetHeader, 
   SheetTitle,
-  SheetTrigger 
 } from "@/components/ui/sheet";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -17,7 +16,7 @@ export const MobileMenu = () => {
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   
-  // Create a standalone button to ensure it works outside the Sheet context
+  // Fixed menu button functionality by separating it completely from Sheet component
   return (
     <>
       <Button 
@@ -25,6 +24,8 @@ export const MobileMenu = () => {
         size="icon" 
         className="p-2 rounded-full hover:bg-gray-800 transition-colors focus:outline-none"
         onClick={() => setOpen(true)}
+        aria-label="Open menu"
+        type="button"
       >
         <MenuIcon className="h-6 w-6 text-indigo-300" />
         <span className="sr-only">Menüyü Aç</span>

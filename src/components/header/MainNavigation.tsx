@@ -11,12 +11,38 @@ import {
   BarChart2
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { memo } from "react";
 
 interface MainNavigationProps {
   onNavigate?: () => void;
 }
 
-export const MainNavigation = ({ onNavigate }: MainNavigationProps) => {
+// Memoized navigation items to prevent unnecessary re-renders
+const NavigationItem = memo(({ 
+  to, 
+  icon: Icon, 
+  label, 
+  onClick 
+}: { 
+  to: string; 
+  icon: React.ElementType; 
+  label: string; 
+  onClick?: () => void;
+}) => {
+  return (
+    <Link to={to} onClick={onClick}>
+      <Button variant="ghost" className="w-full justify-start text-indigo-100 hover:bg-gray-800 transition-colors">
+        <Icon className="mr-2 h-5 w-5" />
+        {label}
+      </Button>
+    </Link>
+  );
+});
+
+NavigationItem.displayName = "NavigationItem";
+
+// Optimized MainNavigation component using memoization for better performance
+export const MainNavigation = memo(({ onNavigate }: MainNavigationProps) => {
   const { t } = useLanguage();
   
   const handleClick = () => {
@@ -25,52 +51,32 @@ export const MainNavigation = ({ onNavigate }: MainNavigationProps) => {
     }
   };
   
+  // Navigation items configuration for easy maintenance
+  const navigationItems = [
+    { to: "/", icon: Coins, label: t('mining.title') },
+    { to: "/profile", icon: User, label: t('profile.title') },
+    { to: "/history", icon: History, label: t('history.title') },
+    { to: "/referral", icon: UserPlus, label: t('referral.title') },
+    { to: "/tasks", icon: Award, label: t('tasks.title') },
+    { to: "/mining/upgrades", icon: Zap, label: t('mining.upgrades') },
+    { to: "/statistics", icon: BarChart2, label: t('stats.title') },
+  ];
+  
   return (
     <div className="py-4">
       <div className="flex flex-col gap-2">
-        <Link to="/" onClick={handleClick}>
-          <Button variant="ghost" className="w-full justify-start text-indigo-100 hover:bg-gray-800">
-            <Coins className="mr-2 h-5 w-5" />
-            {t('mining.title')}
-          </Button>
-        </Link>
-        <Link to="/profile" onClick={handleClick}>
-          <Button variant="ghost" className="w-full justify-start text-indigo-100 hover:bg-gray-800">
-            <User className="mr-2 h-5 w-5" />
-            {t('profile.title')}
-          </Button>
-        </Link>
-        <Link to="/history" onClick={handleClick}>
-          <Button variant="ghost" className="w-full justify-start text-indigo-100 hover:bg-gray-800">
-            <History className="mr-2 h-5 w-5" />
-            {t('history.title')}
-          </Button>
-        </Link>
-        <Link to="/referral" onClick={handleClick}>
-          <Button variant="ghost" className="w-full justify-start text-indigo-100 hover:bg-gray-800">
-            <UserPlus className="mr-2 h-5 w-5" />
-            {t('referral.title')}
-          </Button>
-        </Link>
-        <Link to="/tasks" onClick={handleClick}>
-          <Button variant="ghost" className="w-full justify-start text-indigo-100 hover:bg-gray-800">
-            <Award className="mr-2 h-5 w-5" />
-            {t('tasks.title')}
-          </Button>
-        </Link>
-        <Link to="/mining/upgrades" onClick={handleClick}>
-          <Button variant="ghost" className="w-full justify-start text-indigo-100 hover:bg-gray-800">
-            <Zap className="mr-2 h-5 w-5" />
-            {t('mining.upgrades')}
-          </Button>
-        </Link>
-        <Link to="/statistics" onClick={handleClick}>
-          <Button variant="ghost" className="w-full justify-start text-indigo-100 hover:bg-gray-800">
-            <BarChart2 className="mr-2 h-5 w-5" />
-            {t('stats.title')}
-          </Button>
-        </Link>
+        {navigationItems.map((item) => (
+          <NavigationItem
+            key={item.to}
+            to={item.to}
+            icon={item.icon}
+            label={item.label}
+            onClick={handleClick}
+          />
+        ))}
       </div>
     </div>
   );
-};
+});
+
+MainNavigation.displayName = "MainNavigation";
