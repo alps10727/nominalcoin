@@ -107,7 +107,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
       
       // Store interval ID properly
       intervalRef.current = id;
-      console.log("Mining interval set with ID:", intervalRef.current);
+      console.log("Mining interval set with ID:", id);
     }
     
     // Cleanup function to clear interval when component unmounts or dependencies change

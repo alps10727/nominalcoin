@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Play, Pause } from "lucide-react";
 
 interface MiningButtonProps {
   miningActive: boolean;
@@ -29,9 +29,14 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
       return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
     
-    console.log("Updating displayed time:", miningTime);
     setDisplayTime(formatTime(miningTime));
   }, [miningTime]);
+
+  // Kullanıcının tıklama işleyicisi
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    onButtonClick();
+  };
 
   return (
     <div className="relative mx-auto flex items-center justify-center">
@@ -57,7 +62,7 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
       {/* The actual button */}
       <button 
         className="relative w-32 h-32 rounded-full flex items-center justify-center cursor-pointer z-10 overflow-hidden group"
-        onClick={onButtonClick}
+        onClick={handleClick}
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
       >
@@ -80,22 +85,17 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
         <div className="relative flex flex-col items-center justify-center w-full h-full">
           {miningActive ? (
             <>
-              {/* Double rotating icons for active state */}
-              <div className="relative h-12 w-12">
-                <div className="absolute inset-0 flex items-center justify-center animate-spin-slow" style={{animationDuration: '8s'}}>
-                  <div className="h-1.5 w-1.5 rounded-full bg-darkPurple-300 absolute" style={{top: '0', left: '50%', transform: 'translateX(-50%)'}}></div>
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center animate-reverse-spin" style={{animationDuration: '6s'}}>
-                  <div className="h-1 w-1 rounded-full bg-indigo-400 absolute" style={{bottom: '0', left: '50%', transform: 'translateX(-50%)'}}></div>
-                </div>
+              {/* Timer display for active state */}
+              <div className="flex flex-col items-center">
+                <Pause className="h-6 w-6 text-white mb-1" />
+                <span className="text-sm font-mono text-white font-semibold tracking-wider">
+                  {displayTime}
+                </span>
               </div>
-              <span className="text-sm font-mono text-white font-semibold tracking-wider mt-1">
-                {displayTime}
-              </span>
             </>
           ) : (
             <>
-              <Sparkles className={`h-8 w-8 text-white ${isHovering ? 'animate-pulse-slow' : ''}`} />
+              <Play className={`h-8 w-8 text-white ${isHovering ? 'animate-pulse-slow' : ''}`} />
               <span className="text-xs mt-1 text-white/80 gradient-text">START</span>
             </>
           )}
