@@ -4,6 +4,7 @@ import { MiningState, MiningData } from "@/types/mining";
 import { useMiningProcess } from "./useMiningProcess";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { saveUserData } from "@/utils/storage";
 
 export function useMiningData(): MiningData {
   const { currentUser, userData, updateUserData } = useAuth();
@@ -46,7 +47,7 @@ export function useMiningData(): MiningData {
     }
   }, [userData, currentUser]);
   
-  // Save data to Firebase
+  // Save data to Firebase with reduced frequency
   useEffect(() => {
     if (currentUser && !state.isLoading) {
       const saveToFirebase = async () => {
@@ -62,16 +63,28 @@ export function useMiningData(): MiningData {
           console.log("Data saved to Firebase:", state.miningActive);
         } catch (error) {
           console.error("Error saving to Firebase:", error);
+          // Fallback to local storage if Firebase fails
+          saveUserData({
+            balance: state.balance,
+            miningRate: state.miningRate,
+            lastSaved: Date.now(),
+            miningActive: state.miningActive,
+            miningTime: state.miningTime,
+            miningPeriod: state.miningPeriod,
+            miningSession: state.miningSession
+          });
         }
       };
       
-      // Save immediately
-      saveToFirebase();
+      // Save when mining state changes
+      if (state.miningActive !== userData?.miningActive) {
+        saveToFirebase();
+      }
       
-      // Also save periodically
+      // Also set up an interval to periodically save, but less frequently
       const saveInterval = setInterval(() => {
         saveToFirebase();
-      }, 5000);
+      }, 10000); // Save every 10 seconds to reduce Firebase load
       
       return () => {
         clearInterval(saveInterval);
@@ -87,7 +100,8 @@ export function useMiningData(): MiningData {
     state.miningSession,
     state.isLoading,
     currentUser,
-    updateUserData
+    updateUserData,
+    userData?.miningActive
   ]);
   
   // Handle mining process logic
@@ -101,12 +115,33 @@ export function useMiningData(): MiningData {
     }
     
     console.log("Starting mining...");
-    setState(prev => ({
-      ...prev,
-      miningActive: true,
-      miningTime: prev.miningPeriod,
-      progress: 0
-    }));
+    setState(prev => {
+      // Only restart if not already mining
+      if (prev.miningActive) {
+        return prev; // No change if already mining
+      }
+      
+      const newState = {
+        ...prev,
+        miningActive: true,
+        miningTime: prev.miningPeriod,
+        progress: 0,
+        miningSession: 0 // Reset session counter when starting new session
+      };
+      
+      // Immediately save to storage
+      saveUserData({
+        balance: prev.balance,
+        miningRate: prev.miningRate,
+        lastSaved: Date.now(),
+        miningActive: true,
+        miningTime: prev.miningPeriod,
+        miningPeriod: prev.miningPeriod,
+        miningSession: 0
+      });
+      
+      return newState;
+    });
     
     // Show confirmation toast
     toast.success("Madencilik başlatıldı!");
@@ -114,13 +149,33 @@ export function useMiningData(): MiningData {
 
   const handleStopMining = useCallback(() => {
     console.log("Stopping mining...");
-    setState(prev => ({
-      ...prev,
-      miningActive: false,
-      miningSession: 0,
-      miningTime: prev.miningPeriod,
-      progress: 0
-    }));
+    setState(prev => {
+      // Only stop if actually mining
+      if (!prev.miningActive) {
+        return prev; // No change if not mining
+      }
+      
+      const newState = {
+        ...prev,
+        miningActive: false,
+        miningSession: 0,
+        miningTime: prev.miningPeriod,
+        progress: 0
+      };
+      
+      // Immediately save to storage
+      saveUserData({
+        balance: prev.balance,
+        miningRate: prev.miningRate,
+        lastSaved: Date.now(),
+        miningActive: false,
+        miningTime: prev.miningPeriod,
+        miningPeriod: prev.miningPeriod,
+        miningSession: 0
+      });
+      
+      return newState;
+    });
     
     // Show confirmation toast
     toast.info("Madencilik durduruldu");

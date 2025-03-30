@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { saveUserData } from "@/utils/storage";
 import { MiningState } from '@/types/mining';
 import { calculateProgress } from '@/utils/miningUtils';
+import { toast } from "sonner";
 
 /**
  * Hook for handling the mining process
@@ -13,48 +14,53 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
     let interval: number | undefined;
     
     if (state.miningActive) {
-      console.log("Starting mining process, state:", state.miningActive);
-      // Check if the mining time is already set
-      setState(prev => {
-        // Make sure mining time is reset when starting
-        if (prev.progress === 0) {
-          return {
-            ...prev,
-            miningTime: prev.miningPeriod,
-          };
-        }
-        return prev;
-      });
+      console.log("Starting mining process, active:", state.miningActive, "time:", state.miningTime);
+      
+      // Initialize mining time when starting
+      if (state.progress === 0) {
+        setState(prev => ({
+          ...prev,
+          miningTime: prev.miningPeriod,
+        }));
+      }
       
       // Start interval for mining process
       interval = window.setInterval(() => {
         setState(prev => {
-          // Counter for 3 minute interval (mining reward)
+          // No countdown if mining is not active
+          if (!prev.miningActive) return prev;
+          
+          // Calculate elapsed seconds for reward timing
           const elapsedSeconds = (prev.miningPeriod - prev.miningTime) % 180; 
           const newTime = Math.max(prev.miningTime - 1, 0);
           const addReward = elapsedSeconds === 179; // Time to add reward (every 3 minutes)
           
+          console.log("Mining tick - time:", newTime, "elapsed:", elapsedSeconds, "reward:", addReward);
+          
           // Check if mining cycle is complete
           if (newTime <= 0) {
-            // Mining period completed - stop mining
+            console.log("Mining cycle completed, stopping");
+            
+            // Save final state
             saveUserData({
               balance: prev.balance,
               miningRate: prev.miningRate,
               lastSaved: Date.now(),
-              miningActive: false, // Stop mining
-              miningTime: prev.miningPeriod, // Reset timer
+              miningActive: false,
+              miningTime: prev.miningPeriod,
               miningPeriod: prev.miningPeriod,
-              miningSession: prev.miningSession
+              miningSession: 0 // Reset session on completion
             });
             
-            console.log("Mining cycle completed, stopping");
+            // Show completion toast
+            toast.info("Madencilik tamamlandı!");
             
-            // Reset mining timer and update balance and session
             return {
               ...prev,
               miningTime: prev.miningPeriod,
-              miningActive: false, // Mining will automatically stop
-              progress: 0 // Reset progress
+              miningActive: false,
+              progress: 0,
+              miningSession: 0 // Reset session
             };
           }
           
@@ -64,12 +70,15 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
             const newBalance = prev.balance + prev.miningRate;
             const newSession = prev.miningSession + prev.miningRate;
             
+            // Show reward toast
+            toast.success(`+${prev.miningRate} NC kazandınız!`);
+            
             // Update new balance
             saveUserData({
               balance: newBalance,
               miningRate: prev.miningRate,
               lastSaved: Date.now(),
-              miningActive: prev.miningActive,
+              miningActive: true, // Keep mining active
               miningTime: newTime,
               miningPeriod: prev.miningPeriod,
               miningSession: newSession

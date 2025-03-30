@@ -30,6 +30,7 @@ const MiningCard = ({
   const { isDarkMode } = useTheme();
   const [isHovering, setIsHovering] = useState(false);
   const [particles, setParticles] = useState<Array<{id: number, delay: number, speed: number, x: number, size: number}>>([]);
+  const [displayTime, setDisplayTime] = useState("");
   
   // Generate random particles when mining is active
   useEffect(() => {
@@ -47,12 +48,32 @@ const MiningCard = ({
     }
   }, [miningActive]);
 
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
+  // Format and update the displayed time
+  useEffect(() => {
+    const formatTime = (seconds: number) => {
+      const hours = Math.floor(seconds / 3600);
+      const mins = Math.floor((seconds % 3600) / 60);
+      const secs = seconds % 60;
+      
+      return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
     
-    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    setDisplayTime(formatTime(miningTime));
+    
+    // Log the current mining time for debugging
+    if (miningActive) {
+      console.log("Mining time updated:", miningTime);
+    }
+  }, [miningTime, miningActive]);
+
+  // Handle button clicks
+  const handleButtonClick = () => {
+    console.log("Mining button clicked, current state:", miningActive);
+    if (miningActive) {
+      onStopMining();
+    } else {
+      onStartMining();
+    }
   };
 
   return (
@@ -121,7 +142,7 @@ const MiningCard = ({
               {/* The actual button */}
               <button 
                 className="relative w-32 h-32 rounded-full flex items-center justify-center cursor-pointer z-10 overflow-hidden group"
-                onClick={miningActive ? onStopMining : onStartMining}
+                onClick={handleButtonClick}
                 onMouseEnter={() => setIsHovering(true)}
                 onMouseLeave={() => setIsHovering(false)}
               >
@@ -154,7 +175,7 @@ const MiningCard = ({
                         </div>
                       </div>
                       <span className="text-sm font-mono text-white font-semibold tracking-wider mt-1">
-                        {formatTime(miningTime)}
+                        {displayTime}
                       </span>
                     </>
                   ) : (

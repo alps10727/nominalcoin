@@ -7,8 +7,8 @@ import {
   SheetContent, 
   SheetHeader, 
   SheetTitle,
-  SheetOverlay,
   SheetPortal,
+  SheetOverlay,
   SheetClose,
 } from "@/components/ui/sheet";
 import { Link } from "react-router-dom";
@@ -20,12 +20,12 @@ export const MobileMenu = () => {
   const [open, setOpen] = useState(false);
   
   const handleOpenMenu = () => {
-    console.log("Opening menu, current state:", open);
+    console.log("Opening mobile menu, current state:", open);
     setOpen(true);
   };
   
   const handleCloseMenu = () => {
-    console.log("Closing menu");
+    console.log("Closing mobile menu");
     setOpen(false);
   };
   
@@ -44,16 +44,21 @@ export const MobileMenu = () => {
       </Button>
 
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="left" className="bg-gray-850 border-r border-gray-800 z-50 w-64 fixed inset-y-0">
-          <SheetHeader className="border-b border-gray-800 pb-4">
-            <SheetTitle className="flex items-center text-indigo-200">
-              <Coins className="h-6 w-6 mr-2 text-indigo-400" />
-              <Link to="/" className="text-2xl font-bold" onClick={handleCloseMenu}>{t('app.title')}</Link>
-            </SheetTitle>
-          </SheetHeader>
-          <MainNavigation onNavigate={handleCloseMenu} />
-          <SheetClose className="hidden" />
-        </SheetContent>
+        <SheetPortal>
+          <SheetOverlay className="bg-black/60" />
+          <SheetContent side="left" className="w-64 bg-gray-850 border-r border-gray-800 p-0">
+            <SheetHeader className="border-b border-gray-800 pb-4 px-4 pt-4">
+              <SheetTitle className="flex items-center text-indigo-200">
+                <Coins className="h-6 w-6 mr-2 text-indigo-400" />
+                <Link to="/" className="text-2xl font-bold" onClick={handleCloseMenu}>{t('app.title')}</Link>
+              </SheetTitle>
+            </SheetHeader>
+            <div className="px-2 py-4">
+              <MainNavigation onNavigate={handleCloseMenu} />
+            </div>
+            <SheetClose className="hidden" />
+          </SheetContent>
+        </SheetPortal>
       </Sheet>
     </>
   );
