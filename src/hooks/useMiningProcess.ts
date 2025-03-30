@@ -13,46 +13,64 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
     let interval: number | undefined;
     
     if (state.miningActive) {
-      // 3 dakikada bir artış için sayaç (180 saniye)
-      let counter = 0;
+      console.log("Starting mining process, state:", state.miningActive);
+      // Check if the mining time is already set
+      setState(prev => {
+        // Make sure mining time is reset when starting
+        if (prev.progress === 0) {
+          return {
+            ...prev,
+            miningTime: prev.miningPeriod,
+          };
+        }
+        return prev;
+      });
+      
+      // Start interval for mining process
       interval = window.setInterval(() => {
-        counter++;
         setState(prev => {
+          // Counter for 3 minute interval (mining reward)
+          const elapsedSeconds = (prev.miningPeriod - prev.miningTime) % 180; 
+          const newTime = Math.max(prev.miningTime - 1, 0);
+          const addReward = elapsedSeconds === 179; // Time to add reward (every 3 minutes)
+          
           // Check if mining cycle is complete
-          if (prev.miningTime <= 1) {
-            // Madencilik periyodu tamamlandı - durduralım
+          if (newTime <= 0) {
+            // Mining period completed - stop mining
             saveUserData({
               balance: prev.balance,
               miningRate: prev.miningRate,
               lastSaved: Date.now(),
-              miningActive: false, // Madenciliği durdur
-              miningTime: prev.miningPeriod, // Zamanı sıfırla
+              miningActive: false, // Stop mining
+              miningTime: prev.miningPeriod, // Reset timer
               miningPeriod: prev.miningPeriod,
               miningSession: prev.miningSession
             });
+            
+            console.log("Mining cycle completed, stopping");
             
             // Reset mining timer and update balance and session
             return {
               ...prev,
               miningTime: prev.miningPeriod,
-              miningActive: false, // Madencilik otomatik olarak duracak
+              miningActive: false, // Mining will automatically stop
               progress: 0 // Reset progress
             };
           }
           
-          // Her 180 saniyede (180 tik) madencilik geliri eklenir
-          if (counter >= 180) {
-            counter = 0;
+          // Add mining reward every 3 minutes (180 seconds)
+          if (addReward) {
+            console.log("Adding mining reward");
             const newBalance = prev.balance + prev.miningRate;
-            const newSession = prev.miningSession + 1;
+            const newSession = prev.miningSession + prev.miningRate;
             
-            // Yeni bakiye değerini güncelle
+            // Update new balance
             saveUserData({
               balance: newBalance,
               miningRate: prev.miningRate,
               lastSaved: Date.now(),
               miningActive: prev.miningActive,
-              miningTime: prev.miningTime,
+              miningTime: newTime,
               miningPeriod: prev.miningPeriod,
               miningSession: newSession
             });
@@ -60,23 +78,29 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
             return {
               ...prev,
               balance: newBalance,
-              miningSession: newSession
+              miningSession: newSession,
+              miningTime: newTime,
+              progress: calculateProgress(newTime, prev.miningPeriod)
             };
           }
           
-          // Continue mining cycle
-          const newTime = prev.miningTime - 1;
+          // Continue mining cycle - just update timer and progress
           return {
             ...prev,
             miningTime: newTime,
             progress: calculateProgress(newTime, prev.miningPeriod)
           };
         });
-      }, 1000); // 1 saniyede bir çalışır
+      }, 1000); // Run every second
+    } else {
+      console.log("Mining inactive or stopped");
     }
     
     return () => {
-      if (interval) clearInterval(interval);
+      if (interval) {
+        console.log("Clearing mining interval");
+        clearInterval(interval);
+      }
     };
   }, [state.miningActive, setState]);
 }

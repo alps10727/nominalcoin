@@ -9,6 +9,7 @@ import {
   SheetTitle,
   SheetOverlay,
   SheetPortal,
+  SheetClose,
 } from "@/components/ui/sheet";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -19,7 +20,7 @@ export const MobileMenu = () => {
   const [open, setOpen] = useState(false);
   
   const handleOpenMenu = () => {
-    console.log("Opening menu, current state:", !open);
+    console.log("Opening menu, current state:", open);
     setOpen(true);
   };
   
@@ -43,18 +44,16 @@ export const MobileMenu = () => {
       </Button>
 
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetPortal>
-          <SheetOverlay onClick={handleCloseMenu} />
-          <SheetContent side="left" className="bg-gray-850 border-r border-gray-800 z-50 w-64">
-            <SheetHeader className="border-b border-gray-800 pb-4">
-              <SheetTitle className="flex items-center text-indigo-200">
-                <Coins className="h-6 w-6 mr-2 text-indigo-400" />
-                <Link to="/" className="text-2xl font-bold" onClick={handleCloseMenu}>{t('app.title')}</Link>
-              </SheetTitle>
-            </SheetHeader>
-            <MainNavigation onNavigate={handleCloseMenu} />
-          </SheetContent>
-        </SheetPortal>
+        <SheetContent side="left" className="bg-gray-850 border-r border-gray-800 z-50 w-64 fixed inset-y-0">
+          <SheetHeader className="border-b border-gray-800 pb-4">
+            <SheetTitle className="flex items-center text-indigo-200">
+              <Coins className="h-6 w-6 mr-2 text-indigo-400" />
+              <Link to="/" className="text-2xl font-bold" onClick={handleCloseMenu}>{t('app.title')}</Link>
+            </SheetTitle>
+          </SheetHeader>
+          <MainNavigation onNavigate={handleCloseMenu} />
+          <SheetClose className="hidden" />
+        </SheetContent>
       </Sheet>
     </>
   );

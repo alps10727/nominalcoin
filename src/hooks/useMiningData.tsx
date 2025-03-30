@@ -21,7 +21,7 @@ export function useMiningData(): MiningData {
     userId: currentUser?.uid
   });
 
-  // Firebase'den kullanıcı verilerini yükle
+  // Load user data from Firebase
   useEffect(() => {
     if (userData && currentUser) {
       setState(prevState => ({
@@ -38,37 +38,44 @@ export function useMiningData(): MiningData {
           ? ((userData.miningPeriod - userData.miningTime) / userData.miningPeriod) * 100 
           : 0
       }));
+      
+      console.log("User data loaded:", userData);
     } else {
-      // Kullanıcı giriş yapmamışsa yükleme durumunu kaldır
+      // If user not logged in, remove loading state
       setState(prev => ({ ...prev, isLoading: false }));
     }
   }, [userData, currentUser]);
   
-  // Firebase'e veri kaydetme
+  // Save data to Firebase
   useEffect(() => {
     if (currentUser && !state.isLoading) {
       const saveToFirebase = async () => {
-        await updateUserData({
-          balance: state.balance,
-          miningRate: state.miningRate,
-          miningActive: state.miningActive,
-          miningTime: state.miningTime,
-          miningPeriod: state.miningPeriod,
-          miningSession: state.miningSession
-        });
+        try {
+          await updateUserData({
+            balance: state.balance,
+            miningRate: state.miningRate,
+            miningActive: state.miningActive,
+            miningTime: state.miningTime,
+            miningPeriod: state.miningPeriod,
+            miningSession: state.miningSession
+          });
+          console.log("Data saved to Firebase:", state.miningActive);
+        } catch (error) {
+          console.error("Error saving to Firebase:", error);
+        }
       };
       
-      // Anında kaydet
+      // Save immediately
       saveToFirebase();
       
-      // Periyodik olarak da kaydet
+      // Also save periodically
       const saveInterval = setInterval(() => {
         saveToFirebase();
       }, 5000);
       
       return () => {
         clearInterval(saveInterval);
-        saveToFirebase(); // Bileşen çıkarken son durumu kaydet
+        saveToFirebase(); // Save one last time when unmounting
       };
     }
   }, [
@@ -93,15 +100,20 @@ export function useMiningData(): MiningData {
       return;
     }
     
+    console.log("Starting mining...");
     setState(prev => ({
       ...prev,
       miningActive: true,
       miningTime: prev.miningPeriod,
       progress: 0
     }));
+    
+    // Show confirmation toast
+    toast.success("Madencilik başlatıldı!");
   }, [currentUser]);
 
   const handleStopMining = useCallback(() => {
+    console.log("Stopping mining...");
     setState(prev => ({
       ...prev,
       miningActive: false,
@@ -109,6 +121,9 @@ export function useMiningData(): MiningData {
       miningTime: prev.miningPeriod,
       progress: 0
     }));
+    
+    // Show confirmation toast
+    toast.info("Madencilik durduruldu");
   }, []);
 
   return {
