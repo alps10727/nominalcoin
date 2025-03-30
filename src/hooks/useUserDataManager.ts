@@ -4,10 +4,12 @@ import { User } from "firebase/auth";
 import { saveUserDataToFirebase } from "@/services/userService";
 import { saveUserData } from "@/utils/storage";
 import { toast } from "sonner";
-import { debugLog, errorLog } from "@/utils/debugUtils";
+import { debugLog, errorLog, Timer } from "@/utils/debugUtils";
 
 interface UserDataManager {
   updateUserData: (data: any) => Promise<void>;
+  isUpdating: boolean;
+  lastUpdateStatus: 'idle' | 'success' | 'error' | 'offline';
 }
 
 export function useUserDataManager(
@@ -15,39 +17,69 @@ export function useUserDataManager(
   userData: any | null, 
   setUserData: React.Dispatch<React.SetStateAction<any | null>>
 ): UserDataManager {
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [lastUpdateStatus, setLastUpdateStatus] = useState<'idle' | 'success' | 'error' | 'offline'>('idle');
+  const [updateQueue, setUpdateQueue] = useState<any[]>([]);
+  
+  // Birden fazla güncelleme isteği için sıra oluştur
   const updateUserData = async (data: any): Promise<void> => {
-    if (currentUser) {
+    if (!currentUser) {
+      debugLog("useUserDataManager", "Kullanıcı oturum açmadığı için veri güncellenemiyor");
+      return;
+    }
+    
+    try {
+      debugLog("useUserDataManager", "Kullanıcı verileri güncelleniyor:", data);
+      const timer = new Timer("userDataUpdate");
+      setIsUpdating(true);
+      
+      const updatedData = {
+        ...userData,
+        ...data
+      };
+      
+      // Önce yerel olarak güncelle - bu her zaman başarılı olmalı
       try {
-        debugLog("useUserDataManager", "Updating user data:", data);
-        const updatedData = {
-          ...userData,
-          ...data
-        };
-        
-        await saveUserDataToFirebase(currentUser.uid, updatedData);
         saveUserData(updatedData);
-        
-        setUserData(prev => ({ ...prev, ...data }));
-        debugLog("useUserDataManager", "User data updated successfully");
+        timer.mark("Yerel depo güncellendi");
+      } catch (err) {
+        errorLog("useUserDataManager", "Yerel depo güncelleme hatası:", err);
+      }
+      
+      // UI durumunu hemen güncelle
+      setUserData(prev => ({ ...prev, ...data }));
+      timer.mark("UI durumu güncellendi");
+      
+      // Firebase'i asenkron olarak güncellemeyi dene
+      try {
+        await saveUserDataToFirebase(currentUser.uid, updatedData);
+        timer.mark("Firebase güncellendi");
+        setLastUpdateStatus('success');
       } catch (error) {
-        errorLog("useUserDataManager", "Data update error:", error);
+        timer.mark("Firebase güncelleme hatası");
         
-        if ((error as any)?.code === 'unavailable') {
-          const updatedData = {
-            ...userData,
-            ...data
-          };
-          saveUserData(updatedData);
-          setUserData(prev => ({ ...prev, ...data }));
-          toast.info("Data saved in offline mode. It will be synchronized automatically when internet connection is restored.");
+        if ((error as any)?.code === 'unavailable' || (error as Error).message.includes('zaman aşımı')) {
+          debugLog("useUserDataManager", "Çevrimdışı modda veri güncellendi");
+          setLastUpdateStatus('offline');
+          
+          // Sadece kullanıcıya ilk kez çevrimdışı olduğunda bildir
+          if (lastUpdateStatus !== 'offline') {
+            toast.warning("Çevrimdışı moddasınız. Verileriniz yeniden bağlandığınızda senkronize edilecek.");
+          }
         } else {
-          toast.error("Data update failed: " + (error as Error).message);
+          errorLog("useUserDataManager", "Veri güncelleme hatası:", error);
+          setLastUpdateStatus('error');
+          toast.error("Veri güncelleme başarısız: " + (error as Error).message);
         }
       }
-    } else {
-      debugLog("useUserDataManager", "Cannot update user data - no user is logged in");
+      
+      setIsUpdating(false);
+      timer.stop();
+    } catch (err) {
+      setIsUpdating(false);
+      errorLog("useUserDataManager", "Beklenmeyen hata:", err);
     }
   };
 
-  return { updateUserData };
+  return { updateUserData, isUpdating, lastUpdateStatus };
 }
