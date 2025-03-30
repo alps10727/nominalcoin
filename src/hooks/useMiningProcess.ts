@@ -24,37 +24,24 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
     if (state.miningActive) {
       console.log("Starting mining process, active:", state.miningActive, "time:", state.miningTime);
       
-      // Initialize mining time when starting
-      if (state.progress === 0) {
-        setState(prev => ({
-          ...prev,
-          miningTime: prev.miningPeriod,
-        }));
-      }
-      
       // Start interval for mining process
-      intervalRef.current = window.setInterval(() => {
+      const id = window.setInterval(() => {
         setState(prev => {
           // No countdown if mining is not active
           if (!prev.miningActive) {
-            console.log("Mining not active, skipping tick");
             return prev;
           }
           
+          // Calculate new time
           const newTime = Math.max(prev.miningTime - 1, 0);
-          console.log("Mining tick - old time:", prev.miningTime, "new time:", newTime);
           
           // Calculate elapsed seconds for reward timing (modulo 180 seconds = 3 minutes)
           const totalElapsed = prev.miningPeriod - newTime;
           const elapsedSeconds = totalElapsed % 180; 
           const addReward = elapsedSeconds === 0 && totalElapsed > 0; // Every 3 minutes (180 seconds)
           
-          console.log("Mining tick details - elapsed total:", totalElapsed, "elapsed mod 180:", elapsedSeconds, "reward:", addReward);
-          
           // Check if mining cycle is complete
           if (newTime <= 0) {
-            console.log("Mining cycle completed, stopping");
-            
             // Save final state
             saveUserData({
               balance: prev.balance,
@@ -80,7 +67,6 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
           
           // Add mining reward every 3 minutes (180 seconds)
           if (addReward) {
-            console.log("Adding mining reward");
             const newBalance = prev.balance + prev.miningRate;
             const newSession = prev.miningSession + prev.miningRate;
             
@@ -116,9 +102,8 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
         });
       }, 1000); // Run every second
       
+      intervalRef.current = id;
       console.log("Mining interval set with ID:", intervalRef.current);
-    } else {
-      console.log("Mining inactive or stopped");
     }
     
     // Cleanup function to clear interval when component unmounts or dependencies change

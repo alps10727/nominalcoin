@@ -59,16 +59,10 @@ const MiningCard = ({
     };
     
     setDisplayTime(formatTime(miningTime));
-    
-    // Log the current mining time for debugging
-    if (miningActive) {
-      console.log("Mining time updated:", miningTime);
-    }
-  }, [miningTime, miningActive]);
+  }, [miningTime]);
 
   // Handle button clicks
   const handleButtonClick = () => {
-    console.log("Mining button clicked, current state:", miningActive);
     if (miningActive) {
       onStopMining();
     } else {

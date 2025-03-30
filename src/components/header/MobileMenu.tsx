@@ -20,12 +20,10 @@ export const MobileMenu = () => {
   const [open, setOpen] = useState(false);
   
   const handleOpenMenu = () => {
-    console.log("Opening mobile menu, current state:", open);
     setOpen(true);
   };
   
   const handleCloseMenu = () => {
-    console.log("Closing mobile menu");
     setOpen(false);
   };
   
@@ -45,7 +43,7 @@ export const MobileMenu = () => {
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetPortal>
-          <SheetOverlay className="bg-black/60" />
+          <SheetOverlay className="bg-black/60" onClick={handleCloseMenu} />
           <SheetContent side="left" className="w-[280px] max-w-[85vw] bg-gray-850 border-r border-gray-800 p-0">
             <SheetHeader className="border-b border-gray-800 pb-4 px-4 pt-4">
               <SheetTitle className="flex items-center text-indigo-200">

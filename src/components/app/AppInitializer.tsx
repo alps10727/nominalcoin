@@ -54,7 +54,7 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
       setReady(true);
       const loadTime = performance.now() - startTime;
       debugLog("AppInitializer", `Uygulama ${loadTime.toFixed(0)}ms içinde başlatıldı`);
-    }, 200);
+    }, 500); // Increased from 200ms to 500ms to ensure all components load properly
     
     return () => {
       window.removeEventListener('online', handleOnline);
