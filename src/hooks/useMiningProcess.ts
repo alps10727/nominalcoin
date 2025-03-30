@@ -118,5 +118,5 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
         intervalRef.current = null;
       }
     };
-  }, [state.miningActive, setState]);
+  }, [state.miningActive, setState]); // Only re-run if miningActive changes
 }

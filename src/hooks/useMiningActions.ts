@@ -10,7 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
  */
 export function useMiningActions(state: MiningState, setState: React.Dispatch<React.SetStateAction<MiningState>>) {
   const { currentUser } = useAuth();
-
+  
   // Start mining function
   const handleStartMining = useCallback(() => {
     if (!currentUser) {
@@ -30,7 +30,7 @@ export function useMiningActions(state: MiningState, setState: React.Dispatch<Re
       const newState = {
         ...prev,
         miningActive: true,
-        miningTime: prev.miningPeriod,
+        miningTime: prev.miningPeriod, 
         progress: 0,
         miningSession: 0 // Reset session counter when starting new session
       };

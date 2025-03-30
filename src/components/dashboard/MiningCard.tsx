@@ -31,15 +31,15 @@ const MiningCard = ({
   const isMobile = useIsMobile();
   const { isDarkMode } = useTheme();
   
-  // Handle button clicks
-  const handleButtonClick = () => {
+  // Handle button clicks with debounce logic to prevent rapid toggling
+  const handleButtonClick = React.useCallback(() => {
     console.log("Mining button clicked, current status:", miningActive);
     if (miningActive) {
       onStopMining();
     } else {
       onStartMining();
     }
-  };
+  }, [miningActive, onStartMining, onStopMining]);
 
   return (
     <Card className="mb-6 border border-darkPurple-700/30 overflow-hidden shadow-xl transition-all duration-500 relative group">

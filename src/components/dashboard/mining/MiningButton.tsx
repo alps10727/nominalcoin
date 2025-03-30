@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Sparkles, Play, Pause } from "lucide-react";
+import { Play, Pause } from "lucide-react";
 
 interface MiningButtonProps {
   miningActive: boolean;
@@ -32,9 +32,10 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
     setDisplayTime(formatTime(miningTime));
   }, [miningTime]);
 
-  // Kullanıcının tıklama işleyicisi
+  // Prevent default and stop propagation to avoid double-clicks
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     onButtonClick();
   };
 
