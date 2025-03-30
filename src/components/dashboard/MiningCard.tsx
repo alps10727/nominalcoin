@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Zap, Activity, Sparkles, Gem } from "lucide-react";
@@ -58,11 +57,13 @@ const MiningCard = ({
       return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
     
+    console.log("Updating displayed time:", miningTime);
     setDisplayTime(formatTime(miningTime));
   }, [miningTime]);
 
   // Handle button clicks
   const handleButtonClick = () => {
+    console.log("Mining button clicked, current status:", miningActive);
     if (miningActive) {
       onStopMining();
     } else {

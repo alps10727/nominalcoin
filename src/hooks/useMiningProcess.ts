@@ -10,7 +10,7 @@ import { toast } from "sonner";
  */
 export function useMiningProcess(state: MiningState, setState: React.Dispatch<React.SetStateAction<MiningState>>) {
   // Reference to track interval ID
-  const intervalRef = useRef<number | undefined>();
+  const intervalRef = useRef<number | null>(null);
   
   // Mining process management
   useEffect(() => {
@@ -18,7 +18,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
     if (intervalRef.current) {
       console.log("Clearing previous mining interval", intervalRef.current);
       window.clearInterval(intervalRef.current);
-      intervalRef.current = undefined;
+      intervalRef.current = null;
     }
     
     if (state.miningActive) {
@@ -105,7 +105,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
         });
       }, 1000); // Run every second
       
-      // Use window.setInterval ID type
+      // Store interval ID properly
       intervalRef.current = id;
       console.log("Mining interval set with ID:", intervalRef.current);
     }
@@ -115,7 +115,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
       if (intervalRef.current) {
         console.log("Cleanup: Clearing mining interval", intervalRef.current);
         window.clearInterval(intervalRef.current);
-        intervalRef.current = undefined;
+        intervalRef.current = null;
       }
     };
   }, [state.miningActive, setState]);
