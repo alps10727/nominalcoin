@@ -1,6 +1,6 @@
 
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Zap, Users, ArrowUpRight, Shield, Award } from "lucide-react";
+import { Coins, User, ArrowUpRight, Shield, Award } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,17 +11,17 @@ const MobileNavigation = () => {
   const { currentUser } = useAuth();
 
   return (
-    <nav className="bg-gradient-to-r from-navy-950 via-navy-900 to-navy-950 backdrop-blur-xl border-t border-teal-500/20 fixed bottom-0 left-0 right-0 flex justify-around p-3 z-10 shadow-[0_-4px_20px_rgba(0,0,0,0.4)] pb-safe">
+    <nav className="bg-gradient-to-r from-navy-950 via-darkPurple-950 to-navy-950 backdrop-blur-xl border-t border-cyan-500/20 fixed bottom-0 left-0 right-0 flex justify-around p-3 z-10 shadow-[0_-4px_20px_rgba(0,0,0,0.4)] pb-safe">
       <NavItem 
         to="/" 
-        icon={Zap} 
+        icon={Coins} 
         label={t('nav.mining')} 
         isActive={location.pathname === '/'} 
       />
       
       <NavItem 
         to="/referral" 
-        icon={Users} 
+        icon={User} 
         label={t('nav.team')} 
         isActive={location.pathname === '/referral'} 
       />
@@ -60,11 +60,11 @@ const NavItem = ({ to, icon: Icon, label, isActive }: {
   return (
     <Link to={to} className="flex flex-col items-center transition-all duration-300 relative z-10">
       <div className={`p-2 rounded-xl transition-all duration-300 ${isActive 
-        ? 'bg-gradient-to-r from-teal-600 to-blue-700 text-white shadow-lg shadow-teal-900/40 scale-110' 
-        : 'text-gray-400 hover:bg-navy-800/60 hover:text-teal-300'}`}>
+        ? 'bg-gradient-to-r from-cyan-600 to-indigo-700 text-white shadow-lg shadow-cyan-900/40 scale-110' 
+        : 'text-gray-400 hover:bg-navy-800/60 hover:text-cyan-300'}`}>
         <Icon className="h-5 w-5" />
       </div>
-      <span className={`text-xs mt-1 transition-all duration-300 ${isActive ? 'font-medium text-teal-200' : 'text-gray-400'}`}>
+      <span className={`text-xs mt-1 transition-all duration-300 ${isActive ? 'font-medium text-cyan-200' : 'text-gray-400'}`}>
         {label}
       </span>
     </Link>
