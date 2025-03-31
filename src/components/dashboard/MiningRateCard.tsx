@@ -14,40 +14,40 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
   
   // ÖNEMLİ - Hesaplamalar: 3 dakikada bir kazanılacak NC miktarı
   const cycleReward = (miningRate * 3).toFixed(2); // 3 dakikalık döngü başına NC
-  const hourlyRate = (miningRate * 60).toFixed(2); // Saatlik: dakikada miningRate * 60 dakika
-  const dailyRate = (miningRate * 60 * 24).toFixed(2); // Günlük: saatlik oran x 24 saat
+  const hourlyRate = (miningRate * 20).toFixed(2); // Saatlik: 20 döngü/saat (60/3)
+  const dailyRate = (miningRate * 480).toFixed(2); // Günlük: 480 döngü/gün (24*20)
   
   return (
-    <Card className="mb-4 overflow-hidden relative border-none shadow-md bg-gradient-to-r from-darkPurple-900/90 to-gray-900/90">
+    <Card className="mb-4 overflow-hidden relative border-none shadow-md bg-gradient-to-r from-purple-900/90 to-indigo-900/90">
       {/* Subtle background pattern */}
       <div className="absolute inset-0 opacity-5 bg-grid-pattern"></div>
       
-      <CardHeader className={`relative z-10 ${isMobile ? "px-4 py-3" : ""} border-b border-darkPurple-500/20`}>
+      <CardHeader className={`relative z-10 ${isMobile ? "px-4 py-3" : ""} border-b border-purple-700/30`}>
         <CardTitle className="flex items-center gap-2 text-lg font-semibold text-white">
-          <div className="p-1.5 rounded-lg bg-gradient-to-br from-purple-900/50 to-indigo-800/50">
+          <div className="p-1.5 rounded-lg bg-gradient-to-br from-purple-800 to-indigo-900">
             <Activity className="h-4 w-4 text-purple-300" />
           </div>
-          <span className="bg-gradient-to-r from-purple-100 to-indigo-200 bg-clip-text text-transparent">
+          <span className="text-white">
             {t('mining.stats')}
           </span>
         </CardTitle>
       </CardHeader>
       
-      <CardContent className={`p-4 relative z-10 grid grid-cols-2 gap-4`}>
-        {/* Efficiency Meter */}
-        <div className="flex flex-col justify-between bg-gradient-to-br from-darkPurple-900/40 to-gray-900/40 rounded-lg p-3 border border-darkPurple-500/20">
+      <CardContent className={`p-4 relative z-10 grid grid-cols-2 gap-3`}>
+        {/* Mining Power - Sol Üst */}
+        <div className="flex flex-col justify-between bg-purple-900/60 rounded-lg p-3 border border-purple-700/30">
           <div className="flex items-center gap-2 mb-1">
             <Activity className="h-4 w-4 text-purple-300" />
-            <span className="text-xs font-medium text-purple-200">Mining Power</span>
+            <span className="text-xs font-medium text-white">Mining Power</span>
           </div>
           
           <div className="flex flex-col gap-1 mt-1">
             <div className="flex justify-between text-xs">
-              <span className="text-gray-400">Base Rate</span>
-              <span className="text-purple-300 font-medium">{cycleReward} NC/3min</span>
+              <span className="text-purple-200">Base Rate</span>
+              <span className="text-white font-medium">{cycleReward} NC/3min</span>
             </div>
             
-            <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+            <div className="h-2 bg-purple-950 rounded-full overflow-hidden mt-1">
               <div 
                 className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-500"
                 style={{width: `${Math.min((miningRate * 3) * 100, 100)}%`}}
@@ -56,43 +56,40 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
           </div>
         </div>
         
-        {/* Mining Power */}
-        <div className="flex flex-col justify-between bg-gradient-to-br from-darkPurple-900/40 to-gray-900/40 rounded-lg p-3 border border-darkPurple-500/20">
+        {/* Rewards - Sağ Üst */}
+        <div className="flex flex-col justify-between bg-purple-900/60 rounded-lg p-3 border border-purple-700/30">
           <div className="flex items-center gap-2 mb-1">
             <Zap className="h-4 w-4 text-purple-300" />
-            <span className="text-xs font-medium text-purple-200">Rewards</span>
+            <span className="text-xs font-medium text-white">Rewards</span>
           </div>
           
           <div className="flex justify-between items-end mt-1">
-            <span className="text-xs text-gray-400">NC/cycle</span>
-            <span className="text-lg font-bold text-purple-300">{cycleReward}</span>
+            <span className="text-xs text-purple-200">NC/cycle</span>
+            <span className="text-xl font-bold text-white">{cycleReward}</span>
           </div>
         </div>
         
-        {/* Rate Cards Row */}
-        <div className="col-span-2 grid grid-cols-2 gap-4">
-          {/* Hourly Rate */}
-          <div className="bg-gradient-to-br from-darkPurple-900/40 to-gray-900/40 rounded-lg p-3 border border-darkPurple-500/20">
-            <div className="flex items-center gap-2 mb-1">
-              <Clock className="h-4 w-4 text-purple-300" />
-              <span className="text-xs font-medium text-purple-200">Hourly</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-gray-400">NC/h</span>
-              <span className="text-base font-semibold text-purple-300">{hourlyRate}</span>
-            </div>
+        {/* Hourly Rate - Sol Alt */}
+        <div className="bg-purple-900/60 rounded-lg p-3 border border-purple-700/30">
+          <div className="flex items-center gap-2 mb-1">
+            <Clock className="h-4 w-4 text-purple-300" />
+            <span className="text-xs font-medium text-white">Hourly</span>
           </div>
-          
-          {/* Daily Rate */}
-          <div className="bg-gradient-to-br from-darkPurple-900/40 to-gray-900/40 rounded-lg p-3 border border-darkPurple-500/20">
-            <div className="flex items-center gap-2 mb-1">
-              <Clock className="h-4 w-4 text-purple-300" />
-              <span className="text-xs font-medium text-purple-200">Daily</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-gray-400">NC/day</span>
-              <span className="text-base font-semibold text-purple-300">{dailyRate}</span>
-            </div>
+          <div className="flex justify-between items-center">
+            <span className="text-xs text-purple-200">NC/h</span>
+            <span className="text-xl font-bold text-white">{hourlyRate}</span>
+          </div>
+        </div>
+        
+        {/* Daily Rate - Sağ Alt */}
+        <div className="bg-purple-900/60 rounded-lg p-3 border border-purple-700/30">
+          <div className="flex items-center gap-2 mb-1">
+            <Clock className="h-4 w-4 text-purple-300" />
+            <span className="text-xs font-medium text-white">Daily</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-xs text-purple-200">NC/day</span>
+            <span className="text-xl font-bold text-white">{dailyRate}</span>
           </div>
         </div>
       </CardContent>
