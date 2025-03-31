@@ -1,5 +1,5 @@
 
-import { User, History, UserPlus, Award } from "lucide-react";
+import { User, UserPlus, Award } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useMiningData } from "@/hooks/useMiningData";
@@ -55,17 +55,12 @@ const Index = () => {
           
           {/* MiningRateCard removed as requested */}
           
-          {/* Menu cards with improved grid layout */}
-          <div className="grid grid-cols-2 gap-3 mb-3">
+          {/* Menu cards with improved grid layout - History card removed */}
+          <div className="grid grid-cols-3 gap-3 mb-3">
             <MenuCard 
               title={t('profile.title')}
               icon={User}
               to="/profile"
-            />
-            <MenuCard 
-              title={t('history.title')}
-              icon={History}
-              to="/history"
             />
             <MenuCard 
               title={t('referral.title')}
