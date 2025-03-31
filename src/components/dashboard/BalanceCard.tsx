@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Diamond, TrendingUp, Clock } from 'lucide-react';
+import { Diamond } from 'lucide-react';
 
 interface BalanceCardProps {
   balance: number;
@@ -33,24 +33,8 @@ const BalanceCard = ({ balance }: BalanceCardProps) => {
           ></div>
         </div>
         
-        {/* Statistics grid */}
-        <div className="grid grid-cols-2 gap-2 pt-1">
-          <div className="flex items-center space-x-1.5 bg-purple-900/20 px-2 py-1.5 rounded-lg border border-purple-500/20">
-            <TrendingUp className="h-3 w-3 text-green-400" />
-            <div className="flex flex-col">
-              <span className="text-[10px] text-gray-300/90">{t('balance.today')}</span>
-              <span className="text-xs font-medium text-green-400">+0.76 NC</span>
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-1.5 bg-indigo-900/20 px-2 py-1.5 rounded-lg border border-indigo-500/20">
-            <Clock className="h-3 w-3 text-gray-300" />
-            <div className="flex flex-col">
-              <span className="text-[10px] text-gray-300/90">{t('balance.week')}</span>
-              <span className="text-xs font-medium text-green-400">+3.52 NC</span>
-            </div>
-          </div>
-        </div>
+        {/* The statistics grid has been removed as requested */}
+        <div className="h-6"></div> {/* Empty space to maintain the card height */}
       </div>
     </div>
   );
