@@ -1,7 +1,7 @@
 
 @layer utilities {
   .shadow-glow {
-    box-shadow: 0 0 15px 2px theme('colors.darkPurple.400' / 30%);
+    box-shadow: 0 0 15px theme('colors.darkPurple.400' / 30%);
   }
 
   .text-shadow {
