@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { MenuIcon, Zap } from "lucide-react";
+import { MenuIcon, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
   Sheet, 
@@ -37,19 +37,17 @@ export const MobileMenu = () => {
         aria-label="Open menu"
         type="button"
       >
-        <MenuIcon className="h-6 w-6 text-teal-300" />
+        <MenuIcon className="h-6 w-6 text-purple-300" />
         <span className="sr-only">{t('menu.open')}</span>
       </Button>
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetPortal>
           <SheetOverlay className="bg-black/70 backdrop-blur-sm" onClick={handleCloseMenu} />
-          <SheetContent side="left" className="w-[280px] max-w-[85vw] bg-gray-900 border-r border-teal-500/20 p-0">
-            <SheetHeader className="border-b border-teal-500/20 pb-4 px-4 pt-4">
-              <SheetTitle className="flex items-center text-teal-200">
-                <div className="h-7 w-7 mr-2 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-md flex items-center justify-center shadow-md">
-                  <Zap className="h-4 w-4 text-white" />
-                </div>
+          <SheetContent side="left" className="w-[280px] max-w-[85vw] bg-gray-900 border-r border-purple-500/20 p-0">
+            <SheetHeader className="border-b border-purple-500/20 pb-4 px-4 pt-4">
+              <SheetTitle className="flex items-center text-purple-200">
+                <Sparkles className="h-6 w-6 mr-2 text-purple-400" />
                 <Link to="/" className="text-2xl font-bold" onClick={handleCloseMenu}>{t('app.title')}</Link>
               </SheetTitle>
             </SheetHeader>

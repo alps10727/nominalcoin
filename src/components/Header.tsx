@@ -33,7 +33,7 @@ const Header = memo(() => {
   };
 
   return (
-    <header className="bg-gray-900/90 backdrop-blur-lg pt-safe p-4 flex justify-between items-center shadow-lg sticky top-0 z-50 border-b border-teal-500/10">
+    <header className="bg-gray-900/90 backdrop-blur-lg pt-safe p-4 flex justify-between items-center shadow-lg sticky top-0 z-50 border-b border-purple-500/10">
       {/* Offline warning */}
       {isOffline && (
         <div className="absolute bottom-0 left-0 right-0 bg-red-800/90 text-white text-xs py-1 text-center flex items-center justify-center">
