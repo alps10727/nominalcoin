@@ -1,7 +1,10 @@
 
 import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Diamond } from 'lucide-react';
+import { Diamond, Pickaxe } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { useMiningData } from '@/hooks/useMiningData';
 
 interface BalanceCardProps {
   balance: number;
@@ -9,6 +12,7 @@ interface BalanceCardProps {
 
 const BalanceCard = ({ balance }: BalanceCardProps) => {
   const { t } = useLanguage();
+  const { miningRate } = useMiningData();
   
   return (
     <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 shadow-lg border border-purple-500/10">
@@ -33,8 +37,19 @@ const BalanceCard = ({ balance }: BalanceCardProps) => {
           ></div>
         </div>
         
-        {/* The statistics grid has been removed as requested */}
-        <div className="h-6"></div> {/* Empty space to maintain the card height */}
+        {/* Mining rate button that redirects to tasks */}
+        <Link to="/tasks" className="block">
+          <Button 
+            variant="purple" 
+            size="sm" 
+            className="w-full flex items-center justify-center bg-purple-900/40 hover:bg-purple-900/60 border border-purple-500/20 text-purple-300"
+          >
+            <span className="flex items-center">
+              <Pickaxe className="mr-1 h-3.5 w-3.5" />
+              {miningRate.toFixed(2)} NC/min
+            </span>
+          </Button>
+        </Link>
       </div>
     </div>
   );
