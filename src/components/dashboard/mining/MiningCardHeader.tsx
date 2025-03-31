@@ -12,6 +12,9 @@ export const MiningCardHeader = React.memo<MiningCardHeaderProps>(({
   miningRate, 
   isMobile 
 }) => {
+  // Mining rate'i yüzde olarak göstermek için 3 ile çarpıp 100 ile çarpıyoruz
+  const miningRatePercent = (miningRate * 3 * 100).toFixed(0);
+
   return (
     <CardHeader className={`relative z-10 ${isMobile ? "px-4 py-3" : ""} text-white`}>
       <div className="flex items-center justify-between">
@@ -27,7 +30,7 @@ export const MiningCardHeader = React.memo<MiningCardHeaderProps>(({
           </div>
           <div className="flex flex-col">
             <span className="text-xs font-medium text-darkPurple-200">Power</span>
-            <span className="text-sm font-bold text-darkPurple-300">{(miningRate * 100).toFixed(2)}%</span>
+            <span className="text-sm font-bold text-darkPurple-300">{miningRatePercent}%</span>
           </div>
         </div>
       </div>

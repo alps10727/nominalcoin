@@ -12,10 +12,10 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
   const { t } = useLanguage();
   const isMobile = useIsMobile();
   
-  // Hesaplamalar - 3 dakikada bir kazanılacak NC miktarı
+  // ÖNEMLİ - Hesaplamalar: 3 dakikada bir kazanılacak NC miktarı
   const cycleReward = (miningRate * 3).toFixed(2); // 3 dakikalık döngü başına NC
-  const hourlyRate = (miningRate * 20).toFixed(2); // Saatlik: 20 döngü/saat (60/3)
-  const dailyRate = (miningRate * 20 * 24).toFixed(2); // Günlük: saatlik oran x 24 saat
+  const hourlyRate = (miningRate * 60).toFixed(2); // Saatlik: dakikada miningRate * 60 dakika
+  const dailyRate = (miningRate * 60 * 24).toFixed(2); // Günlük: saatlik oran x 24 saat
   
   return (
     <Card className="mb-4 overflow-hidden relative border-none shadow-md bg-gradient-to-r from-darkPurple-900/90 to-gray-900/90">
@@ -65,7 +65,7 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
           
           <div className="flex justify-between items-end mt-1">
             <span className="text-xs text-gray-400">NC/cycle</span>
-            <span className="text-lg font-bold text-purple-300">{(miningRate * 3).toFixed(2)}</span>
+            <span className="text-lg font-bold text-purple-300">{cycleReward}</span>
           </div>
         </div>
         
