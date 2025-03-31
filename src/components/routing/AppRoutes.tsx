@@ -1,3 +1,4 @@
+
 import { Suspense, lazy, useEffect, useState, useMemo } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -5,7 +6,7 @@ import LoadingScreen from "../dashboard/LoadingScreen";
 import { toast } from "sonner";
 import { errorLog } from "@/utils/debugUtils";
 
-// Lazy-loaded pages (değişmeden korundu)
+// Lazy-loaded pages
 const Index = lazy(() => import("@/pages/Index"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const Profile = lazy(() => import("@/pages/Profile"));
