@@ -9,7 +9,6 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import BalanceCard from "@/components/dashboard/BalanceCard";
 import MiningCard from "@/components/dashboard/MiningCard";
 import MenuCard from "@/components/dashboard/MenuCard";
-import StatisticsButton from "@/components/dashboard/StatisticsButton";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
 // HeaderDecoration import kaldırıldı
 
@@ -74,7 +73,7 @@ const Index = () => {
             />
           </div>
 
-          <StatisticsButton />
+          {/* StatisticsButton component removed as requested */}
         </div>
       </main>
     </div>
