@@ -42,43 +42,43 @@ const MiningCard = ({
   }, [miningActive, onStartMining, onStopMining]);
 
   return (
-    <Card className="mb-6 border border-purple-500/20 overflow-hidden shadow-xl transition-all duration-500 relative group bg-gradient-to-br from-darkPurple-900/90 via-navy-900/90 to-darkPurple-900/90 rounded-xl hover:shadow-[0_0_25px_rgba(147,51,234,0.15)]">
-      {/* Enhanced background with dynamic elements */}
+    <Card className="mb-6 border border-gray-700/30 overflow-hidden shadow-xl transition-all duration-500 relative group bg-gradient-to-br from-gray-900/90 via-gray-800/90 to-gray-900/90 rounded-xl hover:shadow-[0_0_25px_rgba(59,130,246,0.15)]">
+      {/* Background */}
       <MiningBackground />
       
-      {/* Improved particles animation */}
+      {/* Particles */}
       <MiningParticles miningActive={miningActive} />
       
-      {/* Header with improved design */}
+      {/* Header */}
       <CardHeader className={`relative z-10 ${isMobile ? "px-4 py-3" : ""} text-white`}>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-xl font-bold">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500/40 to-indigo-600/40 backdrop-blur-md border border-purple-400/30 shadow-sm">
-              <Flame className="h-5 w-5 text-purple-200" />
+            <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500/30 to-indigo-600/30 backdrop-blur-md border border-blue-400/20 shadow-sm">
+              <Flame className="h-5 w-5 text-blue-200" />
             </div>
-            <span className="bg-gradient-to-r from-purple-100 to-indigo-200 bg-clip-text text-transparent font-sans">Mining Lab</span>
+            <span className="bg-gradient-to-r from-gray-100 to-blue-200 bg-clip-text text-transparent font-sans">Mining Lab</span>
           </CardTitle>
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-xl bg-purple-500/30 backdrop-blur-sm border border-purple-400/20 shadow-sm">
-              <Layers className="h-4 w-4 text-purple-200" />
+            <div className="p-1.5 rounded-xl bg-blue-500/20 backdrop-blur-sm border border-blue-400/20 shadow-sm">
+              <Layers className="h-4 w-4 text-blue-200" />
             </div>
             <div className="flex flex-col">
-              <span className="text-xs font-medium text-purple-200">Power</span>
-              <span className="text-sm font-bold text-purple-200">{(miningRate * 100).toFixed(2)}%</span>
+              <span className="text-xs font-medium text-blue-200">Power</span>
+              <span className="text-sm font-bold text-blue-200">{(miningRate * 100).toFixed(2)}%</span>
             </div>
           </div>
         </div>
-        <CardDescription className="text-purple-200/80 mt-2 font-light">
+        <CardDescription className="text-blue-200/80 mt-2 font-light">
           Mine cryptocurrency with your device's computing power
         </CardDescription>
       </CardHeader>
       
-      {/* Card content with improved progress indicator */}
+      {/* Content */}
       <CardContent className={`relative z-10 ${isMobile ? "px-4 pb-4" : ""}`}>
         <div className="mb-6 mt-2">
-          <div className="h-2.5 w-full bg-darkPurple-800/80 rounded-full overflow-hidden backdrop-blur-sm border border-purple-500/10">
+          <div className="h-2.5 w-full bg-gray-800/80 rounded-full overflow-hidden backdrop-blur-sm border border-blue-500/10">
             <div 
-              className="h-full bg-gradient-to-r from-purple-500 via-indigo-400 to-purple-400 rounded-full transition-all duration-500 relative"
+              className="h-full bg-gradient-to-r from-blue-500 via-indigo-400 to-blue-400 rounded-full transition-all duration-500 relative"
               style={{ width: `${progress * 100}%` }}
             >
               {/* Animated sheen effect */}
@@ -87,15 +87,14 @@ const MiningCard = ({
           </div>
           {miningActive && (
             <div className="flex justify-between mt-1.5">
-              <span className="text-xs text-purple-300/80">Progress</span>
-              <span className="text-xs text-purple-300 font-medium">{(progress * 100).toFixed(1)}%</span>
+              <span className="text-xs text-blue-300/80">Progress</span>
+              <span className="text-xs text-blue-300 font-medium">{(progress * 100).toFixed(1)}%</span>
             </div>
           )}
         </div>
       
         <div className="text-center my-8">
           <div className="relative mx-auto">
-            {/* Enhanced mining button component */}
             <MiningButton 
               miningActive={miningActive}
               miningTime={miningTime}
@@ -105,7 +104,6 @@ const MiningCard = ({
         </div>
       </CardContent>
       
-      {/* Enhanced footer with mining stats */}
       <MiningCardFooter 
         miningSession={miningSession}
         miningRate={miningRate}
