@@ -3,7 +3,7 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "@/contexts/ThemeContext";
-import { MiningBackground } from "../mining/MiningBackground";
+import { MiningBackground } from "./mining/MiningBackground";
 import { MiningButton } from "./mining/MiningButton";
 import { MiningCardFooter } from "./mining/MiningCardFooter";
 import { MiningProgressBar } from "./mining/MiningProgressBar";
