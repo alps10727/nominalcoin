@@ -1,5 +1,5 @@
-
 import type { Config } from "tailwindcss";
+import { fontFamily } from "tailwindcss/defaultTheme";
 
 export default {
 	darkMode: ["class"],
@@ -67,34 +67,54 @@ export default {
 					850: '#1a1d23',
 					950: '#0f1015'
 				},
-				// Custom colors with adjusted palette for navy and dark purple
-				navy: {
-					100: '#d0d5e9',
-					200: '#a1acd4',
-					300: '#7282be',
-					400: '#4359a9',
-					500: '#142f93',
-					600: '#102676',
-					700: '#0c1c58',
-					800: '#08133b',
-					900: '#04091d'
+				// New color theme with emerald and teal palette
+				emerald: {
+					50: '#ecfdf5',
+					100: '#d1fae5',
+					200: '#a7f3d0',
+					300: '#6ee7b7',
+					400: '#34d399',
+					500: '#10b981',
+					600: '#059669',
+					700: '#047857',
+					800: '#065f46',
+					900: '#064e3b',
+					950: '#022c22',
 				},
-				darkPurple: {
-					100: '#dcd0e9',
-					200: '#b9a1d4',
-					300: '#9772be',
-					400: '#7443a9',
-					500: '#511493',
-					600: '#411076',
-					700: '#310c58',
-					800: '#21083b',
-					900: '#10041d'
-				}
+				teal: {
+					50: '#f0fdfa',
+					100: '#ccfbf1',
+					200: '#99f6e4',
+					300: '#5eead4',
+					400: '#2dd4bf',
+					500: '#14b8a6',
+					600: '#0d9488',
+					700: '#0f766e',
+					800: '#115e59',
+					900: '#134e4a',
+					950: '#042f2e',
+				},
+				cyan: {
+					50: '#ecfeff',
+					100: '#cffafe',
+					200: '#a5f3fc',
+					300: '#67e8f9',
+					400: '#22d3ee',
+					500: '#06b6d4',
+					600: '#0891b2',
+					700: '#0e7490',
+					800: '#155e75',
+					900: '#164e63',
+					950: '#083344',
+				},
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
+			},
+			boxShadow: {
+				glow: "0 0 15px rgba(16, 185, 129, 0.4), 0 0 30px rgba(5, 150, 105, 0.1)",
 			},
 			keyframes: {
 				'accordion-down': {
@@ -168,7 +188,10 @@ export default {
 				'float-2': 'float-2 5s ease-out infinite',
 				'float-3': 'float-3 6s ease-out infinite',
 				'sheen': 'sheen 8s ease-in-out infinite'
-			}
+			},
+			fontFamily: {
+				sans: ["var(--font-sans)", ...fontFamily.sans],
+			},
 		}
 	},
 	plugins: [require("tailwindcss-animate")],
