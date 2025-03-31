@@ -7,7 +7,6 @@ import { MiningBackground } from "./mining/MiningBackground";
 import { MiningButton } from "./mining/MiningButton";
 import { MiningCardFooter } from "./mining/MiningCardFooter";
 import { MiningProgressBar } from "./mining/MiningProgressBar";
-import { MiningCardHeader } from "./mining/MiningCardHeader";
 
 interface MiningCardProps {
   miningActive: boolean;
@@ -42,18 +41,15 @@ const MiningCard = React.memo<MiningCardProps>(({
   }, [miningActive, onStartMining, onStopMining]);
 
   return (
-    <Card className="mb-6 border border-indigo-800/20 overflow-hidden shadow-md transition-all duration-300 relative rounded-xl">
+    <Card className="mb-6 border border-indigo-800/20 overflow-hidden shadow-md transition-all duration-300 relative rounded-xl max-w-md mx-auto">
       {/* Background */}
       <MiningBackground />
       
-      {/* Header */}
-      <MiningCardHeader miningRate={miningRate} isMobile={isMobile} />
-      
-      {/* Content */}
-      <CardContent className={`relative z-10 ${isMobile ? "px-4 pb-4" : ""}`}>
+      {/* Content - Removed the header as requested */}
+      <CardContent className={`relative z-10 pt-4 ${isMobile ? "px-4 pb-4" : ""}`}>
         <MiningProgressBar progress={progress} miningActive={miningActive} />
       
-        <div className="text-center my-8">
+        <div className="text-center my-6">
           <MiningButton 
             miningActive={miningActive}
             miningTime={miningTime}
