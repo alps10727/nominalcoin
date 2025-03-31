@@ -72,7 +72,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
           // Add mining reward every 3 minutes (180 seconds)
           if (addReward) {
             console.log("Adding mining reward");
-            // Her 3 dakikada bir 0.03 NC elde etmek için miningRate * 3 şeklinde hesaplama
+            // Her 3 dakikada bir 0.3 NC elde etmek için miningRate * 3 şeklinde hesaplama
             const rewardAmount = prev.miningRate * 3;
             const newBalance = prev.balance + rewardAmount;
             const newSession = prev.miningSession + rewardAmount;
