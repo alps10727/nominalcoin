@@ -8,7 +8,7 @@ interface OrbitalEffectsProps {
 /**
  * Orbital animation effects that circle the button
  */
-export const OrbitalEffects: React.FC<OrbitalEffectsProps> = ({ miningActive }) => {
+export const OrbitalEffects = React.memo<OrbitalEffectsProps>(({ miningActive }) => {
   return (
     <div className={`absolute inset-0 z-0 ${miningActive ? 'opacity-70' : 'opacity-50'}`}>
       {/* First orbit */}
@@ -60,4 +60,6 @@ export const OrbitalEffects: React.FC<OrbitalEffectsProps> = ({ miningActive }) 
       )}
     </div>
   );
-};
+});
+
+OrbitalEffects.displayName = "OrbitalEffects";

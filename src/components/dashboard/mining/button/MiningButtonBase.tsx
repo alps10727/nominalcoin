@@ -10,7 +10,7 @@ interface MiningButtonBaseProps {
 /**
  * Base button component that handles the click event and scaling animation
  */
-export const MiningButtonBase: React.FC<MiningButtonBaseProps> = ({ 
+export const MiningButtonBase = React.memo<MiningButtonBaseProps>(({ 
   miningActive, 
   onClick, 
   children 
@@ -29,4 +29,6 @@ export const MiningButtonBase: React.FC<MiningButtonBaseProps> = ({
       </button>
     </div>
   );
-};
+});
+
+MiningButtonBase.displayName = "MiningButtonBase";

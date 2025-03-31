@@ -8,7 +8,7 @@ interface ParticleEffectsProps {
 /**
  * Floating particle effects around the button
  */
-export const ParticleEffects: React.FC<ParticleEffectsProps> = ({ miningActive }) => {
+export const ParticleEffects = React.memo<ParticleEffectsProps>(({ miningActive }) => {
   return (
     <div className="absolute -inset-8 z-0 overflow-hidden rounded-full">
       {/* Active state particles */}
@@ -39,4 +39,6 @@ export const ParticleEffects: React.FC<ParticleEffectsProps> = ({ miningActive }
       )}
     </div>
   );
-};
+});
+
+ParticleEffects.displayName = "ParticleEffects";

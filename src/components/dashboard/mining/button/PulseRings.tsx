@@ -8,7 +8,7 @@ interface PulseRingsProps {
 /**
  * Animated pulse rings that appear around the button
  */
-export const PulseRings: React.FC<PulseRingsProps> = ({ miningActive }) => {
+export const PulseRings = React.memo<PulseRingsProps>(({ miningActive }) => {
   if (miningActive) {
     return (
       <>
@@ -29,4 +29,6 @@ export const PulseRings: React.FC<PulseRingsProps> = ({ miningActive }) => {
         style={{animationDuration: '5s'}}></div>
     </>
   );
-};
+});
+
+PulseRings.displayName = "PulseRings";

@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { MiningButtonBase } from "./button/MiningButtonBase";
 import { ButtonBackground } from "./button/ButtonBackground";
 import { PulseRings } from "./button/PulseRings";
@@ -13,7 +13,7 @@ interface MiningButtonProps {
   onButtonClick: () => void;
 }
 
-export const MiningButton: React.FC<MiningButtonProps> = ({ 
+export const MiningButton = React.memo<MiningButtonProps>(({ 
   miningActive,
   miningTime, 
   onButtonClick
@@ -33,10 +33,15 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
     setDisplayTime(formatTime(miningTime));
   }, [miningTime]);
 
+  // Memoize the button click handler
+  const handleClick = useCallback(() => {
+    onButtonClick();
+  }, [onButtonClick]);
+
   return (
     <MiningButtonBase 
       miningActive={miningActive} 
-      onClick={onButtonClick}
+      onClick={handleClick}
     >
       {/* Background and effects */}
       <ButtonBackground miningActive={miningActive} />
@@ -51,4 +56,6 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
       />
     </MiningButtonBase>
   );
-};
+});
+
+MiningButton.displayName = "MiningButton";

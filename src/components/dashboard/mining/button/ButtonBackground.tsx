@@ -8,7 +8,7 @@ interface ButtonBackgroundProps {
 /**
  * The main background layers for the mining button
  */
-export const ButtonBackground: React.FC<ButtonBackgroundProps> = ({ miningActive }) => {
+export const ButtonBackground = React.memo<ButtonBackgroundProps>(({ miningActive }) => {
   return (
     <>
       {/* Main gradient background with glow effects */}
@@ -49,4 +49,6 @@ export const ButtonBackground: React.FC<ButtonBackgroundProps> = ({ miningActive
       }`}></div>
     </>
   );
-};
+});
+
+ButtonBackground.displayName = "ButtonBackground";

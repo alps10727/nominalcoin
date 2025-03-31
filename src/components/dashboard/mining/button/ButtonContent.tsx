@@ -10,7 +10,7 @@ interface ButtonContentProps {
 /**
  * The content displayed inside the mining button
  */
-export const ButtonContent: React.FC<ButtonContentProps> = ({ miningActive, displayTime }) => {
+export const ButtonContent = React.memo<ButtonContentProps>(({ miningActive, displayTime }) => {
   return (
     <div className="relative flex flex-col items-center justify-center z-10">
       {miningActive ? (
@@ -31,4 +31,6 @@ export const ButtonContent: React.FC<ButtonContentProps> = ({ miningActive, disp
       )}
     </div>
   );
-};
+});
+
+ButtonContent.displayName = "ButtonContent";
