@@ -10,9 +10,9 @@ export const Logo = () => {
       </div>
       <div className="flex flex-col">
         <span className="font-bold text-xl tracking-tight uppercase bg-gradient-to-r from-darkPurple-300 via-navy-300 to-indigo-300 bg-clip-text text-transparent">
-          Future
+          Nominal
         </span>
-        <span className="text-xs text-darkPurple-400/80 -mt-1">Quantum Mining</span>
+        <span className="text-xs text-darkPurple-400/80 -mt-1">Coin</span>
       </div>
     </Link>
   );
