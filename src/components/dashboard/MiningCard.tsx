@@ -4,8 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Flame, Layers } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "@/contexts/ThemeContext";
-import { MiningBackground } from "./mining/MiningBackground";
-import { MiningParticles } from "./mining/MiningParticles";
+import { MiningBackground } from "../mining/MiningBackground";
 import { MiningButton } from "./mining/MiningButton";
 import { MiningCardFooter } from "./mining/MiningCardFooter";
 
@@ -42,24 +41,21 @@ const MiningCard = ({
   }, [miningActive, onStartMining, onStopMining]);
 
   return (
-    <Card className="mb-6 border border-indigo-800/30 overflow-hidden shadow-xl transition-all duration-500 relative group rounded-xl hover:shadow-[0_0_25px_rgba(99,102,241,0.2)]">
+    <Card className="mb-6 border border-indigo-800/20 overflow-hidden shadow-md transition-all duration-300 relative rounded-xl">
       {/* Background */}
       <MiningBackground />
-      
-      {/* Particles */}
-      <MiningParticles miningActive={miningActive} />
       
       {/* Header */}
       <CardHeader className={`relative z-10 ${isMobile ? "px-4 py-3" : ""} text-white`}>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-xl font-bold">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500/30 to-purple-600/30 backdrop-blur-md border border-indigo-400/20 shadow-sm">
+            <div className="p-2 rounded-lg bg-navy-700/60 backdrop-blur-sm border border-navy-600/20">
               <Flame className="h-5 w-5 text-indigo-200" />
             </div>
-            <span className="bg-gradient-to-r from-gray-100 to-indigo-200 bg-clip-text text-transparent font-sans">Cosmic Miner</span>
+            <span className="text-white font-sans">Cosmic Miner</span>
           </CardTitle>
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-xl bg-indigo-500/20 backdrop-blur-sm border border-indigo-400/20 shadow-sm">
+            <div className="p-1.5 rounded-lg bg-navy-700/60 backdrop-blur-sm border border-navy-600/20">
               <Layers className="h-4 w-4 text-indigo-200" />
             </div>
             <div className="flex flex-col">
@@ -76,14 +72,11 @@ const MiningCard = ({
       {/* Content */}
       <CardContent className={`relative z-10 ${isMobile ? "px-4 pb-4" : ""}`}>
         <div className="mb-6 mt-2">
-          <div className="h-3 w-full bg-indigo-900/80 rounded-full overflow-hidden backdrop-blur-sm border border-indigo-500/10">
+          <div className="h-2.5 w-full bg-navy-800/80 rounded-full overflow-hidden backdrop-blur-sm">
             <div 
-              className="h-full bg-gradient-to-r from-indigo-500 via-purple-400 to-indigo-400 rounded-full transition-all duration-500 relative"
+              className="h-full bg-gradient-to-r from-indigo-500 to-indigo-400 rounded-full transition-all duration-500"
               style={{ width: `${progress * 100}%` }}
-            >
-              {/* Animated sheen effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -translate-x-full animate-sheen" style={{animationDuration: '2s', animationIterationCount: 'infinite'}}></div>
-            </div>
+            ></div>
           </div>
           {miningActive && (
             <div className="flex justify-between mt-1.5">
@@ -94,13 +87,11 @@ const MiningCard = ({
         </div>
       
         <div className="text-center my-8">
-          <div className="relative mx-auto">
-            <MiningButton 
-              miningActive={miningActive}
-              miningTime={miningTime}
-              onButtonClick={handleButtonClick}
-            />
-          </div>
+          <MiningButton 
+            miningActive={miningActive}
+            miningTime={miningTime}
+            onButtonClick={handleButtonClick}
+          />
         </div>
       </CardContent>
       

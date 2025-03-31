@@ -67,7 +67,7 @@ export default {
 					850: '#1a1d23',
 					950: '#0f1015'
 				},
-				// New custom colors
+				// Custom colors with adjusted palette for navy and dark purple
 				navy: {
 					100: '#d0d5e9',
 					200: '#a1acd4',
@@ -117,48 +117,16 @@ export default {
 					'0%': { opacity: '0' },
 					'100%': { opacity: '1' }
 				},
-				flow: {
-					'0%': { transform: 'translateX(-100%)' },
-					'100%': { transform: 'translateX(100%)' }
-				},
 				pulse: {
 					'0%, 100%': { transform: 'scale(1)' },
-					'50%': { transform: 'scale(1.1)' }
-				},
-				spin: {
-					'0%': { transform: 'rotate(0deg)' },
-					'100%': { transform: 'rotate(360deg)' }
-				},
-				sheen: {
-					'0%': { transform: 'translateX(-100%)' },
-					'100%': { transform: 'translateX(100%)' }
-				},
-				float: {
-					'0%': { transform: 'translateY(0)', opacity: '0' },
-					'50%': { opacity: '1' },
-					'100%': { transform: 'translateY(-20px)', opacity: '0' }
-				},
-				orbit: {
-					'0%': { transform: 'rotate(0deg) translateX(85px) rotate(0deg)' },
-					'100%': { transform: 'rotate(360deg) translateX(85px) rotate(-360deg)' }
-				},
-				nebula: {
-					'0%': { transform: 'rotate(0deg)' },
-					'100%': { transform: 'rotate(360deg)' }
+					'50%': { transform: 'scale(1.05)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fadeIn 0.5s ease-out forwards',
-				'flow': 'flow 2s linear infinite',
-				'pulse-slow': 'pulse 3s ease-in-out infinite',
-				'spin-slow': 'spin 8s linear infinite',
-				'sheen': 'sheen 0.8s ease-in-out',
-				'float': 'float 3s ease-in-out infinite',
-				'nebula-shift': 'nebula 30s linear infinite',
-				'star-twinkle': 'pulse 2s ease-in-out infinite',
-				'cosmic-pulse': 'pulse 6s ease-in-out infinite'
+				'pulse-slow': 'pulse 3s ease-in-out infinite'
 			}
 		}
 	},
