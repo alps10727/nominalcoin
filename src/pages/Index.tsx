@@ -11,7 +11,7 @@ import MiningCard from "@/components/dashboard/MiningCard";
 import MenuCard from "@/components/dashboard/MenuCard";
 import StatisticsButton from "@/components/dashboard/StatisticsButton";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
-import HeaderDecoration from "@/components/dashboard/HeaderDecoration";
+// HeaderDecoration import kaldırıldı
 
 const Index = () => {
   const {
@@ -37,8 +37,7 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-950">
       <main className={`flex-1 ${isMobile ? 'px-3 pt-0 pb-20' : 'px-6 py-4 pb-8'} max-w-3xl mx-auto w-full relative z-10`}>
-        {/* Header decoration */}
-        <HeaderDecoration />
+        {/* HeaderDecoration bileşeni kaldırıldı */}
         
         {/* App content with improved spacing */}
         <div className="space-y-4">
