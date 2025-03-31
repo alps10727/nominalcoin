@@ -33,10 +33,10 @@ const NavigationItem = memo(({
     <Link to={to} onClick={onClick}>
       <Button 
         variant="ghost" 
-        className="w-full justify-start text-gray-200 hover:bg-purple-800/20 hover:text-white transition-colors"
+        className="w-full justify-start text-gray-200 hover:bg-teal-800/20 hover:text-white transition-colors"
         tabIndex={0}
       >
-        <Icon className="mr-2 h-5 w-5 text-purple-400" />
+        <Icon className="mr-2 h-5 w-5 text-teal-400" />
         {label}
       </Button>
     </Link>
@@ -67,7 +67,7 @@ export const MainNavigation = memo(({ onNavigate }: MainNavigationProps) => {
   ];
   
   return (
-    <div className="py-4 bg-gradient-to-b from-purple-900/30 to-indigo-900/30 rounded-xl border border-purple-500/20 shadow-lg mb-4">
+    <div className="py-4 bg-gradient-to-b from-teal-900/30 to-blue-900/30 rounded-xl border border-teal-500/20 shadow-lg mb-4">
       <div className="flex flex-col gap-1.5 px-2">
         {navigationItems.map((item) => (
           <NavigationItem

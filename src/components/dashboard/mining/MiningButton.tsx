@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Play, Pause } from "lucide-react";
+import { Play, Pause, Zap } from "lucide-react";
 
 interface MiningButtonProps {
   miningActive: boolean;
@@ -41,8 +41,8 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
   return (
     <div className="relative mx-auto flex items-center justify-center">
       {/* Status rings */}
-      <div className={`absolute w-36 h-36 rounded-full border-2 border-purple-500/30 transition-all duration-700 ${miningActive ? 'opacity-100' : 'opacity-0'}`}></div>
-      <div className={`absolute w-44 h-44 rounded-full border border-indigo-400/20 transition-all duration-700 ${miningActive ? 'opacity-100' : 'opacity-0'}`}></div>
+      <div className={`absolute w-36 h-36 rounded-full border-2 border-teal-500/30 transition-all duration-700 ${miningActive ? 'opacity-100' : 'opacity-0'}`}></div>
+      <div className={`absolute w-44 h-44 rounded-full border border-blue-400/20 transition-all duration-700 ${miningActive ? 'opacity-100' : 'opacity-0'}`}></div>
       
       {/* The main button */}
       <button 
@@ -51,27 +51,36 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
         aria-label={ariaLabel}
         title={ariaLabel}
       >
-        {/* Button background */}
+        {/* Button background with glowing effect */}
         <div className={`absolute inset-0 rounded-full transition-all duration-700 ${miningActive 
-          ? 'bg-gradient-to-br from-purple-500 via-indigo-600 to-darkPurple-700 border-2 border-purple-400/70 shadow-lg' 
-          : 'bg-gradient-to-br from-purple-600 via-indigo-700 to-darkPurple-800 border-2 border-purple-500/50'
+          ? 'bg-gradient-to-r from-teal-600 via-blue-700 to-navy-800 border-2 border-teal-400/50 shadow-[0_0_25px_rgba(20,184,166,0.5)]' 
+          : 'bg-gradient-to-r from-teal-500 via-blue-600 to-navy-700 border-2 border-teal-300/30'
         }`}></div>
+        
+        {/* Pulsing inner glow */}
+        <div className={`absolute inset-2 rounded-full bg-gradient-to-br from-teal-400/20 to-blue-500/10 animate-pulse-slow opacity-70 ${miningActive ? 'opacity-100' : 'opacity-60'}`}></div>
         
         {/* Button content */}
         <div className="relative flex flex-col items-center justify-center z-10">
           {miningActive ? (
             <>
               <div className="flex flex-col items-center">
-                <Pause className="h-7 w-7 text-purple-100 mb-2" />
-                <span className="text-base font-mono text-purple-100 font-semibold tracking-wider">
+                <Pause className="h-7 w-7 text-white mb-2" />
+                <span className="text-base font-mono text-white font-semibold tracking-wider">
                   {displayTime}
                 </span>
+                <span className="text-xs text-teal-200 mt-1">MINING</span>
               </div>
             </>
           ) : (
             <>
-              <Play className="h-9 w-9 text-purple-100" />
-              <span className="text-sm mt-2 text-purple-100 font-medium">START</span>
+              <div className="flex flex-col items-center">
+                <div className="relative">
+                  <Zap className="h-9 w-9 text-white" />
+                  <div className="absolute -inset-1 rounded-full bg-teal-500/20 animate-ping-slow"></div>
+                </div>
+                <span className="text-sm mt-2 text-white font-medium">START</span>
+              </div>
             </>
           )}
         </div>

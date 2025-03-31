@@ -41,6 +41,17 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       document.documentElement.classList.remove('theme-transition');
     }, 700); // Increased duration for smoother transition
     
+    // Add custom properties for our new color theme
+    if (theme === "dark") {
+      document.documentElement.style.setProperty('--primary', '173 80% 40%'); // teal-600
+      document.documentElement.style.setProperty('--secondary', '220 83% 16%'); // navy-900
+      document.documentElement.style.setProperty('--accent', '210 100% 20%'); // dark blue
+    } else {
+      document.documentElement.style.setProperty('--primary', '173 80% 45%'); // teal-500
+      document.documentElement.style.setProperty('--secondary', '217 33% 17%'); // navy-800
+      document.documentElement.style.setProperty('--accent', '210 100% 30%'); // blue
+    }
+    
     return () => clearTimeout(timer);
   }, [theme]);
 
