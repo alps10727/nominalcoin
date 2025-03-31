@@ -31,7 +31,7 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
   return (
     <div className="mx-auto flex items-center justify-center">
       <button 
-        className={`relative w-32 h-32 rounded-full flex items-center justify-center cursor-pointer z-10 transition-all duration-500 ${
+        className={`relative w-32 h-32 rounded-full flex items-center justify-center cursor-pointer z-10 transition-all duration-700 ${
           miningActive ? 'scale-110' : 'scale-100 hover:scale-105'
         }`}
         onClick={onButtonClick}
@@ -39,16 +39,16 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
         title={miningActive ? "Stop mining" : "Start mining"}
       >
         {/* Enhanced animated background with glow effects for both states */}
-        <div className={`absolute inset-0 rounded-full shadow-lg transition-all duration-300 overflow-hidden ${
+        <div className={`absolute inset-0 rounded-full shadow-lg transition-all duration-500 overflow-hidden ${
           miningActive 
-            ? 'bg-gradient-to-tr from-indigo-600 via-purple-500 to-darkPurple-700 border-2 border-indigo-400/40 shadow-glow' 
-            : 'bg-gradient-to-br from-navy-500 via-darkPurple-600 to-navy-700 border border-indigo-500/30 shadow-md'
+            ? 'bg-gradient-to-tr from-indigo-700 via-purple-600 to-darkPurple-800 border-2 border-indigo-400/40 shadow-glow' 
+            : 'bg-gradient-to-br from-navy-700 via-darkPurple-800 to-navy-900 border border-indigo-500/30 shadow-md'
         }`}>
-          {/* Shimmering overlay effect for both states */}
+          {/* Enhanced shimmering overlay effect for both states */}
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-sheen"
             style={{ 
               transform: 'translateX(-100%)', 
-              animation: miningActive ? 'sheen 3s infinite' : 'sheen 6s infinite',
+              animation: miningActive ? 'sheen 2.5s infinite' : 'sheen 5s infinite',
               opacity: miningActive ? 1 : 0.5
             }}>
           </div>
@@ -64,30 +64,30 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
             </>
           )}
           
-          {/* Animated pulse rings for inactive state */}
+          {/* Enhanced animated pulse rings for inactive state */}
           {!miningActive && (
             <>
-              <div className="absolute inset-0 rounded-full bg-navy-500/20 animate-pulse-slow"
+              <div className="absolute inset-0 rounded-full bg-navy-700/20 animate-pulse-slow"
                 style={{animationDuration: '4s'}}></div>
-              <div className="absolute -inset-2 rounded-full bg-darkPurple-500/10 animate-pulse-slow" 
+              <div className="absolute -inset-2 rounded-full bg-darkPurple-700/10 animate-pulse-slow" 
                 style={{animationDuration: '5s'}}></div>
             </>
           )}
         </div>
         
         {/* Inner circle with dynamic animation for both states */}
-        <div className={`absolute inset-2 rounded-full transition-all duration-300 ${
+        <div className={`absolute inset-2 rounded-full transition-all duration-500 ${
           miningActive 
-            ? 'bg-gradient-to-br from-darkPurple-800 to-navy-900 opacity-30 scale-95' 
-            : 'bg-gradient-to-br from-navy-600 to-darkPurple-800 opacity-40 scale-100'
+            ? 'bg-gradient-to-br from-darkPurple-900 to-navy-950 opacity-60 scale-95' 
+            : 'bg-gradient-to-br from-navy-800 to-darkPurple-950 opacity-70 scale-100'
         }`}></div>
         
         {/* Button content with enhanced animations */}
         <div className="relative flex flex-col items-center justify-center z-10">
           {miningActive ? (
             <>
-              <Pause className="h-8 w-8 text-white mb-2 animate-pulse" style={{animationDuration: '2s'}} />
-              <span className="text-sm font-mono text-white font-medium tracking-wider bg-darkPurple-900/30 px-2 py-0.5 rounded-md">
+              <Pause className="h-8 w-8 text-white mb-2 animate-pulse" style={{animationDuration: '1.5s'}} />
+              <span className="text-sm font-mono text-white font-medium tracking-wider bg-darkPurple-900/40 px-2 py-0.5 rounded-md">
                 {displayTime}
               </span>
               <span className="text-xs text-indigo-200 mt-1.5 font-semibold animate-pulse tracking-wider">
@@ -96,7 +96,7 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
             </>
           ) : (
             <>
-              <Play className="h-8 w-8 text-white mb-1 animate-pulse-slow" style={{animationDuration: '3s'}} />
+              <Play className="h-8 w-8 text-white mb-1 animate-cosmic-pulse" style={{animationDuration: '3s'}} />
               <span className="text-sm text-white font-medium mt-1 tracking-wider animate-cosmic-pulse">START</span>
             </>
           )}
@@ -106,16 +106,16 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
         <div className={`absolute -inset-1 rounded-full ${
           miningActive 
             ? 'bg-indigo-600/30 blur-sm animate-pulse-slow' 
-            : 'bg-navy-600/20 blur-sm animate-pulse-slow'
+            : 'bg-navy-800/20 blur-sm animate-pulse-slow'
         }`} style={{animationDuration: miningActive ? '2s' : '4s'}}></div>
         
         <div className={`absolute -inset-px rounded-full ${
           miningActive 
             ? 'bg-gradient-to-r from-indigo-500/40 to-purple-500/40' 
-            : 'bg-gradient-to-r from-navy-500/30 to-darkPurple-500/30'
+            : 'bg-gradient-to-r from-navy-700/30 to-darkPurple-700/30'
         }`}></div>
         
-        {/* Particle effects for both states */}
+        {/* Enhanced particle effects for both states */}
         <div className="absolute -inset-8 z-0 overflow-hidden rounded-full">
           {/* Active state particles */}
           {miningActive && (
@@ -130,42 +130,70 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
             </>
           )}
           
-          {/* Inactive state particles */}
+          {/* Enhanced inactive state particles */}
           {!miningActive && (
             <>
-              <div className="absolute top-1/2 left-1/3 h-1 w-1 rounded-full bg-navy-300/70 animate-float-3"
+              <div className="absolute top-1/2 left-1/3 h-1.5 w-1.5 rounded-full bg-navy-400/70 animate-float-3"
                 style={{animationDuration: '5s'}}></div>
-              <div className="absolute bottom-1/2 right-1/3 h-1 w-1 rounded-full bg-darkPurple-300/70 animate-float-2" 
+              <div className="absolute bottom-1/2 right-1/3 h-1 w-1 rounded-full bg-darkPurple-400/70 animate-float-2" 
                 style={{animationDuration: '6s', animationDelay: '1s'}}></div>
-              <div className="absolute top-1/3 left-1/2 h-1 w-1 rounded-full bg-navy-300/70 animate-float-1" 
+              <div className="absolute top-1/3 left-1/2 h-1 w-1 rounded-full bg-navy-400/70 animate-float-1" 
                 style={{animationDuration: '7s', animationDelay: '0.5s'}}></div>
+              <div className="absolute bottom-1/3 right-1/2 h-1.5 w-1.5 rounded-full bg-darkPurple-400/70 animate-float-3" 
+                style={{animationDuration: '5.5s', animationDelay: '1.2s'}}></div>
             </>
           )}
         </div>
         
-        {/* Animated orbit effect for both states */}
-        <div className={`absolute inset-0 z-0 ${miningActive ? 'opacity-70' : 'opacity-40'}`}>
+        {/* Enhanced animated orbit effect for both states with dual rotation */}
+        <div className={`absolute inset-0 z-0 ${miningActive ? 'opacity-70' : 'opacity-50'}`}>
+          {/* First orbit */}
           <div className={`absolute w-3 h-3 rounded-full ${
             miningActive 
               ? 'bg-indigo-400/30 animate-reverse-spin' 
-              : 'bg-navy-400/20 animate-reverse-spin'
+              : 'bg-navy-400/30 animate-reverse-spin'
           }`} style={{
             top: '10%', 
             left: '10%', 
             transformOrigin: '350% 350%',
-            animationDuration: miningActive ? '8s' : '15s'
+            animationDuration: miningActive ? '8s' : '12s'
           }}></div>
           
+          {/* Second orbit (spinning in opposite direction) */}
           <div className={`absolute w-2 h-2 rounded-full ${
             miningActive 
               ? 'bg-purple-400/30 animate-spin-slow' 
-              : 'bg-darkPurple-400/20 animate-spin-slow'
+              : 'bg-darkPurple-400/30 animate-spin-slow'
           }`} style={{
             bottom: '10%', 
             right: '10%', 
             transformOrigin: '-250% -250%',
-            animationDuration: miningActive ? '10s' : '18s'
+            animationDuration: miningActive ? '10s' : '14s'
           }}></div>
+          
+          {/* Third orbit for inactive state (additional spinning element) */}
+          {!miningActive && (
+            <div className="absolute w-2.5 h-2.5 rounded-full bg-navy-400/20 animate-spin-slow" 
+              style={{
+                top: '15%', 
+                right: '15%', 
+                transformOrigin: '-200% 300%',
+                animationDuration: '16s'
+              }}>
+            </div>
+          )}
+          
+          {/* Fourth orbit for inactive state (additional counter-spinning element) */}
+          {!miningActive && (
+            <div className="absolute w-2 h-2 rounded-full bg-darkPurple-400/20 animate-reverse-spin" 
+              style={{
+                bottom: '15%', 
+                left: '15%', 
+                transformOrigin: '300% -200%',
+                animationDuration: '18s'
+              }}>
+            </div>
+          )}
         </div>
       </button>
     </div>
