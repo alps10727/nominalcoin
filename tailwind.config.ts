@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 import { fontFamily } from "tailwindcss/defaultTheme";
 
@@ -67,46 +68,46 @@ export default {
 					850: '#1a1d23',
 					950: '#0f1015'
 				},
-				// New color theme with emerald and teal palette
-				emerald: {
-					50: '#ecfdf5',
-					100: '#d1fae5',
-					200: '#a7f3d0',
-					300: '#6ee7b7',
-					400: '#34d399',
-					500: '#10b981',
-					600: '#059669',
-					700: '#047857',
-					800: '#065f46',
-					900: '#064e3b',
-					950: '#022c22',
+				// New dark purple and navy color palette
+				darkPurple: {
+					50: '#f3f1ff',
+					100: '#ebe5ff',
+					200: '#d9ceff',
+					300: '#bea4ff',
+					400: '#a176fd',
+					500: '#844ff9',
+					600: '#742df0',
+					700: '#6322d1',
+					800: '#521da9',
+					900: '#441b86',
+					950: '#2a0e61',
 				},
-				teal: {
-					50: '#f0fdfa',
-					100: '#ccfbf1',
-					200: '#99f6e4',
-					300: '#5eead4',
-					400: '#2dd4bf',
-					500: '#14b8a6',
-					600: '#0d9488',
-					700: '#0f766e',
-					800: '#115e59',
-					900: '#134e4a',
-					950: '#042f2e',
+				navy: {
+					50: '#eef2ff',
+					100: '#e0e7ff',
+					200: '#c9d5ff',
+					300: '#a8b7fe',
+					400: '#8492fb',
+					500: '#6166f5',
+					600: '#4c42ea',
+					700: '#3f34ce',
+					800: '#342da8',
+					900: '#2e2b85',
+					950: '#1c184d',
 				},
-				cyan: {
-					50: '#ecfeff',
-					100: '#cffafe',
-					200: '#a5f3fc',
-					300: '#67e8f9',
-					400: '#22d3ee',
-					500: '#06b6d4',
-					600: '#0891b2',
-					700: '#0e7490',
-					800: '#155e75',
-					900: '#164e63',
-					950: '#083344',
-				},
+				indigo: {
+					50: '#eef2ff',
+					100: '#e0e7ff', 
+					200: '#c7d2fe',
+					300: '#a5b4fc',
+					400: '#818cf8',
+					500: '#6366f1',
+					600: '#4f46e5',
+					700: '#4338ca',
+					800: '#3730a3',
+					900: '#312e81',
+					950: '#1e1b4b',
+				}
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -114,7 +115,7 @@ export default {
 				sm: 'calc(var(--radius) - 4px)'
 			},
 			boxShadow: {
-				glow: "0 0 15px rgba(16, 185, 129, 0.4), 0 0 30px rgba(5, 150, 105, 0.1)",
+				glow: "0 0 15px rgba(74, 58, 240, 0.4), 0 0 30px rgba(59, 46, 139, 0.1)",
 			},
 			keyframes: {
 				'accordion-down': {

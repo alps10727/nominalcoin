@@ -14,8 +14,8 @@ export const ButtonBackground = React.memo<ButtonBackgroundProps>(({ miningActiv
       {/* Main gradient background with enhanced glow effects */}
       <div className={`absolute inset-0 rounded-full shadow-lg transition-all duration-500 overflow-hidden ${
         miningActive 
-          ? 'bg-gradient-to-tr from-cyan-600 via-indigo-700 to-purple-900 border-2 border-cyan-400/40 shadow-glow' 
-          : 'bg-gradient-to-br from-indigo-800 via-darkPurple-900 to-navy-950 border border-cyan-500/40 shadow-md'
+          ? 'bg-gradient-to-tr from-navy-600 via-indigo-700 to-darkPurple-900 border-2 border-navy-400/40 shadow-glow' 
+          : 'bg-gradient-to-br from-indigo-800 via-darkPurple-900 to-navy-950 border border-navy-500/40 shadow-md'
       }`}>
         {/* Enhanced shimmering overlay effect */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent animate-sheen"
@@ -37,15 +37,15 @@ export const ButtonBackground = React.memo<ButtonBackgroundProps>(({ miningActiv
       {/* Enhanced outer glow effect with brighter colors when active */}
       <div className={`absolute -inset-1 rounded-full ${
         miningActive 
-          ? 'bg-cyan-600/40 blur-sm animate-pulse-slow' 
+          ? 'bg-navy-600/40 blur-sm animate-pulse-slow' 
           : 'bg-indigo-800/30 blur-sm animate-pulse-slow'
       }`} style={{animationDuration: miningActive ? '2s' : '4s'}}></div>
       
       {/* Enhanced border gradient */}
       <div className={`absolute -inset-px rounded-full ${
         miningActive 
-          ? 'bg-gradient-to-r from-cyan-500/50 to-indigo-600/50' 
-          : 'bg-gradient-to-r from-indigo-700/30 to-purple-700/30'
+          ? 'bg-gradient-to-r from-navy-500/50 to-indigo-600/50' 
+          : 'bg-gradient-to-r from-indigo-700/30 to-darkPurple-700/30'
       }`}></div>
     </>
   );
