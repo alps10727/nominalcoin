@@ -18,10 +18,7 @@ const StatisticsButton = () => {
             <div className="p-2.5 rounded-xl bg-blue-800/80 mr-3 border border-blue-600/20">
               <BarChart2 className="h-5 w-5 text-teal-300" />
             </div>
-            <div className="flex flex-col items-start">
-              <span className="text-lg font-medium text-teal-300">{t('stats.title')}</span>
-              <span className="text-xs text-blue-200">View detailed analytics</span>
-            </div>
+            <span className="text-lg font-medium text-teal-300">{t('stats.title')}</span>
           </div>
           <ArrowRight className="h-5 w-5 text-teal-300 bg-blue-800/50 p-0.5 rounded-full" />
         </div>
