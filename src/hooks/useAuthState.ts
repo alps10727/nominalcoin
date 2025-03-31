@@ -20,15 +20,14 @@ export function useAuthState(): AuthState {
   const [authInitialized, setAuthInitialized] = useState(false);
 
   useEffect(() => {
-    debugLog("useAuthState", "Kimlik doğrulama durumu başlatılıyor...");
+    debugLog("useAuthState", "Authentication state initializing...");
     let authTimeoutId: NodeJS.Timeout;
     let userDataTimeoutId: NodeJS.Timeout;
-    let retryCount = 0;
     
-    // Firebase auth çok uzun sürerse
+    // Set timeout for Firebase auth
     authTimeoutId = setTimeout(() => {
       if (loading && !authInitialized) {
-        debugLog("useAuthState", "Firebase Auth zaman aşımına uğradı, kullanıcı oturumu kapalı olarak işaretleniyor");
+        debugLog("useAuthState", "Firebase Auth timed out, marking user as not logged in");
         setLoading(false);
         setCurrentUser(null);
         setAuthInitialized(true);
@@ -37,35 +36,35 @@ export function useAuthState(): AuthState {
           const localUserData = loadUserData();
           if (localUserData) {
             setUserData(localUserData);
-            debugLog("useAuthState", "Yerel depodan kullanıcı verileri yüklendi (çevrimdışı mod)");
+            debugLog("useAuthState", "Loaded user data from local storage (offline mode)");
           }
         } catch (e) {
-          errorLog("useAuthState", "Yerel depodan veri yükleme hatası:", e);
+          errorLog("useAuthState", "Error loading from local storage:", e);
         }
       }
     }, 5000);
 
-    // Kimlik doğrulama durumu değişikliklerini dinle
+    // Listen for auth state changes
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      debugLog("useAuthState", "Kimlik doğrulama durumu değişti:", user ? user.email : 'Kullanıcı yok');
+      debugLog("useAuthState", "Auth state changed:", user ? user.email : 'No user');
       clearTimeout(authTimeoutId);
       setCurrentUser(user);
       setAuthInitialized(true);
       
       if (user) {
         try {
-          // Önce daha hızlı UI yanıtı için yerel depodan yüklemeyi dene
+          // First try loading from local storage for faster UI response
           const localData = loadUserData();
           if (localData) {
             setUserData(localData);
-            debugLog("useAuthState", "Yerel depodan kullanıcı verileri yüklendi");
+            debugLog("useAuthState", "Loaded user data from local storage");
           }
           
-          // Firebase'ten taze veri almayı dene
+          // Try getting fresh data from Firebase
           const loadUserDataWithRetry = async (retryAttempt = 0): Promise<any> => {
             try {
               userDataTimeoutId = setTimeout(() => {
-                throw new Error("Firebase veri yükleme zaman aşımına uğradı");
+                throw new Error("Firebase data loading timed out");
               }, 5000);
               
               const data = await loadUserDataFromFirebase(user.uid);
@@ -73,8 +72,8 @@ export function useAuthState(): AuthState {
               return data;
             } catch (error) {
               clearTimeout(userDataTimeoutId);
-              if (retryAttempt < 2 && ((error as any)?.code === 'unavailable' || (error as Error).message.includes('zaman aşımı'))) {
-                debugLog("useAuthState", `Firebase veri yükleme denemesi başarısız (${retryAttempt + 1}/3), yeniden deneniyor...`);
+              if (retryAttempt < 2 && ((error as any)?.code === 'unavailable' || (error as Error).message.includes('timeout'))) {
+                debugLog("useAuthState", `Firebase data load attempt failed (${retryAttempt + 1}/3), retrying...`);
                 return new Promise(resolve => setTimeout(() => resolve(loadUserDataWithRetry(retryAttempt + 1)), 1000));
               }
               throw error;
@@ -84,17 +83,17 @@ export function useAuthState(): AuthState {
           const userDataFromFirebase = await loadUserDataWithRetry();
           if (userDataFromFirebase) {
             setUserData(userDataFromFirebase);
-            debugLog("useAuthState", "Firebase'den taze kullanıcı verileri yüklendi");
+            debugLog("useAuthState", "Loaded fresh user data from Firebase");
           }
         } catch (error) {
-          errorLog("useAuthState", "Kullanıcı verilerini yükleme hatası:", error);
+          errorLog("useAuthState", "Error loading user data:", error);
           
-          // Eğer varsa yerel veriye geri dön
+          // Fall back to local data if any
           const localData = loadUserData();
           if (localData) {
-            debugLog("useAuthState", "Çevrimdışı mod: Yerel depodan kullanıcı verileri kullanılıyor");
+            debugLog("useAuthState", "Offline mode: Using user data from local storage");
             setUserData(localData);
-            toast.warning("Sunucu verilerine erişilemiyor. Çevrimdışı veriler kullanılıyor.");
+            toast.warning("Could not access server data. Using offline data.");
           }
         } finally {
           setLoading(false);

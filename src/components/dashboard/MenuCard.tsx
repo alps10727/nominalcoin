@@ -16,18 +16,21 @@ const MenuCard = ({ title, icon: Icon, to }: MenuCardProps) => {
   
   return (
     <Link to={to}>
-      <Card className="border-0 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer group relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-800/90 to-gray-900/90">
-        {/* Left side accent */}
-        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-400/70 to-indigo-500/70"></div>
+      <Card className="border-0 shadow-lg transition-all duration-300 cursor-pointer group relative overflow-hidden rounded-xl bg-gradient-to-r from-indigo-800 to-blue-800 hover:from-indigo-700 hover:to-blue-700">
+        {/* Background elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -right-6 -bottom-6 w-16 h-16 rounded-full bg-indigo-500/10"></div>
+          <div className="absolute -left-2 -top-2 w-10 h-10 rounded-full bg-blue-400/5"></div>
+        </div>
         
-        <div className={`${isMobile ? 'p-3' : 'p-4'} relative z-10 flex justify-between items-center text-gray-100`}>
+        <div className={`${isMobile ? 'p-3' : 'p-4'} relative z-10 flex justify-between items-center text-white`}>
           <div className="flex items-center">
-            <div className={`${isMobile ? 'p-1.5' : 'p-2'} rounded-xl bg-gradient-to-br from-gray-700/70 to-gray-800/70 mr-2 border border-blue-500/20`}>
-              <Icon className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-blue-300`} />
+            <div className={`${isMobile ? 'p-1.5' : 'p-2'} rounded-xl bg-indigo-700/60 mr-3 border border-indigo-500/30`}>
+              <Icon className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-indigo-200`} />
             </div>
             <span className={`${isMobile ? 'text-sm' : 'text-md'} font-medium`}>{title}</span>
           </div>
-          <ChevronRight className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-blue-400/50 group-hover:text-blue-300 transition-colors duration-300`} />
+          <ChevronRight className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-indigo-300/80 group-hover:text-white transition-colors duration-300`} />
         </div>
       </Card>
     </Link>

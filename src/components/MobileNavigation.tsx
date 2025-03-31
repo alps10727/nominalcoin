@@ -11,7 +11,7 @@ const MobileNavigation = () => {
   const { currentUser } = useAuth();
 
   return (
-    <nav className="bg-gradient-to-r from-gray-900/90 via-gray-800/90 to-gray-900/90 backdrop-blur-xl border-t border-gray-700/30 fixed bottom-0 left-0 right-0 flex justify-around p-3 z-10 shadow-[0_-4px_20px_rgba(0,0,0,0.4)] pb-safe">
+    <nav className="bg-gradient-to-r from-indigo-900 via-blue-900 to-indigo-900 backdrop-blur-xl border-t border-indigo-700/30 fixed bottom-0 left-0 right-0 flex justify-around p-3 z-10 shadow-[0_-4px_20px_rgba(0,0,0,0.4)] pb-safe">
       {/* Navigation items with improved styling */}
       <NavItem 
         to="/" 
@@ -60,12 +60,12 @@ const NavItem = ({ to, icon: Icon, label, isActive }: {
 }) => {
   return (
     <Link to={to} className="flex flex-col items-center transition-all duration-300 relative z-10">
-      <div className={`p-2 rounded-xl transition-all duration-500 ${isActive 
-        ? 'bg-gradient-to-br from-blue-600/90 to-indigo-700/90 text-white shadow-lg shadow-blue-900/40 scale-110' 
-        : 'text-gray-500 hover:bg-gray-800/60 hover:text-gray-300'}`}>
+      <div className={`p-2 rounded-xl transition-all duration-300 ${isActive 
+        ? 'bg-gradient-to-r from-indigo-500 to-blue-500 text-white shadow-lg shadow-indigo-900/40 scale-110' 
+        : 'text-indigo-300 hover:bg-indigo-800/60 hover:text-white'}`}>
         <Icon className="h-5 w-5" />
       </div>
-      <span className={`text-xs mt-1 transition-all duration-300 ${isActive ? 'font-medium text-white' : 'text-gray-500'}`}>
+      <span className={`text-xs mt-1 transition-all duration-300 ${isActive ? 'font-medium text-white' : 'text-indigo-300'}`}>
         {label}
       </span>
     </Link>

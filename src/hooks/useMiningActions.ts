@@ -6,15 +6,18 @@ import { saveUserData } from "@/utils/storage";
 import { useAuth } from "@/contexts/AuthContext";
 
 /**
- * Hook for handling mining control actions
+ * Hook for handling mining control actions with improved UX
  */
 export function useMiningActions(state: MiningState, setState: React.Dispatch<React.SetStateAction<MiningState>>) {
   const { currentUser } = useAuth();
   
-  // Start mining function
+  // Start mining function with enhanced feedback
   const handleStartMining = useCallback(() => {
     if (!currentUser) {
-      toast.error("Madencilik yapmak için giriş yapmalısınız!");
+      toast.error("You must be logged in to start mining!", {
+        style: { background: "#4338ca", color: "white", border: "1px solid #3730a3" },
+        icon: '⚠️'
+      });
       return;
     }
     
@@ -49,11 +52,14 @@ export function useMiningActions(state: MiningState, setState: React.Dispatch<Re
       return newState;
     });
     
-    // Show confirmation toast
-    toast.success("Madencilik başlatıldı!");
+    // Show confirmation toast with improved styling
+    toast.success("Mining started successfully!", {
+      style: { background: "#4338ca", color: "white", border: "1px solid #3730a3" },
+      icon: '⛏️'
+    });
   }, [currentUser, setState]);
 
-  // Stop mining function
+  // Stop mining function with enhanced feedback
   const handleStopMining = useCallback(() => {
     console.log("Stopping mining...");
     setState(prev => {
@@ -86,8 +92,11 @@ export function useMiningActions(state: MiningState, setState: React.Dispatch<Re
       return newState;
     });
     
-    // Show confirmation toast
-    toast.info("Madencilik durduruldu");
+    // Show confirmation toast with improved styling
+    toast.info("Mining stopped", {
+      style: { background: "#4338ca", color: "white", border: "1px solid #3730a3" },
+      icon: '🛑'
+    });
   }, [setState]);
 
   return {

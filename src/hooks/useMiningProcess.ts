@@ -6,7 +6,7 @@ import { calculateProgress } from '@/utils/miningUtils';
 import { toast } from "sonner";
 
 /**
- * Hook for handling the mining process
+ * Hook for handling the mining process with improved UI feedback
  */
 export function useMiningProcess(state: MiningState, setState: React.Dispatch<React.SetStateAction<MiningState>>) {
   // Reference to track interval ID
@@ -34,7 +34,6 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
           
           // Calculate new time
           const newTime = Math.max(prev.miningTime - 1, 0);
-          console.log("Mining time updated:", newTime);
           
           // Calculate elapsed seconds for reward timing (modulo 180 seconds = 3 minutes)
           const totalElapsed = prev.miningPeriod - newTime;
@@ -55,8 +54,11 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
               miningSession: 0 // Reset session on completion
             });
             
-            // Show completion toast
-            toast.info("Madencilik tamamlandı!");
+            // Show completion toast with improved styling
+            toast.info("Mining cycle completed!", {
+              style: { background: "#4338ca", color: "white", border: "1px solid #3730a3" },
+              icon: '🏆'
+            });
             
             return {
               ...prev,
@@ -73,8 +75,11 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
             const newBalance = prev.balance + prev.miningRate;
             const newSession = prev.miningSession + prev.miningRate;
             
-            // Show reward toast
-            toast.success(`+${prev.miningRate} NC kazandınız!`);
+            // Show reward toast with improved styling
+            toast.success(`+${prev.miningRate} NC earned!`, {
+              style: { background: "#4338ca", color: "white", border: "1px solid #3730a3" },
+              icon: '💰'
+            });
             
             // Update new balance in local storage only
             saveUserData({
