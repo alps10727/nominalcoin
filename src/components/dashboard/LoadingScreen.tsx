@@ -1,5 +1,5 @@
 
-import { RefreshCw, Sparkles, Wifi, WifiOff } from "lucide-react";
+import { RefreshCw, Zap, Wifi, WifiOff } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useEffect, useState } from "react";
 
@@ -95,32 +95,32 @@ const LoadingScreen = ({ message, forceOffline = false }: { message?: string, fo
   }, [loadingTime, offlineDetected]);
   
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-darkPurple-900 to-navy-900">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 to-gray-950">
       <div className="text-center relative">
         {/* Enhanced background elements */}
         <div className="absolute inset-0 -z-10">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-darkPurple-500/20 rounded-full blur-3xl"></div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-navy-500/30 rounded-full blur-2xl animate-pulse" style={{animationDuration: '4s'}}></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-teal-500/20 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-emerald-500/30 rounded-full blur-2xl animate-pulse" style={{animationDuration: '4s'}}></div>
         </div>
         
         <div className="relative z-10">
           <div className="relative flex items-center justify-center mb-4">
             {/* More dynamic animations */}
-            <div className="absolute w-24 h-24 rounded-full border-4 border-t-darkPurple-400/80 border-r-darkPurple-400/50 border-b-darkPurple-400/30 border-l-darkPurple-400/10 animate-spin-slow"></div>
+            <div className="absolute w-24 h-24 rounded-full border-4 border-t-teal-400/80 border-r-teal-400/50 border-b-teal-400/30 border-l-teal-400/10 animate-spin-slow"></div>
             
             {/* Inner circle with better contrast */}
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-darkPurple-600 to-navy-700 flex items-center justify-center shadow-lg">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-teal-600 to-emerald-700 flex items-center justify-center shadow-lg">
               {offlineDetected ? (
                 <WifiOff className="h-8 w-8 text-red-300" />
               ) : (
-                <RefreshCw className="h-8 w-8 text-darkPurple-200 animate-spin" />
+                <RefreshCw className="h-8 w-8 text-teal-200 animate-spin" />
               )}
             </div>
             
             {/* Better decoration elements */}
-            <Sparkles className="absolute top-0 right-0 h-5 w-5 text-darkPurple-300/90 animate-pulse" />
-            <Sparkles className="absolute bottom-0 left-0 h-5 w-5 text-darkPurple-300/90 animate-pulse" style={{animationDelay: '0.5s'}} />
-            <Sparkles className="absolute top-4 left-4 h-3 w-3 text-darkPurple-300/70 animate-pulse" style={{animationDelay: '1s'}} />
+            <Zap className="absolute top-0 right-0 h-5 w-5 text-teal-300/90 animate-pulse" />
+            <Zap className="absolute bottom-0 left-0 h-5 w-5 text-teal-300/90 animate-pulse" style={{animationDelay: '0.5s'}} />
+            <Zap className="absolute top-4 left-4 h-3 w-3 text-teal-300/70 animate-pulse" style={{animationDelay: '1s'}} />
             
             {/* Improved offline indicator */}
             {offlineDetected && (
@@ -131,16 +131,16 @@ const LoadingScreen = ({ message, forceOffline = false }: { message?: string, fo
             )}
           </div>
           
-          <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-darkPurple-200 to-navy-200">
+          <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-200 to-emerald-200">
             {translationFunction('app.title')}
           </h2>
-          <p className="mt-2 text-darkPurple-300 font-medium">
+          <p className="mt-2 text-teal-300 font-medium">
             {loadingMessage}
           </p>
           
           {/* More informative loading state for long waits */}
           {(loadingTime > 6 || forceOffline) && (
-            <div className="mt-4 p-3 bg-darkPurple-800/60 border border-darkPurple-700/80 rounded-md text-sm text-darkPurple-300">
+            <div className="mt-4 p-3 bg-teal-800/20 border border-teal-700/30 rounded-md text-sm text-teal-300">
               {forceOffline ? (
                 <p>Bu uygulama internet bağlantısı gerektirmektedir. Lütfen internet bağlantınızı açın ve sayfayı yenileyin.</p>
               ) : (
@@ -148,7 +148,7 @@ const LoadingScreen = ({ message, forceOffline = false }: { message?: string, fo
               )}
               
               {(loadingTime > 8 && offlineDetected) && (
-                <p className="mt-2 font-semibold text-darkPurple-200">Sayfa otomatik olarak yenilenecek...</p>
+                <p className="mt-2 font-semibold text-teal-200">Sayfa otomatik olarak yenilenecek...</p>
               )}
             </div>
           )}
