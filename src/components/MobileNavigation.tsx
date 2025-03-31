@@ -11,7 +11,7 @@ const MobileNavigation = () => {
   const { currentUser } = useAuth();
 
   return (
-    <nav className="bg-gradient-to-r from-navy-950 via-darkPurple-950 to-navy-950 backdrop-blur-xl border-t border-cyan-500/20 fixed bottom-0 left-0 right-0 flex justify-around p-3 z-10 shadow-[0_-4px_20px_rgba(0,0,0,0.4)] pb-safe">
+    <nav className="bg-gradient-to-r from-navy-950 via-darkPurple-950 to-navy-950 backdrop-blur-xl border-t border-purple-500/20 fixed bottom-0 left-0 right-0 flex justify-around p-3 z-10 shadow-[0_-4px_20px_rgba(0,0,0,0.4)] pb-safe">
       <NavItem 
         to="/" 
         icon={Coins} 
@@ -60,11 +60,11 @@ const NavItem = ({ to, icon: Icon, label, isActive }: {
   return (
     <Link to={to} className="flex flex-col items-center transition-all duration-300 relative z-10">
       <div className={`p-2 rounded-xl transition-all duration-300 ${isActive 
-        ? 'bg-gradient-to-r from-cyan-600 to-indigo-700 text-white shadow-lg shadow-cyan-900/40 scale-110' 
-        : 'text-gray-400 hover:bg-navy-800/60 hover:text-cyan-300'}`}>
+        ? 'bg-gradient-to-r from-purple-600 to-indigo-700 text-white shadow-lg shadow-purple-900/40 scale-110' 
+        : 'text-gray-400 hover:bg-navy-800/60 hover:text-purple-300'}`}>
         <Icon className="h-5 w-5" />
       </div>
-      <span className={`text-xs mt-1 transition-all duration-300 ${isActive ? 'font-medium text-cyan-200' : 'text-gray-400'}`}>
+      <span className={`text-xs mt-1 transition-all duration-300 ${isActive ? 'font-medium text-purple-200' : 'text-gray-400'}`}>
         {label}
       </span>
     </Link>
