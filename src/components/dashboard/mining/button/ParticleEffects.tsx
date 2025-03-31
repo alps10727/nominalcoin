@@ -21,6 +21,12 @@ export const ParticleEffects = React.memo<ParticleEffectsProps>(({ miningActive 
             style={{animationDelay: '1.3s'}}></div>
           <div className="absolute top-1/3 right-1/3 h-1 w-1 rounded-full bg-indigo-300/80 animate-float-1" 
             style={{animationDelay: '1.7s'}}></div>
+            
+          {/* Additional active particles */}
+          <div className="absolute top-1/4 left-1/2 h-1 w-1 rounded-full bg-purple-300/80 animate-float-2" 
+            style={{animationDelay: '2.1s'}}></div>
+          <div className="absolute bottom-1/4 right-1/2 h-1 w-1 rounded-full bg-indigo-300/80 animate-float-3" 
+            style={{animationDelay: '2.5s'}}></div>
         </>
       )}
       
@@ -35,6 +41,20 @@ export const ParticleEffects = React.memo<ParticleEffectsProps>(({ miningActive 
             style={{animationDuration: '7s', animationDelay: '0.5s'}}></div>
           <div className="absolute bottom-1/3 right-1/2 h-1.5 w-1.5 rounded-full bg-cyan-400/70 animate-float-3" 
             style={{animationDuration: '5.5s', animationDelay: '1.2s'}}></div>
+            
+          {/* Orbital particles for inactive state */}
+          <div className="absolute top-1/2 right-0 h-2 w-2 rounded-full bg-indigo-400/30 animate-double-spin" 
+            style={{
+              transformOrigin: 'center left', 
+              animationDuration: '8s',
+              left: '50%'
+            }}></div>
+          <div className="absolute bottom-0 left-1/2 h-2 w-2 rounded-full bg-purple-400/30 animate-double-reverse-spin" 
+            style={{
+              transformOrigin: 'center top', 
+              animationDuration: '10s',
+              top: '50%'
+            }}></div>
         </>
       )}
     </div>

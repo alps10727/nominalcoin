@@ -122,6 +122,17 @@
     0%, 100% { opacity: 0.2; }
     50% { opacity: 1; }
   }
+  
+  /* New double-spin animations */
+  @keyframes double-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  @keyframes double-reverse-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(-360deg); }
+  }
 }
 
 .animate-float-1 {
@@ -150,4 +161,12 @@
 
 .animate-star-twinkle {
   animation: star-twinkle 2s ease-in-out infinite;
+}
+
+.animate-double-spin {
+  animation: double-spin 10s linear infinite;
+}
+
+.animate-double-reverse-spin {
+  animation: double-reverse-spin 12s linear infinite;
 }
