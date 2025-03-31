@@ -137,6 +137,14 @@ export default {
 					'0%': { transform: 'translateY(0)', opacity: '0' },
 					'50%': { opacity: '1' },
 					'100%': { transform: 'translateY(-20px)', opacity: '0' }
+				},
+				orbit: {
+					'0%': { transform: 'rotate(0deg) translateX(85px) rotate(0deg)' },
+					'100%': { transform: 'rotate(360deg) translateX(85px) rotate(-360deg)' }
+				},
+				nebula: {
+					'0%': { transform: 'rotate(0deg)' },
+					'100%': { transform: 'rotate(360deg)' }
 				}
 			},
 			animation: {
@@ -148,6 +156,9 @@ export default {
 				'spin-slow': 'spin 8s linear infinite',
 				'sheen': 'sheen 0.8s ease-in-out',
 				'float': 'float 3s ease-in-out infinite',
+				'nebula-shift': 'nebula 30s linear infinite',
+				'star-twinkle': 'pulse 2s ease-in-out infinite',
+				'cosmic-pulse': 'pulse 6s ease-in-out infinite'
 			}
 		}
 	},
