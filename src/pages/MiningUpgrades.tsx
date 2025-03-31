@@ -3,8 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { BarChart, Coins } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTheme } from "@/contexts/ThemeContext";
-import Header from "@/components/Header";
-import MobileNavigation from "@/components/MobileNavigation";
 import { useUpgrades } from "@/hooks/useUpgrades";
 import UpgradesGrid from "@/components/mining/UpgradesGrid";
 
@@ -14,9 +12,7 @@ const MiningUpgrades = () => {
   const { balance, upgrades, purchaseUpgrade } = useUpgrades();
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-navy-950 to-blue-950 dark:from-navy-950 dark:to-blue-950 flex flex-col`}>
-      <Header />
-
+    <div className="min-h-screen bg-gradient-to-br from-navy-950 to-blue-950 dark:from-navy-950 dark:to-blue-950 flex flex-col">
       <main className="flex-1 p-5 max-w-3xl mx-auto w-full pb-24 md:pb-5">
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-white">{t('mining.upgrades')}</h1>
@@ -45,8 +41,6 @@ const MiningUpgrades = () => {
           </CardContent>
         </Card>
       </main>
-
-      <MobileNavigation />
     </div>
   );
 };

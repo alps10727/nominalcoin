@@ -5,8 +5,6 @@ import { Button } from "@/components/ui/button";
 import { UserPlus, Copy, Share, CheckCircle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTheme } from "@/contexts/ThemeContext";
-import Header from "@/components/Header";
-import MobileNavigation from "@/components/MobileNavigation";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 
@@ -42,20 +40,18 @@ const Referral = () => {
   };
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-gray-900 to-indigo-950 dark:from-gray-950 dark:to-indigo-950 flex flex-col`}>
-      <Header />
-
+    <div className="min-h-screen bg-gradient-to-br from-navy-950 to-blue-950 dark:from-navy-950 dark:to-blue-950 flex flex-col">
       <main className="flex-1 p-5 max-w-3xl mx-auto w-full pb-24 md:pb-5">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-white">{t('referral.title')}</h1>
         </div>
 
-        <Card className="mb-6 overflow-hidden border-none shadow-lg bg-gray-800 dark:bg-gray-850">
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-900 to-indigo-800 opacity-90"></div>
+        <Card className="mb-6 overflow-hidden border-none shadow-lg bg-navy-800 dark:bg-navy-850">
+          <div className="absolute inset-0 bg-gradient-to-r from-teal-900 to-blue-800 opacity-90"></div>
           <CardHeader className="relative z-10">
             <CardTitle className="text-lg font-medium text-gray-200">
               <div className="flex items-center">
-                <UserPlus className="h-5 w-5 mr-2 text-purple-300" />
+                <UserPlus className="h-5 w-5 mr-2 text-teal-300" />
                 {t('referral.title')}
               </div>
             </CardTitle>
@@ -73,7 +69,7 @@ const Referral = () => {
                   <Input 
                     value={referralCode} 
                     readOnly
-                    className="pr-10 bg-gray-700/50 border-gray-600 text-white"
+                    className="pr-10 bg-navy-700/50 border-navy-600 text-white"
                   />
                   <Button 
                     variant="ghost" 
@@ -94,7 +90,7 @@ const Referral = () => {
                   <Input 
                     value={referralLink} 
                     readOnly
-                    className="pr-10 bg-gray-700/50 border-gray-600 text-white"
+                    className="pr-10 bg-navy-700/50 border-navy-600 text-white"
                   />
                   <Button 
                     variant="ghost" 
@@ -108,11 +104,11 @@ const Referral = () => {
               </div>
 
               <Button 
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white" 
+                className="w-full bg-teal-600 hover:bg-teal-700 text-white" 
                 onClick={shareReferral}
               >
                 <Share className="h-4 w-4 mr-2" />
-                {t('referral.link')}
+                {t('referral.share')}
               </Button>
 
               <div className="text-center mt-6 text-gray-300">
@@ -123,19 +119,19 @@ const Referral = () => {
         </Card>
 
         <div className="grid grid-cols-2 gap-4 mb-6">
-          <Card className="border-none shadow-md bg-gray-800 text-gray-100 dark:bg-gray-850">
+          <Card className="border-none shadow-md bg-navy-800 text-gray-100 dark:bg-navy-850">
             <CardHeader className="pb-2">
               <CardTitle className="text-base text-center">Referrals</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-center">
-                <p className="text-3xl font-bold text-indigo-400">{referralCount}</p>
+                <p className="text-3xl font-bold text-teal-400">{referralCount}</p>
                 <p className="text-sm text-gray-400">Friends joined</p>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-none shadow-md bg-gray-800 text-gray-100 dark:bg-gray-850">
+          <Card className="border-none shadow-md bg-navy-800 text-gray-100 dark:bg-navy-850">
             <CardHeader className="pb-2">
               <CardTitle className="text-base text-center">Total Earned</CardTitle>
             </CardHeader>
@@ -148,8 +144,6 @@ const Referral = () => {
           </Card>
         </div>
       </main>
-
-      <MobileNavigation />
     </div>
   );
 };
