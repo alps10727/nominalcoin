@@ -5,7 +5,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "@/contexts/ThemeContext";
 import { MiningBackground } from "./mining/MiningBackground";
 import { MiningButton } from "./mining/MiningButton";
-import { MiningCardFooter } from "./mining/MiningCardFooter";
 import { MiningProgressBar } from "./mining/MiningProgressBar";
 
 interface MiningCardProps {
@@ -21,7 +20,6 @@ interface MiningCardProps {
 const MiningCard = React.memo<MiningCardProps>(({
   miningActive,
   progress,
-  miningRate,
   miningSession,
   miningTime,
   onStartMining,
@@ -41,15 +39,15 @@ const MiningCard = React.memo<MiningCardProps>(({
   }, [miningActive, onStartMining, onStopMining]);
 
   return (
-    <Card className="mb-4 border border-indigo-800/20 overflow-hidden shadow-md transition-all duration-300 relative rounded-xl max-w-sm mx-auto">
+    <Card className="mb-4 border border-indigo-800/20 overflow-hidden shadow-md transition-all duration-300 relative rounded-xl max-w-xs mx-auto">
       {/* Background */}
       <MiningBackground />
       
       {/* Content - smaller padding */}
-      <CardContent className={`relative z-10 pt-3 ${isMobile ? "px-3 pb-3" : "px-4 pb-3"}`}>
+      <CardContent className={`relative z-10 ${isMobile ? "px-2 py-2" : "px-3 py-3"}`}>
         <MiningProgressBar progress={progress} miningActive={miningActive} />
       
-        <div className="text-center my-4">
+        <div className="text-center my-2">
           <MiningButton 
             miningActive={miningActive}
             miningTime={miningTime}
@@ -58,10 +56,7 @@ const MiningCard = React.memo<MiningCardProps>(({
         </div>
       </CardContent>
       
-      <MiningCardFooter 
-        miningSession={miningSession}
-        miningRate={miningRate}
-      />
+      {/* Footer removed as requested */}
     </Card>
   );
 });
