@@ -1,3 +1,4 @@
+
 interface UserData {
   userId?: string;
   balance: number;
@@ -37,7 +38,7 @@ export function saveUserData(userData: UserData): void {
     const sanitizedData = {
       ...userData,
       balance: userData.balance || 0,
-      miningRate: userData.miningRate || 0.01,
+      miningRate: userData.miningRate || 0.1, // 3 dakikada 0.3 NC 
       lastSaved: userData.lastSaved || Date.now(),
     };
     

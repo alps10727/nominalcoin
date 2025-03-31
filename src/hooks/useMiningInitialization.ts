@@ -17,7 +17,7 @@ export function useMiningInitialization() {
     miningActive: false,
     progress: 0,
     balance: 0,
-    miningRate: 0.01, // Default mining rate
+    miningRate: 0.1, // 3 dakikada 0.3 NC (0.1 * 3)
     miningSession: 0,
     miningTime: 21600, // 6 hours in seconds
     miningPeriod: 21600, // Total period 6 hours
@@ -40,7 +40,7 @@ export function useMiningInitialization() {
           isLoading: false,
           userId: currentUser?.uid,
           balance: savedData.balance || 0,
-          miningRate: savedData.miningRate || 0.01,
+          miningRate: savedData.miningRate || 0.1, // 3 dakikada 0.3 NC 
           miningActive: savedData.miningActive || false,
           miningTime: savedData.miningTime != null ? savedData.miningTime : 21600,
           miningPeriod: savedData.miningPeriod || 21600,

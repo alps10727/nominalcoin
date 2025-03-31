@@ -18,7 +18,7 @@ export const MiningButtonBase = React.memo<MiningButtonBaseProps>(({
   return (
     <div className="mx-auto flex items-center justify-center">
       <button 
-        className={`relative w-28 h-28 rounded-full flex items-center justify-center cursor-pointer z-10 transition-all duration-700 ${
+        className={`relative w-32 h-32 rounded-full flex items-center justify-center cursor-pointer z-10 transition-all duration-700 ${
           miningActive ? 'scale-110' : 'scale-100 hover:scale-105'
         }`}
         onClick={onClick}

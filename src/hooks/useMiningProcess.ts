@@ -38,7 +38,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
           // Calculate elapsed seconds for reward timing (modulo 180 seconds = 3 minutes)
           const totalElapsed = prev.miningPeriod - newTime;
           const elapsedSeconds = totalElapsed % 180; 
-          const addReward = elapsedSeconds === 0 && totalElapsed > 0; // Every 3 minutes (180 seconds)
+          const addReward = elapsedSeconds === 0 && totalElapsed > 0; // Her 3 dakikada bir (180 saniye)
           
           // Check if mining cycle is complete
           if (newTime <= 0) {
@@ -72,11 +72,13 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
           // Add mining reward every 3 minutes (180 seconds)
           if (addReward) {
             console.log("Adding mining reward");
-            const newBalance = prev.balance + prev.miningRate;
-            const newSession = prev.miningSession + prev.miningRate;
+            // Her 3 dakikada bir 0.3 NC elde etmek için miningRate * 3 şeklinde hesaplama
+            const rewardAmount = prev.miningRate * 3;
+            const newBalance = prev.balance + rewardAmount;
+            const newSession = prev.miningSession + rewardAmount;
             
             // Show reward toast with improved styling
-            toast.success(`+${prev.miningRate} NC earned!`, {
+            toast.success(`+${rewardAmount.toFixed(2)} NC earned!`, {
               style: { background: "#4338ca", color: "white", border: "1px solid #3730a3" },
               icon: '💰'
             });

@@ -12,9 +12,10 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
   const { t } = useLanguage();
   const isMobile = useIsMobile();
   
-  // Hourly and daily calculations
-  const hourlyRate = (miningRate * 20).toFixed(3); // 20 times per hour (60/3)
-  const dailyRate = (miningRate * 20 * 24).toFixed(2); // 24 hours per day
+  // Hesaplamalar - 3 dakikada bir kazanılacak NC miktarı
+  const cycleReward = (miningRate * 3).toFixed(2); // 3 dakikalık döngü başına NC
+  const hourlyRate = (miningRate * 20).toFixed(2); // Saatlik: 20 döngü/saat (60/3)
+  const dailyRate = (miningRate * 20 * 24).toFixed(2); // Günlük: saatlik oran x 24 saat
   
   return (
     <Card className="mb-4 overflow-hidden relative border-none shadow-md bg-gradient-to-r from-darkPurple-900/90 to-gray-900/90">
@@ -37,19 +38,19 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
         <div className="flex flex-col justify-between bg-gradient-to-br from-darkPurple-900/40 to-gray-900/40 rounded-lg p-3 border border-darkPurple-500/20">
           <div className="flex items-center gap-2 mb-1">
             <Activity className="h-4 w-4 text-purple-300" />
-            <span className="text-xs font-medium text-purple-200">Efficiency</span>
+            <span className="text-xs font-medium text-purple-200">Mining Power</span>
           </div>
           
           <div className="flex flex-col gap-1 mt-1">
             <div className="flex justify-between text-xs">
-              <span className="text-gray-400">Current</span>
-              <span className="text-purple-300 font-medium">{(miningRate * 100).toFixed(1)}%</span>
+              <span className="text-gray-400">Base Rate</span>
+              <span className="text-purple-300 font-medium">{cycleReward} NC/3min</span>
             </div>
             
             <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
               <div 
                 className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-500"
-                style={{width: `${Math.min(miningRate * 10000, 100)}%`}}
+                style={{width: `${Math.min((miningRate * 3) * 100, 100)}%`}}
               ></div>
             </div>
           </div>
@@ -59,12 +60,12 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
         <div className="flex flex-col justify-between bg-gradient-to-br from-darkPurple-900/40 to-gray-900/40 rounded-lg p-3 border border-darkPurple-500/20">
           <div className="flex items-center gap-2 mb-1">
             <Zap className="h-4 w-4 text-purple-300" />
-            <span className="text-xs font-medium text-purple-200">Power</span>
+            <span className="text-xs font-medium text-purple-200">Rewards</span>
           </div>
           
           <div className="flex justify-between items-end mt-1">
             <span className="text-xs text-gray-400">NC/cycle</span>
-            <span className="text-lg font-bold text-purple-300">{miningRate.toFixed(4)}</span>
+            <span className="text-lg font-bold text-purple-300">{(miningRate * 3).toFixed(2)}</span>
           </div>
         </div>
         
