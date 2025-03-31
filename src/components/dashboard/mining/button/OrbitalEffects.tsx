@@ -14,8 +14,8 @@ export const OrbitalEffects = React.memo<OrbitalEffectsProps>(({ miningActive })
       {/* First orbit */}
       <div className={`absolute w-3 h-3 rounded-full ${
         miningActive 
-          ? 'bg-cyan-500/40 animate-reverse-spin' 
-          : 'bg-indigo-500/30 animate-reverse-spin'
+          ? 'bg-purple-500/40 animate-reverse-spin' 
+          : 'bg-darkPurple-500/30 animate-reverse-spin'
       }`} style={{
         top: '10%', 
         left: '10%', 
@@ -27,8 +27,8 @@ export const OrbitalEffects = React.memo<OrbitalEffectsProps>(({ miningActive })
       {/* Second orbit (spinning in opposite direction) */}
       <div className={`absolute w-2 h-2 rounded-full ${
         miningActive 
-          ? 'bg-indigo-500/40 animate-spin-slow' 
-          : 'bg-darkPurple-500/30 animate-spin-slow'
+          ? 'bg-darkPurple-500/40 animate-spin-slow' 
+          : 'bg-purple-600/30 animate-spin-slow'
       }`} style={{
         bottom: '10%', 
         right: '10%', 
@@ -41,7 +41,7 @@ export const OrbitalEffects = React.memo<OrbitalEffectsProps>(({ miningActive })
       <div className={`absolute w-2.5 h-2.5 rounded-full ${
         miningActive 
           ? 'bg-purple-500/30 animate-spin-slow' 
-          : 'bg-indigo-500/20 animate-reverse-spin'
+          : 'bg-darkPurple-500/20 animate-reverse-spin'
       }`} style={{
         top: '15%', 
         right: '15%', 
@@ -53,7 +53,7 @@ export const OrbitalEffects = React.memo<OrbitalEffectsProps>(({ miningActive })
       {/* Fourth orbit - always visible but different speeds */}
       <div className={`absolute w-2 h-2 rounded-full ${
         miningActive 
-          ? 'bg-cyan-500/30 animate-reverse-spin' 
+          ? 'bg-darkPurple-400/30 animate-reverse-spin' 
           : 'bg-purple-500/20 animate-spin-slow'
       }`} style={{
         bottom: '15%', 
@@ -66,7 +66,7 @@ export const OrbitalEffects = React.memo<OrbitalEffectsProps>(({ miningActive })
       {/* New outer orbits - visible only in inactive state */}
       {!miningActive && (
         <>
-          <div className="absolute w-4 h-4 rounded-full bg-navy-400/20 animate-spin-slow" 
+          <div className="absolute w-4 h-4 rounded-full bg-darkPurple-400/20 animate-spin-slow" 
             style={{
               top: '5%', 
               right: '50%', 
@@ -86,14 +86,14 @@ export const OrbitalEffects = React.memo<OrbitalEffectsProps>(({ miningActive })
       {/* New inner orbits - visible only in active state */}
       {miningActive && (
         <>
-          <div className="absolute w-1.5 h-1.5 rounded-full bg-cyan-400/50 animate-spin-slow" 
+          <div className="absolute w-1.5 h-1.5 rounded-full bg-purple-400/50 animate-spin-slow" 
             style={{
               top: '30%', 
               left: '30%', 
               transformOrigin: '150% 150%',
               animationDuration: '4s'
             }}></div>
-          <div className="absolute w-1.5 h-1.5 rounded-full bg-indigo-400/50 animate-reverse-spin" 
+          <div className="absolute w-1.5 h-1.5 rounded-full bg-darkPurple-400/50 animate-reverse-spin" 
             style={{
               bottom: '30%', 
               right: '30%', 
