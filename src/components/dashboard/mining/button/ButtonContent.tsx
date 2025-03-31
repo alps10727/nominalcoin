@@ -16,7 +16,7 @@ export const ButtonContent = React.memo<ButtonContentProps>(({ miningActive, dis
       {miningActive ? (
         <>
           <Pause className="h-8 w-8 text-white mb-2 animate-pulse" style={{animationDuration: '1.5s'}} />
-          <span className="text-sm font-mono text-white font-medium tracking-wider bg-darkPurple-900/40 px-2 py-0.5 rounded-md">
+          <span className="text-sm font-mono text-white font-medium tracking-wider bg-darkPurple-900/60 px-2 py-0.5 rounded-md shadow-inner">
             {displayTime}
           </span>
           <span className="text-xs text-indigo-200 mt-1.5 font-semibold animate-pulse tracking-wider">
