@@ -25,8 +25,14 @@ export const ButtonContent = React.memo<ButtonContentProps>(({ miningActive, dis
         </>
       ) : (
         <>
-          <Play className="h-8 w-8 text-white mb-1 animate-cosmic-pulse" style={{animationDuration: '3s'}} />
-          <span className="text-sm text-white font-medium mt-1 tracking-wider animate-cosmic-pulse">START</span>
+          <div className="relative">
+            <Play className="h-9 w-9 text-white mb-1 animate-cosmic-pulse drop-shadow-lg" 
+              style={{animationDuration: '3s'}} />
+            <div className="absolute inset-0 bg-indigo-500/20 blur-md rounded-full -z-10"></div>
+          </div>
+          <span className="text-sm text-white font-bold mt-2 tracking-wider bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent animate-cosmic-pulse">
+            START
+          </span>
         </>
       )}
     </div>
