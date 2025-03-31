@@ -38,7 +38,7 @@ export function saveUserData(userData: UserData): void {
     const sanitizedData = {
       ...userData,
       balance: userData.balance || 0,
-      miningRate: userData.miningRate || 0.1, // 3 dakikada 0.3 NC (0.1 * 3)
+      miningRate: userData.miningRate || 0.1, // Updated default to 0.1 NC/min
       lastSaved: userData.lastSaved || Date.now(),
     };
     

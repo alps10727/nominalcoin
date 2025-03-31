@@ -8,9 +8,9 @@ import { useAuth } from "@/contexts/AuthContext";
 export function useUpgrades() {
   const { currentUser, userData, updateUserData } = useAuth();
   
-  // Initialize with default values for new users
+  // Initialize with default values for new users - updated default mining rate to 0.1
   const [balance, setBalance] = useState(0);
-  const [miningRate, setMiningRate] = useState(0.01);
+  const [miningRate, setMiningRate] = useState(0.1);
   
   // Default upgrade configurations for new users
   const [upgrades, setUpgrades] = useState<Upgrade[]>([
@@ -60,7 +60,7 @@ export function useUpgrades() {
     if (userData) {
       // Firebase'den gelen verileri kullan
       setBalance(userData.balance || 0);
-      setMiningRate(userData.miningRate || 0.01);
+      setMiningRate(userData.miningRate || 0.1);
       
       if (userData.upgrades && userData.upgrades.length > 0) {
         setUpgrades(userData.upgrades);

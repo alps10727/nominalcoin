@@ -68,7 +68,7 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
       // Hiçbir veri yoksa varsayılan değerler döndür
       return {
         balance: 0,
-        miningRate: 0.01,
+        miningRate: 0.1, // Updated default mining rate to 0.1
         lastSaved: Date.now(),
         miningActive: false
       };
