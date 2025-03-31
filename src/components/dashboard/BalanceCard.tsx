@@ -1,9 +1,7 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Coins, Sparkles, Gem } from "lucide-react";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useTheme } from "@/contexts/ThemeContext";
+import React from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { Diamond } from 'lucide-react';
 
 interface BalanceCardProps {
   balance: number;
@@ -11,68 +9,59 @@ interface BalanceCardProps {
 
 const BalanceCard = ({ balance }: BalanceCardProps) => {
   const { t } = useLanguage();
-  const isMobile = useIsMobile();
-  const { isDarkMode } = useTheme();
-
+  
   return (
-    <Card className="mb-6 overflow-hidden border border-purple-500/20 shadow-xl transition-all duration-500 group bg-gradient-to-br from-darkPurple-900/90 via-navy-800/90 to-darkPurple-900/90 rounded-xl">
-      {/* Background elements */}
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNGRkYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTRabTAtMjBjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTRabS0yMCAyMGMwLTIuMjA5LTEuNzkxLTQtNC00cy00IDEuNzkxLTQgNCAxLjc5MSA0IDQgNCA0LTEuNzkxIDQtNFptMC0yMGMwLTIuMjA5LTEuNzkxLTQtNC00cy00IDEuNzkxLTQgNCAxLjc5MSA0IDQgNCA0LTEuNzkxIDQtNFptNDAgMjBjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTRabTAtMjBjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTRaIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-10"></div>
+    <div className="relative bg-gradient-to-br from-darkPurple-900/80 to-navy-900/80 rounded-xl p-4 shadow-lg border border-purple-800/20 overflow-hidden backdrop-blur-lg">
+      {/* Cosmic background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute w-40 h-40 -top-20 -right-20 bg-purple-500/5 rounded-full blur-3xl"></div>
+        <div className="absolute w-40 h-40 -bottom-20 -left-20 bg-indigo-500/5 rounded-full blur-3xl"></div>
+      </div>
       
-      {/* Animated gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-purple-600/10 via-transparent to-indigo-500/10 animate-nebula-shift" style={{backgroundSize: '200% 200%', animationDuration: '8s'}}></div>
+      {/* Subtle background pattern */}
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDM0YzAtMi4yMDktMS43OTEtNC00LTRzLTQgMS43OTEtNCA0IDEuNzkxIDQgNCA0IDQtMS43OTEgNC00Wm0wLTIwYzAtMi4yMDktMS43OTEtNC00LTRzLTQgMS43OTEtNCA0IDEuNzkxIDQgNCA0IDQtMS43OTEgNC00Wm0tMjAgMjBjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTRabTAtMjBjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTRabTQwIDIwYzAtMi4yMDktMS43OTEtNC00LTRzLTQgMS43OTEtNCA0IDEuNzkxIDQgNCA0IDQtMS43OTEgNC00Wm0wLTIwYzAtMi4yMDktMS43OTEtNC00LTRzLTQgMS43OTEtNCA0IDEuNzkxIDQgNCA0IDQtMS43OTEgNC00WiIvPjwvZz48L2c+PC9zdmc+')] opacity-10"></div>
       
-      {/* Glass effect */}
-      <div className="absolute inset-0 backdrop-blur-sm"></div>
+      {/* Floating particles */}
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div 
+          key={i}
+          className="absolute w-1 h-1 bg-purple-300/20 rounded-full"
+          style={{
+            top: `${Math.random() * 100}%`,
+            left: `${Math.random() * 100}%`,
+            animation: `float-data ${2 + i}s ease-out infinite`,
+            animationDelay: `${i * 0.3}s`
+          }}
+        />
+      ))}
       
-      {/* Content */}
-      <CardHeader className={`relative z-10 ${isMobile ? 'px-4 py-3' : 'pb-2'}`}>
-        <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
-          <div className="p-1.5 bg-purple-500/20 rounded-lg border border-purple-400/30 backdrop-blur-sm">
-            <Gem className="h-4 w-4 text-purple-300" />
-          </div>
-          <span className="bg-gradient-to-r from-purple-100 to-indigo-200 bg-clip-text text-transparent">{t('balance.title')}</span>
-        </CardTitle>
-      </CardHeader>
+      <div className="flex items-center mb-2 relative z-10">
+        <Diamond className="text-indigo-400 h-5 w-5 mr-2" />
+        <span className="text-indigo-100 font-medium">{t('balance.title')}</span>
+      </div>
       
-      <CardContent className={`relative z-10 ${isMobile ? 'px-4 pb-4' : ''}`}>
-        <div className="flex items-center">
-          <div className="flex-1">
-            <div className="flex items-baseline">
-              <span className={`${isMobile ? 'text-4xl' : 'text-5xl'} font-bold text-white`}>
-                {balance.toFixed(3)}
-              </span>
-              <span className="ml-2 text-xl text-purple-300 font-medium">NC</span>
-            </div>
-            <p className="text-purple-200/80 mt-1 text-sm">{t('balance.total')}</p>
-            
-            {/* Data visualization bar */}
-            <div className="relative mt-3">
-              <div className="h-1.5 bg-darkPurple-800/50 rounded-full w-full"></div>
-              <div className="h-1.5 bg-gradient-to-r from-purple-400 to-indigo-300 rounded-full absolute top-0 left-0" style={{width: `${Math.min(balance * 10, 100)}%`}}></div>
-            </div>
-          </div>
-          
-          {/* Decorative element */}
-          <div className="hidden md:block w-24 h-24 relative">
-            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-600/10 to-indigo-500/10 animate-pulse-slow"></div>
-            <Coins className="w-full h-full text-purple-400/20" />
-          </div>
+      <div className="flex flex-col space-y-2 relative z-10">
+        <h1 className="text-3xl font-bold text-white">
+          {balance.toLocaleString()} <span className="text-lg font-medium text-indigo-300">NC</span>
+        </h1>
+        <p className="text-indigo-200/90 text-sm">{t('balance.subtitle')}</p>
+        
+        {/* Progress bar to show account status */}
+        <div className="w-full bg-darkPurple-800/50 rounded-full h-1.5 mt-2 overflow-hidden">
+          <div className="bg-gradient-to-r from-indigo-600 to-purple-500 h-full rounded-full w-1/3"></div>
         </div>
         
-        {/* Stats chips */}
-        <div className="flex gap-2 mt-4">
-          <div className="bg-darkPurple-800/30 px-2 py-1 rounded-md text-xs text-purple-200 border border-purple-500/20 backdrop-blur-sm">
-            <span className="font-medium">Today: </span>
-            <span className="text-indigo-300">+{(balance * 0.05).toFixed(2)} NC</span>
+        {/* Stats with enhanced styling */}
+        <div className="flex justify-between text-xs pt-1">
+          <div className="text-indigo-300/80 px-2 py-0.5 rounded-full bg-indigo-900/20 backdrop-blur-sm">
+            {t('balance.today')}: <span className="text-green-400">+0.76 NC</span>
           </div>
-          <div className="bg-darkPurple-800/30 px-2 py-1 rounded-md text-xs text-purple-200 border border-purple-500/20 backdrop-blur-sm">
-            <span className="font-medium">Week: </span>
-            <span className="text-indigo-300">+{(balance * 0.23).toFixed(2)} NC</span>
+          <div className="text-indigo-300/80 px-2 py-0.5 rounded-full bg-indigo-900/20 backdrop-blur-sm">
+            {t('balance.week')}: <span className="text-green-400">+3.52 NC</span>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 

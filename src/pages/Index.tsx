@@ -12,6 +12,7 @@ import MiningRateCard from "@/components/dashboard/MiningRateCard";
 import MenuCard from "@/components/dashboard/MenuCard";
 import StatisticsButton from "@/components/dashboard/StatisticsButton";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
+import HeaderDecoration from "@/components/dashboard/HeaderDecoration";
 
 const Index = () => {
   const {
@@ -73,6 +74,9 @@ const Index = () => {
       </div>
 
       <main className={`flex-1 ${isMobile ? 'px-4 py-4' : 'px-6 py-5'} max-w-3xl mx-auto w-full ${isMobile ? 'pb-24' : 'pb-8'} relative z-10`}>
+        {/* Header decoration to fill the space */}
+        <HeaderDecoration />
+        
         {/* App content with improved spacing */}
         <div className="space-y-5">
           <BalanceCard balance={balance} />
