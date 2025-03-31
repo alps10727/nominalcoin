@@ -1,7 +1,6 @@
 
 import { useCallback } from 'react';
 import { MiningState } from '@/types/mining';
-import { toast } from "sonner";
 import { saveUserData } from "@/utils/storage";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -14,10 +13,6 @@ export function useMiningActions(state: MiningState, setState: React.Dispatch<Re
   // Start mining function with enhanced feedback
   const handleStartMining = useCallback(() => {
     if (!currentUser) {
-      toast.error("You must be logged in to start mining!", {
-        style: { background: "#4338ca", color: "white", border: "1px solid #3730a3" },
-        icon: '⚠️'
-      });
       return;
     }
     
@@ -50,12 +45,6 @@ export function useMiningActions(state: MiningState, setState: React.Dispatch<Re
       });
       
       return newState;
-    });
-    
-    // Show confirmation toast with improved styling
-    toast.success("Mining started successfully!", {
-      style: { background: "#4338ca", color: "white", border: "1px solid #3730a3" },
-      icon: '⛏️'
     });
   }, [currentUser, setState]);
 
@@ -90,12 +79,6 @@ export function useMiningActions(state: MiningState, setState: React.Dispatch<Re
       });
       
       return newState;
-    });
-    
-    // Show confirmation toast with improved styling
-    toast.info("Mining stopped", {
-      style: { background: "#4338ca", color: "white", border: "1px solid #3730a3" },
-      icon: '🛑'
     });
   }, [setState]);
 
