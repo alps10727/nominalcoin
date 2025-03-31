@@ -87,7 +87,7 @@ export async function saveUserDataToFirebase(userId: string, userData: UserData)
     const sanitizedData = {
       ...userData,
       balance: userData.balance || 0,
-      miningRate: userData.miningRate || 0.01,
+      miningRate: userData.miningRate || 0.1, // Updated to 0.1 from 0.01
     };
     
     // Her zaman önce yerel depoya kaydet (daha hızlı erişim için)
@@ -130,7 +130,7 @@ export async function initializeMiningStateFromFirebase(userId: string): Promise
         isLoading: false,
         userId: localData.userId,
         balance: localData.balance || 0,
-        miningRate: localData.miningRate || 0.01,
+        miningRate: localData.miningRate || 0.1, // Updated to 0.1 from 0.01
         miningActive: localData.miningActive || false,
         miningTime: localData.miningTime || 21600,
         miningPeriod: localData.miningPeriod || 21600,
@@ -147,7 +147,7 @@ export async function initializeMiningStateFromFirebase(userId: string): Promise
         isLoading: false,
         userId: userData.userId,
         balance: userData.balance || 0,
-        miningRate: userData.miningRate || 0.01,
+        miningRate: userData.miningRate || 0.1, // Updated to 0.1 from 0.01
         miningActive: userData.miningActive || false,
         miningTime: userData.miningTime || 21600,
         miningPeriod: userData.miningPeriod || 21600,
@@ -163,7 +163,7 @@ export async function initializeMiningStateFromFirebase(userId: string): Promise
   return {
     isLoading: false,
     balance: 0,
-    miningRate: 0.01,
+    miningRate: 0.1, // Updated to 0.1 from 0.01
     miningActive: false,
     miningTime: 21600,
     miningPeriod: 21600,
