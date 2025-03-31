@@ -73,12 +73,12 @@ const Index = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-darkPurple-950 via-darkPurple-950/70 to-transparent"></div>
       </div>
 
-      <main className={`flex-1 ${isMobile ? 'px-4 py-4' : 'px-6 py-5'} max-w-3xl mx-auto w-full ${isMobile ? 'pb-24' : 'pb-8'} relative z-10`}>
-        {/* Header decoration to fill the space */}
+      <main className={`flex-1 ${isMobile ? 'px-3 py-3' : 'px-6 py-5'} max-w-3xl mx-auto w-full ${isMobile ? 'pb-24' : 'pb-8'} relative z-10`}>
+        {/* Header decoration - no gaps */}
         <HeaderDecoration />
         
         {/* App content with improved spacing */}
-        <div className="space-y-5">
+        <div className="space-y-4">
           <BalanceCard balance={balance} />
 
           <MiningCard 
@@ -94,7 +94,7 @@ const Index = () => {
           <MiningRateCard miningRate={miningRate} />
 
           {/* Menu cards with improved grid layout */}
-          <div className="grid grid-cols-2 gap-4 mb-5">
+          <div className="grid grid-cols-2 gap-3 mb-4">
             <MenuCard 
               title={t('profile.title')}
               icon={User}
