@@ -13,7 +13,6 @@ export const Logo = () => {
       </div>
       <span className="font-bold text-lg tracking-tight uppercase">
         {t('app.title')}
-        <span className="ml-1 text-teal-400 font-medium text-sm tracking-tight lowercase">{t('app.coin')}</span>
       </span>
     </Link>
   );
