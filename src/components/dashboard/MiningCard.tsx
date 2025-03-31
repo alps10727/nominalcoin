@@ -39,15 +39,15 @@ const MiningCard = React.memo<MiningCardProps>(({
   }, [miningActive, onStartMining, onStopMining]);
 
   return (
-    <Card className="mb-4 border border-indigo-800/20 overflow-hidden shadow-md transition-all duration-300 relative rounded-xl max-w-xs mx-auto">
+    <Card className="mb-4 border border-indigo-800/20 overflow-hidden shadow-md transition-all duration-300 relative rounded-xl max-w-sm mx-auto">
       {/* Background */}
       <MiningBackground />
       
-      {/* Content - smaller padding */}
-      <CardContent className={`relative z-10 ${isMobile ? "px-2 py-2" : "px-3 py-3"}`}>
+      {/* Content - slightly larger padding */}
+      <CardContent className={`relative z-10 ${isMobile ? "px-3 py-3" : "px-4 py-4"}`}>
         <MiningProgressBar progress={progress} miningActive={miningActive} />
       
-        <div className="text-center my-2">
+        <div className="text-center my-3">
           <MiningButton 
             miningActive={miningActive}
             miningTime={miningTime}
