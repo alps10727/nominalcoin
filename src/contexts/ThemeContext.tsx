@@ -39,17 +39,17 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     // effects when other properties change
     const timer = setTimeout(() => {
       document.documentElement.classList.remove('theme-transition');
-    }, 700); // Increased duration for smoother transition
+    }, 700);
     
-    // Add custom properties for our new color theme
+    // Add custom properties for our new color theme - Updated with navy and deep purple
     if (theme === "dark") {
-      document.documentElement.style.setProperty('--primary', '173 80% 40%'); // teal-600
-      document.documentElement.style.setProperty('--secondary', '220 83% 16%'); // navy-900
-      document.documentElement.style.setProperty('--accent', '210 100% 20%'); // dark blue
+      document.documentElement.style.setProperty('--primary', '262 83% 58%'); // deep purple
+      document.documentElement.style.setProperty('--secondary', '240 64% 27%'); // navy blue
+      document.documentElement.style.setProperty('--accent', '250 95% 39%'); // vibrant purple
     } else {
-      document.documentElement.style.setProperty('--primary', '173 80% 45%'); // teal-500
-      document.documentElement.style.setProperty('--secondary', '217 33% 17%'); // navy-800
-      document.documentElement.style.setProperty('--accent', '210 100% 30%'); // blue
+      document.documentElement.style.setProperty('--primary', '262 83% 68%'); // lighter purple
+      document.documentElement.style.setProperty('--secondary', '240 60% 30%'); // lighter navy
+      document.documentElement.style.setProperty('--accent', '250 95% 45%'); // brighter purple
     }
     
     return () => clearTimeout(timer);

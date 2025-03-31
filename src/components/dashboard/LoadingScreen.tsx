@@ -83,10 +83,10 @@ const LoadingScreen = ({ message, forceOffline = false }: { message?: string, fo
   useEffect(() => {
     let reloadTimer: NodeJS.Timeout;
     
-    if (offlineDetected && loadingTime > 8) {  // Reduced from 10 to 8 seconds
+    if (offlineDetected && loadingTime > 8) {
       reloadTimer = setTimeout(() => {
         window.location.reload();
-      }, 3000); // Reduced from 5000ms to 3000ms
+      }, 3000);
     }
     
     return () => {
@@ -95,52 +95,77 @@ const LoadingScreen = ({ message, forceOffline = false }: { message?: string, fo
   }, [loadingTime, offlineDetected]);
   
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-darkPurple-900 to-navy-900">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-950 to-purple-950">
       <div className="text-center relative">
-        {/* Enhanced background elements */}
+        {/* Enhanced cosmic background elements */}
         <div className="absolute inset-0 -z-10">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-darkPurple-500/20 rounded-full blur-3xl"></div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-navy-500/30 rounded-full blur-2xl animate-pulse" style={{animationDuration: '4s'}}></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-indigo-500/15 rounded-full blur-3xl animate-pulse" style={{animationDuration: '6s'}}></div>
+          <div className="absolute top-1/4 right-1/4 w-24 h-24 bg-violet-400/10 rounded-full blur-xl animate-pulse" style={{animationDuration: '8s'}}></div>
+        </div>
+        
+        {/* Scattered stars */}
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(20)].map((_, i) => (
+            <div 
+              key={i}
+              className="absolute w-1 h-1 bg-white rounded-full animate-pulse"
+              style={{
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                opacity: Math.random() * 0.5 + 0.2,
+                animationDuration: `${2 + Math.random() * 4}s`,
+                animationDelay: `${Math.random() * 2}s`
+              }}
+            />
+          ))}
         </div>
         
         <div className="relative z-10">
-          <div className="relative flex items-center justify-center mb-4">
-            {/* More dynamic animations */}
-            <div className="absolute w-24 h-24 rounded-full border-4 border-t-darkPurple-400/80 border-r-darkPurple-400/50 border-b-darkPurple-400/30 border-l-darkPurple-400/10 animate-spin-slow"></div>
+          <div className="relative flex items-center justify-center mb-8">
+            {/* Outer orbit */}
+            <div className="absolute w-32 h-32 rounded-full border border-indigo-400/30 animate-spin" style={{animationDuration: '12s'}}></div>
+            <div className="absolute w-32 h-32 rounded-full border border-indigo-400/30 animate-spin" style={{animationDuration: '12s', animationDelay: '1s', transform: 'rotate(45deg)'}}></div>
             
-            {/* Inner circle with better contrast */}
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-darkPurple-600 to-navy-700 flex items-center justify-center shadow-lg">
+            {/* Orbital particles */}
+            <div className="absolute w-2 h-2 rounded-full bg-purple-400 top-1/2 left-0 animate-bounce" style={{animationDuration: '3s'}}></div>
+            <div className="absolute w-1.5 h-1.5 rounded-full bg-indigo-300 bottom-0 right-1/2 animate-bounce" style={{animationDuration: '2.5s'}}></div>
+            
+            {/* Inner circle with animated glow */}
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-800 to-purple-900 flex items-center justify-center shadow-[0_0_15px_rgba(129,140,248,0.5)]">
               {offlineDetected ? (
                 <WifiOff className="h-8 w-8 text-red-300" />
               ) : (
-                <RefreshCw className="h-8 w-8 text-darkPurple-200 animate-spin" />
+                <div className="relative">
+                  <RefreshCw className="h-8 w-8 text-indigo-200 animate-spin" />
+                  <div className="absolute inset-0 bg-indigo-500/20 blur-md rounded-full animate-pulse"></div>
+                </div>
               )}
             </div>
             
-            {/* Better decoration elements */}
-            <Sparkles className="absolute top-0 right-0 h-5 w-5 text-darkPurple-300/90 animate-pulse" />
-            <Sparkles className="absolute bottom-0 left-0 h-5 w-5 text-darkPurple-300/90 animate-pulse" style={{animationDelay: '0.5s'}} />
-            <Sparkles className="absolute top-4 left-4 h-3 w-3 text-darkPurple-300/70 animate-pulse" style={{animationDelay: '1s'}} />
+            {/* Decorative elements */}
+            <Sparkles className="absolute top-0 right-4 h-5 w-5 text-purple-300/90 animate-pulse" />
+            <Sparkles className="absolute bottom-4 left-0 h-5 w-5 text-indigo-300/90 animate-pulse" style={{animationDelay: '0.5s'}} />
             
             {/* Improved offline indicator */}
             {offlineDetected && (
-              <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex items-center text-red-300 bg-red-900/30 px-3 py-1 rounded-full text-xs font-medium">
+              <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 flex items-center text-red-300 bg-red-900/40 backdrop-blur-sm px-4 py-1.5 rounded-full text-xs font-medium border border-red-500/30">
                 <WifiOff className="h-3 w-3 mr-1.5" />
-                Offline
+                <span className="tracking-wider">Offline</span>
               </div>
             )}
           </div>
           
-          <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-darkPurple-200 to-navy-200">
+          <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-200 via-white to-purple-200 mb-2">
             {translationFunction('app.title')}
           </h2>
-          <p className="mt-2 text-darkPurple-300 font-medium">
+          <p className="text-indigo-200 font-medium">
             {loadingMessage}
           </p>
           
           {/* More informative loading state for long waits */}
           {(loadingTime > 6 || forceOffline) && (
-            <div className="mt-4 p-3 bg-darkPurple-800/60 border border-darkPurple-700/80 rounded-md text-sm text-darkPurple-300">
+            <div className="mt-6 p-4 backdrop-blur-md bg-indigo-900/30 border border-indigo-700/40 rounded-xl text-sm text-indigo-200 max-w-xs mx-auto">
               {forceOffline ? (
                 <p>Bu uygulama internet bağlantısı gerektirmektedir. Lütfen internet bağlantınızı açın ve sayfayı yenileyin.</p>
               ) : (
@@ -148,7 +173,7 @@ const LoadingScreen = ({ message, forceOffline = false }: { message?: string, fo
               )}
               
               {(loadingTime > 8 && offlineDetected) && (
-                <p className="mt-2 font-semibold text-darkPurple-200">Sayfa otomatik olarak yenilenecek...</p>
+                <p className="mt-2 font-semibold text-indigo-100">Sayfa otomatik olarak yenilenecek...</p>
               )}
             </div>
           )}

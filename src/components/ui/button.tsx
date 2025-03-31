@@ -19,9 +19,10 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        navy: "bg-navy-800 text-teal-100 hover:bg-navy-700",
-        teal: "bg-teal-600 text-white hover:bg-teal-500",
-        gradient: "bg-gradient-to-r from-teal-600 to-blue-700 text-white hover:from-teal-500 hover:to-blue-600",
+        navy: "bg-indigo-900 text-indigo-100 hover:bg-indigo-800 shadow-md",
+        purple: "bg-purple-700 text-white hover:bg-purple-600 shadow-md",
+        cosmic: "bg-gradient-to-r from-indigo-700 via-purple-700 to-indigo-800 text-white hover:from-indigo-600 hover:via-purple-600 hover:to-indigo-700 shadow-md",
+        glass: "backdrop-blur-md bg-white/10 border border-white/20 text-white hover:bg-white/20 shadow-md",
       },
       size: {
         default: "h-10 px-4 py-2",
