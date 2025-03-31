@@ -8,7 +8,6 @@ import { useLanguage } from "@/contexts/LanguageContext";
 // Imported components
 import BalanceCard from "@/components/dashboard/BalanceCard";
 import MiningCard from "@/components/dashboard/MiningCard";
-import MiningRateCard from "@/components/dashboard/MiningRateCard";
 import MenuCard from "@/components/dashboard/MenuCard";
 import StatisticsButton from "@/components/dashboard/StatisticsButton";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
@@ -55,8 +54,8 @@ const Index = () => {
             onStopMining={handleStopMining}
           />
           
-          <MiningRateCard miningRate={miningRate} />
-
+          {/* MiningRateCard removed as requested */}
+          
           {/* Menu cards with improved grid layout */}
           <div className="grid grid-cols-2 gap-3 mb-3">
             <MenuCard 
