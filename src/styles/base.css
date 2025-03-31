@@ -1,0 +1,117 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 250 30% 6%;
+    --foreground: 250 10% 95%;
+
+    --card: 250 30% 8%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 250 30% 8%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 252 80% 60%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 252 30% 15%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 252 30% 15%;
+    --muted-foreground: 252 10% 65%;
+
+    --accent: 252 80% 30%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 252 30% 20%;
+    --input: 252 30% 20%;
+    --ring: 252 80% 60%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 250 30% 10%;
+    --sidebar-foreground: 250 10% 95%;
+    --sidebar-primary: 252 80% 60%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 252 30% 20%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 252 30% 25%;
+    --sidebar-ring: 252 80% 60%;
+  }
+
+  .dark {
+    --background: 250 30% 5%;
+    --foreground: 250 40% 98%;
+
+    --card: 250 30% 6%;
+    --card-foreground: 250 40% 98%;
+
+    --popover: 250 30% 6%;
+    --popover-foreground: 250 40% 98%;
+
+    --primary: 252 80% 60%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 252 30% 12%;
+    --secondary-foreground: 250 40% 98%;
+
+    --muted: 252 30% 12%;
+    --muted-foreground: 252 10% 65%;
+
+    --accent: 252 80% 25%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 250 40% 98%;
+
+    --border: 252 30% 18%;
+    --input: 252 30% 18%;
+    --ring: 252 80% 60%;
+    
+    --sidebar-background: 250 30% 8%;
+    --sidebar-foreground: 250 10% 95%;
+    --sidebar-primary: 252 80% 60%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 252 30% 18%;
+    --sidebar-accent-foreground: 250 10% 95%;
+    --sidebar-border: 252 30% 18%;
+    --sidebar-ring: 252 80% 60%;
+  }
+
+  .theme-transition {
+    transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground transition-colors duration-500;
+    font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
+  }
+  
+  a {
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 transition-all duration-200;
+  }
+  
+  button {
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 transition-all duration-200;
+  }
+  
+  /* Data point variations for particle movements */
+  .data-point-0 { --tx: -10px; }
+  .data-point-1 { --tx: 15px; }
+  .data-point-2 { --tx: -5px; }
+  .data-point-3 { --tx: 20px; }
+  .data-point-4 { --tx: -15px; }
+  .data-point-5 { --tx: 10px; }
+}

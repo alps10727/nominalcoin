@@ -1,0 +1,40 @@
+
+@layer utilities {
+  .shadow-glow {
+    box-shadow: 0 0 15px 2px theme('colors.darkPurple.400' / 30%);
+  }
+
+  .text-shadow {
+    text-shadow: 0 0 10px theme('colors.darkPurple.300' / 50%);
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-darkPurple-200 via-white to-navy-200;
+  }
+
+  .nebula-bg {
+    background: linear-gradient(120deg, theme('colors.darkPurple.900'), theme('colors.navy.900'), theme('colors.darkPurple.800'));
+    background-size: 400% 400%;
+    animation: nebula-shift 15s ease infinite;
+  }
+  
+  .animate-ping-slow {
+    animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+  
+  .animate-pulse-slow {
+    animation: pulse-slow 3s ease-in-out infinite;
+  }
+  
+  .animate-pulse-gradient {
+    animation: pulse-gradient 2s ease-in-out infinite;
+  }
+  
+  .animate-data-stream {
+    animation: data-stream 4s linear infinite;
+  }
+  
+  .animate-particle-trace {
+    animation: particle-trace 2s linear forwards;
+  }
+}
