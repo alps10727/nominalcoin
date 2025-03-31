@@ -41,15 +41,15 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       document.documentElement.classList.remove('theme-transition');
     }, 700);
     
-    // Add custom properties for our new color theme - Updated with navy and deep purple
+    // Add custom properties for our new balanced color theme
     if (theme === "dark") {
-      document.documentElement.style.setProperty('--primary', '262 83% 58%'); // deep purple
-      document.documentElement.style.setProperty('--secondary', '240 64% 27%'); // navy blue
-      document.documentElement.style.setProperty('--accent', '250 95% 39%'); // vibrant purple
+      document.documentElement.style.setProperty('--primary', '262 83% 58%'); // vibrant purple
+      document.documentElement.style.setProperty('--secondary', '262 64% 27%'); // muted purple
+      document.documentElement.style.setProperty('--accent', '262 95% 39%'); // deep purple
     } else {
       document.documentElement.style.setProperty('--primary', '262 83% 68%'); // lighter purple
-      document.documentElement.style.setProperty('--secondary', '240 60% 30%'); // lighter navy
-      document.documentElement.style.setProperty('--accent', '250 95% 45%'); // brighter purple
+      document.documentElement.style.setProperty('--secondary', '262 60% 30%'); // medium purple
+      document.documentElement.style.setProperty('--accent', '262 95% 45%'); // bright purple
     }
     
     return () => clearTimeout(timer);

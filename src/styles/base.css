@@ -14,7 +14,7 @@
     --popover: 250 30% 8%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 252 80% 60%;
+    --primary: 262 83% 60%;
     --primary-foreground: 0 0% 98%;
 
     --secondary: 252 30% 15%;
@@ -23,26 +23,26 @@
     --muted: 252 30% 15%;
     --muted-foreground: 252 10% 65%;
 
-    --accent: 252 80% 30%;
+    --accent: 262 70% 35%;
     --accent-foreground: 0 0% 98%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 252 30% 20%;
-    --input: 252 30% 20%;
-    --ring: 252 80% 60%;
+    --border: 262 30% 20%;
+    --input: 262 30% 20%;
+    --ring: 262 80% 60%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 250 30% 10%;
+    --sidebar-background: 262 30% 10%;
     --sidebar-foreground: 250 10% 95%;
-    --sidebar-primary: 252 80% 60%;
+    --sidebar-primary: 262 80% 60%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 252 30% 20%;
+    --sidebar-accent: 262 30% 20%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 252 30% 25%;
-    --sidebar-ring: 252 80% 60%;
+    --sidebar-border: 262 30% 25%;
+    --sidebar-ring: 262 80% 60%;
   }
 
   .dark {
@@ -55,33 +55,33 @@
     --popover: 250 30% 6%;
     --popover-foreground: 250 40% 98%;
 
-    --primary: 252 80% 60%;
+    --primary: 262 80% 60%;
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 252 30% 12%;
+    --secondary: 262 30% 12%;
     --secondary-foreground: 250 40% 98%;
 
-    --muted: 252 30% 12%;
+    --muted: 262 30% 12%;
     --muted-foreground: 252 10% 65%;
 
-    --accent: 252 80% 25%;
+    --accent: 262 80% 30%;
     --accent-foreground: 0 0% 98%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 250 40% 98%;
 
-    --border: 252 30% 18%;
-    --input: 252 30% 18%;
-    --ring: 252 80% 60%;
+    --border: 262 30% 18%;
+    --input: 262 30% 18%;
+    --ring: 262 80% 60%;
     
-    --sidebar-background: 250 30% 8%;
+    --sidebar-background: 262 30% 8%;
     --sidebar-foreground: 250 10% 95%;
-    --sidebar-primary: 252 80% 60%;
+    --sidebar-primary: 262 80% 60%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 252 30% 18%;
+    --sidebar-accent: 262 30% 18%;
     --sidebar-accent-foreground: 250 10% 95%;
-    --sidebar-border: 252 30% 18%;
-    --sidebar-ring: 252 80% 60%;
+    --sidebar-border: 262 30% 18%;
+    --sidebar-ring: 262 80% 60%;
   }
 
   .theme-transition {

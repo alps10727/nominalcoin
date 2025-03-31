@@ -18,19 +18,19 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         {/* Cosmic background with enhanced visual elements */}
         <div className="absolute inset-0 pointer-events-none">
           {/* Deep space gradient base */}
-          <div className="absolute inset-0 bg-gradient-to-br from-navy-950 via-darkPurple-950 to-navy-950"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-950 via-darkPurple-950 to-navy-950"></div>
           
           {/* Enhanced grid pattern */}
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDM0YzAtMi4yMDktMS43OTEtNC00LTRzLTQgMS43OTEtNCA0IDEuNzkxIDQgNCA0IDQtMS43OTEgNC00Wm0wLTIwYzAtMi4yMDktMS43OTEtNC00LTRzLTQgMS43OTEtNCA0IDEuNzkxIDQgNCA0IDQtMS43OTEgNC00Wm0tMjAgMjBjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTRabTAtMjBjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTRabTQwIDIwYzAtMi4yMDktMS43OTEtNC00LTRzLTQgMS43OTEtNCA0IDEuNzkxIDQgNCA0IDQtMS43OTEgNC00Wm0wLTIwYzAtMi4yMDktMS43OTEtNC00LTRzLTQgMS43OTEtNCA0IDEuNzkxIDQgNCA0IDQtMS43OTEgNC00WiIvPjwvZz48L2c+PC9zdmc+')] opacity-10"></div>
           
-          {/* Enhanced nebula effects with more vibrant colors */}
-          <div className="absolute top-0 w-full h-2/3 bg-gradient-to-b from-cyan-900/5 via-purple-900/5 to-transparent"></div>
-          <div className="absolute bottom-0 w-full h-2/3 bg-gradient-to-t from-cyan-900/5 via-purple-900/5 to-transparent"></div>
+          {/* Enhanced nebula effects with more balanced colors */}
+          <div className="absolute top-0 w-full h-2/3 bg-gradient-to-b from-purple-900/5 via-indigo-900/5 to-transparent"></div>
+          <div className="absolute bottom-0 w-full h-2/3 bg-gradient-to-t from-purple-900/5 via-indigo-900/5 to-transparent"></div>
           
           {/* Enhanced energy cores with glow effect */}
-          <div className="absolute top-1/4 left-1/4 w-1/2 h-1/2 bg-cyan-500/5 rounded-full blur-3xl animate-pulse-slow"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-1/2 h-1/2 bg-indigo-500/5 rounded-full blur-3xl animate-pulse-slow" style={{animationDelay: '1.5s'}}></div>
-          <div className="absolute top-1/3 right-1/3 w-1/3 h-1/3 bg-teal-500/5 rounded-full blur-3xl animate-pulse-slow" style={{animationDelay: '2.5s'}}></div>
+          <div className="absolute top-1/4 left-1/4 w-1/2 h-1/2 bg-purple-500/5 rounded-full blur-3xl animate-pulse-slow"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-1/2 h-1/2 bg-pink-500/5 rounded-full blur-3xl animate-pulse-slow" style={{animationDelay: '1.5s'}}></div>
+          <div className="absolute top-1/3 right-1/3 w-1/3 h-1/3 bg-indigo-500/5 rounded-full blur-3xl animate-pulse-slow" style={{animationDelay: '2.5s'}}></div>
         </div>
         
         {/* Enhanced starfield with more stars and varied sizes */}

@@ -22,17 +22,17 @@ export const ThemeToggle = () => {
       onClick={handleToggle}
     >
       {/* Enhanced background effect */}
-      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-navy-800/80 to-darkPurple-800/80 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-800/80 to-indigo-800/80 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
       
       {/* Border highlight */}
-      <div className="absolute inset-0 rounded-full border border-indigo-400/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+      <div className="absolute inset-0 rounded-full border border-purple-400/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
       
       {/* Icon container with enhanced animation */}
       <div className={`relative z-10 transition-transform duration-700 ${isAnimating ? 'scale-0 rotate-180' : 'scale-100'}`}>
         {theme === "dark" ? (
           <Sun className="h-5 w-5 text-yellow-300 transition-all duration-500 group-hover:scale-110" />
         ) : (
-          <Moon className="h-5 w-5 text-indigo-300 transition-all duration-500 group-hover:scale-110" />
+          <Moon className="h-5 w-5 text-purple-300 transition-all duration-500 group-hover:scale-110" />
         )}
       </div>
     </Button>
