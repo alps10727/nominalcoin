@@ -37,4 +37,36 @@
   .animate-particle-trace {
     animation: particle-trace 2s linear forwards;
   }
+  
+  .animate-cosmic-pulse {
+    animation: cosmic-pulse 2s ease-in-out infinite;
+  }
+  
+  .animate-float-1 {
+    animation: float-1 7s ease-in-out infinite;
+  }
+  
+  .animate-float-2 {
+    animation: float-2 8s ease-in-out infinite;
+  }
+  
+  .animate-float-3 {
+    animation: float-3 9s ease-in-out infinite;
+  }
+  
+  .animate-spin-slow {
+    animation: spin 15s linear infinite;
+  }
+  
+  .animate-reverse-spin {
+    animation: reverse-spin 15s linear infinite;
+  }
+  
+  .animate-double-spin {
+    animation: spin 10s linear infinite;
+  }
+  
+  .animate-double-reverse-spin {
+    animation: reverse-spin 10s linear infinite;
+  }
 }
