@@ -16,7 +16,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
     <TooltipProvider>
       <div className="flex flex-col min-h-screen relative overflow-hidden">
         {/* Cosmic background with enhanced visual elements */}
-        <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute inset-0 pointer-events-none z-0">
           {/* Deep space gradient base */}
           <div className="absolute inset-0 bg-gradient-to-br from-purple-950 via-darkPurple-950 to-navy-950"></div>
           
