@@ -7,8 +7,9 @@ import { useLanguage } from "@/contexts/LanguageContext";
 const StatisticsButton = () => {
   const { t } = useLanguage();
   
+  // Adding display: none to hide this component
   return (
-    <Link to="/statistics" className="block w-full">
+    <Link to="/statistics" className="hidden">
       <Button 
         className="w-full relative bg-gradient-to-r from-darkPurple-900 to-navy-800 hover:from-darkPurple-800 hover:to-navy-700 text-white shadow-lg border border-darkPurple-600/20 py-6 rounded-xl transition-all duration-300 group overflow-hidden"
         size="lg"
