@@ -1,11 +1,6 @@
 
 import React, { useEffect, useState, useCallback } from "react";
-import { MiningButtonBase } from "./button/MiningButtonBase";
-import { ButtonBackground } from "./button/ButtonBackground";
-import { PulseRings } from "./button/PulseRings";
-import { ButtonContent } from "./button/ButtonContent";
-import { ParticleEffects } from "./button/ParticleEffects";
-import { OrbitalEffects } from "./button/OrbitalEffects";
+import { Star } from "lucide-react";
 
 interface MiningButtonProps {
   miningActive: boolean;
@@ -39,22 +34,39 @@ export const MiningButton = React.memo<MiningButtonProps>(({
   }, [onButtonClick]);
 
   return (
-    <MiningButtonBase 
-      miningActive={miningActive} 
-      onClick={handleClick}
-    >
-      {/* Background and effects */}
-      <ButtonBackground miningActive={miningActive} />
-      <PulseRings miningActive={miningActive} />
-      <ParticleEffects miningActive={miningActive} />
-      <OrbitalEffects miningActive={miningActive} />
-      
-      {/* Button content */}
-      <ButtonContent 
-        miningActive={miningActive} 
-        displayTime={displayTime} 
-      />
-    </MiningButtonBase>
+    <div className="mx-auto flex items-center justify-center">
+      <button 
+        className="relative w-40 h-40 rounded-full flex items-center justify-center cursor-pointer z-10 transition-all duration-500"
+        onClick={handleClick}
+        aria-label={miningActive ? "Stop mining" : "Start mining"}
+      >
+        {/* Background circles */}
+        <div className="absolute inset-0 rounded-full bg-purple-800/80 border-4 border-purple-700/50"></div>
+        <div className="absolute inset-8 rounded-full bg-purple-700/80 border border-purple-600/50"></div>
+        <div className="absolute inset-16 rounded-full bg-purple-600/80 border border-purple-500/50"></div>
+        
+        {/* Ripple animations */}
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div 
+            key={i} 
+            className="absolute inset-0 rounded-full border border-purple-500/30 animate-ping" 
+            style={{ 
+              animationDuration: `${3 + i * 0.5}s`, 
+              animationDelay: `${i * 0.3}s`,
+              opacity: 0.5 - i * 0.1
+            }}
+          ></div>
+        ))}
+        
+        {/* Content */}
+        <div className="relative flex flex-col items-center justify-center z-10 text-white">
+          <Star className="h-6 w-6 mb-1 text-white" />
+          <span className="text-lg font-bold uppercase tracking-wide">
+            {miningActive ? "STOP" : "START"}
+          </span>
+        </div>
+      </button>
+    </div>
   );
 });
 

@@ -3,3 +3,20 @@
 @import './animations.css';
 @import './utilities.css';
 @import './layout.css';
+
+/* Future Coin theme custom styles */
+.fc-gradient-text {
+  background: linear-gradient(135deg, #a78bfa, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
+
+.fc-card {
+  @apply bg-purple-900/80 rounded-xl border border-purple-700/30 shadow-lg;
+}
+
+.fc-button {
+  @apply bg-purple-600 hover:bg-purple-500 text-white transition-colors;
+}

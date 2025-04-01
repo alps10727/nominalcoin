@@ -3,10 +3,11 @@ import { MobileMenu } from "./header/MobileMenu";
 import { Logo } from "./header/Logo";
 import { LanguageSwitcher } from "./header/LanguageSwitcher";
 import { ThemeToggle } from "./header/ThemeToggle";
-import { WifiOff } from "lucide-react";
+import { Bell, WifiOff } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect, memo } from "react";
 import { Button } from "./ui/button";
+import { Link } from "react-router-dom";
 
 const Header = memo(() => {
   const { currentUser } = useAuth();
@@ -32,7 +33,7 @@ const Header = memo(() => {
   };
 
   return (
-    <header className="bg-gradient-to-r from-navy-950/90 via-darkPurple-950/90 to-navy-950/90 backdrop-blur-xl pt-safe p-4 flex justify-between items-center shadow-lg sticky top-0 z-50 border-b border-cyan-500/20">
+    <header className="bg-purple-950/95 backdrop-blur-xl pt-safe p-4 flex justify-between items-center shadow-lg sticky top-0 z-50 border-b border-purple-700/20">
       {/* Offline warning */}
       {isOffline && (
         <div className="absolute bottom-0 left-0 right-0 bg-red-800/90 text-white text-xs py-1 text-center flex items-center justify-center">
@@ -49,14 +50,19 @@ const Header = memo(() => {
         </div>
       )}
       
-      <div className="flex items-center relative z-10">
+      <div className="flex items-center gap-2 relative z-10">
         <MobileMenu />
         <Logo />
+        <span className="text-lg font-bold text-purple-300">Future Coin</span>
       </div>
 
       <div className="flex items-center gap-3 relative z-10">
         <LanguageSwitcher />
         <ThemeToggle />
+        <Link to="/notifications" className="relative p-1.5 rounded-full hover:bg-purple-800/50 transition-colors">
+          <Bell className="h-5 w-5 text-purple-300" />
+          <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+        </Link>
       </div>
     </header>
   );
