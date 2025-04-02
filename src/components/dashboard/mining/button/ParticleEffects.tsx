@@ -30,9 +30,9 @@ export const ParticleEffects = React.memo<ParticleEffectsProps>(({ miningActive 
             
           {/* Glowing trail particles */}
           <div className="absolute top-2/3 left-1/3 h-1 w-1 rounded-full bg-purple-300/60 animate-particle-trace"
-            style={{animationDelay: '0.3s', '--tx': '-15px'}}></div>
+            style={{animationDelay: '0.3s', "--tx": '-15px'} as React.CSSProperties}></div>
           <div className="absolute bottom-2/3 right-1/3 h-1 w-1 rounded-full bg-navy-300/60 animate-particle-trace"
-            style={{animationDelay: '1.2s', '--tx': '12px'}}></div>
+            style={{animationDelay: '1.2s', "--tx": '12px'} as React.CSSProperties}></div>
         </>
       )}
       
