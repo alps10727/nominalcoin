@@ -5,9 +5,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { calculateProgress } from '@/utils/miningUtils';
 import { loadUserData } from "@/utils/storage";
 import { debugLog } from "@/utils/debugUtils";
+import { toast } from "sonner";
 
 /**
- * Hook for initializing mining state from local storage and auth data
+ * Hook for initializing mining state from local storage with priority
  */
 export function useMiningInitialization() {
   const { currentUser, userData } = useAuth();
@@ -25,54 +26,82 @@ export function useMiningInitialization() {
     userId: currentUser?.uid
   });
 
-  // Load user data from local storage and auth
+  // Load user data with LOCAL STORAGE PRIORITY
   useEffect(() => {
     // Set loading state
     setState(prev => ({ ...prev, isLoading: true }));
     
     try {
-      // Load from local storage
-      const savedData = loadUserData();
+      // Load from local storage FIRST - HIGHEST PRIORITY
+      const localData = loadUserData();
       
-      // Load from auth context
+      // Load from auth context as fallback only
       const authData = userData;
       
-      debugLog("useMiningInitialization", "Local data:", savedData);
+      debugLog("useMiningInitialization", "Local data:", localData);
       debugLog("useMiningInitialization", "Auth data:", authData);
       
-      let finalBalance = 0;
-      
-      // Determine which balance to use (take the highest one)
-      if (savedData && authData) {
-        finalBalance = Math.max(savedData.balance || 0, authData.balance || 0);
-        debugLog("useMiningInitialization", "Using highest balance:", finalBalance);
-      } else if (savedData) {
-        finalBalance = savedData.balance || 0;
-        debugLog("useMiningInitialization", "Using local balance:", finalBalance);
-      } else if (authData) {
-        finalBalance = authData.balance || 0;
-        debugLog("useMiningInitialization", "Using auth balance:", finalBalance);
+      // If local data exists, ALWAYS use it as the source of truth
+      if (localData) {
+        debugLog("useMiningInitialization", "PRIORITIZING LOCAL STORAGE DATA:", localData);
+        
+        // Show notification about loading local data
+        if (localData.balance > 0) {
+          toast.success(`Yerel veriler yüklendi: ${localData.balance.toFixed(2)} NC`, {
+            id: "local-balance-loaded",
+            duration: 3000
+          });
+        }
+        
+        setState(prevState => ({
+          ...prevState,
+          isLoading: false,
+          userId: currentUser?.uid,
+          balance: localData.balance || 0,
+          miningRate: localData.miningRate || 0.1,
+          miningActive: localData.miningActive || false,
+          miningTime: localData.miningTime != null ? localData.miningTime : 21600,
+          miningPeriod: localData.miningPeriod || 21600,
+          miningSession: localData.miningSession || 0,
+          progress: (localData.miningTime != null && localData.miningPeriod) 
+            ? calculateProgress(localData.miningTime, localData.miningPeriod)
+            : 0
+        }));
+        
+        debugLog("useMiningInitialization", "Mining state initialized from LOCAL STORAGE with balance:", localData.balance);
+        return;
       }
       
-      // Prioritize data sources
-      const sourceData = savedData || authData || {};
+      // Only use auth data if no local data exists
+      if (authData) {
+        debugLog("useMiningInitialization", "No local data found, using auth data as fallback");
+        
+        setState(prevState => ({
+          ...prevState,
+          isLoading: false,
+          userId: currentUser?.uid,
+          balance: authData.balance || 0,
+          miningRate: authData.miningRate || 0.1,
+          miningActive: authData.miningActive || false,
+          miningTime: authData.miningTime != null ? authData.miningTime : 21600,
+          miningPeriod: authData.miningPeriod || 21600,
+          miningSession: authData.miningSession || 0,
+          progress: (authData.miningTime != null && authData.miningPeriod) 
+            ? calculateProgress(authData.miningTime, authData.miningPeriod)
+            : 0
+        }));
+        
+        debugLog("useMiningInitialization", "Mining state initialized from AUTH with balance:", authData.balance);
+        return;
+      }
       
-      setState(prevState => ({
-        ...prevState,
+      // If no data found anywhere, just use defaults
+      setState(prev => ({ 
+        ...prev, 
         isLoading: false,
-        userId: currentUser?.uid,
-        balance: finalBalance,
-        miningRate: sourceData.miningRate || 0.1,
-        miningActive: sourceData.miningActive || false,
-        miningTime: sourceData.miningTime != null ? sourceData.miningTime : 21600,
-        miningPeriod: sourceData.miningPeriod || 21600,
-        miningSession: sourceData.miningSession || 0,
-        progress: (sourceData.miningTime != null && sourceData.miningPeriod) 
-          ? calculateProgress(sourceData.miningTime, sourceData.miningPeriod)
-          : 0
+        userId: currentUser?.uid
       }));
       
-      debugLog("useMiningInitialization", "Mining state initialized with balance:", finalBalance);
     } catch (error) {
       console.error("Error loading mining data", error);
       // Remove loading state on error

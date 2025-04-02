@@ -3,39 +3,32 @@ import { useEffect, useRef } from 'react';
 import { saveUserData } from "@/utils/storage";
 import { MiningState } from '@/types/mining';
 import { useAuth } from "@/contexts/AuthContext";
+import { debugLog } from "@/utils/debugUtils";
 
 /**
- * Hook for handling persistence of mining data to Firebase
+ * Hook for handling persistence of mining data, prioritizing local storage
  */
 export function useMiningPersistence(state: MiningState) {
   const { currentUser, userData, updateUserData } = useAuth();
   const lastSaveTimeRef = useRef<number>(Date.now());
+  const localSaveTimeRef = useRef<number>(Date.now());
   
-  // Save data to Firebase with reduced frequency
+  // ALWAYS save to local storage FIRST and MORE FREQUENTLY
   useEffect(() => {
-    if (currentUser && !state.isLoading) {
-      const saveToFirebase = async () => {
-        try {
-          console.log("Saving to Firebase:", {
-            miningActive: state.miningActive,
-            miningTime: state.miningTime,
-            balance: state.balance
-          });
-          
-          await updateUserData({
+    if (!state.isLoading) {
+      // Save to local storage every 2 seconds if state changes
+      const localSaveInterval = setInterval(() => {
+        // Check if data has changed since last local save
+        if (
+          Date.now() - localSaveTimeRef.current > 2000 || 
+          state.balance !== userData?.balance ||
+          state.miningActive !== userData?.miningActive
+        ) {
+          debugLog("useMiningPersistence", "Saving to LOCAL STORAGE:", {
             balance: state.balance,
-            miningRate: state.miningRate,
             miningActive: state.miningActive,
-            miningTime: state.miningTime,
-            miningPeriod: state.miningPeriod,
-            miningSession: state.miningSession
           });
           
-          lastSaveTimeRef.current = Date.now();
-          console.log("Data saved to Firebase:", state.miningActive);
-        } catch (error) {
-          console.error("Error saving to Firebase:", error);
-          // Fallback to local storage if Firebase fails
           saveUserData({
             balance: state.balance,
             miningRate: state.miningRate,
@@ -43,28 +36,85 @@ export function useMiningPersistence(state: MiningState) {
             miningActive: state.miningActive,
             miningTime: state.miningTime,
             miningPeriod: state.miningPeriod,
-            miningSession: state.miningSession
+            miningSession: state.miningSession,
+            userId: state.userId
           });
+          
+          localSaveTimeRef.current = Date.now();
+        }
+      }, 2000); // Save locally every 2 seconds if needed
+      
+      return () => {
+        clearInterval(localSaveInterval);
+        // Always save on unmount
+        saveUserData({
+          balance: state.balance,
+          miningRate: state.miningRate,
+          lastSaved: Date.now(),
+          miningActive: state.miningActive,
+          miningTime: state.miningTime,
+          miningPeriod: state.miningPeriod,
+          miningSession: state.miningSession,
+          userId: state.userId
+        });
+      };
+    }
+  }, [
+    state.balance, 
+    state.miningRate, 
+    state.miningActive, 
+    state.miningTime, 
+    state.miningPeriod, 
+    state.miningSession,
+    state.isLoading,
+    state.userId,
+    userData?.balance,
+    userData?.miningActive
+  ]);
+  
+  // Optionally save to Firebase MUCH LESS FREQUENTLY
+  useEffect(() => {
+    if (currentUser && !state.isLoading) {
+      const saveToFirebase = async () => {
+        try {
+          // Only save to Firebase if significant time has passed or major changes
+          if (
+            Date.now() - lastSaveTimeRef.current > 30000 || // 30 seconds minimum between saves
+            (userData?.balance && Math.abs(state.balance - userData.balance) > 1) || // Balance changed by more than 1
+            state.miningActive !== userData?.miningActive // Mining state changed
+          ) {
+            debugLog("useMiningPersistence", "Saving to Firebase as backup:", {
+              miningActive: state.miningActive,
+              balance: state.balance
+            });
+            
+            await updateUserData({
+              balance: state.balance,
+              miningRate: state.miningRate,
+              miningActive: state.miningActive,
+              miningTime: state.miningTime,
+              miningPeriod: state.miningPeriod,
+              miningSession: state.miningSession
+            });
+            
+            lastSaveTimeRef.current = Date.now();
+            debugLog("useMiningPersistence", "Data backup to Firebase complete");
+          }
+        } catch (error) {
+          console.error("Firebase backup failed, continuing with local storage", error);
+          // No special handling needed - local storage is the source of truth
         }
       };
       
-      // Save when mining state changes
-      if (state.miningActive !== userData?.miningActive) {
-        console.log("Mining state changed, saving to Firebase");
-        saveToFirebase();
-      }
-      
-      // Also set up an interval to periodically save, but less frequently
-      const saveInterval = setInterval(() => {
-        // Only save if it's been more than 5 seconds since the last save
-        if (Date.now() - lastSaveTimeRef.current > 5000) {
-          saveToFirebase();
-        }
-      }, 10000); // Save every 10 seconds to reduce Firebase load
+      // Set up a very infrequent interval for Firebase backups
+      const saveInterval = setInterval(saveToFirebase, 30000); // Try to save to Firebase every 30 seconds
       
       return () => {
         clearInterval(saveInterval);
-        saveToFirebase(); // Save one last time when unmounting
+        // Try one final save to Firebase when unmounting
+        saveToFirebase().catch(err => {
+          console.log("Final Firebase backup failed, data is safe in local storage", err);
+        });
       };
     }
   }, [
@@ -77,6 +127,7 @@ export function useMiningPersistence(state: MiningState) {
     state.isLoading,
     currentUser,
     updateUserData,
-    userData?.miningActive
+    userData?.miningActive,
+    userData?.balance
   ]);
 }

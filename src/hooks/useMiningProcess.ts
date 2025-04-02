@@ -7,23 +7,33 @@ import { toast } from "sonner";
 import { debugLog } from "@/utils/debugUtils";
 
 /**
- * Hook for handling the mining process with improved UI feedback
+ * Hook for handling the mining process with improved local storage prioritization
  */
 export function useMiningProcess(state: MiningState, setState: React.Dispatch<React.SetStateAction<MiningState>>) {
   // Reference to track interval ID
   const intervalRef = useRef<number | null>(null);
   
-  // Check for existing local balance on init
+  // Check for existing local balance on init - PRIORITIZE LOCAL DATA
   useEffect(() => {
     const localData = loadUserData();
-    if (localData && state.balance === 0 && localData.balance > 0) {
-      debugLog("useMiningProcess", "Found local balance data, restoring", localData.balance);
+    if (localData) {
+      debugLog("useMiningProcess", "Found local data, prioritizing local storage values", localData);
       setState(prev => ({
         ...prev,
-        balance: localData.balance
+        balance: localData.balance || prev.balance,
+        miningRate: localData.miningRate || prev.miningRate,
+        miningActive: localData.miningActive !== undefined ? localData.miningActive : prev.miningActive,
+        miningTime: localData.miningTime !== undefined ? localData.miningTime : prev.miningTime,
+        miningPeriod: localData.miningPeriod || prev.miningPeriod,
+        miningSession: localData.miningSession || prev.miningSession
       }));
+      
+      toast.success("Yerel veriler yüklendi", {
+        id: "local-data-loaded",
+        duration: 3000
+      });
     }
-  }, [setState, state.balance]);
+  }, [setState]);
   
   // Mining process management
   useEffect(() => {
@@ -56,7 +66,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
           // Check if mining cycle is complete
           if (newTime <= 0) {
             console.log("Mining cycle completed");
-            // Save final state to local storage only
+            // Save final state to local storage only - ALWAYS PRIORITIZE LOCAL STORAGE
             saveUserData({
               balance: prev.balance,
               miningRate: prev.miningRate,
@@ -96,7 +106,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
               icon: '💰'
             });
             
-            // Update new balance in local storage only
+            // Update new balance in local storage IMMEDIATELY - CRITICAL PRIORITY
             saveUserData({
               balance: newBalance,
               miningRate: prev.miningRate,

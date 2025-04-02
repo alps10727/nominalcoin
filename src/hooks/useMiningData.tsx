@@ -7,21 +7,45 @@ import { useMiningPersistence } from "./useMiningPersistence";
 import { useCallback, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { debugLog } from "@/utils/debugUtils";
+import { loadUserData } from "@/utils/storage";
 
 /**
  * Enhanced hook for handling all mining related data and operations
- * With improved performance and error handling
+ * With improved local storage prioritization
  */
 export function useMiningData(): MiningData {
   const { userData } = useAuth();
   
-  // Initialize mining data with better error handling
+  // Initialize mining data with local storage priority
   const { state, setState } = useMiningInitialization();
   
-  // Sync with userData if available
+  // Additional effect to ensure we always check local storage first
   useEffect(() => {
-    if (userData && userData.balance !== undefined && !state.isLoading) {
-      debugLog("useMiningData", "Syncing with user data from Auth context", userData);
+    const localData = loadUserData();
+    if (localData && !state.isLoading) {
+      debugLog("useMiningData", "Double-checking local storage data", localData);
+      setState(prev => {
+        // Only update if local data balance is higher than current balance
+        if (localData.balance > prev.balance) {
+          debugLog("useMiningData", "Found higher balance in local storage, updating", localData.balance);
+          return {
+            ...prev,
+            balance: localData.balance
+          };
+        }
+        return prev;
+      });
+    }
+  }, [setState, state.isLoading]);
+  
+  // Only sync with userData WHEN LOCAL STORAGE HAS NO DATA
+  useEffect(() => {
+    // First check local storage
+    const localData = loadUserData();
+    
+    // Only use Auth data if local storage has no data
+    if (!localData && userData && userData.balance !== undefined && !state.isLoading) {
+      debugLog("useMiningData", "No local data, using Auth context data", userData);
       setState(prev => ({
         ...prev,
         balance: userData.balance || 0,
@@ -37,13 +61,13 @@ export function useMiningData(): MiningData {
   // Handle mining process logic (countdown timer and rewards)
   useMiningProcess(state, setState);
   
-  // Handle data persistence with optimized Firebase updating
+  // Handle data persistence with local storage priority
   useMiningPersistence(state);
   
-  // Get mining control actions with better state management
+  // Get mining control actions
   const { handleStartMining, handleStopMining } = useMiningActions(state, setState);
 
-  // Create memoized versions of handlers for better performance
+  // Create memoized versions of handlers
   const memoizedStartMining = useCallback(() => {
     console.log("Starting mining process");
     handleStartMining();
