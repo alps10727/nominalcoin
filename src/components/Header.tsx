@@ -53,7 +53,7 @@ const Header = memo(() => {
       <div className="flex items-center gap-2 relative z-10">
         <MobileMenu />
         <Logo />
-        <span className="text-lg font-bold fc-gradient-text">Future Coin</span>
+        <span className="text-lg font-bold fc-gradient-text">NOMINAL Coin</span>
       </div>
 
       <div className="flex items-center gap-3 relative z-10">
