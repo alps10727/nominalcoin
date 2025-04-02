@@ -98,7 +98,7 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
   return (
     <>
       {children}
-      <OfflineIndicator />
+      <OfflineIndicator isOffline={isOffline} />
     </>
   );
 };

@@ -4,13 +4,11 @@ import { Logo } from "./header/Logo";
 import { LanguageSwitcher } from "./header/LanguageSwitcher";
 import { ThemeToggle } from "./header/ThemeToggle";
 import { Bell, WifiOff, Gift } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect, memo } from "react";
 import { Button } from "./ui/button";
 import { Link } from "react-router-dom";
 
 const Header = memo(() => {
-  const { currentUser } = useAuth();
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   // Monitor internet connection

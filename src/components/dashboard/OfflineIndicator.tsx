@@ -1,11 +1,13 @@
 
 import { WifiOff, RefreshCw } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 import { toast } from "sonner";
 
-const OfflineIndicator = () => {
-  const { isOffline } = useAuth();
+interface OfflineIndicatorProps {
+  isOffline: boolean;
+}
+
+const OfflineIndicator = ({ isOffline }: OfflineIndicatorProps) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   
   if (!isOffline) return null;

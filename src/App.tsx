@@ -7,6 +7,8 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import AppInitializer from "./components/app/AppInitializer";
 import AppLayout from "./components/layout/AppLayout";
 import AppRoutes from "./components/routing/AppRoutes";
+import { Suspense } from "react";
+import LoadingScreen from "./components/dashboard/LoadingScreen";
 
 // Optimized QueryClient config for better performance
 const queryClient = new QueryClient({
@@ -27,13 +29,15 @@ const App = () => {
       <ThemeProvider>
         <LanguageProvider>
           <BrowserRouter>
-            <AuthProvider>
-              <AppInitializer>
-                <AppLayout>
-                  <AppRoutes />
-                </AppLayout>
-              </AppInitializer>
-            </AuthProvider>
+            <AppInitializer>
+              <Suspense fallback={<LoadingScreen message="Kimlik doğrulama yükleniyor..." />}>
+                <AuthProvider>
+                  <AppLayout>
+                    <AppRoutes />
+                  </AppLayout>
+                </AuthProvider>
+              </Suspense>
+            </AppInitializer>
           </BrowserRouter>
         </LanguageProvider>
       </ThemeProvider>
