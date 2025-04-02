@@ -19,7 +19,7 @@ export function useAuthObserver(): AuthObserverState {
     debugLog("useAuthObserver", "Authentication observer initializing...");
     let authTimeoutId: NodeJS.Timeout;
     
-    // Set timeout for Firebase auth
+    // Set timeout for Firebase auth - süreyi 7 saniyeden 15 saniyeye çıkaralım
     authTimeoutId = setTimeout(() => {
       if (loading && !authInitialized) {
         debugLog("useAuthObserver", "Firebase Auth timed out, falling back to offline mode");
@@ -27,7 +27,7 @@ export function useAuthObserver(): AuthObserverState {
         setCurrentUser(null);
         setAuthInitialized(true);
       }
-    }, 7000);
+    }, 15000); // 7 saniyeden 15 saniyeye çıkarıldı
 
     // Listen for auth state changes
     const unsubscribe = onAuthStateChanged(auth, (user) => {

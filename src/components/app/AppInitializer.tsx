@@ -13,6 +13,7 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [ready, setReady] = useState(false);
   const [reconnecting, setReconnecting] = useState(false);
+  const [initialLoadAttempted, setInitialLoadAttempted] = useState(false);
   
   useEffect(() => {
     let reconnectTimer: NodeJS.Timeout;
@@ -44,20 +45,28 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
     // App initialization
     const startTime = performance.now();
     
-    // Uygulamayı kademeli olarak başlat
-    const timer = setTimeout(() => {
-      setReady(true);
-      const loadTime = performance.now() - startTime;
-      debugLog("AppInitializer", `Uygulama ${loadTime.toFixed(0)}ms içinde başlatıldı`);
-    }, 500);
+    // İlk yükleme
+    if (!initialLoadAttempted) {
+      setInitialLoadAttempted(true);
+      
+      // Uygulamayı kademeli olarak başlat, daha uzun süre bekle
+      const timer = setTimeout(() => {
+        setReady(true);
+        const loadTime = performance.now() - startTime;
+        debugLog("AppInitializer", `Uygulama ${loadTime.toFixed(0)}ms içinde başlatıldı`);
+      }, 1000); // 500ms'den 1000ms'ye çıkarıldı
+      
+      return () => {
+        clearTimeout(timer);
+      };
+    }
     
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
-      clearTimeout(timer);
       clearTimeout(reconnectTimer);
     };
-  }, [reconnecting]);
+  }, [reconnecting, initialLoadAttempted]);
   
   if (!ready) {
     return <LoadingScreen message="Uygulama başlatılıyor..." forceOffline={isOffline} />;

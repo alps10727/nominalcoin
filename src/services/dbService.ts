@@ -43,11 +43,11 @@ export async function getDocument(collection: string, id: string): Promise<any |
   try {
     debugLog("dbService", `${collection}/${id} belgesi yükleniyor...`);
     
-    // Timeout promise oluştur - 10 saniyeye çıkarıldı
+    // Timeout promise oluştur - 15 saniyeye çıkarıldı
     const timeoutPromise = new Promise((_, reject) => {
       timeoutId = setTimeout(() => {
         reject(new Error(`${collection}/${id} yükleme işlemi zaman aşımına uğradı`));
-      }, 10000); // 10 saniye
+      }, 15000); // 10 saniyeden 15 saniyeye çıkarıldı
     });
     
     // Veri çekme işlemi
@@ -99,11 +99,11 @@ export async function saveDocument(collection: string, id: string, data: any, op
         lastSaved: serverTimestamp(),
       };
       
-      // Timeout promise oluştur - 10 saniyeye çıkarıldı
+      // Timeout promise oluştur - 15 saniyeye çıkarıldı
       const timeoutPromise = new Promise<void>((_, reject) => {
         timeoutId = setTimeout(() => {
           reject(new Error(`${collection}/${id} kaydetme işlemi zaman aşımına uğradı`));
-        }, 10000); // 10 saniye
+        }, 15000); // 10 saniyeden 15 saniyeye çıkarıldı
       });
       
       // Kaydetme işlemi
@@ -125,7 +125,7 @@ export async function saveDocument(collection: string, id: string, data: any, op
         debugLog("dbService", `Bağlantı sorunu, ${retryCount}. deneme yapılıyor...`);
         
         // Yeniden deneme öncesi kısa bir gecikme
-        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+        await new Promise(resolve => setTimeout(resolve, 2000 * retryCount)); // Gecikmeyi artırdık
         return saveWithRetry(); // Recursive retry
       }
       

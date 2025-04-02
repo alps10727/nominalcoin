@@ -48,7 +48,7 @@ export function useUserDataLoader(
           try {
             userDataTimeoutId = setTimeout(() => {
               throw new Error("Firebase veri yükleme zaman aşımı");
-            }, 8000); // 10 saniyeden 8 saniyeye düşürüldü
+            }, 15000); // 8 saniyeden 15 saniyeye çıkarıldı
             
             const data = await loadUserDataFromFirebase(currentUser.uid);
             clearTimeout(userDataTimeoutId);
@@ -57,7 +57,7 @@ export function useUserDataLoader(
             clearTimeout(userDataTimeoutId);
             if (retryAttempt < 2 && ((error as any)?.code === 'unavailable' || (error as Error).message.includes('zaman aşımı'))) {
               debugLog("useUserDataLoader", `Firebase veri yükleme denemesi başarısız (${retryAttempt + 1}/3), yeniden deneniyor...`);
-              return new Promise(resolve => setTimeout(() => resolve(loadUserDataWithRetry(retryAttempt + 1)), 1000));
+              return new Promise(resolve => setTimeout(() => resolve(loadUserDataWithRetry(retryAttempt + 1)), 2000)); // Yeniden deneme aralığını artırdık
             }
             throw error;
           }
@@ -92,7 +92,8 @@ export function useUserDataLoader(
             // Kullanıcıyı sadece ilk hatada bilgilendir, tekrar tekrar bildirme
             if (dataSource !== 'local') {
               toast.warning("Sunucu verilerine erişilemedi. Yerel veriler kullanılıyor.", {
-                id: "firebase-offline-toast" // Aynı ID ile yeniden göstermeyi engelle
+                id: "firebase-offline-toast", // Aynı ID ile yeniden göstermeyi engelle
+                duration: 5000
               });
             }
           }
@@ -107,7 +108,8 @@ export function useUserDataLoader(
           setUserData(localData);
           setDataSource('local');
           toast.warning("Sunucu verilerine erişilemedi. Çevrimdışı veriler kullanılıyor.", {
-            id: "firebase-offline-toast"
+            id: "firebase-offline-toast",
+            duration: 5000
           });
         }
       } finally {
