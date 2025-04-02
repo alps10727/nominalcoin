@@ -15,11 +15,18 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   return (
     <TooltipProvider>
       <div className="flex flex-col min-h-screen relative overflow-hidden">
-        {/* Deep space background */}
+        {/* Enhanced space background */}
         <div className="absolute inset-0 pointer-events-none z-0">
-          <div className="absolute inset-0 bg-purple-950"></div>
+          {/* Base gradient */}
+          <div className="absolute inset-0 bg-gradient-to-b from-darkPurple-950 via-purple-950 to-darkPurple-950"></div>
           
-          {/* Starfield */}
+          {/* Nebula overlay */}
+          <div className="absolute inset-0 fc-nebula opacity-30"></div>
+          
+          {/* Constellation pattern */}
+          <div className="absolute inset-0 bg-galaxy opacity-5"></div>
+          
+          {/* Enhanced starfield with more stars */}
           <div className="absolute inset-0 overflow-hidden">
             {Array.from({ length: 200 }).map((_, i) => (
               <div
@@ -38,9 +45,10 @@ const AppLayout = ({ children }: AppLayoutProps) => {
             ))}
           </div>
           
-          {/* Nebula effects */}
+          {/* Glowing nebula formations */}
           <div className="absolute top-1/4 left-1/4 w-1/2 h-1/2 bg-purple-800/10 rounded-full blur-3xl"></div>
           <div className="absolute bottom-1/4 right-1/4 w-1/3 h-1/3 bg-indigo-800/10 rounded-full blur-3xl"></div>
+          <div className="absolute top-3/4 right-1/4 w-1/4 h-1/4 bg-darkPurple-700/5 rounded-full blur-2xl"></div>
         </div>
         
         <Toaster />

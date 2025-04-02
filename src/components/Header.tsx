@@ -3,7 +3,7 @@ import { MobileMenu } from "./header/MobileMenu";
 import { Logo } from "./header/Logo";
 import { LanguageSwitcher } from "./header/LanguageSwitcher";
 import { ThemeToggle } from "./header/ThemeToggle";
-import { Bell, WifiOff } from "lucide-react";
+import { Bell, WifiOff, Gift } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect, memo } from "react";
 import { Button } from "./ui/button";
@@ -33,7 +33,7 @@ const Header = memo(() => {
   };
 
   return (
-    <header className="bg-purple-950/95 backdrop-blur-xl pt-safe p-4 flex justify-between items-center shadow-lg sticky top-0 z-50 border-b border-purple-700/20">
+    <header className="bg-gradient-to-b from-darkPurple-950/95 to-darkPurple-900/95 backdrop-blur-xl pt-safe p-4 flex justify-between items-center sticky top-0 z-50 border-b border-purple-700/20 shadow-md">
       {/* Offline warning */}
       {isOffline && (
         <div className="absolute bottom-0 left-0 right-0 bg-red-800/90 text-white text-xs py-1 text-center flex items-center justify-center">
@@ -53,15 +53,26 @@ const Header = memo(() => {
       <div className="flex items-center gap-2 relative z-10">
         <MobileMenu />
         <Logo />
-        <span className="text-lg font-bold text-purple-300">Future Coin</span>
+        <span className="text-lg font-bold fc-gradient-text">Future Coin</span>
       </div>
 
       <div className="flex items-center gap-3 relative z-10">
+        {/* Special offers button */}
+        <Button 
+          variant="ghost" 
+          size="sm"
+          className="bg-darkPurple-800/30 border border-purple-700/30 text-purple-300 hover:bg-darkPurple-800/60 hidden md:flex"
+        >
+          <Gift className="h-4 w-4 mr-1.5" />
+          <span>Offers</span>
+        </Button>
+        
         <LanguageSwitcher />
         <ThemeToggle />
+        
         <Link to="/notifications" className="relative p-1.5 rounded-full hover:bg-purple-800/50 transition-colors">
           <Bell className="h-5 w-5 text-purple-300" />
-          <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+          <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-darkPurple-900"></span>
         </Link>
       </div>
     </header>

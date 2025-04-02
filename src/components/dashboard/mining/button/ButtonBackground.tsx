@@ -18,14 +18,7 @@ export const ButtonBackground = React.memo<ButtonBackgroundProps>(({ miningActiv
           : 'bg-gradient-to-br from-darkPurple-700 via-darkPurple-800 to-darkPurple-950 border border-darkPurple-600/40 shadow-md'
       }`}>
         {/* Enhanced shimmering overlay effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent"
-          style={{ 
-            transform: 'translateX(-100%)', 
-            animation: miningActive ? 'sheen 2.5s infinite' : 'sheen 5s infinite',
-            opacity: miningActive ? 1 : 0.7,
-            transition: 'opacity 0.7s ease, animation 0.7s ease'
-          }}>
-        </div>
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent button-shimmer"></div>
       </div>
       
       {/* Enhanced inner circle with better color transition */}
@@ -66,6 +59,13 @@ export const ButtonBackground = React.memo<ButtonBackgroundProps>(({ miningActiv
           transition: 'animation 0.7s ease'
         }}></div>
       </div>
+      
+      {/* Core glow when active */}
+      {miningActive && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-1/3 h-1/3 bg-purple-500/20 rounded-full blur-md animate-pulse-slow"></div>
+        </div>
+      )}
     </>
   );
 });

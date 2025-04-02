@@ -14,9 +14,69 @@
 }
 
 .fc-card {
-  @apply bg-purple-900/80 rounded-xl border border-purple-700/30 shadow-lg;
+  @apply bg-gradient-to-b from-purple-900/80 to-darkPurple-950/90 rounded-xl border border-purple-700/30 shadow-lg backdrop-blur-sm;
 }
 
 .fc-button {
-  @apply bg-purple-600 hover:bg-purple-500 text-white transition-colors;
+  @apply bg-gradient-to-br from-purple-600 to-darkPurple-700 hover:from-purple-500 hover:to-darkPurple-600 text-white transition-all duration-300;
+}
+
+.fc-button-glow {
+  @apply relative;
+}
+
+.fc-button-glow::before {
+  content: '';
+  @apply absolute -inset-1 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full blur-md opacity-70;
+  z-index: -1;
+}
+
+.fc-glass-panel {
+  @apply backdrop-blur-md bg-darkPurple-900/40 border border-purple-500/20 rounded-xl;
+}
+
+.fc-space-bg {
+  background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
+  background-attachment: fixed;
+}
+
+.fc-nebula {
+  background: linear-gradient(125deg, 
+    rgba(65, 39, 120, 0.2) 0%, 
+    rgba(99, 47, 180, 0.2) 25%, 
+    rgba(46, 20, 84, 0.2) 50%, 
+    rgba(116, 56, 209, 0.2) 75%, 
+    rgba(65, 39, 120, 0.2) 100%);
+  background-size: 400% 400%;
+  @apply animate-nebula-shift;
+}
+
+.fc-icon-container {
+  @apply flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-purple-500/20 to-indigo-600/20 border border-purple-500/30;
+}
+
+.fc-glow-border {
+  box-shadow: 0 0 15px theme('colors.purple.500' / 30%), 0 0 30px theme('colors.purple.800' / 20%);
+}
+
+.fc-glow-text {
+  text-shadow: 0 0 10px theme('colors.purple.400' / 60%);
+}
+
+.fc-status-bar {
+  height: 6px;
+  @apply rounded-full overflow-hidden bg-gradient-to-r from-darkPurple-800/60 to-purple-800/40;
+}
+
+.fc-status-progress {
+  @apply h-full rounded-full bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-600 relative;
+}
+
+.fc-status-progress::after {
+  content: '';
+  @apply absolute inset-0 bg-white/20 rounded-full;
+}
+
+.fc-data-point {
+  @apply absolute h-1.5 w-1.5 rounded-full bg-gradient-to-r from-indigo-400 to-purple-400 opacity-0 animate-float-data;
 }

@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Diamond } from 'lucide-react';
+import { Diamond, TrendingUp, ArrowUpRight, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface BalanceCardProps {
   balance: number;
@@ -10,33 +11,73 @@ interface BalanceCardProps {
 const BalanceCard = ({ balance }: BalanceCardProps) => {
   const { t } = useLanguage();
   
+  // Format the balance with commas
+  const formattedBalance = balance.toLocaleString();
+  
   return (
-    <div className="bg-purple-900/80 rounded-xl p-4 shadow-lg border border-purple-700/30 relative overflow-hidden">
-      {/* Decorative elements */}
-      <div className="absolute top-0 right-0 w-40 h-40 bg-purple-500/5 rounded-full blur-2xl transform translate-x-10 -translate-y-10"></div>
-      <div className="absolute bottom-0 left-0 w-20 h-20 bg-indigo-500/5 rounded-full blur-xl transform -translate-x-5 translate-y-5"></div>
+    <div className="fc-card relative overflow-hidden group hover-lift transition-all duration-500">
+      {/* Background elements */}
+      <div className="absolute inset-0 fc-nebula opacity-60"></div>
+      <div className="absolute -top-24 -right-24 w-48 h-48 bg-purple-600/5 rounded-full blur-3xl"></div>
+      <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-indigo-600/5 rounded-full blur-2xl"></div>
       
-      <div className="flex items-center mb-3 relative z-10">
-        <div className="p-1.5 mr-2">
-          <Diamond className="text-purple-300 h-5 w-5" />
-        </div>
-        <span className="text-purple-300 font-medium text-lg">Your FC Balance</span>
-      </div>
+      {/* Constellation background pattern */}
+      <div className="absolute inset-0 bg-galaxy opacity-5"></div>
       
-      <div className="flex flex-col space-y-2 relative z-10">
-        <h1 className="text-5xl font-bold text-white">
-          {balance.toLocaleString()} <span className="text-lg font-medium text-purple-300">FC</span>
-        </h1>
-        <p className="text-purple-300/80 text-sm">Total earned Future Coin</p>
-        
-        {/* Status bar with glow effect */}
-        <div className="w-full bg-purple-800/60 rounded-full h-1.5 my-2 overflow-hidden">
-          <div 
-            className="bg-gradient-to-r from-purple-500 to-indigo-500 h-full rounded-full relative"
-            style={{ width: '45%' }}
-          >
-            <div className="absolute inset-0 bg-white/20 blur-sm"></div>
+      {/* Content */}
+      <div className="relative z-10 p-5">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center space-x-2">
+            <div className="fc-icon-container">
+              <Diamond className="text-purple-300 h-4 w-4" />
+            </div>
+            <span className="text-lg font-medium fc-gradient-text">FC Balance</span>
           </div>
+          
+          <div className="flex items-center space-x-1 text-xs text-purple-300/80 bg-purple-950/60 py-1 px-2 rounded-lg border border-purple-700/30">
+            <TrendingUp className="h-3 w-3" />
+            <span>+2.4%</span>
+          </div>
+        </div>
+        
+        {/* Balance display */}
+        <div className="flex flex-col space-y-1 my-3">
+          <h1 className="text-5xl font-bold text-white fc-glow-text tracking-tight">
+            {formattedBalance} <span className="text-lg font-medium text-purple-300">FC</span>
+          </h1>
+          <p className="text-purple-300/80 text-sm">Earned Future Coin</p>
+        </div>
+        
+        {/* Animated status bar */}
+        <div className="fc-status-bar my-4">
+          <div 
+            className="fc-status-progress animate-pulse-slow"
+            style={{ width: '45%' }}
+          ></div>
+        </div>
+        
+        {/* Stats overview */}
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <div className="bg-darkPurple-800/40 rounded-lg p-2 border border-purple-700/20">
+            <div className="text-xs text-purple-300/70">Daily Mined</div>
+            <div className="text-sm font-semibold text-white">+173.5 FC</div>
+          </div>
+          <div className="bg-darkPurple-800/40 rounded-lg p-2 border border-purple-700/20">
+            <div className="text-xs text-purple-300/70">Current Value</div>
+            <div className="text-sm font-semibold text-white">$215.38</div>
+          </div>
+        </div>
+        
+        {/* Action buttons */}
+        <div className="flex gap-2 mt-3">
+          <Button variant="ghost" size="sm" className="flex-1 bg-purple-900/50 border border-purple-700/30 hover:bg-purple-800/60">
+            <ArrowUpRight className="h-4 w-4 mr-1" />
+            Transfer
+          </Button>
+          <Button variant="ghost" size="sm" className="flex-1 bg-darkPurple-900/50 border border-purple-700/30 hover:bg-darkPurple-800/60">
+            <AlertCircle className="h-4 w-4 mr-1" />
+            Details
+          </Button>
         </div>
       </div>
     </div>
