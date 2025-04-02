@@ -3,10 +3,16 @@
 // Yeni kod doğrudan yeni servis dosyalarını kullanmalıdır
 
 import { 
-  loadUserDataFromFirebase, 
-  saveUserDataToFirebase, 
+  loadUserDataFromFirebase
+} from './userDataLoader';
+
+import {
+  saveUserDataToFirebase
+} from './userDataSaver';
+
+import {
   initializeMiningStateFromFirebase 
-} from './userService';
+} from './miningStateInitializer';
 
 import {
   registerUser,
