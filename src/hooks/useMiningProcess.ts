@@ -1,9 +1,10 @@
 
 import { useEffect, useRef } from 'react';
-import { saveUserData } from "@/utils/storage";
+import { saveUserData, loadUserData } from "@/utils/storage";
 import { MiningState } from '@/types/mining';
 import { calculateProgress } from '@/utils/miningUtils';
 import { toast } from "sonner";
+import { debugLog } from "@/utils/debugUtils";
 
 /**
  * Hook for handling the mining process with improved UI feedback
@@ -11,6 +12,18 @@ import { toast } from "sonner";
 export function useMiningProcess(state: MiningState, setState: React.Dispatch<React.SetStateAction<MiningState>>) {
   // Reference to track interval ID
   const intervalRef = useRef<number | null>(null);
+  
+  // Check for existing local balance on init
+  useEffect(() => {
+    const localData = loadUserData();
+    if (localData && state.balance === 0 && localData.balance > 0) {
+      debugLog("useMiningProcess", "Found local balance data, restoring", localData.balance);
+      setState(prev => ({
+        ...prev,
+        balance: localData.balance
+      }));
+    }
+  }, [setState, state.balance]);
   
   // Mining process management
   useEffect(() => {

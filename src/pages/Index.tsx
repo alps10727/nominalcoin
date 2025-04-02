@@ -4,6 +4,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useMiningData } from "@/hooks/useMiningData";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useEffect, useState } from "react";
 
 // Imported components
 import BalanceCard from "@/components/dashboard/BalanceCard";
@@ -11,13 +13,14 @@ import MiningCard from "@/components/dashboard/MiningCard";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
 import MiningRateCard from "@/components/dashboard/MiningRateCard";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const Index = () => {
   const {
-    isLoading,
+    isLoading: miningLoading,
     miningActive,
     progress,
-    balance,
+    balance: miningBalance,
     miningRate,
     miningSession,
     miningTime,
@@ -25,9 +28,32 @@ const Index = () => {
     handleStopMining
   } = useMiningData();
   
+  // Also get balance from auth context as a backup
+  const { userData, loading: authLoading } = useAuth();
+  const [balance, setBalance] = useState(0);
+  
+  // Set initial balance
+  useEffect(() => {
+    // If data loaded from either source, set balance
+    if (!miningLoading && miningBalance > 0) {
+      setBalance(miningBalance);
+    } else if (!authLoading && userData?.balance > 0) {
+      setBalance(userData.balance);
+      console.log("Using balance from auth context:", userData.balance);
+      
+      if (miningBalance === 0 && userData.balance > 0) {
+        toast.info("Bakiye yüklendi: " + userData.balance.toFixed(2) + " NC", {
+          style: { background: "#4338ca", color: "white" }
+        });
+      }
+    }
+  }, [miningLoading, miningBalance, authLoading, userData]);
+  
   const isMobile = useIsMobile();
   const { t } = useLanguage();
   const { theme } = useTheme();
+
+  const isLoading = miningLoading || authLoading;
 
   if (isLoading) {
     return <LoadingScreen />;

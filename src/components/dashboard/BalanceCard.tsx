@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Diamond, TrendingUp, ArrowUpRight, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 interface BalanceCardProps {
   balance: number;
@@ -10,6 +11,18 @@ interface BalanceCardProps {
 
 const BalanceCard = ({ balance }: BalanceCardProps) => {
   const { t } = useLanguage();
+  const previousBalance = useRef(balance);
+  
+  // Show notification when balance changes significantly
+  useEffect(() => {
+    if (previousBalance.current !== 0 && balance > previousBalance.current) {
+      toast.success(`Bakiye güncellendi: +${(balance - previousBalance.current).toFixed(2)} NC`, {
+        style: { background: "#4338ca", color: "white", border: "1px solid #3730a3" },
+        icon: '💰'
+      });
+    }
+    previousBalance.current = balance;
+  }, [balance]);
   
   // Format the balance with commas
   const formattedBalance = balance.toLocaleString();
