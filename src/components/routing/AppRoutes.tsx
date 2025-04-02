@@ -17,6 +17,7 @@ const MiningUpgrades = lazy(() => import("@/pages/MiningUpgrades"));
 const Statistics = lazy(() => import("@/pages/Statistics"));
 const SignIn = lazy(() => import("@/pages/SignIn"));
 const SignUp = lazy(() => import("@/pages/SignUp"));
+const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
 
 // Global hata yakalayıcı
 const ErrorBoundary = ({ children }: { children: React.ReactNode }) => {
@@ -171,6 +172,11 @@ const AppRoutes = () => {
         <Route path="/sign-up" element={
           <Suspense fallback={<LoadingScreen message="Kayıt sayfası yükleniyor..." />}>
             <SignUp />
+          </Suspense>
+        } />
+        <Route path="/forgot-password" element={
+          <Suspense fallback={<LoadingScreen message="Şifre sıfırlama sayfası yükleniyor..." />}>
+            <ForgotPassword />
           </Suspense>
         } />
         <Route path="*" element={

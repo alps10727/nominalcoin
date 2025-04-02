@@ -1,10 +1,10 @@
-
 import { auth } from "@/config/firebase";
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
   signOut,
-  User 
+  User,
+  sendPasswordResetEmail as firebaseSendPasswordResetEmail
 } from "firebase/auth";
 import { saveUserDataToFirebase } from "./userService";
 
@@ -106,6 +106,33 @@ export async function logoutUser(): Promise<void> {
     console.log("Kullanıcı başarıyla çıkış yaptı");
   } catch (err) {
     console.error("Çıkış hatası:", err);
+    throw err; // Hataları üst katmana ilet
+  }
+}
+
+/**
+ * Şifre sıfırlama e-postası gönderme
+ */
+export async function sendPasswordResetEmail(email: string): Promise<void> {
+  try {
+    console.log("Şifre sıfırlama e-postası gönderiliyor:", email);
+    
+    // Şifre sıfırlama işlemi
+    const resetPromise = firebaseSendPasswordResetEmail(auth, email);
+    
+    // Timeout ile daha hızlı hata bildirimi
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => {
+        reject(new Error("İşlem zaman aşımına uğradı. Lütfen internet bağlantınızı kontrol edin."));
+      }, 10000); // 10 saniye timeout
+    });
+    
+    // Promise.race ile timeout kontrolü
+    await Promise.race([resetPromise, timeoutPromise]);
+    
+    console.log("Şifre sıfırlama e-postası gönderildi");
+  } catch (err) {
+    console.error("Şifre sıfırlama hatası:", err);
     throw err; // Hataları üst katmana ilet
   }
 }

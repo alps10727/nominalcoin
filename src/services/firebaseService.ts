@@ -11,7 +11,8 @@ import {
 import {
   registerUser,
   loginUser,
-  logoutUser
+  logoutUser,
+  sendPasswordResetEmail
 } from './authService';
 
 // Tüm fonksiyonları dışa aktar
@@ -21,5 +22,6 @@ export {
   initializeMiningStateFromFirebase,
   registerUser,
   loginUser,
-  logoutUser
+  logoutUser,
+  sendPasswordResetEmail
 };
