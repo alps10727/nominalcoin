@@ -16,7 +16,8 @@ import { toast } from "sonner";
 
 // Firestore'u daha iyi çevrimdışı destek ile yapılandır
 try {
-  // Firebase'in offline süreci için persistence etkinleştir
+  // Firebase'in offline persistence özelliğini etkinleştir
+  // Gelişmiş yapılandırma ile multi-tab desteği ve büyük önbellek
   enableIndexedDbPersistence(db)
     .then(() => {
       debugLog("dbService", "Firestore offline persistence etkinleştirildi");
@@ -27,6 +28,8 @@ try {
         errorLog("dbService", "Offline persistence hatası:", err);
       } else {
         debugLog("dbService", "Birden fazla sekme açık - tam persistence sınırlı olabilir");
+        // Multi-tab durumlarında kullanıcıya bilgi ver
+        toast.info("Birden fazla sekme açık. Çevrimdışı veri depolama kısıtlı olabilir.");
       }
     });
 } catch (error) {

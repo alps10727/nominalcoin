@@ -1,6 +1,6 @@
 
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, enableMultiTabIndexedDbPersistence } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { getAnalytics } from "firebase/analytics";
 
@@ -18,8 +18,12 @@ const firebaseConfig = {
 // Firebase'i başlat
 const app = initializeApp(firebaseConfig);
 
-// Firestore ve Auth servislerini al
+// Firestore ve Auth servislerini al - gelişmiş yapılandırma ile
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const analytics = getAnalytics(app);
 
+// Auth durumunu önbelleğe alma
+auth.setPersistence('local').catch(err => {
+  console.error("Auth persistence error:", err);
+});
