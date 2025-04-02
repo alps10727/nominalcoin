@@ -18,7 +18,7 @@ interface UserData {
 }
 
 /**
- * Kullanıcı verilerini Firestore'dan yükleme
+ * Kullanıcı verilerini Firestore'dan yükleme - geliştirilmiş hata işleme ile
  */
 export async function loadUserDataFromFirebase(userId: string): Promise<UserData | null> {
   try {
@@ -29,7 +29,7 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
     let userData = null;
     
     try {
-      // Firebase verilerini al
+      // Firebase verilerini al - doğrudan timeoutlu getDocument kullanarak
       userData = await getDocument("users", userId);
       
       if (userData) {
@@ -54,7 +54,18 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
       debugLog("userDataLoader", "Firebase'de kullanıcı verileri bulunamadı");
     } catch (error) {
       errorLog("userDataLoader", "Firebase'e erişim hatası:", error);
-      toast.error("Sunucu verilerine erişilemedi, yerel veriler kullanılıyor");
+      
+      if (error instanceof Error && error.message.includes('zaman aşımı')) {
+        toast.error("Sunucu yanıt vermedi. Yerel veriler kullanılıyor.", {
+          id: "firebase-timeout-toast",
+          duration: 5000
+        });
+      } else {
+        toast.error("Sunucu verilerine erişilemedi, yerel veriler kullanılıyor", {
+          id: "firebase-error-toast", 
+          duration: 5000
+        });
+      }
     }
     
     // Firebase'den veri gelmezse yerel veriyi kullan
@@ -81,7 +92,10 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
     // Offline hatası için özel işleme
     if ((err as any)?.code === 'unavailable' || (err as Error).message.includes('zaman aşımı')) {
       debugLog("userDataLoader", "Cihaz çevrimdışı veya bağlantı zaman aşımına uğradı, offline mod etkinleştiriliyor");
-      toast.warning("Sunucuya bağlanılamadı. Offline mod etkinleştirildi.");
+      toast.warning("Sunucuya bağlanılamadı. Offline mod etkinleştirildi.", {
+        id: "offline-mode-toast",
+        duration: 8000
+      });
       
       // Yerel depodan veri yüklemeyi dene
       const localData = loadUserData();
@@ -92,9 +106,10 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
     }
     
     // Hiçbir veri yoksa varsayılan değerler döndür
+    debugLog("userDataLoader", "Varsayılan değerler ile yeni profil oluşturuluyor");
     return {
       balance: 0,
-      miningRate: 0.1, // Updated default mining rate to 0.1
+      miningRate: 0.1, 
       lastSaved: Date.now(),
       miningActive: false
     };

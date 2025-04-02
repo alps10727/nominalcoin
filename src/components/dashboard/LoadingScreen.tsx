@@ -1,3 +1,4 @@
+
 import { RefreshCw, Sparkles, Wifi, WifiOff } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useEffect, useState } from "react";
@@ -58,6 +59,8 @@ const LoadingScreen = ({ message, forceOffline = false }: { message?: string, fo
             setLoadingMessage("Neredeyse hazır...");
           } else if (newTime === 5) {
             setLoadingMessage("Son birkaç saniye...");
+          } else if (newTime === 10) {
+            setLoadingMessage("Biraz uzun sürüyor, lütfen bekleyin...");
           }
         }
         
@@ -72,11 +75,14 @@ const LoadingScreen = ({ message, forceOffline = false }: { message?: string, fo
     };
   }, [forceOffline, offlineDetected]);
   
+  // Otomatik yeniden başlatma mekanizması - 15 saniye sonra çalışır
   useEffect(() => {
     let reloadTimer: NodeJS.Timeout;
     
-    if (offlineDetected && loadingTime > 8) {
+    if (offlineDetected && loadingTime > 15) {
       reloadTimer = setTimeout(() => {
+        // Yenileme girişimini bildir ve yenilemeyi gerçekleştir
+        setLoadingMessage("Yeniden bağlanmayı deniyorum...");
         window.location.reload();
       }, 3000);
     }
@@ -85,6 +91,11 @@ const LoadingScreen = ({ message, forceOffline = false }: { message?: string, fo
       if (reloadTimer) clearTimeout(reloadTimer);
     };
   }, [loadingTime, offlineDetected]);
+  
+  const handleManualReload = () => {
+    setLoadingMessage("Yenileniyor...");
+    window.location.reload();
+  };
   
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-950 to-purple-950">
@@ -156,7 +167,17 @@ const LoadingScreen = ({ message, forceOffline = false }: { message?: string, fo
                 <p>Sayfayı yenilemeyi deneyin veya daha sonra tekrar giriş yapmayı deneyin.</p>
               )}
               
-              {(loadingTime > 8 && offlineDetected) && (
+              {(loadingTime > 10) && (
+                <button
+                  onClick={handleManualReload}
+                  className="mt-3 w-full flex items-center justify-center bg-indigo-800/50 hover:bg-indigo-700/50 text-indigo-100 px-4 py-2 rounded-md text-sm transition-colors"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Sayfayı Yenile
+                </button>
+              )}
+              
+              {(loadingTime > 15 && offlineDetected) && (
                 <p className="mt-2 font-semibold text-indigo-100">Sayfa otomatik olarak yenilenecek...</p>
               )}
             </div>

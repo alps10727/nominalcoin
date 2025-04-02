@@ -15,9 +15,11 @@ export const errorLog = (context: string, message: string, error?: any) => {
   // Hata stack'ini analiz et ve daha anlamlı mesajlar sun
   if (error instanceof Error) {
     if (error.message.includes('timeout') || error.message.includes('zaman aşımı')) {
-      console.error(`[${context}] Sunucu yanıt vermiyor veya ağ bağlantısı yavaş`);
+      console.error(`[${context}] Sunucu yanıt vermiyor veya ağ bağlantısı yavaş. Timeout süresi artırılabilir.`);
     } else if (error.message.includes('offline') || error.message.includes('unavailable')) {
-      console.error(`[${context}] İnternet bağlantısı yok veya sunucu kullanılamıyor`);
+      console.error(`[${context}] İnternet bağlantısı yok veya sunucu kullanılamıyor. Çevrimdışı mod etkinleştirildi.`);
+    } else if (error.message.includes('permission-denied')) {
+      console.error(`[${context}] Firebase erişim izni hatası. Güvenlik kurallarını kontrol edin.`);
     }
   }
 };
@@ -87,9 +89,45 @@ export const networkMonitor = {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     
+    // Mevcut ağ durumunu raporla
+    debugLog("Network", `Mevcut ağ durumu: ${navigator.onLine ? 'Çevrimiçi' : 'Çevrimdışı'}`);
+    if (!navigator.onLine) {
+      errorLog("Network", "Uygulama başlatılırken internet bağlantısı yok. Çevrimdışı modda çalışılıyor.");
+    }
+    
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
   }
+};
+
+/**
+ * Uygulama başlatıcı yardımcı fonksiyon
+ */
+export const appStartupLogger = () => {
+  debugLog("App", "Uygulama başlatılıyor...");
+  debugLog("App", `Tarayıcı: ${navigator.userAgent}`);
+  debugLog("App", `Çevrimiçi durumu: ${navigator.onLine}`);
+  debugLog("App", `Dil: ${navigator.language}`);
+  
+  return new Timer("AppStartup");
+};
+
+/**
+ * Firebase bağlantı durumunu kontrol eden fonksiyon
+ */
+export const checkFirebaseConnection = () => {
+  const connectionTimer = new Timer("FirebaseConnection");
+  return {
+    start: connectionTimer,
+    success: () => {
+      connectionTimer.mark("Firebase bağlantısı başarılı");
+      debugLog("Firebase", "Firebase servisleri başarıyla başlatıldı");
+    },
+    error: (err: any) => {
+      connectionTimer.mark("Firebase bağlantısı başarısız");
+      errorLog("Firebase", "Firebase servisleri başlatılırken hata oluştu", err);
+    }
+  };
 };

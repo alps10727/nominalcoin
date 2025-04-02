@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { User } from "firebase/auth";
-import { loadUserDataFromFirebase } from "@/services/userService";
+import { loadUserDataFromFirebase } from "@/services/userDataLoader";
 import { loadUserData, saveUserData } from "@/utils/storage";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { toast } from "sonner";
@@ -19,6 +19,7 @@ export function useUserDataLoader(
   const [userData, setUserData] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [dataSource, setDataSource] = useState<'firebase' | 'local' | null>(null);
+  const [errorOccurred, setErrorOccurred] = useState(false);
 
   useEffect(() => {
     let userDataTimeoutId: NodeJS.Timeout;
@@ -43,21 +44,35 @@ export function useUserDataLoader(
           debugLog("useUserDataLoader", "Yerel depodan kullanıcı verileri yüklendi:", localData);
         }
         
+        // Hatanın bir kez bildirildiğinden emin ol
+        if (errorOccurred) {
+          setLoading(false);
+          return;
+        }
+        
         // Retry mekanizması ile Firebase'den taze veri almaya çalış
         const loadUserDataWithRetry = async (retryAttempt = 0): Promise<any> => {
           try {
-            userDataTimeoutId = setTimeout(() => {
-              throw new Error("Firebase veri yükleme zaman aşımı");
-            }, 15000); // 8 saniyeden 15 saniyeye çıkarıldı
+            // Timeout süresini artırıldı - 20 saniye
+            const timeoutPromise = new Promise((_, reject) => {
+              userDataTimeoutId = setTimeout(() => {
+                reject(new Error("Firebase veri yükleme zaman aşımı"));
+              }, 20000);
+            });
             
-            const data = await loadUserDataFromFirebase(currentUser.uid);
+            // Veri çekme işlemi
+            const dataPromise = loadUserDataFromFirebase(currentUser.uid);
+            
+            // İki promise'i yarıştır - hangisi önce biterse
+            const data = await Promise.race([dataPromise, timeoutPromise]);
             clearTimeout(userDataTimeoutId);
             return data;
           } catch (error) {
             clearTimeout(userDataTimeoutId);
             if (retryAttempt < 2 && ((error as any)?.code === 'unavailable' || (error as Error).message.includes('zaman aşımı'))) {
               debugLog("useUserDataLoader", `Firebase veri yükleme denemesi başarısız (${retryAttempt + 1}/3), yeniden deneniyor...`);
-              return new Promise(resolve => setTimeout(() => resolve(loadUserDataWithRetry(retryAttempt + 1)), 2000)); // Yeniden deneme aralığını artırdık
+              // Daha uzun bekleme süresi
+              return new Promise(resolve => setTimeout(() => resolve(loadUserDataWithRetry(retryAttempt + 1)), 3000 * (retryAttempt + 1)));
             }
             throw error;
           }
@@ -81,25 +96,24 @@ export function useUserDataLoader(
             // Yerel depoya da kaydet
             saveUserData(userDataFromFirebase);
           }
-          // localData zaten kontrol edildi, sadece yerel veri durumu için bir şey yapmaya gerek yok
         } catch (firebaseError) {
           // Firebase hatası durumunda, yerel veriyi kullanmaya devam et
           errorLog("useUserDataLoader", "Firebase'den veri yükleme hatası:", firebaseError);
+          setErrorOccurred(true);
           
           if (localData) {
             debugLog("useUserDataLoader", "Firebase'e erişim hatası, yerel veri kullanılmaya devam ediliyor");
             
-            // Kullanıcıyı sadece ilk hatada bilgilendir, tekrar tekrar bildirme
-            if (dataSource !== 'local') {
-              toast.warning("Sunucu verilerine erişilemedi. Yerel veriler kullanılıyor.", {
-                id: "firebase-offline-toast", // Aynı ID ile yeniden göstermeyi engelle
-                duration: 5000
-              });
-            }
+            // Kullanıcıyı bilgilendir
+            toast.warning("Sunucu verilerine erişilemedi. Yerel veriler kullanılıyor.", {
+              id: "firebase-offline-toast",
+              duration: 5000
+            });
           }
         }
       } catch (error) {
         errorLog("useUserDataLoader", "Kullanıcı verisi yükleme hatası:", error);
+        setErrorOccurred(true);
         
         // Son çare olarak yerel veriyi dene
         const localData = loadUserData();
@@ -122,7 +136,7 @@ export function useUserDataLoader(
     return () => {
       clearTimeout(userDataTimeoutId);
     };
-  }, [currentUser, authInitialized, dataSource]);
+  }, [currentUser, authInitialized, errorOccurred]);
 
   return { userData, loading, dataSource };
 }

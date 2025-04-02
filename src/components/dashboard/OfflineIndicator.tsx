@@ -2,6 +2,7 @@
 import { WifiOff, RefreshCw } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
+import { toast } from "sonner";
 
 const OfflineIndicator = () => {
   const { isOffline } = useAuth();
@@ -11,8 +12,11 @@ const OfflineIndicator = () => {
   
   const handleRefresh = () => {
     setIsRefreshing(true);
+    toast.info("Sayfa yenileniyor...");
     // Sayfayı yenile
-    window.location.reload();
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
   };
   
   return (
@@ -21,7 +25,6 @@ const OfflineIndicator = () => {
         <WifiOff className="h-3.5 w-3.5" />
         <span className="text-xs font-medium">Çevrimdışı mod</span>
         
-        {/* Yenileme butonu ekleyelim */}
         <button 
           onClick={handleRefresh}
           disabled={isRefreshing}

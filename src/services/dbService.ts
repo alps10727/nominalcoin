@@ -43,11 +43,11 @@ export async function getDocument(collection: string, id: string): Promise<any |
   try {
     debugLog("dbService", `${collection}/${id} belgesi yükleniyor...`);
     
-    // Timeout promise oluştur - 15 saniyeye çıkarıldı
+    // Timeout promise oluştur - 20 saniyeye çıkarıldı
     const timeoutPromise = new Promise((_, reject) => {
       timeoutId = setTimeout(() => {
         reject(new Error(`${collection}/${id} yükleme işlemi zaman aşımına uğradı`));
-      }, 15000); // 10 saniyeden 15 saniyeye çıkarıldı
+      }, 20000); // 20 saniyeye çıkarıldı
     });
     
     // Veri çekme işlemi
@@ -99,11 +99,11 @@ export async function saveDocument(collection: string, id: string, data: any, op
         lastSaved: serverTimestamp(),
       };
       
-      // Timeout promise oluştur - 15 saniyeye çıkarıldı
+      // Timeout promise oluştur - 20 saniyeye çıkarıldı
       const timeoutPromise = new Promise<void>((_, reject) => {
         timeoutId = setTimeout(() => {
           reject(new Error(`${collection}/${id} kaydetme işlemi zaman aşımına uğradı`));
-        }, 15000); // 10 saniyeden 15 saniyeye çıkarıldı
+        }, 20000); // 20 saniyeye çıkarıldı
       });
       
       // Kaydetme işlemi
@@ -124,8 +124,8 @@ export async function saveDocument(collection: string, id: string, data: any, op
         retryCount++;
         debugLog("dbService", `Bağlantı sorunu, ${retryCount}. deneme yapılıyor...`);
         
-        // Yeniden deneme öncesi kısa bir gecikme
-        await new Promise(resolve => setTimeout(resolve, 2000 * retryCount)); // Gecikmeyi artırdık
+        // Yeniden deneme öncesi daha uzun bir gecikme
+        await new Promise(resolve => setTimeout(resolve, 3000 * retryCount)); // Gecikmeyi artırdık
         return saveWithRetry(); // Recursive retry
       }
       
@@ -134,7 +134,6 @@ export async function saveDocument(collection: string, id: string, data: any, op
       // Tüm denemeler başarısız olduysa ve offline hatasıysa - hata fırlat ama sessizce
       if ((err as any)?.code === 'unavailable' || (err as Error).message.includes('zaman aşımı')) {
         debugLog("dbService", "Cihaz çevrimdışı veya bağlantı zaman aşımına uğradı, veriler daha sonra kaydedilecek");
-        // Toast mesajını kaldırdım - bu artık çağıran tarafından yönetilecek
       } else {
         // Sadece gerçek hatalarda bildirim göster
         toast.error("Veri kaydedilirken bir hata oluştu.");

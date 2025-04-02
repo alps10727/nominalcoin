@@ -14,6 +14,7 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
   const [ready, setReady] = useState(false);
   const [reconnecting, setReconnecting] = useState(false);
   const [initialLoadAttempted, setInitialLoadAttempted] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   
   useEffect(() => {
     let reconnectTimer: NodeJS.Timeout;
@@ -22,10 +23,14 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
       debugLog("AppInitializer", "İnternet bağlantısı kuruldu");
       setIsOffline(false);
       
-      // Yeniden bağlanma durumunda toast göster ve sayfayı yenile
+      // Yeniden bağlanma durumunda toast göster ve kurtarma mekanizması başlat
       if (reconnecting) {
         toast.success("İnternet bağlantısı yeniden kuruldu. Veriler senkronize ediliyor...");
-        setTimeout(() => window.location.reload(), 2000);
+        
+        // Sayfayı yenileme öncesi kısa bir bekletme
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
       }
     };
     
@@ -42,31 +47,49 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     
-    // App initialization
-    const startTime = performance.now();
+    // Uygulama ilk yükleme
+    const initializeApp = () => {
+      const startTime = performance.now();
+      
+      // İlk yükleme
+      if (!initialLoadAttempted || loadAttempt < 3) {
+        setInitialLoadAttempted(true);
+        
+        // Uygulamayı kademeli olarak başlatma işlemi
+        const loadTimer = setTimeout(() => {
+          setReady(true);
+          const loadTime = performance.now() - startTime;
+          debugLog("AppInitializer", `Uygulama ${loadTime.toFixed(0)}ms içinde başlatıldı`);
+        }, isOffline ? 1000 : 2000); // Offline modda daha hızlı başlat
+        
+        return () => {
+          clearTimeout(loadTimer);
+        };
+      }
+    };
     
-    // İlk yükleme
-    if (!initialLoadAttempted) {
-      setInitialLoadAttempted(true);
-      
-      // Uygulamayı kademeli olarak başlat, daha uzun süre bekle
-      const timer = setTimeout(() => {
-        setReady(true);
-        const loadTime = performance.now() - startTime;
-        debugLog("AppInitializer", `Uygulama ${loadTime.toFixed(0)}ms içinde başlatıldı`);
-      }, 1000); // 500ms'den 1000ms'ye çıkarıldı
-      
-      return () => {
-        clearTimeout(timer);
-      };
-    }
+    initializeApp();
     
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
       clearTimeout(reconnectTimer);
     };
-  }, [reconnecting, initialLoadAttempted]);
+  }, [reconnecting, initialLoadAttempted, loadAttempt, isOffline]);
+  
+  // Yükleme başarısız olursa tekrar dene - maksimum 3 deneme
+  useEffect(() => {
+    if (initialLoadAttempted && !ready && loadAttempt < 3) {
+      const retryTimer = setTimeout(() => {
+        debugLog("AppInitializer", `Yükleme denemesi ${loadAttempt + 1}/3 başlatılıyor...`);
+        setLoadAttempt(prev => prev + 1);
+      }, 5000);
+      
+      return () => {
+        clearTimeout(retryTimer);
+      };
+    }
+  }, [initialLoadAttempted, ready, loadAttempt]);
   
   if (!ready) {
     return <LoadingScreen message="Uygulama başlatılıyor..." forceOffline={isOffline} />;
