@@ -24,7 +24,7 @@ export const Logo = () => {
       
       {/* Text with animated gradient on hover */}
       <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-navy-400
-                     group-hover:from-purple-300 group-hover:to-navy-300 transition-all duration-300">FC</span>
+                     group-hover:from-purple-300 group-hover:to-navy-300 transition-all duration-300">NC</span>
     </Link>
   );
 };

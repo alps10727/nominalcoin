@@ -31,7 +31,7 @@ const BalanceCard = ({ balance }: BalanceCardProps) => {
             <div className="fc-icon-container">
               <Diamond className="text-purple-300 h-4 w-4" />
             </div>
-            <span className="text-lg font-medium fc-gradient-text">FC Balance</span>
+            <span className="text-lg font-medium fc-gradient-text">NC Balance</span>
           </div>
           
           <div className="flex items-center space-x-1 text-xs text-purple-300/80 bg-purple-950/60 py-1 px-2 rounded-lg border border-purple-700/30">
@@ -43,9 +43,9 @@ const BalanceCard = ({ balance }: BalanceCardProps) => {
         {/* Balance display */}
         <div className="flex flex-col space-y-1 my-3">
           <h1 className="text-5xl font-bold text-white fc-glow-text tracking-tight">
-            {formattedBalance} <span className="text-lg font-medium text-purple-300">FC</span>
+            {formattedBalance} <span className="text-lg font-medium text-purple-300">NC</span>
           </h1>
-          <p className="text-purple-300/80 text-sm">Earned Future Coin</p>
+          <p className="text-purple-300/80 text-sm">Earned NOMINAL Coin</p>
         </div>
         
         {/* Animated status bar */}
@@ -60,7 +60,7 @@ const BalanceCard = ({ balance }: BalanceCardProps) => {
         <div className="grid grid-cols-2 gap-3 mb-3">
           <div className="bg-darkPurple-800/40 rounded-lg p-2 border border-purple-700/20">
             <div className="text-xs text-purple-300/70">Daily Mined</div>
-            <div className="text-sm font-semibold text-white">+173.5 FC</div>
+            <div className="text-sm font-semibold text-white">+173.5 NC</div>
           </div>
           <div className="bg-darkPurple-800/40 rounded-lg p-2 border border-purple-700/20">
             <div className="text-xs text-purple-300/70">Current Value</div>

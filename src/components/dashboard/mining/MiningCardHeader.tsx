@@ -35,7 +35,7 @@ export const MiningCardHeader = React.memo<MiningCardHeaderProps>(({
         </div>
       </div>
       <CardDescription className="text-darkPurple-200/80 mt-2 font-light">
-        Mine cryptocurrency with quantum computing power
+        Mine NOMINAL Coin with quantum computing power
       </CardDescription>
     </CardHeader>
   );

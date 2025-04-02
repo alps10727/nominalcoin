@@ -39,9 +39,9 @@ const Index = () => {
       <main className={`flex-1 ${isMobile ? 'px-4 py-4' : 'px-6 py-6'} max-w-3xl mx-auto w-full relative z-10`}>
         {/* Welcome section */}
         <div className="mt-2 mb-6">
-          <h1 className="text-2xl font-bold fc-gradient-text">Future Coin Dashboard</h1>
+          <h1 className="text-2xl font-bold fc-gradient-text">NOMINAL Coin Dashboard</h1>
           <p className="text-purple-300/80 text-sm mt-1">
-            Welcome to the FC mining hub - Earn cryptocurrency by mining!
+            Welcome to the NC mining hub - Earn cryptocurrency by mining!
           </p>
         </div>
         
