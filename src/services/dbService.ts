@@ -17,9 +17,7 @@ import { toast } from "sonner";
 // Firestore'u daha iyi çevrimdışı destek ile yapılandır
 try {
   // Firebase'in offline süreci için persistence etkinleştir
-  enableIndexedDbPersistence(db, {
-    synchronizeTabs: true  // Birden fazla sekmeyi senkronize et
-  })
+  enableIndexedDbPersistence(db)
     .then(() => {
       debugLog("dbService", "Firestore offline persistence etkinleştirildi");
     })
