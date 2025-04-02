@@ -14,11 +14,11 @@
 }
 
 .fc-card {
-  @apply bg-gradient-to-b from-purple-900/80 to-darkPurple-950/90 rounded-xl border border-purple-700/30 shadow-lg backdrop-blur-sm;
+  @apply bg-gradient-to-b from-darkPurple-900/80 to-navy-950/90 rounded-xl border border-darkPurple-800/30 shadow-lg backdrop-blur-sm;
 }
 
 .fc-button {
-  @apply bg-gradient-to-br from-purple-600 to-darkPurple-700 hover:from-purple-500 hover:to-darkPurple-600 text-white transition-all duration-300;
+  @apply bg-gradient-to-br from-darkPurple-700 to-navy-800 hover:from-darkPurple-600 hover:to-navy-700 text-white transition-all duration-300;
 }
 
 .fc-button-glow {
@@ -27,16 +27,16 @@
 
 .fc-button-glow::before {
   content: '';
-  @apply absolute -inset-1 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full blur-md opacity-70;
+  @apply absolute -inset-1 bg-gradient-to-r from-darkPurple-600 to-navy-600 rounded-full blur-md opacity-70;
   z-index: -1;
 }
 
 .fc-glass-panel {
-  @apply backdrop-blur-md bg-darkPurple-900/40 border border-purple-500/20 rounded-xl;
+  @apply backdrop-blur-md bg-darkPurple-950/40 border border-darkPurple-700/20 rounded-xl;
 }
 
 .fc-space-bg {
-  background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
+  background: radial-gradient(ellipse at bottom, #121030 0%, #06060F 100%);
   background-attachment: fixed;
 }
 
@@ -51,25 +51,36 @@
   @apply animate-nebula-shift;
 }
 
+.fc-deep-nebula {
+  background: linear-gradient(125deg, 
+    rgba(45, 29, 90, 0.2) 0%, 
+    rgba(59, 27, 120, 0.2) 25%, 
+    rgba(26, 10, 64, 0.2) 50%, 
+    rgba(36, 16, 99, 0.2) 75%, 
+    rgba(45, 29, 90, 0.2) 100%);
+  background-size: 400% 400%;
+  @apply animate-nebula-shift;
+}
+
 .fc-icon-container {
-  @apply flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-purple-500/20 to-indigo-600/20 border border-purple-500/30;
+  @apply flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-darkPurple-700/20 to-navy-700/20 border border-darkPurple-700/30;
 }
 
 .fc-glow-border {
-  box-shadow: 0 0 15px theme('colors.purple.500' / 30%), 0 0 30px theme('colors.purple.800' / 20%);
+  box-shadow: 0 0 15px theme('colors.darkPurple.700' / 30%), 0 0 30px theme('colors.darkPurple.900' / 20%);
 }
 
 .fc-glow-text {
-  text-shadow: 0 0 10px theme('colors.purple.400' / 60%);
+  text-shadow: 0 0 10px theme('colors.darkPurple.500' / 60%);
 }
 
 .fc-status-bar {
   height: 6px;
-  @apply rounded-full overflow-hidden bg-gradient-to-r from-darkPurple-800/60 to-purple-800/40;
+  @apply rounded-full overflow-hidden bg-gradient-to-r from-darkPurple-900/60 to-navy-900/40;
 }
 
 .fc-status-progress {
-  @apply h-full rounded-full bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-600 relative;
+  @apply h-full rounded-full bg-gradient-to-r from-darkPurple-600 via-navy-600 to-darkPurple-700 relative;
 }
 
 .fc-status-progress::after {
@@ -78,5 +89,5 @@
 }
 
 .fc-data-point {
-  @apply absolute h-1.5 w-1.5 rounded-full bg-gradient-to-r from-indigo-400 to-purple-400 opacity-0 animate-float-data;
+  @apply absolute h-1.5 w-1.5 rounded-full bg-gradient-to-r from-navy-500 to-darkPurple-500 opacity-0 animate-float-data;
 }

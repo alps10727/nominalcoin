@@ -18,6 +18,7 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
   onButtonClick 
 }) => {
   const [displayTime, setDisplayTime] = useState("");
+  const [buttonHovered, setButtonHovered] = useState(false);
   
   // Format and update time display
   useEffect(() => {
@@ -36,9 +37,23 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
   const handleClick = useCallback(() => {
     onButtonClick();
   }, [onButtonClick]);
+  
+  // Handle hover state
+  const handleMouseEnter = useCallback(() => {
+    setButtonHovered(true);
+  }, []);
+  
+  const handleMouseLeave = useCallback(() => {
+    setButtonHovered(false);
+  }, []);
 
   return (
     <div className="relative perspective-800">
+      {/* Enhanced button glow effect when hovered */}
+      {buttonHovered && !miningActive && (
+        <div className="absolute inset-0 bg-purple-500/10 rounded-full blur-3xl animate-pulse-slow"></div>
+      )}
+      
       {/* Particle floating effects */}
       <ParticleEffects miningActive={miningActive} />
       
@@ -49,6 +64,8 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
       <MiningButtonBase 
         miningActive={miningActive} 
         onClick={handleClick}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
         {/* Background layers */}
         <ButtonBackground miningActive={miningActive} />

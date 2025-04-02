@@ -15,20 +15,20 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   return (
     <TooltipProvider>
       <div className="flex flex-col min-h-screen relative overflow-hidden">
-        {/* Enhanced space background */}
+        {/* Enhanced space background with darker colors */}
         <div className="absolute inset-0 pointer-events-none z-0">
-          {/* Base gradient */}
-          <div className="absolute inset-0 bg-gradient-to-b from-darkPurple-950 via-purple-950 to-darkPurple-950"></div>
+          {/* Base gradient with darker colors */}
+          <div className="absolute inset-0 bg-gradient-to-b from-darkPurple-950 via-navy-950 to-darkPurple-950"></div>
           
-          {/* Nebula overlay */}
-          <div className="absolute inset-0 fc-nebula opacity-30"></div>
+          {/* Enhanced nebula overlay */}
+          <div className="absolute inset-0 fc-deep-nebula opacity-30"></div>
           
           {/* Constellation pattern */}
           <div className="absolute inset-0 bg-galaxy opacity-5"></div>
           
           {/* Enhanced starfield with more stars */}
           <div className="absolute inset-0 overflow-hidden">
-            {Array.from({ length: 200 }).map((_, i) => (
+            {Array.from({ length: 250 }).map((_, i) => (
               <div
                 key={i}
                 className="absolute bg-white rounded-full animate-star-twinkle"
@@ -45,10 +45,15 @@ const AppLayout = ({ children }: AppLayoutProps) => {
             ))}
           </div>
           
-          {/* Glowing nebula formations */}
-          <div className="absolute top-1/4 left-1/4 w-1/2 h-1/2 bg-purple-800/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-1/3 h-1/3 bg-indigo-800/10 rounded-full blur-3xl"></div>
-          <div className="absolute top-3/4 right-1/4 w-1/4 h-1/4 bg-darkPurple-700/5 rounded-full blur-2xl"></div>
+          {/* Enhanced glowing nebula formations with darker colors */}
+          <div className="absolute top-1/4 left-1/4 w-1/2 h-1/2 bg-darkPurple-900/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-1/3 h-1/3 bg-navy-900/10 rounded-full blur-3xl"></div>
+          <div className="absolute top-3/4 right-1/4 w-1/4 h-1/4 bg-navy-800/5 rounded-full blur-2xl"></div>
+          
+          {/* Deep space dust clouds */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-0 left-0 w-full h-full bg-noise-pattern mix-blend-overlay"></div>
+          </div>
         </div>
         
         <Toaster />

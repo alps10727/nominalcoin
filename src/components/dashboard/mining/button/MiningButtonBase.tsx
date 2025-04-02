@@ -4,6 +4,8 @@ import React from "react";
 interface MiningButtonBaseProps {
   miningActive: boolean;
   onClick: () => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
   children: React.ReactNode;
 }
 
@@ -12,7 +14,9 @@ interface MiningButtonBaseProps {
  */
 export const MiningButtonBase = React.memo<MiningButtonBaseProps>(({ 
   miningActive, 
-  onClick, 
+  onClick,
+  onMouseEnter,
+  onMouseLeave,
   children 
 }) => {
   return (
@@ -22,6 +26,8 @@ export const MiningButtonBase = React.memo<MiningButtonBaseProps>(({
           miningActive ? 'scale-110' : 'scale-100 hover:scale-105'
         }`}
         onClick={onClick}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
         aria-label={miningActive ? "Stop mining" : "Start mining"}
         title={miningActive ? "Stop mining" : "Start mining"}
       >
