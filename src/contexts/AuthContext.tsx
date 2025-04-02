@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { User } from "firebase/auth";
 import { useAuthState } from "@/hooks/useAuthState";
 import { useAuthActions } from "@/hooks/useAuthActions";
@@ -13,6 +13,7 @@ interface AuthContextProps {
   register: (email: string, password: string) => Promise<boolean>;
   userData: any | null;
   updateUserData: (data: any) => Promise<void>;
+  isOffline: boolean;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -26,26 +27,26 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  // Get authentication state
-  const { currentUser, userData: initialUserData, loading } = useAuthState();
+  // Kimlik doğrulama durumunu al
+  const { currentUser, userData: initialUserData, loading, isOffline } = useAuthState();
   
-  // Manage user data state
+  // Kullanıcı veri durumunu yönet
   const [userData, setUserData] = useState<any | null>(initialUserData);
   
-  // Update userData when initialUserData changes
-  React.useEffect(() => {
+  // initialUserData değiştiğinde userData'yı güncelle
+  useEffect(() => {
     if (initialUserData) {
       setUserData(initialUserData);
     }
   }, [initialUserData]);
   
-  // Get authentication actions
+  // Kimlik doğrulama eylemlerini al
   const { login, logout, register } = useAuthActions();
   
-  // Get user data management functions
+  // Kullanıcı veri yönetimi fonksiyonlarını al
   const { updateUserData } = useUserDataManager(currentUser, userData, setUserData);
 
-  // Create the context value
+  // Context değerini oluştur
   const value = {
     currentUser,
     loading,
@@ -53,7 +54,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logout,
     register,
     userData,
-    updateUserData
+    updateUserData,
+    isOffline
   };
 
   return (

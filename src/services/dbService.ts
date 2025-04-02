@@ -28,8 +28,6 @@ try {
         errorLog("dbService", "Offline persistence hatası:", err);
       } else {
         debugLog("dbService", "Birden fazla sekme açık - tam persistence sınırlı olabilir");
-        // Multi-tab durumlarında kullanıcıya bilgi ver
-        toast.info("Birden fazla sekme açık. Çevrimdışı veri depolama kısıtlı olabilir.");
       }
     });
 } catch (error) {
@@ -49,7 +47,7 @@ export async function getDocument(collection: string, id: string): Promise<any |
     const timeoutPromise = new Promise((_, reject) => {
       timeoutId = setTimeout(() => {
         reject(new Error(`${collection}/${id} yükleme işlemi zaman aşımına uğradı`));
-      }, 10000); // 10 saniye (5'ten 10'a çıkarıldı)
+      }, 10000); // 10 saniye
     });
     
     // Veri çekme işlemi
@@ -74,10 +72,9 @@ export async function getDocument(collection: string, id: string): Promise<any |
     if (timeoutId) clearTimeout(timeoutId);
     errorLog("dbService", `${collection}/${id} yükleme hatası:`, err);
     
-    // Offline hatası için özel işleme
+    // Offline hatası için özel işleme - sessiz hata (kullanıcı bildirimini buradan yapma)
     if ((err as any)?.code === 'unavailable' || (err as Error).message.includes('zaman aşımı')) {
-      debugLog("dbService", "Cihaz çevrimdışı veya bağlantı zaman aşımına uğradı");
-      toast.warning("Sunucuya bağlanılamadı. Çevrimdışı modda çalışılıyor.");
+      debugLog("dbService", "Cihaz çevrimdışı veya bağlantı zaman aşımına uğradı - sessiz geçiş yapılıyor");
       return null;
     }
     throw err;
@@ -106,7 +103,7 @@ export async function saveDocument(collection: string, id: string, data: any, op
       const timeoutPromise = new Promise<void>((_, reject) => {
         timeoutId = setTimeout(() => {
           reject(new Error(`${collection}/${id} kaydetme işlemi zaman aşımına uğradı`));
-        }, 10000); // 10 saniye (5'ten 10'a çıkarıldı)
+        }, 10000); // 10 saniye
       });
       
       // Kaydetme işlemi
@@ -134,11 +131,12 @@ export async function saveDocument(collection: string, id: string, data: any, op
       
       errorLog("dbService", `${collection}/${id} kaydetme hatası:`, err);
       
-      // Tüm denemeler başarısız olduysa ve offline hatasıysa kullanıcıya bilgi ver
+      // Tüm denemeler başarısız olduysa ve offline hatasıysa - hata fırlat ama sessizce
       if ((err as any)?.code === 'unavailable' || (err as Error).message.includes('zaman aşımı')) {
         debugLog("dbService", "Cihaz çevrimdışı veya bağlantı zaman aşımına uğradı, veriler daha sonra kaydedilecek");
-        toast.warning("Sunucuya bağlanılamadı. Verileriniz çevrimiçi olduğunuzda kaydedilecek.");
+        // Toast mesajını kaldırdım - bu artık çağıran tarafından yönetilecek
       } else {
+        // Sadece gerçek hatalarda bildirim göster
         toast.error("Veri kaydedilirken bir hata oluştu.");
       }
       

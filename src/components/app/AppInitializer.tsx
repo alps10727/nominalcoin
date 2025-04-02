@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import LoadingScreen from "../dashboard/LoadingScreen";
 import { debugLog } from "@/utils/debugUtils";
+import OfflineIndicator from "../dashboard/OfflineIndicator";
 
 interface AppInitializerProps {
   children: React.ReactNode;
@@ -22,7 +23,7 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
       
       // Yeniden bağlanma durumunda toast göster ve sayfayı yenile
       if (reconnecting) {
-        toast.success("İnternet bağlantısı yeniden kuruldu");
+        toast.success("İnternet bağlantısı yeniden kuruldu. Veriler senkronize ediliyor...");
         setTimeout(() => window.location.reload(), 2000);
       }
     };
@@ -32,15 +33,9 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
       setIsOffline(true);
       setReconnecting(true);
       
-      toast.error("İnternet bağlantınız kesildi. Çevrimdışı modda çalışıyorsunuz.");
-      
-      // 30 saniye sonra yeniden bağlanmayı dene
-      reconnectTimer = setTimeout(() => {
-        if (!navigator.onLine) {
-          debugLog("AppInitializer", "30 saniye geçti, sayfa yenileniyor");
-          window.location.reload();
-        }
-      }, 30000);
+      toast.warning("İnternet bağlantınız kesildi. Çevrimdışı modda çalışmaya devam edilecek.", {
+        duration: 5000
+      });
     };
     
     window.addEventListener('online', handleOnline);
@@ -54,7 +49,7 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
       setReady(true);
       const loadTime = performance.now() - startTime;
       debugLog("AppInitializer", `Uygulama ${loadTime.toFixed(0)}ms içinde başlatıldı`);
-    }, 500); // Increased from 200ms to 500ms to ensure all components load properly
+    }, 500);
     
     return () => {
       window.removeEventListener('online', handleOnline);
@@ -64,15 +59,16 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
     };
   }, [reconnecting]);
   
-  if (isOffline) {
-    return <LoadingScreen forceOffline={true} message="İnternet bağlantısı bulunamadı" />;
-  }
-  
   if (!ready) {
-    return <LoadingScreen message="Uygulama başlatılıyor..." />;
+    return <LoadingScreen message="Uygulama başlatılıyor..." forceOffline={isOffline} />;
   }
   
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      <OfflineIndicator />
+    </>
+  );
 };
 
 export default AppInitializer;

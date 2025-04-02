@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Mail, Lock, AlertCircle } from "lucide-react";
+import { Mail, Lock, AlertCircle, WifiOff } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
@@ -25,7 +25,7 @@ const SignIn = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { login, loading: authLoading, currentUser } = useAuth();
+  const { login, loading: authLoading, currentUser, isOffline } = useAuth();
   
   // Eğer kullanıcı zaten giriş yapmışsa, ana sayfaya yönlendir
   useEffect(() => {
@@ -95,6 +95,13 @@ const SignIn = () => {
             <CardDescription>
               Devam etmek için hesabınıza giriş yapın
             </CardDescription>
+            
+            {isOffline && (
+              <div className="mt-2 flex items-center justify-center text-yellow-600 bg-yellow-50 px-3 py-1.5 rounded-full">
+                <WifiOff className="h-3.5 w-3.5 mr-1.5" />
+                <span className="text-xs font-medium">Çevrimdışı mod aktif</span>
+              </div>
+            )}
           </CardHeader>
           <CardContent>
             {error && (

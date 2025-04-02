@@ -6,20 +6,31 @@ export interface AuthState {
   currentUser: User | null;
   userData: any | null;
   loading: boolean;
+  isOffline: boolean;
+  dataSource: 'firebase' | 'local' | null;
 }
 
 export function useAuthState(): AuthState {
-  // Use the auth observer hook to track authentication state
+  // Kimlik doğrulama gözlemcisi hook'unu kullan
   const { currentUser, loading: authLoading, authInitialized } = useAuthObserver();
   
-  // Use the user data loader hook to load user data
-  const { userData, loading: dataLoading } = useUserDataLoader(currentUser, authInitialized);
+  // Kullanıcı verisi yükleyici hook'unu kullan
+  const { userData, loading: dataLoading, dataSource } = useUserDataLoader(currentUser, authInitialized);
   
-  // Combined loading state
+  // Bileşik yükleme durumu
   const loading = authLoading || dataLoading;
+  
+  // Çevrimdışı durumu belirle
+  const isOffline = !navigator.onLine || dataSource === 'local';
 
-  return { currentUser, userData, loading };
+  return { 
+    currentUser, 
+    userData, 
+    loading,
+    isOffline,
+    dataSource
+  };
 }
 
-// Fix the missing import
+// Eksik importu düzelt
 import { User } from "firebase/auth";
