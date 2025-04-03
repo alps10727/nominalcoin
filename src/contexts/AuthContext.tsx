@@ -5,6 +5,7 @@ import { useAuthState } from "@/hooks/useAuthState";
 import { useAuthActions } from "@/hooks/useAuthActions";
 import { useUserDataManager } from "@/hooks/useUserDataManager";
 import { debugLog } from "@/utils/debugUtils";
+import { UserData } from "@/utils/storage";
 
 interface AuthContextProps {
   currentUser: User | null;
@@ -12,8 +13,8 @@ interface AuthContextProps {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   register: (email: string, password: string) => Promise<boolean>;
-  userData: any | null;
-  updateUserData: (data: any) => Promise<void>;
+  userData: UserData | null;
+  updateUserData: (data: Partial<UserData>) => Promise<void>;
   isOffline: boolean;
   dataSource: 'firebase' | 'local' | null;
 }
@@ -33,7 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { currentUser, userData: initialUserData, loading, isOffline, dataSource } = useAuthState();
   
   // Kullanıcı veri durumunu yönet
-  const [userData, setUserData] = useState<any | null>(initialUserData);
+  const [userData, setUserData] = useState<UserData | null>(initialUserData);
   
   // initialUserData değiştiğinde userData'yı güncelle
   useEffect(() => {

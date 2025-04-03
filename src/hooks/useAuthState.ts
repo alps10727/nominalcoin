@@ -1,12 +1,12 @@
 
 import { useAuthObserver } from "./useAuthObserver";
 import { useUserDataLoader } from "./useUserDataLoader";
-import { loadUserData } from "@/utils/storage";
+import { UserData } from "@/utils/storage";
 import { useEffect, useState } from "react";
 
 export interface AuthState {
   currentUser: User | null;
-  userData: any | null;
+  userData: UserData | null;
   loading: boolean;
   isOffline: boolean;
   dataSource: 'firebase' | 'local' | null;

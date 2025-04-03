@@ -2,12 +2,12 @@
 import { useState, useEffect } from "react";
 import { User } from "firebase/auth";
 import { loadUserDataFromFirebase } from "@/services/userDataLoader";
-import { loadUserData, saveUserData } from "@/utils/storage";
+import { loadUserData, saveUserData, UserData } from "@/utils/storage";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { toast } from "sonner";
 
 export interface UserDataState {
-  userData: any | null;
+  userData: UserData | null;
   loading: boolean;
   dataSource: 'firebase' | 'local' | null;
 }
@@ -16,7 +16,7 @@ export function useUserDataLoader(
   currentUser: User | null,
   authInitialized: boolean
 ): UserDataState {
-  const [userData, setUserData] = useState<any | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [dataSource, setDataSource] = useState<'firebase' | 'local' | null>(null);
   const [errorOccurred, setErrorOccurred] = useState(false);
@@ -76,7 +76,7 @@ export function useUserDataLoader(
               saveUserData(firebaseData);
             } else if (!localData) {
               // Firebase ve yerel veri yoksa, boş veri oluştur
-              const emptyData = {
+              const emptyData: UserData = {
                 balance: 0,
                 miningRate: 0.1,
                 lastSaved: Date.now(),
@@ -100,7 +100,7 @@ export function useUserDataLoader(
             
             // Eğer yerel veri yoksa ve Firebase hatası varsa, boş veri oluştur
             if (!localData) {
-              const emptyData = {
+              const emptyData: UserData = {
                 balance: 0,
                 miningRate: 0.1,
                 lastSaved: Date.now(),
@@ -123,7 +123,7 @@ export function useUserDataLoader(
           errorLog("useUserDataLoader", "Kullanıcı verileri yüklenirken kritik hata:", error);
           
           // Kritik hata durumunda boş veri oluştur
-          const emptyData = {
+          const emptyData: UserData = {
             balance: 0,
             miningRate: 0.1,
             lastSaved: Date.now(),

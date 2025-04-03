@@ -1,26 +1,26 @@
 
 import { useState } from "react";
 import { User } from "firebase/auth";
-import { saveUserDataToFirebase } from "@/services/userService";
-import { saveUserData } from "@/utils/storage";
+import { saveUserDataToFirebase } from "@/services/userDataSaver";
+import { saveUserData, UserData } from "@/utils/storage";
 import { toast } from "sonner";
 import { debugLog, errorLog, Timer } from "@/utils/debugUtils";
 
 interface UserDataManager {
-  updateUserData: (data: any) => Promise<void>;
+  updateUserData: (data: Partial<UserData>) => Promise<void>;
   isUpdating: boolean;
   lastUpdateStatus: 'idle' | 'success' | 'error' | 'offline';
 }
 
 export function useUserDataManager(
   currentUser: User | null, 
-  userData: any | null, 
-  setUserData: React.Dispatch<React.SetStateAction<any | null>>
+  userData: UserData | null, 
+  setUserData: React.Dispatch<React.SetStateAction<UserData | null>>
 ): UserDataManager {
   const [isUpdating, setIsUpdating] = useState(false);
   const [lastUpdateStatus, setLastUpdateStatus] = useState<'idle' | 'success' | 'error' | 'offline'>('idle');
   
-  const updateUserData = async (data: any): Promise<void> => {
+  const updateUserData = async (data: Partial<UserData>): Promise<void> => {
     if (!currentUser) {
       debugLog("useUserDataManager", "Kullanıcı oturum açmadığı için veri güncellenemiyor");
       return;
@@ -34,10 +34,10 @@ export function useUserDataManager(
       const updatedData = {
         ...userData,
         ...data
-      };
+      } as UserData;
       
       // Önce UI durumunu güncelle
-      setUserData(prev => ({ ...prev, ...data }));
+      setUserData(prev => ({ ...prev, ...data } as UserData));
       timer.mark("UI durumu güncellendi");
       
       // Yerel depoya kaydet (hızlı erişim için)
