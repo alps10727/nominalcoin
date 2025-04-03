@@ -14,6 +14,7 @@ import LoadingScreen from "@/components/dashboard/LoadingScreen";
 import MiningRateCard from "@/components/dashboard/MiningRateCard";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { loadUserData } from "@/utils/storage";
 
 const Index = () => {
   const {
@@ -29,23 +30,33 @@ const Index = () => {
   } = useMiningData();
   
   // Also get balance from auth context as a backup
-  const { userData, loading: authLoading } = useAuth();
+  const { userData, loading: authLoading, isOffline } = useAuth();
   const [balance, setBalance] = useState(0);
+  const [isInitialized, setIsInitialized] = useState(false);
   
-  // Set initial balance
+  // Set initial balance - prioritize localStorage for quick load
   useEffect(() => {
-    // If data loaded from either source, set balance
+    // İlk önce localStorage'dan verileri yükle - en hızlı yol
+    try {
+      const localData = loadUserData();
+      if (localData && localData.balance > 0) {
+        setBalance(localData.balance);
+        setIsInitialized(true);
+      }
+    } catch (e) {
+      console.error("Local storage error:", e);
+    }
+    
+    // Eğer mining verileri yüklendiyse ve bakiye varsa kullan
     if (!miningLoading && miningBalance > 0) {
       setBalance(miningBalance);
-    } else if (!authLoading && userData?.balance > 0) {
+      setIsInitialized(true);
+    } 
+    // Eğer auth verileri yüklendiyse ve bakiye varsa kullan
+    else if (!authLoading && userData?.balance > 0) {
       setBalance(userData.balance);
+      setIsInitialized(true);
       console.log("Using balance from auth context:", userData.balance);
-      
-      if (miningBalance === 0 && userData.balance > 0) {
-        toast.info("Bakiye yüklendi: " + userData.balance.toFixed(2) + " NC", {
-          style: { background: "#4338ca", color: "white" }
-        });
-      }
     }
   }, [miningLoading, miningBalance, authLoading, userData]);
   
@@ -53,10 +64,20 @@ const Index = () => {
   const { t } = useLanguage();
   const { theme } = useTheme();
 
-  const isLoading = miningLoading || authLoading;
+  // Eğer her şey çok uzun süredir yükleniyorsa (10 saniye) isLoading'i false yap
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setIsInitialized(true);
+    }, 5000);
+    
+    return () => clearTimeout(timeout);
+  }, []);
+
+  // Yükleme durumu - eğer herhangi bir balans yüklendiyse, doğrudan göster
+  const isLoading = (!isInitialized && (miningLoading || authLoading)) || (!isInitialized && balance === 0);
 
   if (isLoading) {
-    return <LoadingScreen />;
+    return <LoadingScreen message={isOffline ? "Çevrimdışı modda yükleniyor..." : "Veriler hazırlanıyor..."} />;
   }
 
   return (

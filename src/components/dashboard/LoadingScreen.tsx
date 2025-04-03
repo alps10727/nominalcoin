@@ -3,7 +3,13 @@ import { RefreshCw, Sparkles, Wifi, WifiOff } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useEffect, useState } from "react";
 
-const LoadingScreen = ({ message, forceOffline = false }: { message?: string, forceOffline?: boolean }) => {
+const LoadingScreen = ({ 
+  message, 
+  forceOffline = false 
+}: { 
+  message?: string, 
+  forceOffline?: boolean 
+}) => {
   let translationFunction: (key: string, ...args: string[]) => string;
   try {
     const { t } = useLanguage();
@@ -11,7 +17,7 @@ const LoadingScreen = ({ message, forceOffline = false }: { message?: string, fo
   } catch (error) {
     translationFunction = (key: string) => {
       const fallbackTranslations: Record<string, string> = {
-        'app.title': 'FutureMining',
+        'app.title': 'NOMINAL Coin',
         'loading.message': 'Yükleniyor...',
         'loading.offline': 'Çevrimdışı',
         'loading.reconnecting': 'Yeniden bağlanıyor...'
@@ -29,12 +35,14 @@ const LoadingScreen = ({ message, forceOffline = false }: { message?: string, fo
   );
   
   useEffect(() => {
+    // Force offline durumu kontrol et
     if (forceOffline) {
       setOfflineDetected(true);
       setLoadingMessage("İnternet bağlantısı bulunamadı. Çevrimdışı modda çalışmaya devam edebilirsiniz.");
       return;
     }
 
+    // Bağlantı durumu event listener'ları
     const handleOnline = () => {
       setOfflineDetected(false);
       setLoadingMessage("Bağlantı kuruldu, yükleniyor...");
@@ -48,6 +56,7 @@ const LoadingScreen = ({ message, forceOffline = false }: { message?: string, fo
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     
+    // Yükleme zamanlayıcısı
     const timer = setInterval(() => {
       setLoadingTime(prev => {
         const newTime = prev + 1;
@@ -73,16 +82,16 @@ const LoadingScreen = ({ message, forceOffline = false }: { message?: string, fo
       window.removeEventListener('offline', handleOffline);
       clearInterval(timer);
     };
-  }, [forceOffline, offlineDetected]);
+  }, [forceOffline, offlineDetected, message]);
   
   // Otomatik yeniden başlatma mekanizması - 15 saniye sonra çalışır
   useEffect(() => {
     let reloadTimer: NodeJS.Timeout;
     
-    if (offlineDetected && loadingTime > 15) {
+    if (loadingTime > 15) {
       reloadTimer = setTimeout(() => {
         // Yenileme girişimini bildir ve yenilemeyi gerçekleştir
-        setLoadingMessage("Yeniden bağlanmayı deniyorum...");
+        setLoadingMessage("Sayfa yanıt vermiyor, yeniden yükleniyor...");
         window.location.reload();
       }, 3000);
     }
@@ -90,7 +99,7 @@ const LoadingScreen = ({ message, forceOffline = false }: { message?: string, fo
     return () => {
       if (reloadTimer) clearTimeout(reloadTimer);
     };
-  }, [loadingTime, offlineDetected]);
+  }, [loadingTime]);
   
   const handleManualReload = () => {
     setLoadingMessage("Yenileniyor...");
@@ -159,7 +168,7 @@ const LoadingScreen = ({ message, forceOffline = false }: { message?: string, fo
             {loadingMessage}
           </p>
           
-          {(loadingTime > 6 || forceOffline) && (
+          {(loadingTime > 5 || forceOffline) && (
             <div className="mt-6 p-4 backdrop-blur-md bg-indigo-900/30 border border-indigo-700/40 rounded-xl text-sm text-indigo-200 max-w-xs mx-auto">
               {forceOffline ? (
                 <p>Bu uygulama çevrimdışı modda da çalışır, ancak verileri daha sonra senkronize etmek için internet gerekecektir.</p>
@@ -167,17 +176,15 @@ const LoadingScreen = ({ message, forceOffline = false }: { message?: string, fo
                 <p>Sayfayı yenilemeyi deneyin veya daha sonra tekrar giriş yapmayı deneyin.</p>
               )}
               
-              {(loadingTime > 10) && (
-                <button
-                  onClick={handleManualReload}
-                  className="mt-3 w-full flex items-center justify-center bg-indigo-800/50 hover:bg-indigo-700/50 text-indigo-100 px-4 py-2 rounded-md text-sm transition-colors"
-                >
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Sayfayı Yenile
-                </button>
-              )}
+              <button
+                onClick={handleManualReload}
+                className="mt-3 w-full flex items-center justify-center bg-indigo-800/50 hover:bg-indigo-700/50 text-indigo-100 px-4 py-2 rounded-md text-sm transition-colors"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Sayfayı Yenile
+              </button>
               
-              {(loadingTime > 15 && offlineDetected) && (
+              {(loadingTime > 15) && (
                 <p className="mt-2 font-semibold text-indigo-100">Sayfa otomatik olarak yenilenecek...</p>
               )}
             </div>

@@ -31,6 +31,16 @@ export function useMiningInitialization() {
     // Set loading state
     setState(prev => ({ ...prev, isLoading: true }));
     
+    // Timeout mekanizması - 5 saniye sonra yükleniyor durumunu kaldır
+    const timeoutId = setTimeout(() => {
+      setState(prev => {
+        if (prev.isLoading) {
+          return { ...prev, isLoading: false };
+        }
+        return prev;
+      });
+    }, 5000);
+    
     try {
       // Load from local storage FIRST - HIGHEST PRIORITY
       const localData = loadUserData();
@@ -38,20 +48,9 @@ export function useMiningInitialization() {
       // Load from auth context as fallback only
       const authData = userData;
       
-      debugLog("useMiningInitialization", "Local data:", localData);
-      debugLog("useMiningInitialization", "Auth data:", authData);
-      
       // If local data exists, ALWAYS use it as the source of truth
       if (localData) {
         debugLog("useMiningInitialization", "PRIORITIZING LOCAL STORAGE DATA:", localData);
-        
-        // Show notification about loading local data
-        if (localData.balance > 0) {
-          toast.success(`Yerel veriler yüklendi: ${localData.balance.toFixed(2)} NC`, {
-            id: "local-balance-loaded",
-            duration: 3000
-          });
-        }
         
         setState(prevState => ({
           ...prevState,
@@ -69,7 +68,7 @@ export function useMiningInitialization() {
         }));
         
         debugLog("useMiningInitialization", "Mining state initialized from LOCAL STORAGE with balance:", localData.balance);
-        return;
+        return () => clearTimeout(timeoutId);
       }
       
       // Only use auth data if no local data exists
@@ -92,10 +91,11 @@ export function useMiningInitialization() {
         }));
         
         debugLog("useMiningInitialization", "Mining state initialized from AUTH with balance:", authData.balance);
-        return;
+        return () => clearTimeout(timeoutId);
       }
       
       // If no data found anywhere, just use defaults
+      debugLog("useMiningInitialization", "No data found anywhere, using defaults");
       setState(prev => ({ 
         ...prev, 
         isLoading: false,
@@ -107,6 +107,8 @@ export function useMiningInitialization() {
       // Remove loading state on error
       setState(prev => ({ ...prev, isLoading: false }));
     }
+    
+    return () => clearTimeout(timeoutId);
   }, [currentUser?.uid, userData]);
 
   return { state, setState };

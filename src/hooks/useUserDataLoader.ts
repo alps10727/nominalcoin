@@ -20,9 +20,11 @@ export function useUserDataLoader(
   const [loading, setLoading] = useState(true);
   const [dataSource, setDataSource] = useState<'firebase' | 'local' | null>(null);
   const [errorOccurred, setErrorOccurred] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
 
   useEffect(() => {
     let userDataTimeoutId: NodeJS.Timeout;
+    let isActive = true; // Belleği sızıntısı önleyici
 
     const loadData = async () => {
       // Eğer kullanıcı yoksa veya auth başlatılmamışsa, veri yüklemeye çalışma
@@ -36,12 +38,15 @@ export function useUserDataLoader(
       }
 
       try {
-        // Hızlı UI yanıtı için önce yerel depodan yükle
+        // Önce local veriye bakalım - hızlı yanıt için kritik
         const localData = loadUserData();
         if (localData) {
           setUserData(localData);
           setDataSource('local');
           debugLog("useUserDataLoader", "Yerel depodan kullanıcı verileri yüklendi:", localData);
+          
+          // Daha hızlı yükleme için loading durumunu hemen sonlandır
+          setLoading(false);
         }
         
         // Hatanın bir kez bildirildiğinden emin ol
@@ -53,11 +58,11 @@ export function useUserDataLoader(
         // Retry mekanizması ile Firebase'den taze veri almaya çalış
         const loadUserDataWithRetry = async (retryAttempt = 0): Promise<any> => {
           try {
-            // Timeout süresini artırıldı - 20 saniye
+            // Veri çekme işlemi için daha kısa timeout süresi - 10 saniye
             const timeoutPromise = new Promise((_, reject) => {
               userDataTimeoutId = setTimeout(() => {
                 reject(new Error("Firebase veri yükleme zaman aşımı"));
-              }, 20000);
+              }, 10000);
             });
             
             // Veri çekme işlemi
@@ -69,64 +74,113 @@ export function useUserDataLoader(
             return data;
           } catch (error) {
             clearTimeout(userDataTimeoutId);
-            if (retryAttempt < 2 && ((error as any)?.code === 'unavailable' || (error as Error).message.includes('zaman aşımı'))) {
-              debugLog("useUserDataLoader", `Firebase veri yükleme denemesi başarısız (${retryAttempt + 1}/3), yeniden deneniyor...`);
-              // Daha uzun bekleme süresi
-              return new Promise(resolve => setTimeout(() => resolve(loadUserDataWithRetry(retryAttempt + 1)), 3000 * (retryAttempt + 1)));
+            if (retryAttempt < 1 && ((error as any)?.code === 'unavailable' || (error as Error).message.includes('zaman aşımı'))) {
+              debugLog("useUserDataLoader", `Firebase veri yükleme denemesi başarısız (${retryAttempt + 1}/2), yeniden deneniyor...`);
+              // Gecikme süresi
+              return new Promise(resolve => setTimeout(() => resolve(loadUserDataWithRetry(retryAttempt + 1)), 2000));
             }
             throw error;
           }
         };
         
         try {
-          const userDataFromFirebase = await loadUserDataWithRetry();
-          
-          if (userDataFromFirebase && localData) {
-            // Yerel veri ve Firebase verisi varsa, hangisini kullanacağımızı belirle
-            const { compareAndResolveData } = await import('./useDataComparison');
-            const resolvedData = await compareAndResolveData(currentUser.uid, localData, userDataFromFirebase);
-            setUserData(resolvedData);
-            setDataSource('firebase');
-          } else if (userDataFromFirebase) {
-            // Sadece Firebase verisi varsa
-            setUserData(userDataFromFirebase);
-            setDataSource('firebase');
-            debugLog("useUserDataLoader", "Firebase'den taze kullanıcı verileri yüklendi");
+          // LocalData varsa, Firebase verilerini arka planda yükle - kullanıcıyı bekletme
+          if (localData) {
+            loadUserDataWithRetry()
+              .then(userDataFromFirebase => {
+                if (!isActive) return; // Component unmount olduysa işlemi durdur
+                
+                if (userDataFromFirebase) {
+                  // Firebase verisinde daha yüksek bakiye yoksa yerel verileri kullan
+                  if (localData.balance >= userDataFromFirebase.balance) {
+                    debugLog("useUserDataLoader", "Yerel veri Firebase'den daha güncel, değişiklik yapılmadı");
+                  } else {
+                    // Firebase verisi daha güncel, kullan
+                    setUserData(userDataFromFirebase);
+                    setDataSource('firebase');
+                    // Yerel depoya kaydet
+                    saveUserData(userDataFromFirebase);
+                    debugLog("useUserDataLoader", "Firebase verisi daha güncel, güncellendi");
+                  }
+                }
+              })
+              .catch(err => {
+                // Firebase hatası sessizce geç - yerel veriyi kullanıyoruz zaten
+                debugLog("useUserDataLoader", "Firebase güncelleme hatası (arka planda): " + err.message);
+              });
+          }
+          // Yerel veri yoksa, Firebase verisi için bekle
+          else {
+            const userDataFromFirebase = await loadUserDataWithRetry();
             
-            // Yerel depoya da kaydet
-            saveUserData(userDataFromFirebase);
+            if (userDataFromFirebase) {
+              setUserData(userDataFromFirebase);
+              setDataSource('firebase');
+              
+              // Yerel depoya da kaydet
+              saveUserData(userDataFromFirebase);
+              debugLog("useUserDataLoader", "Firebase'den kullanıcı verileri yüklendi ve yerel depoya kaydedildi");
+            }
+            
+            if (!isActive) return; // Component unmount olduysa işlemi durdur
+            setLoading(false);
           }
         } catch (firebaseError) {
           // Firebase hatası durumunda, yerel veriyi kullanmaya devam et
           errorLog("useUserDataLoader", "Firebase'den veri yükleme hatası:", firebaseError);
           setErrorOccurred(true);
           
-          if (localData) {
-            debugLog("useUserDataLoader", "Firebase'e erişim hatası, yerel veri kullanılmaya devam ediliyor");
-            
-            // Kullanıcıyı bilgilendir
-            toast.warning("Sunucu verilerine erişilemedi. Yerel veriler kullanılıyor.", {
-              id: "firebase-offline-toast",
-              duration: 5000
-            });
+          if (!localData && loadAttempt < 2) {
+            // Yerel veri yoksa ve ilk denemeyse, yeniden dene
+            setLoadAttempt(prev => prev + 1);
+            debugLog("useUserDataLoader", `Veri yükleme başarısız, yeniden deneniyor (${loadAttempt + 1}/3)`);
+            setTimeout(loadData, 2000);
+            return;
           }
+          
+          if (localData) {
+            debugLog("useUserDataLoader", "Firebase'e erişim hatası, yerel veri kullanılıyor");
+          } else {
+            // En son çare - yeni kullanıcı profili oluştur
+            const newUserData = {
+              balance: 0,
+              miningRate: 0.1,
+              lastSaved: Date.now(),
+              miningActive: false,
+              userId: currentUser.uid
+            };
+            
+            setUserData(newUserData);
+            saveUserData(newUserData);
+            debugLog("useUserDataLoader", "Veri bulunamadı, yeni kullanıcı profili oluşturuldu");
+          }
+          
+          if (!isActive) return; // Component unmount olduysa işlemi durdur
+          setLoading(false);
         }
       } catch (error) {
         errorLog("useUserDataLoader", "Kullanıcı verisi yükleme hatası:", error);
         setErrorOccurred(true);
         
-        // Son çare olarak yerel veriyi dene
+        // Son çare olarak ya boş kullanıcı profili ya da yerel veri
         const localData = loadUserData();
         if (localData) {
-          debugLog("useUserDataLoader", "Çevrimdışı mod: Yerel depodan kullanıcı verileri kullanılıyor");
           setUserData(localData);
           setDataSource('local');
-          toast.warning("Sunucu verilerine erişilemedi. Çevrimdışı veriler kullanılıyor.", {
-            id: "firebase-offline-toast",
-            duration: 5000
-          });
+        } else {
+          // Boş kullanıcı profili
+          const newUserData = {
+            balance: 0,
+            miningRate: 0.1,
+            lastSaved: Date.now(),
+            miningActive: false,
+            userId: currentUser?.uid
+          };
+          setUserData(newUserData);
+          saveUserData(newUserData);
         }
-      } finally {
+        
+        if (!isActive) return; // Component unmount olduysa işlemi durdur
         setLoading(false);
       }
     };
@@ -134,9 +188,10 @@ export function useUserDataLoader(
     loadData();
 
     return () => {
+      isActive = false; // Component unmount olduğunda işaretleme
       clearTimeout(userDataTimeoutId);
     };
-  }, [currentUser, authInitialized, errorOccurred]);
+  }, [currentUser, authInitialized, errorOccurred, loadAttempt]);
 
   return { userData, loading, dataSource };
 }

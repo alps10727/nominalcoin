@@ -20,7 +20,7 @@ export function useAuthState(): AuthState {
   // Bileşik yükleme durumu
   const loading = authLoading || dataLoading;
   
-  // Çevrimdışı durumu belirle
+  // Çevrimdışı durumu belirle - navigator.onLine kontrolü öne alındı
   const isOffline = !navigator.onLine || dataSource === 'local';
 
   return { 
@@ -32,5 +32,5 @@ export function useAuthState(): AuthState {
   };
 }
 
-// Eksik importu düzelt
+// Firebase User tipini import et
 import { User } from "firebase/auth";
