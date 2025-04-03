@@ -5,27 +5,26 @@ import { useMiningInitialization } from "./useMiningInitialization";
 import { useMiningActions } from "./useMiningActions";
 import { useMiningPersistence } from "./useMiningPersistence";
 import { useCallback, useEffect, useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { debugLog } from "@/utils/debugUtils";
 import { loadUserData } from "@/utils/storage";
-import { toast } from "sonner";
+import { debugLog } from "@/utils/debugUtils";
 
 /**
  * Enhanced hook for handling all mining related data and operations
- * With improved local storage prioritization
+ * Using ONLY local storage, no Firebase dependency
  */
 export function useMiningData(): MiningData {
-  const { userData, isOffline } = useAuth();
-  const [localInitComplete, setLocalInitComplete] = useState(false);
+  // Get local storage data directly first for fastest possible rendering
+  const [directLocalData] = useState(() => loadUserData());
+  const [localInitComplete, setLocalInitComplete] = useState(!!directLocalData);
   
-  // Initialize mining data with local storage priority
+  // Initialize mining data with local storage ONLY
   const { state, setState } = useMiningInitialization();
   
   // Critical effect: FIRST load from local storage - fastest path
   useEffect(() => {
     const localData = loadUserData();
     if (localData) {
-      debugLog("useMiningData", "FAST PATH: Initializing from local storage", localData);
+      debugLog("useMiningData", "FAST PATH: Initializing from local storage only", localData);
       
       setState(prev => ({
         ...prev,
@@ -41,7 +40,23 @@ export function useMiningData(): MiningData {
       
       setLocalInitComplete(true);
     } else {
-      setLocalInitComplete(true); // Still mark local init as complete even if no data
+      // Create default data if nothing exists
+      const defaultData = {
+        balance: 0,
+        miningRate: 0.1,
+        miningActive: false,
+        miningTime: 21600,
+        miningPeriod: 21600,
+        miningSession: 0
+      };
+      
+      setState(prev => ({
+        ...prev,
+        isLoading: false,
+        ...defaultData
+      }));
+      
+      setLocalInitComplete(true);
     }
   }, [setState]);
   
@@ -54,45 +69,16 @@ export function useMiningData(): MiningData {
           ...prev,
           isLoading: false
         }));
-        
-        if (isOffline) {
-          toast.warning("Çevrimdışı modda çalışılıyor", {
-            id: "offline-mining-toast"
-          });
-        }
       }
-    }, 3000); // 3 second timeout
+    }, 1000); // 1 second timeout
     
     return () => clearTimeout(timeoutId);
-  }, [state.isLoading, setState, isOffline]);
-  
-  // Only sync with userData after local init and when local storage has no data
-  useEffect(() => {
-    if (!localInitComplete) return;
-    
-    // First check local storage again
-    const localData = loadUserData();
-    
-    // Only use Auth data if local storage has no data or balance
-    if ((!localData || localData.balance === 0 || localData.balance === undefined) && 
-        userData && userData.balance !== undefined && !state.isLoading) {
-      debugLog("useMiningData", "No local data with balance, using Auth context data", userData);
-      setState(prev => ({
-        ...prev,
-        balance: userData.balance || 0,
-        miningRate: userData.miningRate || 0.1,
-        miningActive: userData.miningActive || false,
-        miningTime: userData.miningTime != null ? userData.miningTime : prev.miningTime,
-        miningPeriod: userData.miningPeriod || prev.miningPeriod,
-        miningSession: userData.miningSession || 0
-      }));
-    }
-  }, [userData, state.isLoading, setState, localInitComplete]);
+  }, [state.isLoading, setState]);
   
   // Handle mining process logic (countdown timer and rewards)
   useMiningProcess(state, setState);
   
-  // Handle data persistence with local storage priority
+  // Handle data persistence with local storage ONLY
   useMiningPersistence(state);
   
   // Get mining control actions

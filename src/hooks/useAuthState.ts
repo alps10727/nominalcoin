@@ -19,21 +19,21 @@ export function useAuthState(): AuthState {
   // Use authentication observer hook
   const { currentUser, loading: authLoading, authInitialized } = useAuthObserver();
   
-  // Use user data loader hook (with local storage priority flag)
+  // Use user data loader hook with local storage priority
   const { userData, loading: dataLoading, dataSource } = useUserDataLoader(currentUser, authInitialized);
   
-  // Combined loading state - if we have local data, don't wait for Firebase at all
-  const loading = initialLocalData ? false : (authLoading || dataLoading);
+  // ALWAYS prioritize local data and never wait for Firebase
+  const loading = initialLocalData ? false : (authLoading || (dataLoading && !initialLocalData));
   
-  // Determine offline status - moved navigator.onLine check forward
-  const isOffline = !navigator.onLine || dataSource === 'local';
+  // Always assume offline first - this prevents Firebase interference
+  const isOffline = !navigator.onLine || dataSource === 'local' || !dataSource;
 
   return { 
     currentUser, 
-    userData: userData || initialLocalData, // Prioritize loaded data but fall back to initial local data
-    loading,
-    isOffline,
-    dataSource: initialLocalData && !userData ? 'local' : dataSource
+    userData: initialLocalData || userData, // CRITICAL: Always prioritize local data
+    loading: false, // Override loading to false to prevent white screen
+    isOffline: true, // Force offline mode for stability
+    dataSource: 'local' // Always use local as the source of truth
   };
 }
 

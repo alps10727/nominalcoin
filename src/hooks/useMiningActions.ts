@@ -1,21 +1,14 @@
 
 import { useCallback } from 'react';
 import { MiningState } from '@/types/mining';
-import { saveUserData } from "@/utils/storage";
-import { useAuth } from "@/contexts/AuthContext";
+import { saveUserData, loadUserData } from "@/utils/storage";
 
 /**
- * Hook for handling mining control actions with improved UX
+ * Hook for handling mining control actions with improved UX - completely decoupled from Firebase
  */
 export function useMiningActions(state: MiningState, setState: React.Dispatch<React.SetStateAction<MiningState>>) {
-  const { currentUser } = useAuth();
-  
   // Start mining function with enhanced feedback
   const handleStartMining = useCallback(() => {
-    if (!currentUser) {
-      return;
-    }
-    
     console.log("Starting mining...");
     setState(prev => {
       // Only restart if not already mining
@@ -33,7 +26,7 @@ export function useMiningActions(state: MiningState, setState: React.Dispatch<Re
         miningSession: 0 // Reset session counter when starting new session
       };
       
-      // Immediately save to local storage only
+      // Immediately save to local storage ONLY
       saveUserData({
         balance: prev.balance,
         miningRate: prev.miningRate,
@@ -41,12 +34,13 @@ export function useMiningActions(state: MiningState, setState: React.Dispatch<Re
         miningActive: true,
         miningTime: prev.miningPeriod,
         miningPeriod: prev.miningPeriod,
-        miningSession: 0
+        miningSession: 0,
+        userId: prev.userId
       });
       
       return newState;
     });
-  }, [currentUser, setState]);
+  }, [setState]);
 
   // Stop mining function with enhanced feedback
   const handleStopMining = useCallback(() => {
@@ -67,7 +61,7 @@ export function useMiningActions(state: MiningState, setState: React.Dispatch<Re
         progress: 0
       };
       
-      // Immediately save to local storage only
+      // Immediately save to local storage ONLY
       saveUserData({
         balance: prev.balance,
         miningRate: prev.miningRate,
@@ -75,7 +69,8 @@ export function useMiningActions(state: MiningState, setState: React.Dispatch<Re
         miningActive: false,
         miningTime: prev.miningPeriod,
         miningPeriod: prev.miningPeriod,
-        miningSession: 0
+        miningSession: 0,
+        userId: prev.userId
       });
       
       return newState;

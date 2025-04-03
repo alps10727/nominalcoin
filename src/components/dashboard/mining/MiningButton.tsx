@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { OrbitalEffects } from "./button/OrbitalEffects";
 import { ParticleEffects } from "./button/ParticleEffects";
 import { ButtonBackground } from "./button/ButtonBackground";
@@ -19,6 +19,8 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
 }) => {
   const [displayTime, setDisplayTime] = useState("");
   const [buttonHovered, setButtonHovered] = useState(false);
+  const [isClickable, setIsClickable] = useState(true);
+  const lastClickTimeRef = useRef<number>(0);
   
   // Format and update time display
   useEffect(() => {
@@ -33,9 +35,26 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
     setDisplayTime(formatTime(miningTime));
   }, [miningTime]);
 
-  // Memoize click handler
+  // Memoize click handler with debounce logic
   const handleClick = useCallback(() => {
+    const now = Date.now();
+    // Prevent rapid clicks (3-second cooldown)
+    if (now - lastClickTimeRef.current < 3000) {
+      console.log("Button clicked too quickly, ignoring");
+      return;
+    }
+    
+    // Set button as not clickable
+    setIsClickable(false);
+    lastClickTimeRef.current = now;
+    
+    // Call the actual handler
     onButtonClick();
+    
+    // Re-enable button after cooldown
+    setTimeout(() => {
+      setIsClickable(true);
+    }, 3000);
   }, [onButtonClick]);
   
   // Handle hover state
@@ -66,6 +85,7 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
         onClick={handleClick}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        disabled={!isClickable}
       >
         {/* Background layers */}
         <ButtonBackground miningActive={miningActive} />
@@ -76,6 +96,13 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
           displayTime={displayTime} 
         />
       </MiningButtonBase>
+      
+      {/* Cooldown indicator */}
+      {!isClickable && (
+        <div className="absolute top-full left-0 right-0 text-xs text-purple-400/80 text-center mt-2">
+          Please wait...
+        </div>
+      )}
     </div>
   );
 };

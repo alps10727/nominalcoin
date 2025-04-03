@@ -7,17 +7,18 @@ import { toast } from "sonner";
 import { debugLog } from "@/utils/debugUtils";
 
 /**
- * Hook for handling the mining process with improved local storage prioritization
+ * Hook for handling the mining process with local storage only
  */
 export function useMiningProcess(state: MiningState, setState: React.Dispatch<React.SetStateAction<MiningState>>) {
   // Reference to track interval ID
   const intervalRef = useRef<number | null>(null);
+  const lastSaveTimeRef = useRef<number>(Date.now());
   
-  // Check for existing local balance on init - PRIORITIZE LOCAL DATA
+  // Check for existing local balance on init - ONLY use LOCAL DATA
   useEffect(() => {
     const localData = loadUserData();
     if (localData) {
-      debugLog("useMiningProcess", "Found local data, prioritizing local storage values", localData);
+      debugLog("useMiningProcess", "Found local data, using local storage values only", localData);
       setState(prev => ({
         ...prev,
         balance: localData.balance || prev.balance,
@@ -27,11 +28,6 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
         miningPeriod: localData.miningPeriod || prev.miningPeriod,
         miningSession: localData.miningSession || prev.miningSession
       }));
-      
-      toast.success("Yerel veriler yüklendi", {
-        id: "local-data-loaded",
-        duration: 3000
-      });
     }
   }, [setState]);
   
@@ -66,7 +62,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
           // Check if mining cycle is complete
           if (newTime <= 0) {
             console.log("Mining cycle completed");
-            // Save final state to local storage only - ALWAYS PRIORITIZE LOCAL STORAGE
+            // Save final state to local storage only
             saveUserData({
               balance: prev.balance,
               miningRate: prev.miningRate,
@@ -74,7 +70,8 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
               miningActive: false,
               miningTime: prev.miningPeriod,
               miningPeriod: prev.miningPeriod,
-              miningSession: 0 // Reset session on completion
+              miningSession: 0, // Reset session on completion
+              userId: prev.userId
             });
             
             // Show completion toast with improved styling
@@ -107,15 +104,19 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
             });
             
             // Update new balance in local storage IMMEDIATELY - CRITICAL PRIORITY
-            saveUserData({
-              balance: newBalance,
-              miningRate: prev.miningRate,
-              lastSaved: Date.now(),
-              miningActive: true, // Keep mining active
-              miningTime: newTime,
-              miningPeriod: prev.miningPeriod,
-              miningSession: newSession
-            });
+            if (Date.now() - lastSaveTimeRef.current > 2000) {
+              saveUserData({
+                balance: newBalance,
+                miningRate: prev.miningRate,
+                lastSaved: Date.now(),
+                miningActive: true, // Keep mining active
+                miningTime: newTime,
+                miningPeriod: prev.miningPeriod,
+                miningSession: newSession,
+                userId: prev.userId
+              });
+              lastSaveTimeRef.current = Date.now();
+            }
             
             return {
               ...prev,
@@ -124,6 +125,21 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
               miningTime: newTime,
               progress: calculateProgress(newTime, prev.miningPeriod)
             };
+          }
+          
+          // Save state occasionally, but not every second to avoid excessive writes
+          if (Date.now() - lastSaveTimeRef.current > 10000) { // Save every 10 seconds max
+            saveUserData({
+              balance: prev.balance,
+              miningRate: prev.miningRate,
+              lastSaved: Date.now(),
+              miningActive: true,
+              miningTime: newTime,
+              miningPeriod: prev.miningPeriod,
+              miningSession: prev.miningSession,
+              userId: prev.userId
+            });
+            lastSaveTimeRef.current = Date.now();
           }
           
           // Continue mining cycle - just update timer and progress
