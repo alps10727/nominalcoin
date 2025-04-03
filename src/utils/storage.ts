@@ -1,5 +1,5 @@
 
-interface UserData {
+export interface UserData {
   userId?: string;
   balance: number;
   miningRate: number;

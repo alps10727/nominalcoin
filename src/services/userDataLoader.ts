@@ -1,21 +1,8 @@
 
 import { getDocument } from "./dbService";
-import { loadUserData, saveUserData } from "@/utils/storage";
+import { loadUserData, saveUserData, UserData } from "@/utils/storage";
 import { toast } from "sonner";
 import { debugLog, errorLog } from "@/utils/debugUtils";
-
-interface UserData {
-  userId?: string;
-  balance: number;
-  miningRate: number;
-  lastSaved: number | any; // serverTimestamp için
-  miningActive?: boolean;
-  miningTime?: number;
-  miningSession?: number;
-  upgrades?: any[];
-  miningPeriod?: number;
-  email?: string;
-}
 
 /**
  * Kullanıcı verilerini yükleme - local storage öncelikli ve geliştirilmiş hata işleme
@@ -41,9 +28,19 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
       if (userData) {
         debugLog("userDataLoader", "Firebase'den kullanıcı verileri başarıyla yüklendi:", userData);
         
+        // Ensure the data has all required fields before treating it as UserData
+        const validatedData: UserData = {
+          balance: userData.balance ?? 0,
+          miningRate: userData.miningRate ?? 0.1,
+          lastSaved: userData.lastSaved ?? Date.now(),
+          miningActive: userData.miningActive ?? false,
+          userId: userId,
+          ...userData
+        };
+        
         // Save to local storage for future fast access
-        saveUserData(userData as UserData);
-        return userData as UserData;
+        saveUserData(validatedData);
+        return validatedData;
       }
       
       debugLog("userDataLoader", "Firebase'de kullanıcı verileri bulunamadı");
@@ -101,4 +98,5 @@ async function getDocumentWithTimeout(collection: string, id: string, timeoutMs:
   });
 }
 
+// Re-export the UserData type for consumers of this module
 export type { UserData };
