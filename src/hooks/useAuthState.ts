@@ -16,16 +16,16 @@ export function useAuthState(): AuthState {
   // Initialize userData directly from localStorage for instant access
   const [initialLocalData] = useState(() => loadUserData());
   
-  // Kimlik doğrulama gözlemcisi hook'unu kullan
+  // Use authentication observer hook
   const { currentUser, loading: authLoading, authInitialized } = useAuthObserver();
   
-  // Kullanıcı verisi yükleyici hook'unu kullan (with local storage priority flag)
+  // Use user data loader hook (with local storage priority flag)
   const { userData, loading: dataLoading, dataSource } = useUserDataLoader(currentUser, authInitialized);
   
-  // Bileşik yükleme durumu - if we have local data, don't wait for Firebase
+  // Combined loading state - if we have local data, don't wait for Firebase at all
   const loading = initialLocalData ? false : (authLoading || dataLoading);
   
-  // Çevrimdışı durumu belirle - navigator.onLine kontrolü öne alındı
+  // Determine offline status - moved navigator.onLine check forward
   const isOffline = !navigator.onLine || dataSource === 'local';
 
   return { 
@@ -37,5 +37,5 @@ export function useAuthState(): AuthState {
   };
 }
 
-// Firebase User tipini import et
+// Import Firebase User type
 import { User } from "firebase/auth";
