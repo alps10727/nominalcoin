@@ -25,7 +25,6 @@ export function useUserDataLoader(
   useEffect(() => {
     let userDataTimeoutId: NodeJS.Timeout;
     let isActive = true; // Belleği sızıntısı önleyici
-    let firebaseFetchCancelled = false; // Yeni bir değişken ekledik
 
     const loadData = async () => {
       // Eğer kullanıcı yoksa veya auth başlatılmamışsa, veri yüklemeye çalışma
@@ -39,82 +38,44 @@ export function useUserDataLoader(
       }
 
       try {
-        // IMMEDIATELY check for local data - for instant response
+        // Hızlı yükleme için önce yerel verileri kontrol et
         const localData = loadUserData();
         if (localData) {
           setUserData(localData);
           setDataSource('local');
           debugLog("useUserDataLoader", "Yerel depodan kullanıcı verileri yüklendi:", localData);
           
-          // IMMEDIATELY end loading state when we have local data
-          setLoading(false);
-          
-          // Set a very short timeout before we even try Firebase
-          // This ensures the app loads quickly with local data
-          setTimeout(() => {
-            if (!isActive || firebaseFetchCancelled) return;
-            
-            // Try Firebase in background only - don't block UI
-            loadUserDataWithRetry()
-              .then(firebaseData => {
-                if (!isActive || firebaseFetchCancelled) return;
-                
-                // Only use Firebase data if balance is significantly higher
-                if (firebaseData && firebaseData.balance > (localData.balance + 5)) {
-                  debugLog("useUserDataLoader", "Firebase data has significantly higher balance, updating");
-                  setUserData(firebaseData);
-                  setDataSource('firebase');
-                  saveUserData(firebaseData);
-                }
-              })
-              .catch(err => {
-                // Just log Firebase errors - don't affect UX since we're using local data
-                debugLog("useUserDataLoader", "Background Firebase fetch error (ignored):", err);
-              });
-          }, 2000); // Very short delay to prioritize UI rendering
-          
-          return; // IMPORTANT: Return early to prevent Firebase from blocking
+          // Firebase verileri yüklenene kadar geçici olarak yerel verileri göster
+          // Yükleme durumunu etkin tut - Firebase verileri yüklenecek
+          debugLog("useUserDataLoader", "Firebase'den veri yükleniyor...");
         }
         
-        // Only get here if NO local data exists
-        
-        // Timeout protection - very short (3 seconds max)
-        const timeoutId = setTimeout(() => {
-          if (isActive && loading) {
-            debugLog("useUserDataLoader", "Firebase loading timed out, using empty user data");
-            firebaseFetchCancelled = true;
-            setLoading(false);
-            
-            // Create empty user data as fallback
-            const emptyData = {
-              balance: 0,
-              miningRate: 0.1,
-              lastSaved: Date.now(),
-              miningActive: false,
-              userId: currentUser?.uid
-            };
-            setUserData(emptyData);
-            saveUserData(emptyData);
-            setDataSource('local');
-          }
-        }, 3000);
-        
-        // Only try Firebase if no local data (for new users only)
+        // Firebase'den veri yüklemeyi dene
         try {
-          const userDataFromFirebase = await loadUserDataWithRetry();
+          // Firebase zaman aşımı (10 saniye)
+          const timeoutPromise = new Promise((_, reject) => {
+            userDataTimeoutId = setTimeout(() => {
+              reject(new Error("Firebase veri yükleme zaman aşımı"));
+            }, 10000);
+          });
           
-          if (isActive && !firebaseFetchCancelled) {
-            clearTimeout(timeoutId);
-            
-            if (userDataFromFirebase) {
-              setUserData(userDataFromFirebase);
+          // Firebase veri yükleme işlemi
+          const firebaseDataPromise = loadUserDataFromFirebase(currentUser.uid);
+          
+          // Hangisi önce tamamlanırsa
+          const firebaseData = await Promise.race([firebaseDataPromise, timeoutPromise]);
+          clearTimeout(userDataTimeoutId);
+          
+          if (isActive) {
+            if (firebaseData) {
+              debugLog("useUserDataLoader", "Firebase'den kullanıcı verileri yüklendi:", firebaseData);
+              setUserData(firebaseData);
               setDataSource('firebase');
               
-              // Save to local storage too
-              saveUserData(userDataFromFirebase);
-              debugLog("useUserDataLoader", "Firebase data loaded and saved locally");
-            } else {
-              // Create empty user data if Firebase returns nothing
+              // Yerel depoya da kaydet
+              saveUserData(firebaseData);
+            } else if (!localData) {
+              // Firebase ve yerel veri yoksa, boş veri oluştur
               const emptyData = {
                 balance: 0,
                 miningRate: 0.1,
@@ -125,32 +86,43 @@ export function useUserDataLoader(
               setUserData(emptyData);
               saveUserData(emptyData);
               setDataSource('local');
+              
+              toast.warning("Kullanıcı verileriniz bulunamadı. Yeni profil oluşturuldu.");
             }
             
             setLoading(false);
           }
         } catch (error) {
-          if (isActive && !firebaseFetchCancelled) {
-            clearTimeout(timeoutId);
-            errorLog("useUserDataLoader", "Firebase error, falling back to empty data:", error);
+          clearTimeout(userDataTimeoutId);
+          
+          if (isActive) {
+            errorLog("useUserDataLoader", "Firebase veri yükleme hatası:", error);
             
-            const emptyData = {
-              balance: 0,
-              miningRate: 0.1,
-              lastSaved: Date.now(),
-              miningActive: false,
-              userId: currentUser?.uid
-            };
-            setUserData(emptyData);
-            saveUserData(emptyData);
+            // Eğer yerel veri yoksa ve Firebase hatası varsa, boş veri oluştur
+            if (!localData) {
+              const emptyData = {
+                balance: 0,
+                miningRate: 0.1,
+                lastSaved: Date.now(),
+                miningActive: false,
+                userId: currentUser?.uid
+              };
+              setUserData(emptyData);
+              saveUserData(emptyData);
+            }
+            
             setDataSource('local');
             setLoading(false);
+            
+            // Firebase bağlantı hatası bildir
+            toast.error("Firebase'e bağlanırken hata oluştu. Verileriniz yerel olarak kaydedilecek.");
           }
         }
       } catch (error) {
-        errorLog("useUserDataLoader", "Critical error loading user data:", error);
         if (isActive) {
-          // Fallback to empty user data
+          errorLog("useUserDataLoader", "Kullanıcı verileri yüklenirken kritik hata:", error);
+          
+          // Kritik hata durumunda boş veri oluştur
           const emptyData = {
             balance: 0,
             miningRate: 0.1,
@@ -162,37 +134,9 @@ export function useUserDataLoader(
           saveUserData(emptyData);
           setDataSource('local');
           setLoading(false);
+          
+          toast.error("Veri yüklenirken bir hata oluştu. Lütfen tekrar deneyin.");
         }
-      }
-    };
-
-    // Retry helper function for Firebase loading
-    const loadUserDataWithRetry = async (retryAttempt = 0): Promise<any> => {
-      try {
-        // Very short timeout (3 seconds) to prevent hanging
-        const timeoutPromise = new Promise((_, reject) => {
-          userDataTimeoutId = setTimeout(() => {
-            reject(new Error("Firebase veri yükleme zaman aşımı"));
-          }, 3000); // Reduced to 3 seconds
-        });
-        
-        // Veri çekme işlemi
-        const dataPromise = loadUserDataFromFirebase(currentUser.uid);
-        
-        // İki promise'i yarıştır - hangisi önce biterse
-        const data = await Promise.race([dataPromise, timeoutPromise]);
-        clearTimeout(userDataTimeoutId);
-        return data;
-      } catch (error) {
-        clearTimeout(userDataTimeoutId);
-        if (retryAttempt < 1 && !firebaseFetchCancelled && 
-           ((error as any)?.code === 'unavailable' || (error as Error).message.includes('zaman aşımı'))) {
-          // Only retry once, with short timeout
-          return new Promise(resolve => 
-            setTimeout(() => resolve(loadUserDataWithRetry(retryAttempt + 1)), 1000)
-          );
-        }
-        throw error;
       }
     };
 
@@ -200,7 +144,6 @@ export function useUserDataLoader(
 
     return () => {
       isActive = false;
-      firebaseFetchCancelled = true;
       clearTimeout(userDataTimeoutId);
     };
   }, [currentUser, authInitialized, errorOccurred, loadAttempt]);

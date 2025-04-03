@@ -19,9 +19,7 @@ export function useUserDataManager(
 ): UserDataManager {
   const [isUpdating, setIsUpdating] = useState(false);
   const [lastUpdateStatus, setLastUpdateStatus] = useState<'idle' | 'success' | 'error' | 'offline'>('idle');
-  const [updateQueue, setUpdateQueue] = useState<any[]>([]);
   
-  // Birden fazla güncelleme isteği için sıra oluştur
   const updateUserData = async (data: any): Promise<void> => {
     if (!currentUser) {
       debugLog("useUserDataManager", "Kullanıcı oturum açmadığı için veri güncellenemiyor");
@@ -38,7 +36,11 @@ export function useUserDataManager(
         ...data
       };
       
-      // Önce yerel olarak güncelle - bu her zaman başarılı olmalı
+      // Önce UI durumunu güncelle
+      setUserData(prev => ({ ...prev, ...data }));
+      timer.mark("UI durumu güncellendi");
+      
+      // Yerel depoya kaydet (hızlı erişim için)
       try {
         saveUserData(updatedData);
         timer.mark("Yerel depo güncellendi");
@@ -46,11 +48,7 @@ export function useUserDataManager(
         errorLog("useUserDataManager", "Yerel depo güncelleme hatası:", err);
       }
       
-      // UI durumunu hemen güncelle
-      setUserData(prev => ({ ...prev, ...data }));
-      timer.mark("UI durumu güncellendi");
-      
-      // Firebase'i asenkron olarak güncellemeyi dene
+      // Firebase'e kaydet (öncelikli olarak)
       try {
         await saveUserDataToFirebase(currentUser.uid, updatedData);
         timer.mark("Firebase güncellendi");
@@ -61,11 +59,7 @@ export function useUserDataManager(
         if ((error as any)?.code === 'unavailable' || (error as Error).message.includes('zaman aşımı')) {
           debugLog("useUserDataManager", "Çevrimdışı modda veri güncellendi");
           setLastUpdateStatus('offline');
-          
-          // Sadece kullanıcıya ilk kez çevrimdışı olduğunda bildir
-          if (lastUpdateStatus !== 'offline') {
-            toast.warning("Çevrimdışı moddasınız. Verileriniz yeniden bağlandığınızda senkronize edilecek.");
-          }
+          toast.warning("Çevrimdışı moddasınız. Verileriniz yeniden bağlandığınızda senkronize edilecek.");
         } else {
           errorLog("useUserDataManager", "Veri güncelleme hatası:", error);
           setLastUpdateStatus('error');

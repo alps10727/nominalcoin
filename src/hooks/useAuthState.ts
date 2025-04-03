@@ -13,31 +13,27 @@ export interface AuthState {
 }
 
 /**
- * Tamamen yerel depolamaya dayalı yetkilendirme durumu kancası
- * Firebase'e hiç bağlanmadan çalışır
+ * Firebase ve yerel depolama entegrasyonuyla yetkilendirme durumu kancası
  */
 export function useAuthState(): AuthState {
-  // Yerel depolamadan kullanıcı verilerini doğrudan başlatma
-  const [initialLocalData] = useState(() => loadUserData());
-  
-  // Yetkilendirme gözlemcisi kancasını kullan (gerekli ama sonuçları kullanma)
+  // Yetkilendirme gözlemcisi kancasını kullan
   const { currentUser, loading: authLoading, authInitialized } = useAuthObserver();
   
-  // Yerel depolama öncelikli kullanıcı veri yükleyici kancasını kullan
+  // Kullanıcı veri yükleyici kancasını kullan (Firebase öncelikli)
   const { userData, loading: dataLoading, dataSource } = useUserDataLoader(currentUser, authInitialized);
   
-  // Yerel veriye öncelik ver ve Firebase için ASLA bekleme
-  const loading = false; // Yükleme durumunu asla gösterme
+  // Firebase ve yerel veri yükleme durumlarını birleştir
+  const loading = authLoading || dataLoading;
   
-  // Her zaman çevrimdışı modu varsay - bu Firebase müdahalesini önler
-  const isOffline = true;
+  // Çevrimdışı durumu izle (kullanıcı verisi yerel depodan geldiyse)
+  const isOffline = dataSource === 'local';
 
   return { 
     currentUser, 
-    userData: initialLocalData || userData, // KRİTİK: Her zaman yerel veriye öncelik ver
-    loading: false, // Yükleme durumunu her zaman false olarak ayarla (beyaz ekranı önlemek için)
-    isOffline: true, // Kararlılık için çevrimdışı modu zorla
-    dataSource: 'local' // Her zaman yerel kaynağı kullan
+    userData, 
+    loading,
+    isOffline,
+    dataSource
   };
 }
 
