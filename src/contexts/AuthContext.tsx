@@ -4,6 +4,7 @@ import { User } from "firebase/auth";
 import { useAuthState } from "@/hooks/useAuthState";
 import { useAuthActions } from "@/hooks/useAuthActions";
 import { useUserDataManager } from "@/hooks/useUserDataManager";
+import { debugLog } from "@/utils/debugUtils";
 
 interface AuthContextProps {
   currentUser: User | null;
@@ -14,6 +15,7 @@ interface AuthContextProps {
   userData: any | null;
   updateUserData: (data: any) => Promise<void>;
   isOffline: boolean;
+  dataSource: 'firebase' | 'local' | null;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -28,7 +30,7 @@ export function useAuth() {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Kimlik doğrulama durumunu al
-  const { currentUser, userData: initialUserData, loading, isOffline } = useAuthState();
+  const { currentUser, userData: initialUserData, loading, isOffline, dataSource } = useAuthState();
   
   // Kullanıcı veri durumunu yönet
   const [userData, setUserData] = useState<any | null>(initialUserData);
@@ -36,6 +38,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // initialUserData değiştiğinde userData'yı güncelle
   useEffect(() => {
     if (initialUserData) {
+      debugLog("AuthProvider", "initialUserData değişti, userData güncelleniyor", initialUserData);
       setUserData(initialUserData);
     }
   }, [initialUserData]);
@@ -55,8 +58,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     register,
     userData,
     updateUserData,
-    isOffline
+    isOffline,
+    dataSource
   };
+
+  debugLog("AuthProvider", "AuthProvider yüklendi, kullanıcı:", currentUser?.email || "Yok");
 
   return (
     <AuthContext.Provider value={value}>

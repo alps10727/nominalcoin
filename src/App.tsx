@@ -10,14 +10,14 @@ import AppRoutes from "./components/routing/AppRoutes";
 import { Suspense } from "react";
 import LoadingScreen from "./components/dashboard/LoadingScreen";
 
-// Optimized QueryClient config for better performance
+// Optimize edilmiş QueryClient yapılandırması
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
-      retryDelay: 300, // Faster retry
+      retryDelay: 300,
       refetchOnWindowFocus: false,
-      staleTime: 20000, // Increased cache time to 20 seconds
+      staleTime: 20000,
       gcTime: 300000,
     }
   }
@@ -29,15 +29,15 @@ const App = () => {
       <ThemeProvider>
         <LanguageProvider>
           <BrowserRouter>
-            <AppInitializer>
-              <Suspense fallback={<LoadingScreen message="Kimlik doğrulama yükleniyor..." />}>
-                <AuthProvider>
+            <AuthProvider>
+              <AppInitializer>
+                <Suspense fallback={<LoadingScreen message="Yükleniyor..." />}>
                   <AppLayout>
                     <AppRoutes />
                   </AppLayout>
-                </AuthProvider>
-              </Suspense>
-            </AppInitializer>
+                </Suspense>
+              </AppInitializer>
+            </AuthProvider>
           </BrowserRouter>
         </LanguageProvider>
       </ThemeProvider>

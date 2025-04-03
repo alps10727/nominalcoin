@@ -17,6 +17,7 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
   const [loadAttempt, setLoadAttempt] = useState(0);
   
   useEffect(() => {
+    console.log("AppInitializer başlatılıyor...");
     let reconnectTimer: NodeJS.Timeout;
     
     const handleOnline = () => {
@@ -25,12 +26,7 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
       
       // Yeniden bağlanma durumunda toast göster ve kurtarma mekanizması başlat
       if (reconnecting) {
-        toast.success("İnternet bağlantısı yeniden kuruldu. Veriler senkronize ediliyor...");
-        
-        // Sayfayı yenileme öncesi kısa bir bekletme
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
+        toast.success("İnternet bağlantısı yeniden kuruldu.");
       }
     };
     
@@ -49,22 +45,28 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
     
     // Uygulama ilk yükleme
     const initializeApp = () => {
-      const startTime = performance.now();
-      
-      // İlk yükleme
-      if (!initialLoadAttempted || loadAttempt < 3) {
-        setInitialLoadAttempted(true);
+      try {
+        const startTime = performance.now();
         
-        // Uygulamayı kademeli olarak başlatma işlemi
-        const loadTimer = setTimeout(() => {
-          setReady(true);
-          const loadTime = performance.now() - startTime;
-          debugLog("AppInitializer", `Uygulama ${loadTime.toFixed(0)}ms içinde başlatıldı`);
-        }, isOffline ? 1000 : 2000); // Offline modda daha hızlı başlat
-        
-        return () => {
-          clearTimeout(loadTimer);
-        };
+        // İlk yükleme
+        if (!initialLoadAttempted || loadAttempt < 3) {
+          setInitialLoadAttempted(true);
+          
+          // Uygulamayı kademeli olarak başlatma işlemi
+          const loadTimer = setTimeout(() => {
+            setReady(true);
+            const loadTime = performance.now() - startTime;
+            debugLog("AppInitializer", `Uygulama ${loadTime.toFixed(0)}ms içinde başlatıldı`);
+          }, 1000); // Daha hızlı başlatma
+          
+          return () => {
+            clearTimeout(loadTimer);
+          };
+        }
+      } catch (error) {
+        console.error("Uygulama başlatma hatası:", error);
+        // Hata durumunda yine de uygulamayı başlatmaya çalış
+        setReady(true);
       }
     };
     
@@ -83,7 +85,7 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
       const retryTimer = setTimeout(() => {
         debugLog("AppInitializer", `Yükleme denemesi ${loadAttempt + 1}/3 başlatılıyor...`);
         setLoadAttempt(prev => prev + 1);
-      }, 5000);
+      }, 3000); // Daha kısa sürede tekrar dene
       
       return () => {
         clearTimeout(retryTimer);
@@ -91,6 +93,8 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
     }
   }, [initialLoadAttempted, ready, loadAttempt]);
   
+  console.log("AppInitializer durumu:", { ready, isOffline, loadAttempt });
+
   if (!ready) {
     return <LoadingScreen message="Uygulama başlatılıyor..." forceOffline={isOffline} />;
   }
