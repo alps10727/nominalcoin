@@ -9,7 +9,17 @@ const config: CapacitorConfig = {
     url: 'https://9a24b2db-d35a-4f6f-b98b-43e035a57e11.lovableproject.com?forceHideBadge=true',
     cleartext: true
   },
-  bundledWebRuntime: false
+  bundledWebRuntime: false,
+  // Mobil görünüm için ek yapılandırmalar
+  ios: {
+    contentInset: 'always',
+    scheme: 'futurecoin',
+    limitsNavigationsToAppBoundDomains: true
+  },
+  android: {
+    captureInput: true,
+    webViewUserAgentTemplate: 'FutureCoin Android App'
+  }
 };
 
 export default config;

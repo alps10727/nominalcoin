@@ -12,30 +12,34 @@ export interface AuthState {
   dataSource: 'firebase' | 'local' | null;
 }
 
+/**
+ * Tamamen yerel depolamaya dayalı yetkilendirme durumu kancası
+ * Firebase'e hiç bağlanmadan çalışır
+ */
 export function useAuthState(): AuthState {
-  // Initialize userData directly from localStorage for instant access
+  // Yerel depolamadan kullanıcı verilerini doğrudan başlatma
   const [initialLocalData] = useState(() => loadUserData());
   
-  // Use authentication observer hook
+  // Yetkilendirme gözlemcisi kancasını kullan (gerekli ama sonuçları kullanma)
   const { currentUser, loading: authLoading, authInitialized } = useAuthObserver();
   
-  // Use user data loader hook with local storage priority
+  // Yerel depolama öncelikli kullanıcı veri yükleyici kancasını kullan
   const { userData, loading: dataLoading, dataSource } = useUserDataLoader(currentUser, authInitialized);
   
-  // ALWAYS prioritize local data and never wait for Firebase
-  const loading = initialLocalData ? false : (authLoading || (dataLoading && !initialLocalData));
+  // Yerel veriye öncelik ver ve Firebase için ASLA bekleme
+  const loading = false; // Yükleme durumunu asla gösterme
   
-  // Always assume offline first - this prevents Firebase interference
-  const isOffline = !navigator.onLine || dataSource === 'local' || !dataSource;
+  // Her zaman çevrimdışı modu varsay - bu Firebase müdahalesini önler
+  const isOffline = true;
 
   return { 
     currentUser, 
-    userData: initialLocalData || userData, // CRITICAL: Always prioritize local data
-    loading: false, // Override loading to false to prevent white screen
-    isOffline: true, // Force offline mode for stability
-    dataSource: 'local' // Always use local as the source of truth
+    userData: initialLocalData || userData, // KRİTİK: Her zaman yerel veriye öncelik ver
+    loading: false, // Yükleme durumunu her zaman false olarak ayarla (beyaz ekranı önlemek için)
+    isOffline: true, // Kararlılık için çevrimdışı modu zorla
+    dataSource: 'local' // Her zaman yerel kaynağı kullan
   };
 }
 
-// Import Firebase User type
+// Firebase User tipini içe aktar
 import { User } from "firebase/auth";
