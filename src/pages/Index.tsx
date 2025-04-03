@@ -29,19 +29,28 @@ const Index = () => {
     handleStopMining
   } = useMiningData();
   
+  // Get local storage data directly first for fastest possible rendering
+  const [directLocalData] = useState(() => loadUserData());
+  
   // Also get balance from auth context as a backup
   const { userData, loading: authLoading, isOffline } = useAuth();
-  const [balance, setBalance] = useState(0);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [balance, setBalance] = useState(() => directLocalData?.balance || 0);
+  const [isInitialized, setIsInitialized] = useState(!!directLocalData);
   
   // Set initial balance - prioritize localStorage for quick load
   useEffect(() => {
+    // If we already have direct local data, we're initialized
+    if (directLocalData && directLocalData.balance > 0) {
+      return;
+    }
+    
     // İlk önce localStorage'dan verileri yükle - en hızlı yol
     try {
       const localData = loadUserData();
       if (localData && localData.balance > 0) {
         setBalance(localData.balance);
         setIsInitialized(true);
+        return; // Exit early if we have local data
       }
     } catch (e) {
       console.error("Local storage error:", e);
@@ -58,23 +67,30 @@ const Index = () => {
       setIsInitialized(true);
       console.log("Using balance from auth context:", userData.balance);
     }
-  }, [miningLoading, miningBalance, authLoading, userData]);
+  }, [miningLoading, miningBalance, authLoading, userData, directLocalData]);
+  
+  // Update balance when mining balance changes (after initialization)
+  useEffect(() => {
+    if (isInitialized && !miningLoading && miningBalance > 0) {
+      setBalance(miningBalance);
+    }
+  }, [miningBalance, isInitialized, miningLoading]);
   
   const isMobile = useIsMobile();
   const { t } = useLanguage();
   const { theme } = useTheme();
 
-  // Eğer her şey çok uzun süredir yükleniyorsa (10 saniye) isLoading'i false yap
+  // Short timeout (3 seconds) to force initialization even if data loading fails
   useEffect(() => {
     const timeout = setTimeout(() => {
       setIsInitialized(true);
-    }, 5000);
+    }, 3000);
     
     return () => clearTimeout(timeout);
   }, []);
 
-  // Yükleme durumu - eğer herhangi bir balans yüklendiyse, doğrudan göster
-  const isLoading = (!isInitialized && (miningLoading || authLoading)) || (!isInitialized && balance === 0);
+  // Only show loading if we have no data from any source
+  const isLoading = !isInitialized && balance === 0;
 
   if (isLoading) {
     return <LoadingScreen message={isOffline ? "Çevrimdışı modda yükleniyor..." : "Veriler hazırlanıyor..."} />;
