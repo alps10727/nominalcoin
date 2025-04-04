@@ -1,3 +1,4 @@
+
 import { Diamond, Activity, Zap, ChevronRight } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -32,7 +33,7 @@ const Index = () => {
   // Get local storage data directly first for fastest possible rendering and keep it consistent
   const [balance, setBalance] = useState<number>(() => {
     const localData = loadUserData();
-    debugLog("Index", "Initial balance from localStorage:", localData?.balance || 0);
+    debugLog("Index", `Initial balance from localStorage: ${localData?.balance || 0}`);
     return localData?.balance || 0;
   });
   
@@ -51,7 +52,7 @@ const Index = () => {
     }
     
     if (!miningLoading && miningBalance > 0) {
-      debugLog("Index", "Updating balance from mining:", miningBalance, "Previous:", storedBalanceRef.current);
+      debugLog("Index", `Updating balance from mining: ${miningBalance}, Previous: ${storedBalanceRef.current}`);
       
       // Sadece daha yüksek değerler için güncelle (kaybolan bakiye sorununu önlemek için)
       if (miningBalance >= storedBalanceRef.current) {
@@ -64,13 +65,13 @@ const Index = () => {
   // Backup method: If auth userData has balance and it's higher than our current balance
   useEffect(() => {
     if (!authLoading && userData?.balance) {
-      debugLog("Index", "Checking auth balance:", userData.balance, "Current:", storedBalanceRef.current);
+      debugLog("Index", `Checking auth balance: ${userData.balance}, Current: ${storedBalanceRef.current}`);
       
       // Sadece daha yüksek değerler için güncelle
       if (userData.balance > storedBalanceRef.current) {
         setBalance(userData.balance);
         storedBalanceRef.current = userData.balance;
-        debugLog("Index", "Using higher balance from auth:", userData.balance);
+        debugLog("Index", `Using higher balance from auth: ${userData.balance}`);
       }
     }
   }, [userData, authLoading]);

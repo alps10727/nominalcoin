@@ -18,7 +18,7 @@ const BalanceCard = ({ balance }: BalanceCardProps) => {
   
   // Update display balance with smooth animation when actual balance changes
   useEffect(() => {
-    debugLog("BalanceCard", "Balance prop changed:", balance, "Previous:", previousBalance.current);
+    debugLog("BalanceCard", `Balance prop changed: ${balance}, Previous: ${previousBalance.current}`);
     
     // Yalnızca daha yüksek veya eşit bakiye değerlerini kabul et
     // Bu, yenileme sırasında değerlerin kaybolmasını önler
@@ -37,7 +37,7 @@ const BalanceCard = ({ balance }: BalanceCardProps) => {
       }
       previousBalance.current = balance;
     } else {
-      debugLog("BalanceCard", "Ignoring lower balance value:", balance, "Keeping:", stableBalanceRef.current);
+      debugLog("BalanceCard", `Ignoring lower balance value: ${balance}, Keeping: ${stableBalanceRef.current}`);
     }
   }, [balance]);
   

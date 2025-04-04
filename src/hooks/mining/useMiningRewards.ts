@@ -1,4 +1,3 @@
-
 import { MiningState } from '@/types/mining';
 import { calculateProgress, getCurrentTime } from '@/utils/miningUtils';
 import { saveUserData, loadUserData } from "@/utils/storage";
@@ -30,7 +29,7 @@ export function addMiningReward(
   
   // Eğer localStorage'daki bakiye, state'teki bakiyeden yüksekse, localStorage'daki değeri kullan
   if (localData && localData.balance > currentBalance) {
-    debugLog("useMiningRewards", "Using higher balance from localStorage:", localData.balance, "State balance:", currentBalance);
+    debugLog("useMiningRewards", `Using higher balance from localStorage: ${localData.balance}, State balance: ${currentBalance}`);
     currentBalance = localData.balance;
   }
   
@@ -39,11 +38,7 @@ export function addMiningReward(
   const newBalance = currentBalance + rewardAmount;
   const newSession = prevState.miningSession + rewardAmount;
   
-  debugLog("useMiningRewards", "Balance update:", {
-    oldBalance: currentBalance,
-    reward: rewardAmount,
-    newBalance: newBalance
-  });
+  debugLog("useMiningRewards", `Balance update: oldBalance=${currentBalance}, reward=${rewardAmount}, newBalance=${newBalance}`);
   
   // CRITICAL: Save balance to storage IMMEDIATELY after earning reward
   saveUserData({
