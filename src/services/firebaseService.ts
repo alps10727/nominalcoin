@@ -7,7 +7,8 @@ import {
 } from './userDataLoader';
 
 import {
-  saveUserDataToFirebase
+  saveUserDataToFirebase,
+  updateUserCoinBalance
 } from './userDataSaver';
 
 import {
@@ -29,5 +30,6 @@ export {
   registerUser,
   loginUser,
   logoutUser,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  updateUserCoinBalance
 };
