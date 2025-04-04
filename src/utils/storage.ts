@@ -18,12 +18,24 @@ export function loadUserData(): UserData | null {
   try {
     const savedData = localStorage.getItem('fcMinerUserData');
     if (savedData) {
-      return JSON.parse(savedData) as UserData;
+      try {
+        const parsedData = JSON.parse(savedData) as UserData;
+        return parsedData;
+      } catch (parseErr) {
+        console.error('JSON parse hatası:', parseErr);
+        // If there's an error parsing, clean up the corrupt data
+        localStorage.removeItem('fcMinerUserData');
+        return null;
+      }
     }
   } catch (err) {
     console.error('Error loading user data:', err);
     // If there's an error parsing, clean up the corrupt data
-    localStorage.removeItem('fcMinerUserData');
+    try {
+      localStorage.removeItem('fcMinerUserData');
+    } catch (removeErr) {
+      console.error('Corrupt data temizleme hatası:', removeErr);
+    }
   }
   // Return null if no data found - this ensures new users get default values
   return null;
@@ -42,9 +54,16 @@ export function saveUserData(userData: UserData): void {
       lastSaved: userData.lastSaved || Date.now(),
     };
     
-    localStorage.setItem('fcMinerUserData', JSON.stringify(sanitizedData));
+    try {
+      const jsonData = JSON.stringify(sanitizedData);
+      localStorage.setItem('fcMinerUserData', jsonData);
+    } catch (stringifyErr) {
+      console.error('JSON stringify hatası:', stringifyErr);
+      throw stringifyErr;
+    }
   } catch (err) {
     console.error('Error saving user data:', err);
+    throw err; // Yeniden fırlat, böylece çağıran fonksiyon işleyebilir
   }
 }
 
@@ -65,15 +84,24 @@ export function clearUserData(): void {
  */
 export function getNextUserId(): string {
   try {
-    const lastIdData = localStorage.getItem('fcMinerLastUserId');
     let nextId = 1; // Default start at 1
     
-    if (lastIdData) {
-      nextId = parseInt(lastIdData, 10) + 1;
+    try {
+      const lastIdData = localStorage.getItem('fcMinerLastUserId');
+      if (lastIdData) {
+        nextId = parseInt(lastIdData, 10) + 1;
+      }
+    } catch (readErr) {
+      console.error('User ID okuma hatası:', readErr);
+      // Fail gracefully, continue with default
     }
     
     // Save the new last ID
-    localStorage.setItem('fcMinerLastUserId', nextId.toString());
+    try {
+      localStorage.setItem('fcMinerLastUserId', nextId.toString());
+    } catch (writeErr) {
+      console.error('User ID yazma hatası:', writeErr);
+    }
     
     // Format with leading zeros to create 8-digit ID
     return nextId.toString().padStart(8, '0');

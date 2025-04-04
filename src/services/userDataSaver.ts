@@ -3,6 +3,7 @@ import { saveDocument } from "./dbService";
 import { saveUserData as saveToLocalStorage } from "@/utils/storage";
 import { UserData } from "./userDataLoader";
 import { debugLog, errorLog } from "@/utils/debugUtils";
+import { toast } from "sonner";
 
 /**
  * Kullanıcı verilerini Firestore'a kaydetme
@@ -20,22 +21,34 @@ export async function saveUserDataToFirebase(userId: string, userData: UserData)
       lastSaved: Date.now() // Önce client timestamp kullan
     };
     
-    // Her zaman önce yerel depoya kaydet (daha hızlı erişim için)
-    saveToLocalStorage(sanitizedData);
-    
-    // Verileri Firebase'e kaydet (arkaplanda ve otomatik yeniden deneme ile)
-    await saveDocument("users", userId, sanitizedData);
-    
-    debugLog("userDataSaver", "Kullanıcı verileri başarıyla kaydedildi:", userId);
-  } catch (err) {
-    errorLog("userDataSaver", "Firebase'e veri kaydetme hatası:", err);
-    
-    // Çevrimdışı durumda kullanıcıya bilgi ver (zaten yerel depoya kaydedildi)
-    if ((err as any)?.code === 'unavailable' || (err as Error).message.includes('zaman aşımı')) {
-      debugLog("userDataSaver", "Cihaz çevrimdışı veya bağlantı zaman aşımına uğradı, veriler yerel olarak kaydedildi");
-      // Bu hata kontrol edildiği için throw etmiyoruz - zaten yerel depoya kaydettik
-    } else {
-      throw err;
+    try {
+      // Her zaman önce yerel depoya kaydet (daha hızlı erişim için)
+      saveToLocalStorage(sanitizedData);
+      debugLog("userDataSaver", "Veriler yerel depoya kaydedildi");
+    } catch (storageErr) {
+      errorLog("userDataSaver", "Yerel depoya kaydetme hatası:", storageErr);
+      toast.error("Yerel depoya kaydetme sırasında bir hata oluştu");
     }
+    
+    try {
+      // Verileri Firebase'e kaydet (arkaplanda ve otomatik yeniden deneme ile)
+      await saveDocument("users", userId, sanitizedData);
+      debugLog("userDataSaver", "Kullanıcı verileri başarıyla kaydedildi:", userId);
+    } catch (firebaseErr) {
+      errorLog("userDataSaver", "Firebase'e veri kaydetme hatası:", firebaseErr);
+      
+      // Çevrimdışı durumda kullanıcıya bilgi ver (zaten yerel depoya kaydedildi)
+      if ((firebaseErr as any)?.code === 'unavailable' || (firebaseErr as Error).message.includes('zaman aşımı')) {
+        debugLog("userDataSaver", "Cihaz çevrimdışı veya bağlantı zaman aşımına uğradı, veriler yerel olarak kaydedildi");
+        toast.warning("Çevrimdışı moddasınız. Verileriniz yerel olarak kaydedildi.");
+      } else {
+        toast.error("Firebase'e veri kaydetme sırasında bir hata oluştu");
+        throw firebaseErr;
+      }
+    }
+  } catch (err) {
+    errorLog("userDataSaver", "Kullanıcı verilerini kaydetme işlemi başarısız:", err);
+    toast.error("Veri kaydetme işlemi başarısız oldu");
+    throw err;
   }
 }

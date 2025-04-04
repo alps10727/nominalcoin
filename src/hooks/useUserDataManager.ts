@@ -37,15 +37,20 @@ export function useUserDataManager(
       } as UserData;
       
       // Önce UI durumunu güncelle
-      setUserData(prev => ({ ...prev, ...data } as UserData));
-      timer.mark("UI durumu güncellendi");
+      try {
+        setUserData(prev => ({ ...prev, ...data } as UserData));
+        timer.mark("UI durumu güncellendi");
+      } catch (uiErr) {
+        errorLog("useUserDataManager", "UI durumu güncelleme hatası:", uiErr);
+      }
       
       // Yerel depoya kaydet (hızlı erişim için)
       try {
         saveUserData(updatedData);
         timer.mark("Yerel depo güncellendi");
-      } catch (err) {
-        errorLog("useUserDataManager", "Yerel depo güncelleme hatası:", err);
+      } catch (storageErr) {
+        errorLog("useUserDataManager", "Yerel depo güncelleme hatası:", storageErr);
+        toast.error("Yerel depolama erişim hatası");
       }
       
       // Firebase'e kaydet (öncelikli olarak)
@@ -53,17 +58,18 @@ export function useUserDataManager(
         await saveUserDataToFirebase(currentUser.uid, updatedData);
         timer.mark("Firebase güncellendi");
         setLastUpdateStatus('success');
-      } catch (error) {
+        toast.success("Verileriniz başarıyla kaydedildi");
+      } catch (firebaseErr) {
         timer.mark("Firebase güncelleme hatası");
         
-        if ((error as any)?.code === 'unavailable' || (error as Error).message.includes('zaman aşımı')) {
+        if ((firebaseErr as any)?.code === 'unavailable' || (firebaseErr as Error).message.includes('zaman aşımı')) {
           debugLog("useUserDataManager", "Çevrimdışı modda veri güncellendi");
           setLastUpdateStatus('offline');
           toast.warning("Çevrimdışı moddasınız. Verileriniz yeniden bağlandığınızda senkronize edilecek.");
         } else {
-          errorLog("useUserDataManager", "Veri güncelleme hatası:", error);
+          errorLog("useUserDataManager", "Veri güncelleme hatası:", firebaseErr);
           setLastUpdateStatus('error');
-          toast.error("Veri güncelleme başarısız: " + (error as Error).message);
+          toast.error("Veri güncelleme başarısız: " + (firebaseErr as Error).message);
         }
       }
       
@@ -72,6 +78,7 @@ export function useUserDataManager(
     } catch (err) {
       setIsUpdating(false);
       errorLog("useUserDataManager", "Beklenmeyen hata:", err);
+      toast.error("Kullanıcı verileri güncellenirken beklenmeyen bir hata oluştu");
     }
   };
 
