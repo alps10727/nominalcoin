@@ -86,10 +86,10 @@ export function usePaginatedTasks(pageSize: number = 5) {
   };
 
   // Görev tamamlandı olarak işaretle
-  const markTaskCompleted = (taskId: string) => {
+  const markTaskCompleted = (taskId: string | number) => {
     setTasks(prev => 
       prev.map(task => 
-        task.id === taskId 
+        task.id.toString() === taskId.toString() 
           ? { ...task, completed: true } 
           : task
       )
