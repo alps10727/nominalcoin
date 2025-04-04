@@ -1,10 +1,11 @@
+
 import { useCallback, useRef } from 'react';
 import { MiningState } from '@/types/mining';
 import { getCurrentTime } from '@/utils/miningUtils';
 import { errorLog } from "@/utils/debugUtils";
-import { useIntervalManager, saveMiningStateOnCleanup } from './mining/useIntervalManager';
-import { calculateUpdatedTimeValues, savePeriodicState } from './mining/useTimerManagement';
-import { addMiningReward, handleMiningCompletion } from './mining/useMiningRewards';
+import { useIntervalManager, saveMiningStateOnCleanup } from '@/hooks/mining/useIntervalManager';
+import { calculateUpdatedTimeValues, savePeriodicState } from '@/hooks/mining/useTimerManagement';
+import { addMiningReward, handleMiningCompletion } from '@/hooks/mining/useMiningRewards';
 
 /**
  * Hook for handling the mining process with local storage only

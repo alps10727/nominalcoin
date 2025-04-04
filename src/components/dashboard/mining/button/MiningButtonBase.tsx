@@ -12,7 +12,7 @@ interface MiningButtonBaseProps {
 
 /**
  * Base button component that handles the click event and scaling animation
- * Performans ve zamanlama sorunlarını çözmek için optimize edildi
+ * Optimized for performance, smoothness, and reliable interaction handling
  */
 export const MiningButtonBase = React.memo<MiningButtonBaseProps>(({ 
   miningActive, 
@@ -22,56 +22,67 @@ export const MiningButtonBase = React.memo<MiningButtonBaseProps>(({
   disabled = false,
   children 
 }) => {
-  // Tıklama sonrası soğuma süresi için durum
+  // State to track cooldown period after clicking
   const [cooldown, setCooldown] = useState(false);
-  const timeoutRef = useRef<number | null>(null);
+  // Refs for handling debounce logic and tracking last click
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastClickTimeRef = useRef<number>(0);
+  const isMountedRef = useRef<boolean>(true);
   
-  // Tıklama işleyicisini performans için memoize edelim
-  const handleClick = useCallback(() => {
-    // Eğer mevcut zaman ile son tıklama arasında 3 saniyeden az varsa, işlemi engelle
-    const now = Date.now();
-    if (now - lastClickTimeRef.current < 3000 || cooldown || disabled) {
-      console.log("Tıklama çok hızlı gerçekleşti veya düğme devre dışı, işlem engellendi");
-      return;
-    }
-    
-    // Son tıklama zamanını kaydet
-    lastClickTimeRef.current = now;
-    
-    // Soğuma süresini başlat
-    setCooldown(true);
-    
-    // Tıklama işlemini gerçekleştir
-    onClick();
-    
-    // Zamanlayıcıyı temizle ve yenisini oluştur
-    if (timeoutRef.current) {
-      window.clearTimeout(timeoutRef.current);
-    }
-    
-    // 3 saniye sonra cooldown'u kaldır
-    timeoutRef.current = window.setTimeout(() => {
-      setCooldown(false);
-      timeoutRef.current = null;
-    }, 3000);
-  }, [onClick, cooldown, disabled]);
-
-  // Komponent kaldırıldığında zamanlayıcıları temizle
+  // Clean up any timeouts on unmount
   useEffect(() => {
-    // Temizleme fonksiyonu - komponent unmount olduğunda
     return () => {
+      isMountedRef.current = false;
       if (timeoutRef.current) {
-        window.clearTimeout(timeoutRef.current);
+        clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
       }
     };
   }, []);
+  
+  // Memoized click handler with improved debounce logic
+  const handleClick = useCallback(() => {
+    // Get current time for debounce comparison
+    const now = Date.now();
+    
+    // Skip processing if button is in cooldown, disabled, or clicked too quickly
+    if (now - lastClickTimeRef.current < 3000 || cooldown || disabled) {
+      console.log("Click blocked: too fast or button is in cooldown state");
+      return;
+    }
+    
+    // Update last click time
+    lastClickTimeRef.current = now;
+    
+    // Enter cooldown state
+    setCooldown(true);
+    
+    // Clear any existing timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    
+    // Call the actual click handler
+    try {
+      onClick();
+    } catch (err) {
+      console.error("Error during button click handler:", err);
+    }
+    
+    // Set timeout to reset cooldown state after 3 seconds
+    timeoutRef.current = setTimeout(() => {
+      // Only update state if component is still mounted
+      if (isMountedRef.current) {
+        setCooldown(false);
+        timeoutRef.current = null;
+      }
+    }, 3000);
+  }, [onClick, cooldown, disabled]);
 
   return (
     <div className="mx-auto flex items-center justify-center">
       <button 
-        className={`relative w-36 h-36 rounded-full flex items-center justify-center z-10 transition-all duration-700 ${
+        className={`relative w-36 h-36 rounded-full flex items-center justify-center z-10 transform transition-all duration-500 ${
           miningActive ? 'scale-110' : 'scale-100 hover:scale-105'
         } ${(disabled || cooldown) ? 'opacity-80 cursor-wait' : 'cursor-pointer'}`}
         onClick={handleClick}
@@ -80,9 +91,19 @@ export const MiningButtonBase = React.memo<MiningButtonBaseProps>(({
         disabled={disabled || cooldown}
         aria-label={miningActive ? "Stop mining" : "Start mining"}
         title={miningActive ? "Stop mining" : "Start mining"}
+        type="button"
       >
         {children}
       </button>
+      
+      {/* Visual feedback for cooldown state */}
+      {cooldown && (
+        <div className="absolute -bottom-6 left-0 right-0 text-center">
+          <span className="text-xs text-purple-400/80 bg-navy-900/50 px-2 py-0.5 rounded-full animate-pulse">
+            Please wait...
+          </span>
+        </div>
+      )}
     </div>
   );
 });
