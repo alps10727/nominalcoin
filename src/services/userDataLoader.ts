@@ -30,12 +30,12 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
         
         // Ensure the data has all required fields before treating it as UserData
         const validatedData: UserData = {
-          balance: userData.balance ?? 0,
-          miningRate: userData.miningRate ?? 0.1,
-          lastSaved: userData.lastSaved ?? Date.now(),
-          miningActive: userData.miningActive ?? false,
+          balance: typeof userData.balance === 'number' ? userData.balance : 0,
+          miningRate: typeof userData.miningRate === 'number' ? userData.miningRate : 0.1,
+          lastSaved: typeof userData.lastSaved === 'number' ? userData.lastSaved : Date.now(),
+          miningActive: !!userData.miningActive,
           userId: userId,
-          ...userData
+          ...(userData as any) // Include any additional fields, properly typed now
         };
         
         // Save to local storage for future fast access
@@ -62,7 +62,8 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
       balance: 0,
       miningRate: 0.1, 
       lastSaved: Date.now(),
-      miningActive: false
+      miningActive: false,
+      userId: userId
     };
   } catch (err) {
     errorLog("userDataLoader", "Veri yükleme hatası:", err);
@@ -72,7 +73,8 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
       balance: 0,
       miningRate: 0.1, 
       lastSaved: Date.now(),
-      miningActive: false
+      miningActive: false,
+      userId: userId
     };
   }
 }
@@ -99,4 +101,4 @@ async function getDocumentWithTimeout(collection: string, id: string, timeoutMs:
 }
 
 // Re-export the UserData type for consumers of this module
-export type { UserData };
+export type { UserData } from "@/utils/storage";

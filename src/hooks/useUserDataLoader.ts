@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { User } from "firebase/auth";
 import { loadUserDataFromFirebase } from "@/services/userDataLoader";
@@ -10,6 +9,30 @@ export interface UserDataState {
   userData: UserData | null;
   loading: boolean;
   dataSource: 'firebase' | 'local' | null;
+}
+
+function validateUserData(data: any): data is UserData {
+  return (
+    data !== null &&
+    typeof data === 'object' &&
+    (typeof data.balance === 'number' || data.balance === undefined) &&
+    (typeof data.miningRate === 'number' || data.miningRate === undefined) &&
+    (typeof data.lastSaved === 'number' || data.lastSaved === undefined)
+  );
+}
+
+function ensureValidUserData(data: any, userId?: string): UserData {
+  if (validateUserData(data)) {
+    return data;
+  }
+  
+  return {
+    balance: typeof data?.balance === 'number' ? data.balance : 0,
+    miningRate: typeof data?.miningRate === 'number' ? data.miningRate : 0.1,
+    lastSaved: typeof data?.lastSaved === 'number' ? data.lastSaved : Date.now(),
+    miningActive: !!data?.miningActive,
+    userId: userId || data?.userId
+  };
 }
 
 export function useUserDataLoader(
@@ -27,7 +50,6 @@ export function useUserDataLoader(
     let isActive = true; // Belleği sızıntısı önleyici
 
     const loadData = async () => {
-      // Eğer kullanıcı yoksa veya auth başlatılmamışsa, veri yüklemeye çalışma
       if (!authInitialized) return;
       
       if (!currentUser) {
@@ -38,44 +60,37 @@ export function useUserDataLoader(
       }
 
       try {
-        // Hızlı yükleme için önce yerel verileri kontrol et
         const localData = loadUserData();
         if (localData) {
           setUserData(localData);
           setDataSource('local');
           debugLog("useUserDataLoader", "Yerel depodan kullanıcı verileri yüklendi:", localData);
           
-          // Firebase verileri yüklenene kadar geçici olarak yerel verileri göster
-          // Yükleme durumunu etkin tut - Firebase verileri yüklenecek
           debugLog("useUserDataLoader", "Firebase'den veri yükleniyor...");
         }
         
-        // Firebase'den veri yüklemeyi dene
         try {
-          // Firebase zaman aşımı (10 saniye)
           const timeoutPromise = new Promise((_, reject) => {
             userDataTimeoutId = setTimeout(() => {
               reject(new Error("Firebase veri yükleme zaman aşımı"));
             }, 10000);
           });
           
-          // Firebase veri yükleme işlemi
           const firebaseDataPromise = loadUserDataFromFirebase(currentUser.uid);
           
-          // Hangisi önce tamamlanırsa
-          const firebaseData = await Promise.race([firebaseDataPromise, timeoutPromise]);
+          const firebaseData = await Promise.race([firebaseDataPromise, timeoutPromise]) as any;
           clearTimeout(userDataTimeoutId);
           
           if (isActive) {
             if (firebaseData) {
               debugLog("useUserDataLoader", "Firebase'den kullanıcı verileri yüklendi:", firebaseData);
-              setUserData(firebaseData);
+              
+              const validatedData = ensureValidUserData(firebaseData, currentUser.uid);
+              setUserData(validatedData);
               setDataSource('firebase');
               
-              // Yerel depoya da kaydet
-              saveUserData(firebaseData);
+              saveUserData(validatedData);
             } else if (!localData) {
-              // Firebase ve yerel veri yoksa, boş veri oluştur
               const emptyData: UserData = {
                 balance: 0,
                 miningRate: 0.1,
@@ -98,7 +113,6 @@ export function useUserDataLoader(
           if (isActive) {
             errorLog("useUserDataLoader", "Firebase veri yükleme hatası:", error);
             
-            // Eğer yerel veri yoksa ve Firebase hatası varsa, boş veri oluştur
             if (!localData) {
               const emptyData: UserData = {
                 balance: 0,
@@ -114,7 +128,6 @@ export function useUserDataLoader(
             setDataSource('local');
             setLoading(false);
             
-            // Firebase bağlantı hatası bildir
             toast.error("Firebase'e bağlanırken hata oluştu. Verileriniz yerel olarak kaydedilecek.");
           }
         }
@@ -122,7 +135,6 @@ export function useUserDataLoader(
         if (isActive) {
           errorLog("useUserDataLoader", "Kullanıcı verileri yüklenirken kritik hata:", error);
           
-          // Kritik hata durumunda boş veri oluştur
           const emptyData: UserData = {
             balance: 0,
             miningRate: 0.1,
