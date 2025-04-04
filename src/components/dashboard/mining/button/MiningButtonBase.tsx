@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 
 interface MiningButtonBaseProps {
   miningActive: boolean;
@@ -12,7 +12,7 @@ interface MiningButtonBaseProps {
 
 /**
  * Base button component that handles the click event and scaling animation
- * Tamamen yerel depolama kullanacak şekilde optimize edildi
+ * Performans ve zamanlama sorunlarını çözmek için optimize edildi
  */
 export const MiningButtonBase = React.memo<MiningButtonBaseProps>(({ 
   miningActive, 
@@ -24,28 +24,46 @@ export const MiningButtonBase = React.memo<MiningButtonBaseProps>(({
 }) => {
   // Tıklama sonrası soğuma süresi için durum
   const [cooldown, setCooldown] = useState(false);
-
-  // Tıklama işleyicisini iyileştirelim
-  const handleClick = () => {
-    if (cooldown || disabled) return;
+  const timeoutRef = useRef<number | null>(null);
+  const lastClickTimeRef = useRef<number>(0);
+  
+  // Tıklama işleyicisini performans için memoize edelim
+  const handleClick = useCallback(() => {
+    // Eğer mevcut zaman ile son tıklama arasında 3 saniyeden az varsa, işlemi engelle
+    const now = Date.now();
+    if (now - lastClickTimeRef.current < 3000 || cooldown || disabled) {
+      console.log("Tıklama çok hızlı gerçekleşti veya düğme devre dışı, işlem engellendi");
+      return;
+    }
+    
+    // Son tıklama zamanını kaydet
+    lastClickTimeRef.current = now;
+    
+    // Soğuma süresini başlat
+    setCooldown(true);
     
     // Tıklama işlemini gerçekleştir
     onClick();
     
-    // Soğuma süresini başlat (3000ms = 3 saniye)
-    setCooldown(true);
-    setTimeout(() => setCooldown(false), 3000);
-  };
+    // Zamanlayıcıyı temizle ve yenisini oluştur
+    if (timeoutRef.current) {
+      window.clearTimeout(timeoutRef.current);
+    }
+    
+    // 3 saniye sonra cooldown'u kaldır
+    timeoutRef.current = window.setTimeout(() => {
+      setCooldown(false);
+      timeoutRef.current = null;
+    }, 3000);
+  }, [onClick, cooldown, disabled]);
 
   // Komponent kaldırıldığında zamanlayıcıları temizle
   useEffect(() => {
     // Temizleme fonksiyonu - komponent unmount olduğunda
-    let timeoutId: number | null = null;
-    
     return () => {
-      // Tüm setTimeout temizlikleri
-      if (timeoutId) {
-        clearTimeout(timeoutId);
+      if (timeoutRef.current) {
+        window.clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
       }
     };
   }, []);

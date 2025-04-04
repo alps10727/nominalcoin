@@ -1,31 +1,61 @@
 import { useEffect, useRef } from 'react';
 import { saveUserData, loadUserData } from "@/utils/storage";
 import { MiningState } from '@/types/mining';
-import { calculateProgress } from '@/utils/miningUtils';
+import { calculateProgress, getCurrentTime } from '@/utils/miningUtils';
 import { toast } from "sonner";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 
 /**
  * Hook for handling the mining process with local storage only
+ * Performans ve zamanlama sorunlarını çözmek için optimize edilmiştir
  */
 export function useMiningProcess(state: MiningState, setState: React.Dispatch<React.SetStateAction<MiningState>>) {
   // Reference to track interval ID
   const intervalRef = useRef<number | null>(null);
-  const lastSaveTimeRef = useRef<number>(Date.now());
-  const lastUpdateTimeRef = useRef<number>(Date.now());
-  
+  const lastSaveTimeRef = useRef<number>(getCurrentTime());
+  const lastUpdateTimeRef = useRef<number>(getCurrentTime());
+  const isProcessingRef = useRef<boolean>(false);
+
   // Check for existing local balance on init - ONLY use LOCAL DATA
   useEffect(() => {
     try {
       const localData = loadUserData();
       if (localData) {
         debugLog("useMiningProcess", "Found local data, using local storage values only", localData);
+        
+        // Eğer aktif madencilik varsa, geçen zamanı hesapla
+        let adjustedMiningTime = localData.miningTime;
+        
+        // Eğer madencilik aktifse ve son kayıt zamanı mevcutsa, geçen süreyi hesapla
+        if (localData.miningActive && localData.lastSaved) {
+          const elapsedSeconds = Math.floor((getCurrentTime() - localData.lastSaved) / 1000);
+          
+          // Geçen süreyi düş, ama negatife düşmesini engelle
+          adjustedMiningTime = Math.max(0, (localData.miningTime || 0) - elapsedSeconds);
+          
+          // Eğer süre bitmişse, madenciliği durdur
+          if (adjustedMiningTime <= 0) {
+            localData.miningActive = false;
+            localData.miningTime = localData.miningPeriod || state.miningPeriod;
+            localData.miningSession = 0;
+            
+            // Güncellenmiş veriyi kaydet
+            saveUserData({
+              ...localData,
+              miningActive: false,
+              miningTime: localData.miningPeriod || state.miningPeriod,
+              miningSession: 0,
+              lastSaved: getCurrentTime()
+            });
+          }
+        }
+        
         setState(prev => ({
           ...prev,
           balance: localData.balance || prev.balance,
           miningRate: localData.miningRate || prev.miningRate,
           miningActive: localData.miningActive !== undefined ? localData.miningActive : prev.miningActive,
-          miningTime: localData.miningTime !== undefined ? localData.miningTime : prev.miningTime,
+          miningTime: adjustedMiningTime !== undefined ? adjustedMiningTime : prev.miningTime,
           miningPeriod: localData.miningPeriod || prev.miningPeriod,
           miningSession: localData.miningSession || prev.miningSession
         }));
@@ -33,7 +63,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
     } catch (err) {
       errorLog("useMiningProcess", "Yerel veri yükleme hatası:", err);
     }
-  }, [setState]);
+  }, [setState, state.miningPeriod]);
   
   // Mining process management
   useEffect(() => {
@@ -46,20 +76,36 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
     
     if (state.miningActive) {
       console.log("Starting mining process, active:", state.miningActive, "time:", state.miningTime);
-      lastUpdateTimeRef.current = Date.now();
+      lastUpdateTimeRef.current = getCurrentTime();
       
-      // Start interval for mining process
+      // Start interval for mining process - daha yüksek hassasiyet için 500ms kullan
       const id = window.setInterval(() => {
+        // Eğer işlem zaten devam ediyorsa, yeni bir işlem başlatma
+        if (isProcessingRef.current) {
+          return;
+        }
+        
+        // İşlem başlıyor
+        isProcessingRef.current = true;
+        
         setState(prev => {
           try {
             // No countdown if mining is not active
             if (!prev.miningActive) {
+              isProcessingRef.current = false;
               return prev;
             }
             
             // Calculate actual elapsed time since last update
-            const now = Date.now();
+            const now = getCurrentTime();
             const elapsedSeconds = Math.floor((now - lastUpdateTimeRef.current) / 1000);
+            
+            // Eğer geçen zaman 0 ise, henüz sayım yapma
+            if (elapsedSeconds === 0) {
+              isProcessingRef.current = false;
+              return prev;
+            }
+            
             lastUpdateTimeRef.current = now;
             
             // Use actual elapsed seconds instead of assuming 1 second
@@ -73,7 +119,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
             
             // Check if we crossed a 3-minute boundary during this update
             const addReward = (previousCyclePosition > currentCyclePosition) || 
-                             (currentCyclePosition === 0 && totalElapsed > 0);
+                            (currentCyclePosition === 0 && totalElapsed > 0);
             
             // Check if mining cycle is complete
             if (newTime <= 0) {
@@ -83,7 +129,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
               saveUserData({
                 balance: prev.balance,
                 miningRate: prev.miningRate,
-                lastSaved: Date.now(),
+                lastSaved: getCurrentTime(),
                 miningActive: false,
                 miningTime: prev.miningPeriod,
                 miningPeriod: prev.miningPeriod,
@@ -97,6 +143,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
                 icon: '🏆'
               });
               
+              isProcessingRef.current = false;
               return {
                 ...prev,
                 miningTime: prev.miningPeriod,
@@ -118,7 +165,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
               saveUserData({
                 balance: newBalance,
                 miningRate: prev.miningRate,
-                lastSaved: Date.now(),
+                lastSaved: getCurrentTime(),
                 miningActive: true, // Keep mining active
                 miningTime: newTime,
                 miningPeriod: prev.miningPeriod,
@@ -132,6 +179,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
                 icon: '💰'
               });
               
+              isProcessingRef.current = false;
               return {
                 ...prev,
                 balance: newBalance,
@@ -141,22 +189,23 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
               };
             }
             
-            // Save state every 15 seconds to ensure regular updates
-            if (Date.now() - lastSaveTimeRef.current > 15000) { // Changed from 10s to 15s
+            // Save state every 10 seconds to ensure regular updates
+            if (now - lastSaveTimeRef.current > 10000) { // Changed from 15s to 10s
               saveUserData({
                 balance: prev.balance,
                 miningRate: prev.miningRate,
-                lastSaved: Date.now(),
+                lastSaved: now,
                 miningActive: true,
                 miningTime: newTime,
                 miningPeriod: prev.miningPeriod,
                 miningSession: prev.miningSession,
                 userId: prev.userId
               });
-              lastSaveTimeRef.current = Date.now();
+              lastSaveTimeRef.current = now;
             }
             
             // Continue mining cycle - just update timer and progress
+            isProcessingRef.current = false;
             return {
               ...prev,
               miningTime: newTime,
@@ -165,10 +214,11 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
           } catch (stateUpdateErr) {
             errorLog("useMiningProcess", "Madencilik durumu güncellenirken beklenmeyen hata:", stateUpdateErr);
             // In case of error, return unchanged state
+            isProcessingRef.current = false;
             return prev;
           }
         });
-      }, 1000); // Run every second
+      }, 500); // Run every 500ms for more accurate timing
       
       // Store interval ID properly
       intervalRef.current = id;
@@ -188,7 +238,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
         saveUserData({
           balance: state.balance,
           miningRate: state.miningRate,
-          lastSaved: Date.now(),
+          lastSaved: getCurrentTime(),
           miningActive: state.miningActive,
           miningTime: state.miningTime,
           miningPeriod: state.miningPeriod,
@@ -197,5 +247,5 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
         });
       }
     };
-  }, [state.miningActive, setState, state.balance, state.miningRate, state.miningTime, state.miningPeriod, state.miningSession, state.userId]); // Önemli bağımlılıkları ekleyelim
+  }, [state.miningActive, setState, state.balance, state.miningRate, state.miningTime, state.miningPeriod, state.miningSession, state.userId]);
 }

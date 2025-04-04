@@ -5,6 +5,7 @@ import { ParticleEffects } from "./button/ParticleEffects";
 import { ButtonBackground } from "./button/ButtonBackground";
 import { ButtonContent } from "./button/ButtonContent";
 import { MiningButtonBase } from "./button/MiningButtonBase";
+import { formatTimeDisplay } from "@/utils/miningUtils";
 
 interface MiningButtonProps {
   miningActive: boolean;
@@ -22,17 +23,9 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
   const [isClickable, setIsClickable] = useState(true);
   const lastClickTimeRef = useRef<number>(0);
   
-  // Format and update time display
+  // Format and update time display - yeni formatTimeDisplay fonksiyonunu kullanıyoruz
   useEffect(() => {
-    const formatTime = (seconds: number) => {
-      const hours = Math.floor(seconds / 3600);
-      const mins = Math.floor((seconds % 3600) / 60);
-      const secs = seconds % 60;
-      
-      return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    };
-    
-    setDisplayTime(formatTime(miningTime));
+    setDisplayTime(formatTimeDisplay(miningTime));
   }, [miningTime]);
 
   // Memoize click handler with debounce logic
