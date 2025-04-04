@@ -1,8 +1,19 @@
 
 import { initializeApp } from "firebase/app";
-import { getFirestore, enableMultiTabIndexedDbPersistence } from "firebase/firestore";
-import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
+import { 
+  getFirestore, 
+  enableMultiTabIndexedDbPersistence,
+  connectFirestoreEmulator
+} from "firebase/firestore";
+import { 
+  getAuth, 
+  setPersistence, 
+  browserLocalPersistence,
+  connectAuthEmulator
+} from "firebase/auth";
 import { getAnalytics } from "firebase/analytics";
+import { getStorage, connectStorageEmulator } from "firebase/storage";
+import { emulatorConfig, isEmulatorEnabled } from "./firebaseEmulator";
 
 // Firebase yapılandırma bilgileri
 const firebaseConfig = {
@@ -18,12 +29,56 @@ const firebaseConfig = {
 // Firebase'i başlat
 const app = initializeApp(firebaseConfig);
 
-// Firestore ve Auth servislerini al - gelişmiş yapılandırma ile
+// Firestore, Auth ve Storage servislerini al
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const analytics = getAnalytics(app);
+export const storage = getStorage(app);
 
-// Auth durumunu önbelleğe alma - String yerine doğru tiple
+// Auth durumunu önbelleğe alma
 setPersistence(auth, browserLocalPersistence).catch(err => {
   console.error("Auth persistence error:", err);
 });
+
+// Emülatör kullanımını kontrol et ve bağlan
+if (isEmulatorEnabled()) {
+  console.log("🔥 Firebase Emülatörleri kullanılıyor!");
+  
+  // Auth Emülatör Bağlantısı
+  connectAuthEmulator(auth, 
+    `http://${emulatorConfig.auth.host}:${emulatorConfig.auth.port}`,
+    { disableWarnings: true }
+  );
+  
+  // Firestore Emülatör Bağlantısı
+  connectFirestoreEmulator(db, 
+    emulatorConfig.firestore.host, 
+    emulatorConfig.firestore.port
+  );
+  
+  // Storage Emülatör Bağlantısı
+  connectStorageEmulator(storage,
+    emulatorConfig.storage.host,
+    emulatorConfig.storage.port
+  );
+  
+  console.log(`📱 Emülatör UI: http://${emulatorConfig.firestore.host}:4000`);
+} else {
+  try {
+    // Emülatör kullanılmıyorsa normal çevrimdışı önbelleği etkinleştir
+    enableMultiTabIndexedDbPersistence(db)
+      .then(() => {
+        console.log("Firestore offline persistence etkinleştirildi");
+      })
+      .catch((err) => {
+        // Sadece critical hataları göster, diğerlerini geçici olarak görmezden gel
+        if (err.code !== 'failed-precondition') {
+          console.error("Offline persistence hatası:", err);
+        } else {
+          console.log("Birden fazla sekme açık - tam persistence sınırlı olabilir");
+        }
+      });
+  } catch (error) {
+    console.error("Persistence hatası:", error);
+  }
+}
