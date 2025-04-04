@@ -1,3 +1,4 @@
+
 import { useEffect, useRef } from 'react';
 import { saveUserData, loadUserData } from "@/utils/storage";
 import { MiningState } from '@/types/mining';
@@ -12,6 +13,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
   // Reference to track interval ID
   const intervalRef = useRef<number | null>(null);
   const lastSaveTimeRef = useRef<number>(Date.now());
+  const lastUpdateTimeRef = useRef<number>(Date.now());
   
   // Check for existing local balance on init - ONLY use LOCAL DATA
   useEffect(() => {
@@ -45,6 +47,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
     
     if (state.miningActive) {
       console.log("Starting mining process, active:", state.miningActive, "time:", state.miningTime);
+      lastUpdateTimeRef.current = Date.now();
       
       // Start interval for mining process
       const id = window.setInterval(() => {
@@ -55,13 +58,23 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
               return prev;
             }
             
-            // Calculate new time
-            const newTime = Math.max(prev.miningTime - 1, 0);
+            // Calculate actual elapsed time since last update
+            const now = Date.now();
+            const elapsedSeconds = Math.floor((now - lastUpdateTimeRef.current) / 1000);
+            lastUpdateTimeRef.current = now;
             
-            // Calculate elapsed seconds for reward timing (modulo 180 seconds = 3 minutes)
+            // Use actual elapsed seconds instead of assuming 1 second
+            // This protects against browser throttling when tab is inactive
+            const newTime = Math.max(prev.miningTime - elapsedSeconds, 0);
+            
+            // Calculate total elapsed time for reward timing (modulo 180 seconds = 3 minutes)
             const totalElapsed = prev.miningPeriod - newTime;
-            const elapsedSeconds = totalElapsed % 180; 
-            const addReward = elapsedSeconds === 0 && totalElapsed > 0; // Her 3 dakikada bir (180 saniye)
+            const currentCyclePosition = totalElapsed % 180; 
+            const previousCyclePosition = (totalElapsed - elapsedSeconds) % 180;
+            
+            // Check if we crossed a 3-minute boundary during this update
+            const addReward = (previousCyclePosition > currentCyclePosition) || 
+                             (currentCyclePosition === 0 && totalElapsed > 0);
             
             // Check if mining cycle is complete
             if (newTime <= 0) {

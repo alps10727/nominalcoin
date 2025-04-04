@@ -32,9 +32,9 @@ export const MiningButtonBase = React.memo<MiningButtonBaseProps>(({
     // Tıklama işlemini gerçekleştir
     onClick();
     
-    // Soğuma süresini başlat (300ms)
+    // Soğuma süresini başlat (3000ms = 3 saniye)
     setCooldown(true);
-    setTimeout(() => setCooldown(false), 300);
+    setTimeout(() => setCooldown(false), 3000);
   };
 
   // Komponent kaldırıldığında zamanlayıcıları temizle
