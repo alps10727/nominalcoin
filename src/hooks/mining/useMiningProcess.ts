@@ -3,8 +3,8 @@ import { useCallback, useRef } from 'react';
 import { MiningState } from '@/types/mining';
 import { getCurrentTime } from '@/utils/miningUtils';
 import { errorLog } from "@/utils/debugUtils";
-import { useIntervalManager, saveMiningStateOnCleanup } from '../useIntervalManager';
-import { calculateUpdatedTimeValues, savePeriodicState } from '../useTimerManagement';
+import { useIntervalManager, saveMiningStateOnCleanup } from '@/hooks/useIntervalManager';
+import { calculateUpdatedTimeValues, savePeriodicState } from '@/hooks/useTimerManagement';
 import { addMiningReward, handleMiningCompletion } from '@/hooks/mining/useMiningRewards';
 
 /**
