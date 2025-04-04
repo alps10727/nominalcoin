@@ -1,3 +1,4 @@
+
 import { auth } from "@/config/firebase";
 import { 
   createUserWithEmailAndPassword, 
@@ -36,7 +37,7 @@ export async function registerUser(email: string, password: string, userData: an
       userId: user.uid,
       email: email,
       balance: 0,
-      miningRate: 0.01,
+      miningRate: 0.1, // 0.01'den 0.1'e yükseltildi (tutarlılık sağlandı)
       lastSaved: Date.now(), // serverTimestamp yerine istemci tarafında tarih kullanarak hızlandırıldı
       miningActive: false,
       miningTime: 21600,
