@@ -14,7 +14,15 @@ import { debugLog } from "@/utils/debugUtils";
  */
 export function useMiningData(): MiningData {
   // Get local storage data directly first for fastest possible rendering
-  const [directLocalData] = useState(() => loadUserData());
+  const [directLocalData] = useState(() => {
+    // İlk başta mevcut verileri yükleyerek başla
+    const data = loadUserData();
+    if (data) {
+      console.log("Direct local data loaded with balance:", data.balance);
+    }
+    return data;
+  });
+  
   const [localInitComplete, setLocalInitComplete] = useState(!!directLocalData);
   
   // Initialize mining data with local storage ONLY
@@ -22,42 +30,70 @@ export function useMiningData(): MiningData {
   
   // Critical effect: FIRST load from local storage - fastest path
   useEffect(() => {
-    const localData = loadUserData();
-    if (localData) {
-      debugLog("useMiningData", "FAST PATH: Initializing from local storage only", localData);
-      
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        userId: localData.userId,
-        balance: localData.balance || 0,
-        miningRate: localData.miningRate || 0.1,
-        miningActive: localData.miningActive || false,
-        miningTime: localData.miningTime != null ? localData.miningTime : prev.miningTime,
-        miningPeriod: localData.miningPeriod || prev.miningPeriod,
-        miningSession: localData.miningSession || 0
-      }));
-      
-      setLocalInitComplete(true);
-    } else {
-      // Create default data if nothing exists
-      const defaultData = {
-        balance: 0,
-        miningRate: 0.1,
-        miningActive: false,
-        miningTime: 21600,
-        miningPeriod: 21600,
-        miningSession: 0
-      };
-      
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        ...defaultData
-      }));
-      
-      setLocalInitComplete(true);
-    }
+    const loadAndInitialize = () => {
+      const localData = loadUserData();
+      if (localData) {
+        debugLog("useMiningData", "FAST PATH: Initializing from local storage only", localData);
+        
+        setState(prev => ({
+          ...prev,
+          isLoading: false,
+          userId: localData.userId,
+          balance: localData.balance || 0,
+          miningRate: localData.miningRate || 0.1,
+          miningActive: localData.miningActive || false,
+          miningTime: localData.miningTime != null ? localData.miningTime : prev.miningTime,
+          miningPeriod: localData.miningPeriod || prev.miningPeriod,
+          miningSession: localData.miningSession || 0
+        }));
+        
+        setLocalInitComplete(true);
+      } else {
+        // Create default data if nothing exists
+        const defaultData = {
+          balance: 0,
+          miningRate: 0.1,
+          miningActive: false,
+          miningTime: 21600,
+          miningPeriod: 21600,
+          miningSession: 0
+        };
+        
+        setState(prev => ({
+          ...prev,
+          isLoading: false,
+          ...defaultData
+        }));
+        
+        setLocalInitComplete(true);
+      }
+    };
+    
+    // İlk yükleme
+    loadAndInitialize();
+    
+    // Veri değişimini izlemek için event listener ekleyelim
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'fcMinerUserData' && e.newValue) {
+        try {
+          const updatedData = JSON.parse(e.newValue);
+          debugLog("useMiningData", "Storage event detected, reloading data", updatedData);
+          
+          setState(prev => ({
+            ...prev,
+            balance: updatedData.balance || prev.balance,
+            miningRate: updatedData.miningRate || prev.miningRate,
+            miningActive: updatedData.miningActive !== undefined ? updatedData.miningActive : prev.miningActive,
+            miningTime: updatedData.miningTime !== undefined ? updatedData.miningTime : prev.miningTime
+          }));
+        } catch (err) {
+          console.error("Error parsing storage update", err);
+        }
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, [setState]);
   
   // Failsafe timeout to ensure loading state is removed

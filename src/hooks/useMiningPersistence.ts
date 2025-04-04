@@ -21,6 +21,7 @@ export function useMiningPersistence(state: MiningState) {
           miningActive: state.miningActive,
         });
         
+        // Her zaman tüm bilgileri kaydet - balance güncellemelerine özel dikkat
         saveUserData({
           balance: state.balance,
           miningRate: state.miningRate,
@@ -41,7 +42,7 @@ export function useMiningPersistence(state: MiningState) {
         if (Date.now() - localSaveTimeRef.current > 3000) {
           saveToLocalStorage();
         }
-      }, 3000); // Aşırı yazmaları önlemek için her 3 saniyede bir yerel olarak kaydet
+      }, 3000); // Her 3 saniyede bir yerel olarak kaydet
       
       // Unmount işleminde temizleme yap
       return () => {
@@ -52,7 +53,7 @@ export function useMiningPersistence(state: MiningState) {
           clearTimeout(saveTimeoutRef.current);
         }
         
-        // Çıkarken her zaman kaydet
+        // Çıkarken her zaman kaydet - bu çok önemli
         saveToLocalStorage();
       };
     }

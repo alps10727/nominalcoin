@@ -39,8 +39,14 @@ export const MiningButtonBase = React.memo<MiningButtonBaseProps>(({
 
   // Komponent kaldırıldığında zamanlayıcıları temizle
   useEffect(() => {
+    // Temizleme fonksiyonu - komponent unmount olduğunda
+    let timeoutId: number | null = null;
+    
     return () => {
       // Tüm setTimeout temizlikleri
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     };
   }, []);
 

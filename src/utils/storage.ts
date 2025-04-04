@@ -19,7 +19,15 @@ export function loadUserData(): UserData | null {
     const savedData = localStorage.getItem('fcMinerUserData');
     if (savedData) {
       try {
+        // Parse the data and validate it
         const parsedData = JSON.parse(savedData) as UserData;
+        
+        // Ensure we have valid numeric balance value
+        if (typeof parsedData.balance !== 'number' || isNaN(parsedData.balance)) {
+          console.error('Invalid balance value in stored data:', parsedData.balance);
+          parsedData.balance = 0;
+        }
+        
         return parsedData;
       } catch (parseErr) {
         console.error('JSON parse hatası:', parseErr);
@@ -47,16 +55,30 @@ export function loadUserData(): UserData | null {
 export function saveUserData(userData: UserData): void {
   try {
     // Ensure we're not saving undefined or null values
-    const sanitizedData = {
+    const sanitizedData: UserData = {
       ...userData,
-      balance: userData.balance || 0,
-      miningRate: userData.miningRate || 0.1, // Updated default to 0.1 NC/min
-      lastSaved: userData.lastSaved || Date.now(),
+      balance: typeof userData.balance === 'number' && !isNaN(userData.balance) 
+        ? userData.balance 
+        : 0,
+      miningRate: typeof userData.miningRate === 'number' && !isNaN(userData.miningRate) 
+        ? userData.miningRate 
+        : 0.1,
+      lastSaved: Date.now(),
     };
     
     try {
       const jsonData = JSON.stringify(sanitizedData);
       localStorage.setItem('fcMinerUserData', jsonData);
+      
+      // Veri doğrulaması - kaydedilen verinin doğruluğunu kontrol et
+      const verifyData = localStorage.getItem('fcMinerUserData');
+      if (verifyData) {
+        const parsed = JSON.parse(verifyData);
+        if (parsed.balance !== sanitizedData.balance) {
+          console.error('Balance verification failed! Saved:', sanitizedData.balance, 'Loaded:', parsed.balance);
+        }
+      }
+      
     } catch (stringifyErr) {
       console.error('JSON stringify hatası:', stringifyErr);
       throw stringifyErr;

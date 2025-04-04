@@ -1,4 +1,3 @@
-
 import { useEffect, useRef } from 'react';
 import { saveUserData, loadUserData } from "@/utils/storage";
 import { MiningState } from '@/types/mining';
@@ -80,21 +79,17 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
             if (newTime <= 0) {
               console.log("Mining cycle completed");
               
-              try {
-                // Save final state to local storage only
-                saveUserData({
-                  balance: prev.balance,
-                  miningRate: prev.miningRate,
-                  lastSaved: Date.now(),
-                  miningActive: false,
-                  miningTime: prev.miningPeriod,
-                  miningPeriod: prev.miningPeriod,
-                  miningSession: 0, // Reset session on completion
-                  userId: prev.userId
-                });
-              } catch (saveErr) {
-                errorLog("useMiningProcess", "Madencilik tamamlandığında veri kaydetme hatası:", saveErr);
-              }
+              // CRITICAL: Save final state to storage immediately
+              saveUserData({
+                balance: prev.balance,
+                miningRate: prev.miningRate,
+                lastSaved: Date.now(),
+                miningActive: false,
+                miningTime: prev.miningPeriod,
+                miningPeriod: prev.miningPeriod,
+                miningSession: 0, // Reset session on completion
+                userId: prev.userId
+              });
               
               // Show completion toast with improved styling
               toast.info("Mining cycle completed!", {
@@ -119,30 +114,23 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
               const newBalance = prev.balance + rewardAmount;
               const newSession = prev.miningSession + rewardAmount;
               
+              // CRITICAL: Save balance to storage IMMEDIATELY after earning reward
+              saveUserData({
+                balance: newBalance,
+                miningRate: prev.miningRate,
+                lastSaved: Date.now(),
+                miningActive: true, // Keep mining active
+                miningTime: newTime,
+                miningPeriod: prev.miningPeriod,
+                miningSession: newSession,
+                userId: prev.userId
+              });
+              
               // Show reward toast with improved styling
               toast.success(`+${rewardAmount.toFixed(2)} NC earned!`, {
                 style: { background: "#4338ca", color: "white", border: "1px solid #3730a3" },
                 icon: '💰'
               });
-              
-              // Update new balance in local storage IMMEDIATELY - CRITICAL PRIORITY
-              if (Date.now() - lastSaveTimeRef.current > 2000) {
-                try {
-                  saveUserData({
-                    balance: newBalance,
-                    miningRate: prev.miningRate,
-                    lastSaved: Date.now(),
-                    miningActive: true, // Keep mining active
-                    miningTime: newTime,
-                    miningPeriod: prev.miningPeriod,
-                    miningSession: newSession,
-                    userId: prev.userId
-                  });
-                  lastSaveTimeRef.current = Date.now();
-                } catch (saveErr) {
-                  errorLog("useMiningProcess", "Ödül kazanırken veri kaydetme hatası:", saveErr);
-                }
-              }
               
               return {
                 ...prev,
@@ -153,23 +141,19 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
               };
             }
             
-            // Save state occasionally, but not every second to avoid excessive writes
-            if (Date.now() - lastSaveTimeRef.current > 10000) { // Save every 10 seconds max
-              try {
-                saveUserData({
-                  balance: prev.balance,
-                  miningRate: prev.miningRate,
-                  lastSaved: Date.now(),
-                  miningActive: true,
-                  miningTime: newTime,
-                  miningPeriod: prev.miningPeriod,
-                  miningSession: prev.miningSession,
-                  userId: prev.userId
-                });
-                lastSaveTimeRef.current = Date.now();
-              } catch (saveErr) {
-                errorLog("useMiningProcess", "Periyodik veri kaydetme hatası:", saveErr);
-              }
+            // Save state every 15 seconds to ensure regular updates
+            if (Date.now() - lastSaveTimeRef.current > 15000) { // Changed from 10s to 15s
+              saveUserData({
+                balance: prev.balance,
+                miningRate: prev.miningRate,
+                lastSaved: Date.now(),
+                miningActive: true,
+                miningTime: newTime,
+                miningPeriod: prev.miningPeriod,
+                miningSession: prev.miningSession,
+                userId: prev.userId
+              });
+              lastSaveTimeRef.current = Date.now();
             }
             
             // Continue mining cycle - just update timer and progress
@@ -198,6 +182,20 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
         window.clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
+      
+      // CRITICAL: Always save state when unmounting to prevent data loss
+      if (state.miningActive) {
+        saveUserData({
+          balance: state.balance,
+          miningRate: state.miningRate,
+          lastSaved: Date.now(),
+          miningActive: state.miningActive,
+          miningTime: state.miningTime,
+          miningPeriod: state.miningPeriod,
+          miningSession: state.miningSession,
+          userId: state.userId
+        });
+      }
     };
-  }, [state.miningActive, setState]); // Only re-run if miningActive changes
+  }, [state.miningActive, setState, state.balance, state.miningRate, state.miningTime, state.miningPeriod, state.miningSession, state.userId]); // Önemli bağımlılıkları ekleyelim
 }
