@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Diamond, TrendingUp, ArrowUpRight, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,20 +12,31 @@ interface BalanceCardProps {
 const BalanceCard = ({ balance }: BalanceCardProps) => {
   const { t } = useLanguage();
   const previousBalance = useRef(balance);
+  const [displayBalance, setDisplayBalance] = useState(balance);
   
-  // Show notification when balance changes significantly
+  // Update display balance with smooth animation when actual balance changes
   useEffect(() => {
-    if (previousBalance.current !== 0 && balance > previousBalance.current) {
-      toast.success(`Bakiye güncellendi: +${(balance - previousBalance.current).toFixed(2)} NC`, {
+    if (balance !== displayBalance) {
+      setDisplayBalance(balance);
+    }
+    
+    // Show notification when balance increases significantly (more than 0.01)
+    if (previousBalance.current !== 0 && balance > previousBalance.current + 0.01) {
+      const difference = balance - previousBalance.current;
+      toast.success(`Bakiye güncellendi: +${difference.toFixed(2)} NC`, {
         style: { background: "#4338ca", color: "white", border: "1px solid #3730a3" },
-        icon: '💰'
+        icon: '💰',
+        id: `balance-update-${Date.now()}` // Add unique ID to prevent duplicate toasts
       });
     }
     previousBalance.current = balance;
-  }, [balance]);
+  }, [balance, displayBalance]);
   
   // Format the balance with commas
-  const formattedBalance = balance.toLocaleString();
+  const formattedBalance = displayBalance.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
   
   return (
     <div className="fc-card relative overflow-hidden group hover-lift transition-all duration-500">
@@ -53,9 +64,9 @@ const BalanceCard = ({ balance }: BalanceCardProps) => {
           </div>
         </div>
         
-        {/* Balance display */}
+        {/* Balance display - now with transition animation for smooth updates */}
         <div className="flex flex-col space-y-1 my-3">
-          <h1 className="text-5xl font-bold text-white fc-glow-text tracking-tight">
+          <h1 className="text-5xl font-bold text-white fc-glow-text tracking-tight transition-all duration-500">
             {formattedBalance} <span className="text-lg font-medium text-purple-300">NC</span>
           </h1>
           <p className="text-purple-300/80 text-sm">Earned NOMINAL Coin</p>

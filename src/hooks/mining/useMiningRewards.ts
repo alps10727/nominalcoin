@@ -43,7 +43,8 @@ export function addMiningReward(
   // Show reward toast with improved styling
   toast.success(`+${rewardAmount.toFixed(2)} NC earned!`, {
     style: { background: "#4338ca", color: "white", border: "1px solid #3730a3" },
-    icon: '💰'
+    icon: '💰',
+    id: `reward-${Date.now()}` // Add unique ID to prevent duplicate toasts
   });
   
   return {
@@ -73,7 +74,8 @@ export function handleMiningCompletion(prevState: MiningState): Partial<MiningSt
   // Show completion toast with improved styling
   toast.info("Mining cycle completed!", {
     style: { background: "#4338ca", color: "white", border: "1px solid #3730a3" },
-    icon: '🏆'
+    icon: '🏆',
+    id: 'mining-completed'
   });
   
   return {

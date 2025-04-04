@@ -28,6 +28,7 @@ export const MiningButtonBase = React.memo<MiningButtonBaseProps>(({
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastClickTimeRef = useRef<number>(0);
   const isMountedRef = useRef<boolean>(true);
+  const isProcessingClickRef = useRef<boolean>(false);
   
   // Clean up any timeouts on unmount
   useEffect(() => {
@@ -45,11 +46,14 @@ export const MiningButtonBase = React.memo<MiningButtonBaseProps>(({
     // Get current time for debounce comparison
     const now = Date.now();
     
-    // Skip processing if button is in cooldown, disabled, or clicked too quickly
-    if (now - lastClickTimeRef.current < 3000 || cooldown || disabled) {
-      console.log("Click blocked: too fast or button is in cooldown state");
+    // Skip processing if button is in cooldown, disabled, or clicked too quickly, or if we're already processing a click
+    if (now - lastClickTimeRef.current < 3000 || cooldown || disabled || isProcessingClickRef.current) {
+      console.log("Click blocked: too fast, button is in cooldown state, or click is already being processed");
       return;
     }
+    
+    // Set processing flag to prevent concurrent clicks
+    isProcessingClickRef.current = true;
     
     // Update last click time
     lastClickTimeRef.current = now;
@@ -67,6 +71,9 @@ export const MiningButtonBase = React.memo<MiningButtonBaseProps>(({
       onClick();
     } catch (err) {
       console.error("Error during button click handler:", err);
+    } finally {
+      // Always reset the processing flag
+      isProcessingClickRef.current = false;
     }
     
     // Set timeout to reset cooldown state after 3 seconds

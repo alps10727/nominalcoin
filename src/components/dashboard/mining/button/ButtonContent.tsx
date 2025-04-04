@@ -27,7 +27,7 @@ export const ButtonContent = React.memo<ButtonContentProps>(({ miningActive, dis
           </span>
           
           {/* Enhanced energy particles */}
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="absolute h-5 w-5 rounded-full bg-gradient-to-r from-purple-600/10 to-navy-600/10 animate-pulse-slow"
                  style={{animationDuration: '2.5s'}}></div>
             <div className="absolute h-9 w-9 rounded-full bg-gradient-to-r from-purple-700/5 to-navy-700/5 animate-reverse-spin"
@@ -48,7 +48,7 @@ export const ButtonContent = React.memo<ButtonContentProps>(({ miningActive, dis
             ))}
           </div>
           
-          {/* New! Additional energy effects */}
+          {/* Additional energy effects */}
           <div className="absolute h-full w-full pointer-events-none">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full 
                          bg-gradient-to-r from-navy-700/5 via-purple-600/5 to-navy-700/5 animate-spin-slow"
@@ -56,7 +56,7 @@ export const ButtonContent = React.memo<ButtonContentProps>(({ miningActive, dis
           </div>
           
           {/* Diamond icon that occasionally flashes to show mining reward */}
-          <div className="absolute bottom-[-15px] right-[-15px]">
+          <div className="absolute bottom-[-15px] right-[-15px] pointer-events-none">
             <div className="relative">
               <Diamond className="h-4.5 w-4.5 text-purple-500 animate-cosmic-pulse" 
                       style={{animationDuration: '4s', animationDelay: '2s'}} />
@@ -77,7 +77,7 @@ export const ButtonContent = React.memo<ButtonContentProps>(({ miningActive, dis
               <div className="absolute inset-0 bg-gradient-to-r from-purple-800/20 to-navy-800/20 blur-lg rounded-full -z-10 transition-all duration-500
                           group-hover:bg-gradient-to-r group-hover:from-purple-700/30 group-hover:to-navy-700/30 group-hover:blur-lg"></div>
               
-              {/* New! Multiple animated rings with a more technological feel */}
+              {/* Multiple animated rings with a more technological feel */}
               <div className="absolute inset-[-4px] rounded-full border border-purple-700/20 opacity-60
                           animate-spin-slow group-hover:border-purple-600/30"></div>
               <div className="absolute inset-[-8px] rounded-full border border-dashed border-navy-700/15 opacity-50
@@ -85,7 +85,7 @@ export const ButtonContent = React.memo<ButtonContentProps>(({ miningActive, dis
               <div className="absolute inset-[-12px] rounded-full border border-dotted border-purple-800/10
                           animate-spin-slow" style={{animationDuration: '20s'}}></div>
               
-              {/* New! Electronic circuit-like lines */}
+              {/* Electronic circuit-like lines */}
               <div className="absolute top-[-3px] left-[-3px] w-3 h-3 border-t border-l border-purple-600/30 rounded-tl-lg"></div>
               <div className="absolute top-[-3px] right-[-3px] w-3 h-3 border-t border-r border-navy-600/30 rounded-tr-lg"></div>
               <div className="absolute bottom-[-3px] left-[-3px] w-3 h-3 border-b border-l border-navy-600/30 rounded-bl-lg"></div>
@@ -99,7 +99,7 @@ export const ButtonContent = React.memo<ButtonContentProps>(({ miningActive, dis
             START MINING
           </span>
           
-          {/* New! Subtle underline */}
+          {/* Subtle underline */}
           <div className="w-3/4 h-[1px] bg-gradient-to-r from-transparent via-purple-500/40 to-transparent"></div>
           
           {/* Enhanced light rays */}
