@@ -1,11 +1,10 @@
-
 import { Diamond, Activity, Zap, ChevronRight } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useMiningData } from "@/hooks/useMiningData";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 // Imported components
 import BalanceCard from "@/components/dashboard/BalanceCard";
@@ -15,6 +14,7 @@ import MiningRateCard from "@/components/dashboard/MiningRateCard";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { loadUserData } from "@/utils/storage";
+import { debugLog } from "@/utils/debugUtils";
 
 const Index = () => {
   const {
@@ -29,65 +29,64 @@ const Index = () => {
     handleStopMining
   } = useMiningData();
   
-  // Get local storage data directly first for fastest possible rendering
-  const [directLocalData] = useState(() => loadUserData());
+  // Get local storage data directly first for fastest possible rendering and keep it consistent
+  const [balance, setBalance] = useState<number>(() => {
+    const localData = loadUserData();
+    debugLog("Index", "Initial balance from localStorage:", localData?.balance || 0);
+    return localData?.balance || 0;
+  });
+  
+  const isFirstRender = useRef(true);
+  const storedBalanceRef = useRef(balance);
   
   // Also get balance from auth context as a backup
   const { userData, loading: authLoading, isOffline } = useAuth();
-  const [balance, setBalance] = useState(() => directLocalData?.balance || 0);
-  const [isInitialized, setIsInitialized] = useState(!!directLocalData);
-  
-  // Set initial balance - prioritize localStorage for quick load
-  useEffect(() => {
-    // If we already have direct local data, we're initialized
-    if (directLocalData && directLocalData.balance > 0) {
-      return;
-    }
-    
-    // İlk önce localStorage'dan verileri yükle - en hızlı yol
-    try {
-      const localData = loadUserData();
-      if (localData && localData.balance > 0) {
-        setBalance(localData.balance);
-        setIsInitialized(true);
-        return; // Exit early if we have local data
-      }
-    } catch (e) {
-      console.error("Local storage error:", e);
-    }
-    
-    // Eğer mining verileri yüklendiyse ve bakiye varsa kullan
-    if (!miningLoading && miningBalance > 0) {
-      setBalance(miningBalance);
-      setIsInitialized(true);
-    } 
-    // Eğer auth verileri yüklendiyse ve bakiye varsa kullan
-    else if (!authLoading && userData?.balance > 0) {
-      setBalance(userData.balance);
-      setIsInitialized(true);
-      console.log("Using balance from auth context:", userData.balance);
-    }
-  }, [miningLoading, miningBalance, authLoading, userData, directLocalData]);
+  const [isInitialized, setIsInitialized] = useState(!!loadUserData());
   
   // Update balance when mining balance changes (after initialization)
   useEffect(() => {
-    if (isInitialized && !miningLoading && miningBalance > 0) {
-      setBalance(miningBalance);
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
     }
-  }, [miningBalance, isInitialized, miningLoading]);
+    
+    if (!miningLoading && miningBalance > 0) {
+      debugLog("Index", "Updating balance from mining:", miningBalance, "Previous:", storedBalanceRef.current);
+      
+      // Sadece daha yüksek değerler için güncelle (kaybolan bakiye sorununu önlemek için)
+      if (miningBalance >= storedBalanceRef.current) {
+        setBalance(miningBalance);
+        storedBalanceRef.current = miningBalance;
+      }
+    }
+  }, [miningBalance, miningLoading]);
   
-  const isMobile = useIsMobile();
-  const { t } = useLanguage();
-  const { theme } = useTheme();
-
-  // Short timeout (3 seconds) to force initialization even if data loading fails
+  // Backup method: If auth userData has balance and it's higher than our current balance
+  useEffect(() => {
+    if (!authLoading && userData?.balance) {
+      debugLog("Index", "Checking auth balance:", userData.balance, "Current:", storedBalanceRef.current);
+      
+      // Sadece daha yüksek değerler için güncelle
+      if (userData.balance > storedBalanceRef.current) {
+        setBalance(userData.balance);
+        storedBalanceRef.current = userData.balance;
+        debugLog("Index", "Using higher balance from auth:", userData.balance);
+      }
+    }
+  }, [userData, authLoading]);
+  
+  // Short timeout (2 seconds) to force initialization even if data loading fails
   useEffect(() => {
     const timeout = setTimeout(() => {
       setIsInitialized(true);
-    }, 3000);
+    }, 2000);
     
     return () => clearTimeout(timeout);
   }, []);
+
+  const isMobile = useIsMobile();
+  const { t } = useLanguage();
+  const { theme } = useTheme();
 
   // Only show loading if we have no data from any source
   const isLoading = !isInitialized && balance === 0;

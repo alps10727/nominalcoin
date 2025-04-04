@@ -3,7 +3,9 @@ import { useMiningProcess } from "./mining/useMiningProcess";
 import { useMiningInitialization } from "./mining/useMiningInitialization";
 import { useMiningActions } from "./mining/useMiningActions";
 import { useMiningPersistence } from "./mining/useMiningPersistence";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { loadUserData } from "@/utils/storage";
+import { debugLog } from "@/utils/debugUtils";
 
 /**
  * Enhanced hook for handling all mining related data and operations
@@ -13,11 +15,23 @@ export function useMiningData(): MiningData {
   // Initialize mining data with local storage ONLY
   const { state, setState } = useMiningInitialization();
   const latestStateRef = useRef(state);
+  const [persistentBalance, setPersistentBalance] = useState<number>(() => {
+    // İlk yüklemede localStorage'dan direkt bakiyeyi al
+    const storedData = loadUserData();
+    debugLog("useMiningData", "Initial balance from localStorage:", storedData?.balance || 0);
+    return storedData?.balance || 0;
+  });
   
   // Keep a reference to the latest state for callbacks
   useEffect(() => {
     latestStateRef.current = state;
-  }, [state]);
+    
+    // Balance değiştiğinde persistentBalance'ı güncelle
+    if (state.balance !== persistentBalance && !state.isLoading) {
+      debugLog("useMiningData", "Updating persistent balance:", state.balance);
+      setPersistentBalance(state.balance);
+    }
+  }, [state, persistentBalance]);
   
   // Handle mining process logic (countdown timer and rewards)
   useMiningProcess(state, setState);
@@ -52,6 +66,7 @@ export function useMiningData(): MiningData {
   // Return combined mining data and actions
   return {
     ...state,
+    balance: persistentBalance, // Sabit kalacak şekilde balance değerini kullan
     handleStartMining: memoizedStartMining,
     handleStopMining: memoizedStopMining
   };

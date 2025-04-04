@@ -4,6 +4,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Diamond, TrendingUp, ArrowUpRight, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { debugLog } from '@/utils/debugUtils';
 
 interface BalanceCardProps {
   balance: number;
@@ -13,24 +14,32 @@ const BalanceCard = ({ balance }: BalanceCardProps) => {
   const { t } = useLanguage();
   const previousBalance = useRef(balance);
   const [displayBalance, setDisplayBalance] = useState(balance);
+  const stableBalanceRef = useRef(balance);
   
   // Update display balance with smooth animation when actual balance changes
   useEffect(() => {
-    if (balance !== displayBalance) {
-      setDisplayBalance(balance);
-    }
+    debugLog("BalanceCard", "Balance prop changed:", balance, "Previous:", previousBalance.current);
     
-    // Show notification when balance increases significantly (more than 0.01)
-    if (previousBalance.current !== 0 && balance > previousBalance.current + 0.01) {
-      const difference = balance - previousBalance.current;
-      toast.success(`Bakiye güncellendi: +${difference.toFixed(2)} NC`, {
-        style: { background: "#4338ca", color: "white", border: "1px solid #3730a3" },
-        icon: '💰',
-        id: `balance-update-${Date.now()}` // Add unique ID to prevent duplicate toasts
-      });
+    // Yalnızca daha yüksek veya eşit bakiye değerlerini kabul et
+    // Bu, yenileme sırasında değerlerin kaybolmasını önler
+    if (balance >= stableBalanceRef.current) {
+      setDisplayBalance(balance);
+      stableBalanceRef.current = balance;
+      
+      // Show notification when balance increases significantly (more than 0.01)
+      if (previousBalance.current !== 0 && balance > previousBalance.current + 0.01) {
+        const difference = balance - previousBalance.current;
+        toast.success(`Bakiye güncellendi: +${difference.toFixed(2)} NC`, {
+          style: { background: "#4338ca", color: "white", border: "1px solid #3730a3" },
+          icon: '💰',
+          id: `balance-update-${Date.now()}` // Add unique ID to prevent duplicate toasts
+        });
+      }
+      previousBalance.current = balance;
+    } else {
+      debugLog("BalanceCard", "Ignoring lower balance value:", balance, "Keeping:", stableBalanceRef.current);
     }
-    previousBalance.current = balance;
-  }, [balance, displayBalance]);
+  }, [balance]);
   
   // Format the balance with commas
   const formattedBalance = displayBalance.toLocaleString(undefined, {

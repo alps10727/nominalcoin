@@ -1,7 +1,7 @@
 
 import { MiningState } from '@/types/mining';
 import { calculateProgress, getCurrentTime } from '@/utils/miningUtils';
-import { saveUserData } from "@/utils/storage";
+import { saveUserData, loadUserData } from "@/utils/storage";
 import { toast } from "sonner";
 import { debugLog } from "@/utils/debugUtils";
 
@@ -23,10 +23,27 @@ export function addMiningReward(
   }
   
   debugLog("useMiningRewards", "Adding mining reward");
+  
+  // Önce güncel localStorage verilerini kontrol et
+  const localData = loadUserData();
+  let currentBalance = prevState.balance;
+  
+  // Eğer localStorage'daki bakiye, state'teki bakiyeden yüksekse, localStorage'daki değeri kullan
+  if (localData && localData.balance > currentBalance) {
+    debugLog("useMiningRewards", "Using higher balance from localStorage:", localData.balance, "State balance:", currentBalance);
+    currentBalance = localData.balance;
+  }
+  
   // Per 3-minute reward calculation
   const rewardAmount = prevState.miningRate * 3;
-  const newBalance = prevState.balance + rewardAmount;
+  const newBalance = currentBalance + rewardAmount;
   const newSession = prevState.miningSession + rewardAmount;
+  
+  debugLog("useMiningRewards", "Balance update:", {
+    oldBalance: currentBalance,
+    reward: rewardAmount,
+    newBalance: newBalance
+  });
   
   // CRITICAL: Save balance to storage IMMEDIATELY after earning reward
   saveUserData({
@@ -59,9 +76,19 @@ export function addMiningReward(
 export function handleMiningCompletion(prevState: MiningState): Partial<MiningState> {
   debugLog("useMiningRewards", "Mining cycle completed");
   
+  // Önce güncel localStorage verilerini kontrol et
+  const localData = loadUserData();
+  let finalBalance = prevState.balance;
+  
+  // Eğer localStorage'daki bakiye, state'teki bakiyeden yüksekse, localStorage'daki değeri kullan
+  if (localData && localData.balance > finalBalance) {
+    debugLog("useMiningRewards", "Using higher balance from localStorage for completion:", localData.balance);
+    finalBalance = localData.balance;
+  }
+  
   // CRITICAL: Save final state to storage immediately
   saveUserData({
-    balance: prevState.balance,
+    balance: finalBalance,
     miningRate: prevState.miningRate,
     lastSaved: getCurrentTime(),
     miningActive: false,
@@ -82,6 +109,7 @@ export function handleMiningCompletion(prevState: MiningState): Partial<MiningSt
     miningTime: prevState.miningPeriod,
     miningActive: false,
     progress: 0,
-    miningSession: 0 // Reset session
+    miningSession: 0, // Reset session
+    balance: finalBalance // Güncellenmiş bakiyeyi döndür
   };
 }
