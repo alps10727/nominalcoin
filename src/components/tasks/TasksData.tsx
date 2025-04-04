@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { CheckCircle, Clock, Award, CheckCheck } from "lucide-react";
 import { Task, Badge } from "@/types/tasks";
@@ -73,8 +72,8 @@ export const useTasksData = () => {
     },
   ]);
 
-  const claimReward = (taskId: number) => {
-    const taskIndex = dailyTasks.findIndex(task => task.id === taskId);
+  const claimReward = (taskId: string | number) => {
+    const taskIndex = dailyTasks.findIndex(task => task.id.toString() === taskId.toString());
     if (taskIndex !== -1) {
       const task = dailyTasks[taskIndex];
       if (task.progress >= task.totalRequired && !task.completed) {

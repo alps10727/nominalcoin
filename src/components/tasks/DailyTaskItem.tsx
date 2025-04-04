@@ -8,7 +8,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 interface DailyTaskItemProps {
   task: Task;
-  onClaim: (taskId: number) => void;
+  onClaim: (taskId: string | number) => void;
 }
 
 const DailyTaskItem = ({ task, onClaim }: DailyTaskItemProps) => {
