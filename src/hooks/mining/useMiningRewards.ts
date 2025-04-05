@@ -68,6 +68,7 @@ export function addMiningReward(
 
 /**
  * Handle mining completion when timer reaches zero
+ * or when user returns after the mining period has elapsed
  */
 export function handleMiningCompletion(prevState: MiningState): Partial<MiningState> {
   debugLog("useMiningRewards", "Mining cycle completed");

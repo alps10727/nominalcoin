@@ -2,7 +2,7 @@
 import { useCallback, useRef } from 'react';
 import { MiningState } from '@/types/mining';
 import { getCurrentTime } from '@/utils/miningUtils';
-import { errorLog } from "@/utils/debugUtils";
+import { errorLog, debugLog } from "@/utils/debugUtils";
 import { useIntervalManager, saveMiningStateOnCleanup } from '@/hooks/useIntervalManager';
 import { calculateUpdatedTimeValues, savePeriodicState } from '@/hooks/mining/useTimerManagement';
 import { addMiningReward, handleMiningCompletion } from '@/hooks/mining/useMiningRewards';
@@ -61,6 +61,31 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
         // Update last update timestamp
         lastUpdateTimeRef.current = now;
         lastVisitTimeRef.current = now;
+        
+        // EKLEME: Toplam madencilik süresi (6 saat) aşıldıysa, madenciliği durdur ve tüm ödülleri hesapla
+        if (prev.miningActive && potentiallyMissedTime > 0) {
+          const totalMiningDuration = prev.miningPeriod; // 6 saat = 21600 saniye
+          const remainingTime = prev.miningTime; // kalan süre
+          
+          // Eğer geçen süre, kalan süreden fazlaysa (yani madencilik süresi tamamlanmışsa)
+          if (potentiallyMissedTime >= remainingTime) {
+            debugLog("useMiningProcess", "Uzun yokluktan sonra madencilik süresi tamamlanmış, tüm ödüller hesaplanıyor...");
+            
+            // Kaç tam 3 dakikalık döngü kalmış hesapla (kalan süre içinde)
+            const remainingCycles = Math.floor(remainingTime / 180);
+            const rewardAmount = remainingCycles * prev.miningRate * 3;
+            
+            // Ödülleri ekle ve madenciliği tamamla
+            const completionUpdates = handleMiningCompletion({
+              ...prev,
+              balance: prev.balance + rewardAmount,
+              miningSession: prev.miningSession + rewardAmount
+            });
+            
+            isProcessingRef.current = false;
+            return { ...prev, ...completionUpdates };
+          }
+        }
         
         // Calculate new time values and cycle position for rewards
         const { 
