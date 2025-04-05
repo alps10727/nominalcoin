@@ -1,4 +1,3 @@
-
 import { auth } from "@/config/firebase";
 import { 
   createUserWithEmailAndPassword, 
@@ -33,11 +32,11 @@ export async function registerUser(email: string, password: string, userData: Us
     // Kayıt için race condition'ı düzelttik
     const createPromise = createUserWithEmailAndPassword(auth, email, password);
     
-    // Düşük timeout ile daha hızlı hata bildirimi
+    // Daha uzun timeout tanımladık
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => {
         reject(new Error("Kayıt zaman aşımına uğradı. Lütfen internet bağlantınızı kontrol edin."));
-      }, 10000); // 10 saniye timeout
+      }, 30000); // 30 saniye timeout
     });
     
     // Promise.race ile timeout kontrolü
@@ -83,11 +82,11 @@ export async function registerUser(email: string, password: string, userData: Us
       ...userData
     });
     
-    // Profil kaydetme için 10 saniye timeout
+    // Profil kaydetme için 30 saniye timeout
     const profileTimeoutPromise = new Promise<void>((_, reject) => {
       setTimeout(() => {
         reject(new Error("Profil oluşturma zaman aşımına uğradı, ancak hesabınız oluşturuldu. Giriş yaparak devam edebilirsiniz."));
-      }, 10000);
+      }, 30000);
     });
     
     try {
@@ -97,7 +96,7 @@ export async function registerUser(email: string, password: string, userData: Us
     } catch (profileError) {
       errorLog("authService", "Kullanıcı profili oluşturma hatası:", profileError);
       // Profil oluşturma hatasını göster ama yine de kullanıcıyı döndür
-      throw new Error("Hesabınız oluşturuldu ancak profil bilgileriniz kaydedilemedi. Giriş yaparak tekrar deneyebilirsiniz.");
+      console.warn("Hesap oluşturuldu ancak profil bilgileri kaydedilemedi. Giriş yaparak tekrar deneyebilirsiniz.");
     }
     
     return user;
@@ -167,11 +166,11 @@ export async function loginUser(email: string, password: string): Promise<User |
     // Login için race condition'ı düzelttik
     const loginPromise = signInWithEmailAndPassword(auth, email, password);
     
-    // Düşük timeout ile daha hızlı hata bildirimi
+    // Daha uzun timeout ile hata bildirimi
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => {
         reject(new Error("Giriş zaman aşımına uğradı. Lütfen internet bağlantınızı kontrol edin."));
-      }, 10000); // 10 saniye timeout
+      }, 30000); // 30 saniye timeout
     });
     
     // Promise.race ile timeout kontrolü

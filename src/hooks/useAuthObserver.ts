@@ -19,15 +19,16 @@ export function useAuthObserver(): AuthObserverState {
     debugLog("useAuthObserver", "Authentication observer initializing...");
     let authTimeoutId: NodeJS.Timeout;
     
-    // Firebase auth için daha kısa bir zaman aşımı süresi (10 saniye)
+    // Firebase auth için daha uzun bir zaman aşımı süresi (30 saniye)
     authTimeoutId = setTimeout(() => {
       if (loading && !authInitialized) {
         debugLog("useAuthObserver", "Firebase Auth timed out, falling back to offline mode");
         setLoading(false);
         setCurrentUser(null);
         setAuthInitialized(true);
+        console.warn("Firebase Authentication zaman aşımına uğradı, çevrimdışı mod etkinleştirildi.");
       }
-    }, 10000); // 10 saniyeye düşürüldü
+    }, 30000); // 30 saniyeye çıkarıldı
 
     // Auth durumu değişikliklerini dinle
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -42,6 +43,7 @@ export function useAuthObserver(): AuthObserverState {
       clearTimeout(authTimeoutId);
       setAuthInitialized(true);
       setLoading(false);
+      console.error("Authentication observer hatası:", error);
     });
 
     return () => {

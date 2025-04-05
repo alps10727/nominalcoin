@@ -15,12 +15,11 @@ export const emulatorConfig = {
 
 /**
  * Emülatörlerin kullanımda olup olmadığını kontrol eder
+ * Varsayılan olarak devre dışı bırakıyoruz
  */
 export function isEmulatorEnabled(): boolean {
-  // Geliştirme ortamında otomatik olarak etkinleştir
-  // veya manuel olarak kontrol et - localStorage kullanabilirsiniz
-  return process.env.NODE_ENV === 'development' && 
-         localStorage.getItem('useFirebaseEmulator') === 'true';
+  // Varsayılan olarak false döndür (gerçek Firebase kullan)
+  return false;
 }
 
 /**

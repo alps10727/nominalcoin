@@ -1,10 +1,9 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Mail, Lock, User, AlertCircle, Users } from "lucide-react";
+import { Mail, Lock, User, AlertCircle, Users, WifiOff } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -22,18 +21,37 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [referralCode, setReferralCode] = useState("");
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
   
   // URL'den referans kodunu al (varsa)
-  useState(() => {
+  useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const refCode = urlParams.get('ref');
     if (refCode) {
       setReferralCode(refCode);
     }
-  });
+    
+    // Çevrimdışı durumu izle
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Çevrimdışı durumda kayıt yapılamaz
+    if (isOffline) {
+      toast.error("İnternet bağlantınız yok. Kayıt olmak için internet bağlantınızı kontrol edin.");
+      return;
+    }
     
     // Formu doğrula
     setFormError(null);
@@ -73,6 +91,13 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
         </div>
       )}
       
+      {isOffline && (
+        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 text-amber-600 rounded-md flex items-start">
+          <WifiOff className="h-5 w-5 mr-2 shrink-0 mt-0.5" />
+          <span className="text-sm">İnternet bağlantınız yok. Kayıt olmak için internet bağlantınızı kontrol edin.</span>
+        </div>
+      )}
+      
       <div className="space-y-2">
         <Label htmlFor="name">Ad Soyad</Label>
         <div className="relative">
@@ -85,7 +110,7 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            disabled={loading}
+            disabled={loading || isOffline}
           />
         </div>
       </div>
@@ -102,7 +127,7 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            disabled={loading}
+            disabled={loading || isOffline}
           />
         </div>
       </div>
@@ -118,7 +143,7 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
             className="pl-10"
             value={referralCode}
             onChange={(e) => setReferralCode(e.target.value)}
-            disabled={loading}
+            disabled={loading || isOffline}
           />
         </div>
       </div>
@@ -135,7 +160,7 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            disabled={loading}
+            disabled={loading || isOffline}
             minLength={6}
           />
         </div>
@@ -153,7 +178,7 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
-            disabled={loading}
+            disabled={loading || isOffline}
             minLength={6}
           />
         </div>
@@ -166,7 +191,7 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
           onCheckedChange={(checked) => {
             setAgreeTerms(checked as boolean);
           }}
-          disabled={loading}
+          disabled={loading || isOffline}
         />
         <label
           htmlFor="terms"
@@ -183,11 +208,16 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
         </label>
       </div>
       
-      <Button type="submit" className="w-full" disabled={loading}>
+      <Button type="submit" className="w-full" disabled={loading || isOffline}>
         {loading ? (
           <div className="flex items-center justify-center">
             <div className="h-4 w-4 border-2 border-current border-t-transparent animate-spin rounded-full mr-2" />
             Hesap oluşturuluyor...
+          </div>
+        ) : isOffline ? (
+          <div className="flex items-center justify-center">
+            <WifiOff className="h-4 w-4 mr-2" />
+            Çevrimdışı
           </div>
         ) : (
           "Kayıt Ol"

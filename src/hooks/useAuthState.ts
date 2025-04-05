@@ -16,6 +16,22 @@ export interface AuthState {
  * Firebase ve yerel depolama entegrasyonuyla yetkilendirme durumu kancası
  */
 export function useAuthState(): AuthState {
+  // Uygulama çevrimdışı mı kontrolü
+  const [isNetworkAvailable, setIsNetworkAvailable] = useState(navigator.onLine);
+  
+  useEffect(() => {
+    const handleOnline = () => setIsNetworkAvailable(true);
+    const handleOffline = () => setIsNetworkAvailable(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+  
   // Yetkilendirme gözlemcisi kancasını kullan
   const { currentUser, loading: authLoading, authInitialized } = useAuthObserver();
   
@@ -25,8 +41,8 @@ export function useAuthState(): AuthState {
   // Firebase ve yerel veri yükleme durumlarını birleştir
   const loading = authLoading || dataLoading;
   
-  // Çevrimdışı durumu izle (kullanıcı verisi yerel depodan geldiyse)
-  const isOffline = dataSource === 'local';
+  // Çevrimdışı durumu izle (kullanıcı verisi yerel depodan geldiyse veya ağ bağlantısı yoksa)
+  const isOffline = dataSource === 'local' || !isNetworkAvailable;
 
   return { 
     currentUser, 
