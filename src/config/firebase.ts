@@ -44,25 +44,26 @@ setPersistence(auth, browserLocalPersistence).catch(err => {
 if (isEmulatorEnabled()) {
   console.log("🔥 Firebase Emülatörleri kullanılıyor!");
   
-  // Auth Emülatör Bağlantısı
+  // Auth Emülatör Bağlantısı - düzeltildi
+  const authEmulatorHost = window.location.hostname;
   connectAuthEmulator(auth, 
-    `http://${emulatorConfig.auth.host}:${emulatorConfig.auth.port}`,
+    `http://${authEmulatorHost}:${emulatorConfig.auth.port}`,
     { disableWarnings: true }
   );
   
-  // Firestore Emülatör Bağlantısı
+  // Firestore Emülatör Bağlantısı - düzeltildi
   connectFirestoreEmulator(db, 
-    emulatorConfig.firestore.host, 
+    window.location.hostname, 
     emulatorConfig.firestore.port
   );
   
-  // Storage Emülatör Bağlantısı
+  // Storage Emülatör Bağlantısı - düzeltildi
   connectStorageEmulator(storage,
-    emulatorConfig.storage.host,
+    window.location.hostname,
     emulatorConfig.storage.port
   );
   
-  console.log(`📱 Emülatör UI: http://${emulatorConfig.firestore.host}:4000`);
+  console.log(`📱 Emülatör UI: http://${window.location.hostname}:4000`);
 } else {
   try {
     // Emülatör kullanılmıyorsa normal çevrimdışı önbelleği etkinleştir

@@ -13,10 +13,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Mail, Lock, AlertCircle, WifiOff } from "lucide-react";
+import { Mail, Lock, AlertCircle, WifiOff, LogIn } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
+import { loadUserData } from "@/utils/storage";
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
@@ -24,8 +25,26 @@ const SignIn = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [offlineLoginAttempted, setOfflineLoginAttempted] = useState(false);
   const navigate = useNavigate();
-  const { login, loading: authLoading, currentUser, isOffline } = useAuth();
+  
+  // AuthContext'i try-catch ile kullan, eğer henüz yüklenmemişse basitleştirilmiş UI göster
+  const auth = (() => {
+    try {
+      return useAuth();
+    } catch (err) {
+      console.error("Auth context henüz hazır değil:", err);
+      return {
+        currentUser: null,
+        loading: true,
+        login: async () => false,
+        isOffline: false,
+        dataSource: null
+      };
+    }
+  })();
+  
+  const { currentUser, loading: authLoading, isOffline } = auth;
   
   // Eğer kullanıcı zaten giriş yapmışsa, ana sayfaya yönlendir
   useEffect(() => {
@@ -38,21 +57,19 @@ const SignIn = () => {
   useEffect(() => {
     console.log("SignIn component mounted");
     
-    // Eğer giriş işlemi başlayıp 15 saniyeden fazla sürerse, otomatik olarak form sıfırlanır
+    // Eğer giriş işlemi başlayıp 10 saniyeden fazla sürerse, otomatik olarak çevrimdışı modu dene
     const timeoutId = setTimeout(() => {
-      if (loading) {
-        console.log("Giriş zaman aşımına uğradı, durum sıfırlanıyor");
-        setLoading(false);
-        setError("İşlem zaman aşımına uğradı. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.");
-        toast.error("Giriş işlemi zaman aşımına uğradı. Lütfen tekrar deneyin.");
+      if (loading && !offlineLoginAttempted) {
+        console.log("Giriş zaman aşımına uğradı, çevrimdışı mod deneniyor");
+        attemptOfflineLogin();
       }
-    }, 15000); // 15 saniye
+    }, 10000); // 10 saniye
     
     return () => {
       clearTimeout(timeoutId);
       console.log("SignIn component unmounted");
     };
-  }, [loading]);
+  }, [loading, offlineLoginAttempted]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,24 +78,50 @@ const SignIn = () => {
     
     try {
       console.log("Giriş işlemi başlatılıyor:", email);
-      const success = await login(email, password);
+      const success = await auth.login(email, password);
       if (success) {
         navigate("/");
       } else {
-        setError("Giriş yapılamadı, lütfen bilgilerinizi kontrol edin.");
+        // Eğer normal giriş başarısız olursa, çevrimdışı girişi dene
+        const offlineSuccess = await attemptOfflineLogin();
+        if (!offlineSuccess) {
+          setError("Giriş yapılamadı, lütfen bilgilerinizi kontrol edin.");
+        }
       }
     } catch (error) {
       console.error("Giriş hatası:", error);
       const errorMessage = (error as Error).message;
       
-      if (errorMessage.includes("timeout") || errorMessage.includes("network")) {
-        setError("Bağlantı sorunu. İnternet bağlantınızı kontrol edin.");
+      // Network hatası durumunda çevrimdışı girişi dene
+      if (errorMessage.includes("timeout") || errorMessage.includes("network") || 
+          errorMessage.includes("auth/network-request-failed")) {
+        const offlineSuccess = await attemptOfflineLogin();
+        if (!offlineSuccess) {
+          setError("Bağlantı sorunu. İnternet bağlantınızı kontrol edin ve yeniden deneyin.");
+        }
       } else {
         setError("Giriş yapılamadı: " + errorMessage);
       }
     } finally {
       setLoading(false);
     }
+  };
+  
+  // Çevrimdışı giriş denemesi
+  const attemptOfflineLogin = async (): Promise<boolean> => {
+    setOfflineLoginAttempted(true);
+    
+    // LocalStorage'da kayıtlı kullanıcı verilerini kontrol et
+    const localUserData = loadUserData();
+    
+    if (localUserData && localUserData.emailAddress === email) {
+      console.log("Çevrimdışı giriş başarılı");
+      toast.success("Çevrimdışı modda giriş yapıldı. Sınırlı özellikler kullanılabilir.");
+      navigate("/");
+      return true;
+    }
+    
+    return false;
   };
   
   // Ana sayfa yüklenirken ekranı göster
@@ -172,7 +215,10 @@ const SignIn = () => {
                     Giriş yapılıyor...
                   </div>
                 ) : (
-                  "Giriş Yap"
+                  <>
+                    <LogIn className="h-4 w-4 mr-2" />
+                    Giriş Yap
+                  </>
                 )}
               </Button>
             </form>

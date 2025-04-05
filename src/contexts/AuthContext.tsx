@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { User } from "firebase/auth";
 import { useAuthState } from "@/hooks/useAuthState";
@@ -29,7 +30,23 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { currentUser, userData: initialUserData, loading, isOffline, dataSource } = useAuthState();
+  // Eğer AuthState yüklenmezse hata fırlatmayı önlemek için try-catch ekledik
+  const authState = (() => {
+    try {
+      return useAuthState();
+    } catch (err) {
+      console.error("AuthState yüklenirken hata:", err);
+      return {
+        currentUser: null,
+        userData: null,
+        loading: true,
+        isOffline: true,
+        dataSource: null as ('firebase' | 'local' | null)
+      };
+    }
+  })();
+  
+  const { currentUser, userData: initialUserData, loading, isOffline, dataSource } = authState;
   
   const [userData, setUserData] = useState<UserData | null>(initialUserData);
   
@@ -40,9 +57,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [initialUserData]);
   
-  const { login, logout, register } = useAuthActions();
+  // AuthActions için de try-catch ekledik
+  const { login, logout, register } = (() => {
+    try {
+      return useAuthActions();
+    } catch (err) {
+      console.error("AuthActions yüklenirken hata:", err);
+      return {
+        login: async () => false,
+        logout: async () => {},
+        register: async () => false
+      };
+    }
+  })();
   
-  const { updateUserData } = useUserDataManager(currentUser, userData, setUserData);
+  // UserDataManager için de try-catch ekledik
+  const { updateUserData } = (() => {
+    try {
+      return useUserDataManager(currentUser, userData, setUserData);
+    } catch (err) {
+      console.error("UserDataManager yüklenirken hata:", err);
+      return {
+        updateUserData: async () => {}
+      };
+    }
+  })();
 
   const value = {
     currentUser,
