@@ -4,8 +4,9 @@ import { MiningState } from '@/types/mining';
 import { getCurrentTime } from '@/utils/miningUtils';
 import { errorLog } from "@/utils/debugUtils";
 import { useIntervalManager, saveMiningStateOnCleanup } from '@/hooks/useIntervalManager';
-import { calculateUpdatedTimeValues, savePeriodicState } from '@/hooks/useTimerManagement';
+import { calculateUpdatedTimeValues, savePeriodicState } from '@/hooks/mining/useTimerManagement';
 import { addMiningReward, handleMiningCompletion } from '@/hooks/mining/useMiningRewards';
+import { loadUserData } from '@/utils/storage';
 
 /**
  * Hook for handling the mining process with local storage only
@@ -15,6 +16,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
   // References for tracking timing and processing state
   const lastSaveTimeRef = useRef<number>(getCurrentTime());
   const lastUpdateTimeRef = useRef<number>(getCurrentTime());
+  const lastVisitTimeRef = useRef<number>(getCurrentTime());
   const isProcessingRef = useRef<boolean>(false);
   
   // Process one update cycle of the mining timer
@@ -37,7 +39,18 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
         
         // Calculate actual elapsed time since last update
         const now = getCurrentTime();
-        const elapsedSeconds = Math.floor((now - lastUpdateTimeRef.current) / 1000);
+        
+        // Sayfadan ayrılma kontrolü - uzun süre yokluk tespiti
+        const storedData = loadUserData();
+        const lastSavedTime = storedData?.lastSaved || now;
+        const potentiallyMissedTime = Math.floor((now - lastSavedTime) / 1000);
+        
+        // Eğer son güncelleme çok önceyse (10 saniyeden fazla zaman geçmişse)
+        // Kullanıcı sayfayı kapatıp tekrar açmış olabilir
+        const elapsedSeconds = Math.max(
+          Math.floor((now - lastUpdateTimeRef.current) / 1000),
+          potentiallyMissedTime > 10 ? potentiallyMissedTime : 0
+        );
         
         // Eğer geçen zaman 0 ise, henüz sayım yapma
         if (elapsedSeconds === 0) {
@@ -47,6 +60,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
         
         // Update last update timestamp
         lastUpdateTimeRef.current = now;
+        lastVisitTimeRef.current = now;
         
         // Calculate new time values and cycle position for rewards
         const { 
@@ -65,12 +79,28 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
         }
         
         // Check for and add rewards if applicable
-        const rewardUpdates = addMiningReward(
-          prev, 
-          totalElapsed, 
-          previousCyclePosition, 
-          currentCyclePosition
-        );
+        let rewardUpdates = null;
+        
+        // Uzun süre yoklukta birden fazla ödül döngüsü olabilir
+        if (elapsedSeconds >= 180) {
+          // Kaç tam 3 dakikalık döngü geçmiş?
+          const completeCycles = Math.floor(elapsedSeconds / 180);
+          const rewardAmount = completeCycles * prev.miningRate * 3;
+          
+          // Ödülleri tek seferde ekle
+          rewardUpdates = {
+            balance: prev.balance + rewardAmount,
+            miningSession: prev.miningSession + rewardAmount
+          };
+        } else {
+          // Normal süreçte 3 dakikalık döngüleri kontrol et
+          rewardUpdates = addMiningReward(
+            prev, 
+            totalElapsed, 
+            previousCyclePosition, 
+            currentCyclePosition
+          );
+        }
         
         // Perform periodic save if needed
         const didSave = savePeriodicState(prev, newTime, lastSaveTimeRef);

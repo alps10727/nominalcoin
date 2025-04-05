@@ -1,3 +1,4 @@
+
 import { MiningState } from '@/types/mining';
 import { calculateProgress, getCurrentTime } from '@/utils/miningUtils';
 import { saveUserData, loadUserData } from "@/utils/storage";
@@ -77,7 +78,7 @@ export function handleMiningCompletion(prevState: MiningState): Partial<MiningSt
   
   // Eğer localStorage'daki bakiye, state'teki bakiyeden yüksekse, localStorage'daki değeri kullan
   if (localData && localData.balance > finalBalance) {
-    debugLog("useMiningRewards", "Using higher balance from localStorage for completion:", localData.balance);
+    debugLog("useMiningRewards", `Using higher balance from localStorage for completion: ${localData.balance}`);
     finalBalance = localData.balance;
   }
   
