@@ -8,6 +8,7 @@ import LoadingScreen from "@/components/dashboard/LoadingScreen";
 import SignUpForm from "@/components/auth/SignUpForm";
 import FormHeader from "@/components/auth/FormHeader";
 import FormFooter from "@/components/auth/FormFooter";
+import { generateReferralCode } from "@/utils/referralUtils";
 
 const SignUp = () => {
   const [loading, setLoading] = useState(false);
@@ -35,17 +36,28 @@ const SignUp = () => {
     };
   }, [loading]);
 
-  const handleSignUp = async (name: string, email: string, password: string) => {
+  const handleSignUp = async (name: string, email: string, password: string, referralCode: string) => {
     // Formu sıfırla
     setError(null);
     setLoading(true);
     
     try {
       console.log("Kayıt işlemi başlıyor...");
-      const success = await register(email, password);
+      // Yeni referans kodu oluştur
+      const newReferralCode = generateReferralCode();
+      
+      // Kullanıcı bilgilerine referans verilerini ekleyerek kayıt işlemini başlat
+      const success = await register(email, password, {
+        name,
+        referralCode: newReferralCode, // Kullanıcının kendi referans kodu
+        referredBy: referralCode || null, // Kullanıcıyı davet eden kişinin referans kodu
+        referrals: [], // Kullanıcının davet ettiği kişilerin listesi (boş başlar)
+        referralCount: 0, // Kullanıcının kaç kişiyi davet ettiği (sıfır başlar)
+      });
       
       if (success) {
         console.log("Kayıt başarılı, yönlendiriliyor...");
+        toast.success("Hesabınız başarıyla oluşturuldu! Giriş yapabilirsiniz.");
         navigate("/sign-in");
       } else {
         console.log("Kayıt başarısız oldu");

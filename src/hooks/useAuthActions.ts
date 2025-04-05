@@ -1,13 +1,13 @@
 
 import { toast } from "sonner";
 import { User } from "firebase/auth";
-import { loginUser, logoutUser, registerUser } from "@/services/authService";
+import { loginUser, logoutUser, registerUser, UserRegistrationData } from "@/services/authService";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 
 interface AuthActions {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
-  register: (email: string, password: string) => Promise<boolean>;
+  register: (email: string, password: string, userData?: UserRegistrationData) => Promise<boolean>;
 }
 
 export function useAuthActions(): AuthActions {
@@ -47,10 +47,10 @@ export function useAuthActions(): AuthActions {
     }
   };
 
-  const register = async (email: string, password: string): Promise<boolean> => {
+  const register = async (email: string, password: string, userData: UserRegistrationData = {}): Promise<boolean> => {
     try {
       debugLog("useAuthActions", "Starting registration:", email);
-      const user = await registerUser(email, password, {});
+      const user = await registerUser(email, password, userData);
       
       if (user) {
         debugLog("useAuthActions", "Registration successful:", user.uid);

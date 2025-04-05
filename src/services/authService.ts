@@ -8,13 +8,26 @@ import {
   sendPasswordResetEmail as firebaseSendPasswordResetEmail
 } from "firebase/auth";
 import { saveUserDataToFirebase } from "./userService";
+import { debugLog, errorLog } from "@/utils/debugUtils";
+import { db } from "@/config/firebase";
+import { doc, getDoc, updateDoc, arrayUnion, increment } from "firebase/firestore";
+
+// Kullanıcı kayıt bilgileri için arayüz
+export interface UserRegistrationData {
+  name?: string;
+  referralCode?: string;
+  referredBy?: string | null;
+  referrals?: string[];
+  referralCount?: number;
+  [key: string]: any;
+}
 
 /**
- * Kayıt olma - Hata yönetimini iyileştirdik ve timeout'u düşürdük
+ * Kayıt olma - Referans sistemi desteği eklendi
  */
-export async function registerUser(email: string, password: string, userData: any): Promise<User | null> {
+export async function registerUser(email: string, password: string, userData: UserRegistrationData): Promise<User | null> {
   try {
-    console.log("Firebase kayıt işlemi başlatılıyor:", email);
+    debugLog("authService", "Firebase kayıt işlemi başlatılıyor:", email);
     
     // Kayıt için race condition'ı düzelttik
     const createPromise = createUserWithEmailAndPassword(auth, email, password);
@@ -30,15 +43,38 @@ export async function registerUser(email: string, password: string, userData: an
     const userCredential = await Promise.race([createPromise, timeoutPromise]);
     const user = userCredential.user;
     
-    console.log("Firebase Auth kaydı başarılı:", user.uid);
+    debugLog("authService", "Firebase Auth kaydı başarılı:", user.uid);
     
-    // Kullanıcı profilini oluşturmayı dene, başarısız olursa hata fırlat
+    // Eğer referredBy verilmişse, bu referans kodu geçerli mi kontrol et
+    if (userData.referredBy) {
+      try {
+        // Referans veren kullanıcıyı bulmaya çalış
+        const referrers = await findUsersByReferralCode(userData.referredBy);
+        
+        if (referrers.length > 0) {
+          const referrerId = referrers[0];
+          debugLog("authService", "Referans veren kullanıcı bulundu:", referrerId);
+          
+          // Referrers'ın referral bilgilerini güncelle
+          await updateReferrerInfo(referrerId, user.uid);
+        } else {
+          // Geçersiz referans kodu durumunda loglama yap ama işlemi durdurmadan devam et
+          errorLog("authService", "Geçersiz referans kodu:", userData.referredBy);
+          userData.referredBy = null; // Geçersiz referans kodunu temizle
+        }
+      } catch (referralError) {
+        // Referans işlemi başarısız olursa loglama yap ama kayıt işlemine devam et
+        errorLog("authService", "Referans işlemi hatası:", referralError);
+      }
+    }
+    
+    // Kullanıcı profilini oluşturmayı dene
     const saveProfilePromise = saveUserDataToFirebase(user.uid, {
       userId: user.uid,
       email: email,
       balance: 0,
-      miningRate: 0.1, // 0.01'den 0.1'e yükseltildi (tutarlılık sağlandı)
-      lastSaved: Date.now(), // serverTimestamp yerine istemci tarafında tarih kullanarak hızlandırıldı
+      miningRate: 0.1,
+      lastSaved: Date.now(),
       miningActive: false,
       miningTime: 21600,
       miningPeriod: 21600,
@@ -56,17 +92,67 @@ export async function registerUser(email: string, password: string, userData: an
     try {
       // Profil kaydetme işlemi için de timeout ekleyelim
       await Promise.race([saveProfilePromise, profileTimeoutPromise]);
-      console.log("Kullanıcı profili başarıyla oluşturuldu");
+      debugLog("authService", "Kullanıcı profili başarıyla oluşturuldu");
     } catch (profileError) {
-      console.error("Kullanıcı profili oluşturma hatası:", profileError);
+      errorLog("authService", "Kullanıcı profili oluşturma hatası:", profileError);
       // Profil oluşturma hatasını göster ama yine de kullanıcıyı döndür
       throw new Error("Hesabınız oluşturuldu ancak profil bilgileriniz kaydedilemedi. Giriş yaparak tekrar deneyebilirsiniz.");
     }
     
     return user;
   } catch (err) {
-    console.error("Kayıt hatası:", err);
+    errorLog("authService", "Kayıt hatası:", err);
     throw err; // Hataları üst katmana ilet
+  }
+}
+
+/**
+ * Referans kodu ile kullanıcı bul
+ */
+async function findUsersByReferralCode(referralCode: string): Promise<string[]> {
+  try {
+    debugLog("authService", "Referans kodu ile kullanıcı aranıyor:", referralCode);
+    
+    // Firestore'da referralCode alanı ile eşleşen kullanıcıları ara
+    // Not: Bu basit bir implementasyon, büyük veritabanlarında daha gelişmiş bir sorgu gerekebilir
+    
+    // users koleksiyonundaki tüm dokümanları almak yerine,
+    // gerçek bir uygulamada bir index oluşturup ona göre sorgu yapmanız gerekir
+    // Şimdilik basit bir şekilde kullanıcı dokümanını referralCode ile arayalım
+    const userRef = doc(db, "users", referralCode);
+    const userDoc = await getDoc(userRef);
+    
+    if (userDoc.exists()) {
+      // Doküman varsa, kullanıcı ID'sini döndür
+      return [userDoc.id];
+    }
+    
+    return [];
+  } catch (error) {
+    errorLog("authService", "Referans kodu ile kullanıcı arama hatası:", error);
+    return [];
+  }
+}
+
+/**
+ * Referans veren kullanıcının bilgilerini güncelle
+ */
+async function updateReferrerInfo(referrerId: string, newUserId: string): Promise<void> {
+  try {
+    debugLog("authService", "Referans veren kullanıcı bilgileri güncelleniyor");
+    
+    const userRef = doc(db, "users", referrerId);
+    
+    // Referrals dizisine yeni kullanıcıyı ekle ve referralCount'u arttır
+    await updateDoc(userRef, {
+      referrals: arrayUnion(newUserId),
+      referralCount: increment(1)
+    });
+    
+    debugLog("authService", "Referans veren kullanıcı bilgileri güncellendi");
+  } catch (error) {
+    errorLog("authService", "Referans veren kullanıcı bilgilerini güncelleme hatası:", error);
+    throw error;
   }
 }
 
@@ -75,7 +161,7 @@ export async function registerUser(email: string, password: string, userData: an
  */
 export async function loginUser(email: string, password: string): Promise<User | null> {
   try {
-    console.log("Giriş işlemi başlatılıyor:", email);
+    debugLog("authService", "Giriş işlemi başlatılıyor:", email);
     
     // Login için race condition'ı düzelttik
     const loginPromise = signInWithEmailAndPassword(auth, email, password);
@@ -90,10 +176,10 @@ export async function loginUser(email: string, password: string): Promise<User |
     // Promise.race ile timeout kontrolü
     const userCredential = await Promise.race([loginPromise, timeoutPromise]);
     
-    console.log("Giriş başarılı");
+    debugLog("authService", "Giriş başarılı");
     return userCredential.user;
   } catch (err) {
-    console.error("Giriş hatası:", err);
+    errorLog("authService", "Giriş hatası:", err);
     throw err; // Hataları üst katmana ilet
   }
 }
@@ -104,9 +190,9 @@ export async function loginUser(email: string, password: string): Promise<User |
 export async function logoutUser(): Promise<void> {
   try {
     await signOut(auth);
-    console.log("Kullanıcı başarıyla çıkış yaptı");
+    debugLog("authService", "Kullanıcı başarıyla çıkış yaptı");
   } catch (err) {
-    console.error("Çıkış hatası:", err);
+    errorLog("authService", "Çıkış hatası:", err);
     throw err; // Hataları üst katmana ilet
   }
 }
@@ -116,7 +202,7 @@ export async function logoutUser(): Promise<void> {
  */
 export async function sendPasswordResetEmail(email: string): Promise<void> {
   try {
-    console.log("Şifre sıfırlama e-postası gönderiliyor:", email);
+    debugLog("authService", "Şifre sıfırlama e-postası gönderiliyor:", email);
     
     // Şifre sıfırlama işlemi
     const resetPromise = firebaseSendPasswordResetEmail(auth, email);
@@ -131,9 +217,9 @@ export async function sendPasswordResetEmail(email: string): Promise<void> {
     // Promise.race ile timeout kontrolü
     await Promise.race([resetPromise, timeoutPromise]);
     
-    console.log("Şifre sıfırlama e-postası gönderildi");
+    debugLog("authService", "Şifre sıfırlama e-postası gönderildi");
   } catch (err) {
-    console.error("Şifre sıfırlama hatası:", err);
+    errorLog("authService", "Şifre sıfırlama hatası:", err);
     throw err; // Hataları üst katmana ilet
   }
 }

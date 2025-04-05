@@ -4,12 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Mail, Lock, User, AlertCircle } from "lucide-react";
+import { Mail, Lock, User, AlertCircle, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 interface SignUpFormProps {
-  onSubmit: (name: string, email: string, password: string) => Promise<void>;
+  onSubmit: (name: string, email: string, password: string, referralCode: string) => Promise<void>;
   loading: boolean;
   error: string | null;
 }
@@ -21,6 +21,16 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [referralCode, setReferralCode] = useState("");
+  
+  // URL'den referans kodunu al (varsa)
+  useState(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const refCode = urlParams.get('ref');
+    if (refCode) {
+      setReferralCode(refCode);
+    }
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +58,7 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
 
     // Kayıt işlemini başlat
     try {
-      await onSubmit(name, email, password);
+      await onSubmit(name, email, password, referralCode);
     } catch (error) {
       console.error("Form gönderme hatası:", error);
     }
@@ -92,6 +102,22 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            disabled={loading}
+          />
+        </div>
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="referralCode">Referans Kodu (Opsiyonel)</Label>
+        <div className="relative">
+          <Users className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            id="referralCode"
+            type="text"
+            placeholder="Referans kodunuz varsa girin"
+            className="pl-10"
+            value={referralCode}
+            onChange={(e) => setReferralCode(e.target.value)}
             disabled={loading}
           />
         </div>
