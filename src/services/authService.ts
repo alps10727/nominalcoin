@@ -19,6 +19,7 @@ export interface UserRegistrationData {
   referredBy?: string | null;
   referrals?: string[];
   referralCount?: number;
+  emailAddress?: string; // Changed from email to emailAddress to match UserData type
   [key: string]: any;
 }
 
@@ -71,7 +72,7 @@ export async function registerUser(email: string, password: string, userData: Us
     // Kullanıcı profilini oluşturmayı dene
     const saveProfilePromise = saveUserDataToFirebase(user.uid, {
       userId: user.uid,
-      email: email,
+      emailAddress: email, // Using emailAddress instead of email
       balance: 0,
       miningRate: 0.1,
       lastSaved: Date.now(),

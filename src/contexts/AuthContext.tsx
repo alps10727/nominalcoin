@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { User } from "firebase/auth";
 import { useAuthState } from "@/hooks/useAuthState";
@@ -12,7 +11,7 @@ interface AuthContextProps {
   loading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
-  register: (email: string, password: string) => Promise<boolean>;
+  register: (email: string, password: string, userData?: any) => Promise<boolean>;
   userData: UserData | null;
   updateUserData: (data: Partial<UserData>) => Promise<void>;
   isOffline: boolean;
@@ -30,13 +29,10 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  // Kimlik doğrulama durumunu al
   const { currentUser, userData: initialUserData, loading, isOffline, dataSource } = useAuthState();
   
-  // Kullanıcı veri durumunu yönet
   const [userData, setUserData] = useState<UserData | null>(initialUserData);
   
-  // initialUserData değiştiğinde userData'yı güncelle
   useEffect(() => {
     if (initialUserData) {
       debugLog("AuthProvider", "initialUserData değişti, userData güncelleniyor", initialUserData);
@@ -44,13 +40,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [initialUserData]);
   
-  // Kimlik doğrulama eylemlerini al
   const { login, logout, register } = useAuthActions();
   
-  // Kullanıcı veri yönetimi fonksiyonlarını al
   const { updateUserData } = useUserDataManager(currentUser, userData, setUserData);
 
-  // Context değerini oluştur
   const value = {
     currentUser,
     loading,
