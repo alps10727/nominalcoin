@@ -1,39 +1,28 @@
 
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Mail, Lock, AlertCircle, WifiOff, LogIn } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
+import { WifiOff } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
-import { loadUserData } from "@/utils/storage";
+import FormHeader from "@/components/auth/FormHeader";
+import FormFooter from "@/components/auth/FormFooter";
+import SignInForm from "@/components/auth/SignInForm";
+import { useOfflineLogin } from "@/hooks/useOfflineLogin";
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [offlineLoginAttempted, setOfflineLoginAttempted] = useState(false);
   const navigate = useNavigate();
   
-  // AuthContext'i try-catch ile kullan, eğer henüz yüklenmemişse basitleştirilmiş UI göster
+  // Use AuthContext with try-catch in case it's not yet loaded
   const auth = (() => {
     try {
       return useAuth();
     } catch (err) {
-      console.error("Auth context henüz hazır değil:", err);
+      console.error("Auth context not ready yet:", err);
       return {
         currentUser: null,
         loading: true,
@@ -46,85 +35,56 @@ const SignIn = () => {
   
   const { currentUser, loading: authLoading, isOffline } = auth;
   
-  // Eğer kullanıcı zaten giriş yapmışsa, ana sayfaya yönlendir
+  // Create hook for offline login functionality
+  const { attemptOfflineLogin, offlineLoginAttempted } = useOfflineLogin({ 
+    email, 
+    loading 
+  });
+  
+  // If user is already logged in, redirect to home
   useEffect(() => {
     if (currentUser && !authLoading) {
       navigate("/");
     }
   }, [currentUser, authLoading, navigate]);
-  
-  // Giriş işlemi uzun sürdüğünde kurtarma mekanizması
-  useEffect(() => {
-    console.log("SignIn component mounted");
-    
-    // Eğer giriş işlemi başlayıp 10 saniyeden fazla sürerse, otomatik olarak çevrimdışı modu dene
-    const timeoutId = setTimeout(() => {
-      if (loading && !offlineLoginAttempted) {
-        console.log("Giriş zaman aşımına uğradı, çevrimdışı mod deneniyor");
-        attemptOfflineLogin();
-      }
-    }, 10000); // 10 saniye
-    
-    return () => {
-      clearTimeout(timeoutId);
-      console.log("SignIn component unmounted");
-    };
-  }, [loading, offlineLoginAttempted]);
 
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSignIn = async (email: string, password: string, rememberMe: boolean) => {
+    setEmail(email); // Store email for potential offline login
     setError(null);
     setLoading(true);
     
     try {
-      console.log("Giriş işlemi başlatılıyor:", email);
+      console.log("Starting login process:", email);
       const success = await auth.login(email, password);
       if (success) {
         navigate("/");
       } else {
-        // Eğer normal giriş başarısız olursa, çevrimdışı girişi dene
+        // Try offline login if normal login fails
         const offlineSuccess = await attemptOfflineLogin();
         if (!offlineSuccess) {
-          setError("Giriş yapılamadı, lütfen bilgilerinizi kontrol edin.");
+          setError("Login failed, please check your credentials.");
         }
       }
     } catch (error) {
-      console.error("Giriş hatası:", error);
+      console.error("Login error:", error);
       const errorMessage = (error as Error).message;
       
-      // Network hatası durumunda çevrimdışı girişi dene
+      // Try offline login for network errors
       if (errorMessage.includes("timeout") || errorMessage.includes("network") || 
           errorMessage.includes("auth/network-request-failed")) {
         const offlineSuccess = await attemptOfflineLogin();
         if (!offlineSuccess) {
-          setError("Bağlantı sorunu. İnternet bağlantınızı kontrol edin ve yeniden deneyin.");
+          setError("Connection problem. Check your internet connection and try again.");
         }
       } else {
-        setError("Giriş yapılamadı: " + errorMessage);
+        setError("Login failed: " + errorMessage);
       }
     } finally {
       setLoading(false);
     }
   };
-  
-  // Çevrimdışı giriş denemesi
-  const attemptOfflineLogin = async (): Promise<boolean> => {
-    setOfflineLoginAttempted(true);
-    
-    // LocalStorage'da kayıtlı kullanıcı verilerini kontrol et
-    const localUserData = loadUserData();
-    
-    if (localUserData && localUserData.emailAddress === email) {
-      console.log("Çevrimdışı giriş başarılı");
-      toast.success("Çevrimdışı modda giriş yapıldı. Sınırlı özellikler kullanılabilir.");
-      navigate("/");
-      return true;
-    }
-    
-    return false;
-  };
-  
-  // Ana sayfa yüklenirken ekranı göster
+
+  // Show loading screen while auth is initializing
   if (authLoading) {
     return <LoadingScreen />;
   }
@@ -133,104 +93,31 @@ const SignIn = () => {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md animate-fade-in">
         <Card className="border-none shadow-lg">
-          <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-2xl font-bold">Tekrar Hoşgeldiniz</CardTitle>
-            <CardDescription>
-              Devam etmek için hesabınıza giriş yapın
-            </CardDescription>
-            
-            {isOffline && (
-              <div className="mt-2 flex items-center justify-center text-yellow-600 bg-yellow-50 px-3 py-1.5 rounded-full">
-                <WifiOff className="h-3.5 w-3.5 mr-1.5" />
-                <span className="text-xs font-medium">Çevrimdışı mod aktif</span>
-              </div>
-            )}
-          </CardHeader>
-          <CardContent>
-            {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-md flex items-start">
-                <AlertCircle className="h-5 w-5 mr-2 shrink-0 mt-0.5" />
-                <span className="text-sm">{error}</span>
-              </div>
-            )}
-            
-            <form onSubmit={handleSignIn} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="Email adresinizi girin"
-                    className="pl-10"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Şifre</Label>
-                  <Link to="/forgot-password" className="text-xs text-primary hover:underline">
-                    Şifremi unuttum?
-                  </Link>
-                </div>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Şifrenizi girin"
-                    className="pl-10"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="remember"
-                  checked={rememberMe}
-                  onCheckedChange={(checked) => {
-                    setRememberMe(checked as boolean);
-                  }}
-                  disabled={loading}
-                />
-                <label
-                  htmlFor="remember"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Beni hatırla
-                </label>
-              </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? (
-                  <div className="flex items-center justify-center">
-                    <div className="h-4 w-4 border-2 border-current border-t-transparent animate-spin rounded-full mr-2" />
-                    Giriş yapılıyor...
-                  </div>
-                ) : (
-                  <>
-                    <LogIn className="h-4 w-4 mr-2" />
-                    Giriş Yap
-                  </>
-                )}
-              </Button>
-            </form>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <div className="text-center text-sm">
-              Hesabınız yok mu?{" "}
-              <Link to="/sign-up" className="text-primary hover:underline">
-                Kayıt ol
-              </Link>
+          <FormHeader 
+            title="Tekrar Hoşgeldiniz" 
+            description="Devam etmek için hesabınıza giriş yapın" 
+          />
+          
+          {isOffline && (
+            <div className="flex items-center justify-center text-yellow-600 bg-yellow-50 px-3 py-1.5 rounded-full mx-auto w-fit my-2">
+              <WifiOff className="h-3.5 w-3.5 mr-1.5" />
+              <span className="text-xs font-medium">Çevrimdışı mod aktif</span>
             </div>
-          </CardFooter>
+          )}
+          
+          <CardContent>
+            <SignInForm 
+              onSubmit={handleSignIn} 
+              loading={loading} 
+              error={error} 
+            />
+          </CardContent>
+          
+          <FormFooter
+            text="Hesabınız yok mu?"
+            linkText="Kayıt ol"
+            linkPath="/sign-up"
+          />
         </Card>
       </div>
     </div>
