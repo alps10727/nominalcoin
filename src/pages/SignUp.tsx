@@ -43,8 +43,10 @@ const SignUp = () => {
     
     try {
       console.log("Kayıt işlemi başlıyor...");
-      // Yeni referans kodu oluştur
-      const newReferralCode = generateReferralCode();
+      // Kullanıcı için benzersiz bir referans kodu oluştur
+      // Not: Gerçek kullanıcı ID'si henüz mevcut değil, bu yüzden timestamp kullanıyoruz
+      const timestamp = Date.now().toString();
+      const newReferralCode = generateReferralCode(timestamp);
       
       // Kullanıcı bilgilerine referans verilerini ekleyerek kayıt işlemini başlat
       const success = await register(email, password, {

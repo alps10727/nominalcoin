@@ -15,9 +15,9 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
     // ALWAYS check local storage first for fastest response
     const localData = loadUserData();
     if (localData) {
-      // Yerel verilerde referans kodu yoksa, oluştur
+      // Yerel verilerde referans kodu yoksa, kullanıcı ID'sini kullanarak benzersiz kod oluştur
       if (!localData.referralCode) {
-        localData.referralCode = generateReferralCode();
+        localData.referralCode = generateReferralCode(userId);
         localData.referralCount = 0;
         localData.referrals = [];
         saveUserData(localData);
@@ -44,8 +44,8 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
           lastSaved: typeof userData.lastSaved === 'number' ? userData.lastSaved : Date.now(),
           miningActive: !!userData.miningActive,
           userId: userId,
-          // Eğer referans kodu yoksa yeni bir tane oluştur
-          referralCode: userData.referralCode || generateReferralCode(),
+          // Eğer referans kodu yoksa kullanıcı ID'sini kullanarak benzersiz bir tane oluştur
+          referralCode: userData.referralCode || generateReferralCode(userId),
           referralCount: userData.referralCount || 0,
           referrals: userData.referrals || [],
           ...(userData as any) // Include any additional fields, properly typed now
@@ -77,7 +77,7 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
       lastSaved: Date.now(),
       miningActive: false,
       userId: userId,
-      referralCode: generateReferralCode(),
+      referralCode: generateReferralCode(userId),
       referralCount: 0,
       referrals: []
     };
@@ -91,7 +91,7 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
       lastSaved: Date.now(),
       miningActive: false,
       userId: userId,
-      referralCode: generateReferralCode(),
+      referralCode: generateReferralCode(userId),
       referralCount: 0,
       referrals: []
     };

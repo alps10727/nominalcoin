@@ -2,14 +2,33 @@
 /**
  * Benzersiz referans kodu oluşturur
  * Format: XXX-XXX-XXX (X: alfanumerik karakterler)
+ * Her kullanıcı için benzersiz olan bir kod oluşturur
  */
-export function generateReferralCode(): string {
+export function generateReferralCode(userId?: string): string {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   
+  // Kullanıcı ID'sinden bir tohum (seed) oluştur (eğer mevcutsa)
+  let seed = Date.now();
+  if (userId) {
+    // Kullanıcı ID'sini sayısal bir değere dönüştür
+    const idValue = userId.split('').reduce((acc, char) => {
+      return acc + char.charCodeAt(0);
+    }, 0);
+    
+    // Sayısal değeri kullan
+    seed = seed + idValue;
+  }
+  
+  // Rastgele üreteci kullanıcı ID'si ile tohumla
+  const getRandomIndex = () => {
+    seed = (seed * 9301 + 49297) % 233280;
+    return Math.floor(seed / 233280 * characters.length);
+  };
+  
   // 3-3-3 formatında bir referans kodu oluştur
-  const firstPart = generateRandomString(characters, 3);
-  const secondPart = generateRandomString(characters, 3);
-  const thirdPart = generateRandomString(characters, 3);
+  const firstPart = Array(3).fill(0).map(() => characters.charAt(getRandomIndex())).join('');
+  const secondPart = Array(3).fill(0).map(() => characters.charAt(getRandomIndex())).join('');
+  const thirdPart = Array(3).fill(0).map(() => characters.charAt(getRandomIndex())).join('');
   
   return `${firstPart}-${secondPart}-${thirdPart}`;
 }
