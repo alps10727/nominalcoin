@@ -19,7 +19,8 @@ import {
   registerUser,
   loginUser,
   logoutUser,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  findUsersByReferralCode
 } from './auth';
 
 // Export all functions
@@ -31,5 +32,6 @@ export {
   loginUser,
   logoutUser,
   sendPasswordResetEmail,
-  updateUserCoinBalance
+  updateUserCoinBalance,
+  findUsersByReferralCode
 };

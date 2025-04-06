@@ -2,8 +2,7 @@
 // Re-export authentication modules for backwards compatibility
 import { 
   registerUser,
-  UserRegistrationData,
-  findUsersByReferralCode
+  UserRegistrationData
 } from './auth/registerService';
 
 import {
@@ -12,13 +11,19 @@ import {
   sendPasswordResetEmail
 } from './auth/loginService';
 
+import {
+  findUsersByReferralCode,
+  updateReferrerInfo
+} from './auth/referralService';
+
 // Export all functions to maintain backwards compatibility
 export {
   registerUser,
   loginUser,
   logoutUser,
   sendPasswordResetEmail,
-  findUsersByReferralCode
+  findUsersByReferralCode,
+  updateReferrerInfo
 };
 
 // Export types
