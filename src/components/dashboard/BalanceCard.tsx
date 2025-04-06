@@ -36,8 +36,9 @@ const BalanceCard = ({ balance }: BalanceCardProps) => {
         });
       }
       previousBalance.current = balance;
-    } else {
-      debugLog("BalanceCard", `Ignoring lower balance value: ${balance}, Keeping: ${stableBalanceRef.current}`);
+    } else if (balance < stableBalanceRef.current) {
+      // Bakiye düştüyse konsola log yaz (debugging için)
+      debugLog("BalanceCard", `İgnoring lower balance value: ${balance}, Keeping: ${stableBalanceRef.current}`);
     }
   }, [balance]);
   

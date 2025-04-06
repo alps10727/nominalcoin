@@ -28,12 +28,16 @@ function ensureValidUserData(data: any, userId?: string): UserData {
     return data;
   }
   
+  // Yerel depolama verisi var mı diye kontrol et
+  const localData = loadUserData();
+  
+  // Temel değerler için yerel depolamadan bilgi varsa kullan
   return {
-    balance: typeof data?.balance === 'number' ? data.balance : 0,
-    miningRate: typeof data?.miningRate === 'number' ? data.miningRate : 0.1,
+    balance: typeof data?.balance === 'number' ? data.balance : (localData?.balance || 0),
+    miningRate: typeof data?.miningRate === 'number' ? data.miningRate : (localData?.miningRate || 0.1),
     lastSaved: typeof data?.lastSaved === 'number' ? data.lastSaved : Date.now(),
     miningActive: !!data?.miningActive,
-    userId: userId || data?.userId
+    userId: userId || data?.userId || localData?.userId
   };
 }
 
@@ -62,14 +66,24 @@ export function useUserDataLoader(
       }
 
       try {
+        // ÖNCE yerel verileri kontrol et - en hızlı erişim için
         const localData = loadUserData();
+        let highestBalance = localData?.balance || 0;
+        
         if (localData) {
           // Yerel verilerde referans kodu var mı kontrol et
           if (!localData.referralCode) {
-            localData.referralCode = generateReferralCode();
+            localData.referralCode = generateReferralCode(currentUser.uid);
             localData.referralCount = localData.referralCount || 0;
             localData.referrals = localData.referrals || [];
             saveUserData(localData);
+          }
+          
+          // UserID güncelleme - eğer yerel veride UserID yoksa veya farklıysa güncelle
+          if (!localData.userId || localData.userId !== currentUser.uid) {
+            localData.userId = currentUser.uid;
+            saveUserData(localData);
+            debugLog("useUserDataLoader", "Yerel verideki UserID güncellendi:", currentUser.uid);
           }
           
           setUserData(localData);
@@ -97,9 +111,17 @@ export function useUserDataLoader(
               
               // Firebase verilerinde referans kodu var mı kontrol et
               if (!firebaseData.referralCode) {
-                firebaseData.referralCode = localData?.referralCode || generateReferralCode();
+                firebaseData.referralCode = localData?.referralCode || generateReferralCode(currentUser.uid);
                 firebaseData.referralCount = firebaseData.referralCount || 0;
                 firebaseData.referrals = firebaseData.referrals || [];
+              }
+              
+              // ÖNEMLİ: Firebase bakiyesi yerel bakiyeden düşük ise en yüksek bakiyeyi kullan
+              if (typeof firebaseData.balance === 'number' && 
+                  typeof highestBalance === 'number' && 
+                  highestBalance > firebaseData.balance) {
+                debugLog("useUserDataLoader", `Yerel bakiye (${highestBalance}) Firebase bakiyesinden (${firebaseData.balance}) yüksek. Yerel veri kullanılıyor.`);
+                firebaseData.balance = highestBalance;
               }
               
               const validatedData = ensureValidUserData(firebaseData, currentUser.uid);
@@ -115,7 +137,7 @@ export function useUserDataLoader(
                 lastSaved: Date.now(),
                 miningActive: false,
                 userId: currentUser?.uid,
-                referralCode: generateReferralCode(),
+                referralCode: generateReferralCode(currentUser.uid),
                 referralCount: 0,
                 referrals: []
               };
@@ -141,7 +163,7 @@ export function useUserDataLoader(
                 lastSaved: Date.now(),
                 miningActive: false,
                 userId: currentUser?.uid,
-                referralCode: generateReferralCode(),
+                referralCode: generateReferralCode(currentUser.uid),
                 referralCount: 0,
                 referrals: []
               };
@@ -159,13 +181,14 @@ export function useUserDataLoader(
         if (isActive) {
           errorLog("useUserDataLoader", "Kullanıcı verileri yüklenirken kritik hata:", error);
           
+          const localData = loadUserData();
           const emptyData: UserData = {
-            balance: 0,
-            miningRate: 0.1,
+            balance: localData?.balance || 0, // Yerel bakiye varsa kullan
+            miningRate: localData?.miningRate || 0.1,
             lastSaved: Date.now(),
             miningActive: false,
             userId: currentUser?.uid,
-            referralCode: generateReferralCode(),
+            referralCode: generateReferralCode(currentUser.uid),
             referralCount: 0,
             referrals: []
           };

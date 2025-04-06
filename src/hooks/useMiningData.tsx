@@ -1,3 +1,4 @@
+
 import { MiningState, MiningData } from "@/types/mining";
 import { useMiningProcess } from "./mining/useMiningProcess";
 import { useMiningInitialization } from "./mining/useMiningInitialization";
@@ -15,11 +16,14 @@ export function useMiningData(): MiningData {
   // Initialize mining data with local storage ONLY
   const { state, setState } = useMiningInitialization();
   const latestStateRef = useRef(state);
+  
+  // Bakiyeyi takip etmek için persistentBalance durumu
   const [persistentBalance, setPersistentBalance] = useState<number>(() => {
     // İlk yüklemede localStorage'dan direkt bakiyeyi al
     const storedData = loadUserData();
-    debugLog("useMiningData", "Initial balance from localStorage:", storedData?.balance || 0);
-    return storedData?.balance || 0;
+    const initialBalance = storedData?.balance || 0;
+    debugLog("useMiningData", "Initial balance from localStorage:", initialBalance);
+    return initialBalance;
   });
   
   // Keep a reference to the latest state for callbacks
@@ -27,7 +31,8 @@ export function useMiningData(): MiningData {
     latestStateRef.current = state;
     
     // Balance değiştiğinde persistentBalance'ı güncelle
-    if (state.balance !== persistentBalance && !state.isLoading) {
+    // Ancak sadece state balansı daha büyükse güncelle (kayıp önleme)
+    if (state.balance > persistentBalance && !state.isLoading) {
       debugLog("useMiningData", "Updating persistent balance:", state.balance);
       setPersistentBalance(state.balance);
     }
@@ -66,7 +71,7 @@ export function useMiningData(): MiningData {
   // Return combined mining data and actions
   return {
     ...state,
-    balance: persistentBalance, // Sabit kalacak şekilde balance değerini kullan
+    balance: Math.max(persistentBalance, state.balance || 0), // Her zaman en yüksek bakiyeyi kullan
     handleStartMining: memoizedStartMining,
     handleStopMining: memoizedStopMining
   };

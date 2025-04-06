@@ -24,6 +24,15 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
       }
       
       debugLog("userDataLoader", "FAST PATH: Yerel depodan veri bulundu", localData);
+      
+      // Kullanıcı ID'sini güncelle - farklı bir kullanıcı ile giriş yapılmışsa da doğru ID kullanılsın
+      if (localData.userId !== userId) {
+        localData.userId = userId;
+        saveUserData(localData);
+        debugLog("userDataLoader", "Yerel veride userID güncellendi:", userId);
+      }
+      
+      // İlk hızlı yol: yerel veriyi döndür, Firebase verisi arkada yüklenecek
       return localData;
     }
     
@@ -51,6 +60,13 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
           ...(userData as any) // Include any additional fields, properly typed now
         };
         
+        // Eğer yerel veri ve Firebase verisi varsa, en yüksek bakiyeyi kullan
+        if (localData && localData.balance > validatedData.balance) {
+          debugLog("userDataLoader", "Yerel bakiye daha yüksek, yerel veri kullanılıyor", 
+            { local: localData.balance, firebase: validatedData.balance });
+          validatedData.balance = localData.balance;
+        }
+        
         // Save to local storage for future fast access
         saveUserData(validatedData);
         return validatedData;
@@ -72,28 +88,29 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
     // Return default data if nothing else is available
     debugLog("userDataLoader", "Varsayılan değerler ile yeni profil oluşturuluyor");
     return {
-      balance: 0,
-      miningRate: 0.1, 
+      balance: localData?.balance || 0, // Yerel bakiye varsa kullan
+      miningRate: localData?.miningRate || 0.1,
       lastSaved: Date.now(),
-      miningActive: false,
+      miningActive: localData?.miningActive || false,
       userId: userId,
-      referralCode: generateReferralCode(userId),
-      referralCount: 0,
-      referrals: []
+      referralCode: localData?.referralCode || generateReferralCode(userId),
+      referralCount: localData?.referralCount || 0,
+      referrals: localData?.referrals || []
     };
   } catch (err) {
     errorLog("userDataLoader", "Veri yükleme hatası:", err);
     
-    // Fallback to defaults
+    // Fallback to defaults - yerel veri varsa kullan
+    const localData = loadUserData();
     return {
-      balance: 0,
-      miningRate: 0.1, 
+      balance: localData?.balance || 0,
+      miningRate: localData?.miningRate || 0.1, 
       lastSaved: Date.now(),
-      miningActive: false,
+      miningActive: localData?.miningActive || false,
       userId: userId,
-      referralCode: generateReferralCode(userId),
-      referralCount: 0,
-      referrals: []
+      referralCode: localData?.referralCode || generateReferralCode(userId),
+      referralCount: localData?.referralCount || 0,
+      referrals: localData?.referrals || []
     };
   }
 }

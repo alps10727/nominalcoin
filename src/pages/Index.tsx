@@ -30,67 +30,72 @@ const Index = () => {
     handleStopMining
   } = useMiningData();
   
-  // Get local storage data directly first for fastest possible rendering and keep it consistent
+  // En son bilinen bakiyeyi localStorage'dan alarak başlat
   const [balance, setBalance] = useState<number>(() => {
     const localData = loadUserData();
-    debugLog("Index", `Initial balance from localStorage: ${localData?.balance || 0}`);
-    return localData?.balance || 0;
+    const initialBalance = localData?.balance || 0;
+    debugLog("Index", `Initial balance from localStorage: ${initialBalance}`);
+    return initialBalance;
   });
   
   const isFirstRender = useRef(true);
   const storedBalanceRef = useRef(balance);
   
-  // Also get balance from auth context as a backup
+  // Ayrıca auth context'ten de balance al - yedek olarak
   const { userData, loading: authLoading, isOffline } = useAuth();
   const [isInitialized, setIsInitialized] = useState(!!loadUserData());
   
-  // Update balance when mining balance changes (after initialization)
+  // En yüksek bakiyeyi takip et ve kullan
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-    
-    if (!miningLoading && miningBalance > 0) {
-      debugLog("Index", `Updating balance from mining: ${miningBalance}, Previous: ${storedBalanceRef.current}`);
+    // İlk render dışında bakiyeyi madencilik verisinden güncelle
+    if (!isFirstRender.current && !miningLoading && miningBalance > 0) {
+      debugLog("Index", `Checking mining balance: ${miningBalance}, Current: ${storedBalanceRef.current}`);
       
-      // Sadece daha yüksek değerler için güncelle (kaybolan bakiye sorununu önlemek için)
-      if (miningBalance >= storedBalanceRef.current) {
+      // Sadece daha yüksek değerler için güncelle
+      if (miningBalance > storedBalanceRef.current) {
+        debugLog("Index", `Updating balance from mining: ${miningBalance}`);
         setBalance(miningBalance);
         storedBalanceRef.current = miningBalance;
       }
     }
+    
+    // İlk render işareti kaldır
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+    }
   }, [miningBalance, miningLoading]);
   
-  // Backup method: If auth userData has balance and it's higher than our current balance
+  // Yedek yöntem: Auth userData'dan bakiye geliyorsa ve mevcut bakiyeden yüksekse
   useEffect(() => {
-    if (!authLoading && userData?.balance) {
+    if (!authLoading && userData?.balance !== undefined) {
       debugLog("Index", `Checking auth balance: ${userData.balance}, Current: ${storedBalanceRef.current}`);
       
       // Sadece daha yüksek değerler için güncelle
       if (userData.balance > storedBalanceRef.current) {
+        debugLog("Index", `Using higher balance from auth: ${userData.balance}`);
         setBalance(userData.balance);
         storedBalanceRef.current = userData.balance;
-        debugLog("Index", `Using higher balance from auth: ${userData.balance}`);
       }
     }
   }, [userData, authLoading]);
   
-  // Short timeout (2 seconds) to force initialization even if data loading fails
+  // Verilerin yüklenmesinde hata olsa bile 2 saniye sonra initialize et
   useEffect(() => {
     const timeout = setTimeout(() => {
-      setIsInitialized(true);
+      if (!isInitialized) {
+        setIsInitialized(true);
+      }
     }, 2000);
     
     return () => clearTimeout(timeout);
-  }, []);
+  }, [isInitialized]);
 
   const isMobile = useIsMobile();
   const { t } = useLanguage();
   const { theme } = useTheme();
 
-  // Only show loading if we have no data from any source
-  const isLoading = !isInitialized && balance === 0;
+  // Hiçbir kaynaktan veri gelmediyse loading göster
+  const isLoading = !isInitialized && authLoading;
 
   if (isLoading) {
     return <LoadingScreen message={isOffline ? "Çevrimdışı modda yükleniyor..." : "Veriler hazırlanıyor..."} />;
