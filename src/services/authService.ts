@@ -9,7 +9,17 @@ import {
 import { saveUserDataToFirebase } from "./userService";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { db } from "@/config/firebase";
-import { doc, getDoc, updateDoc, arrayUnion, increment } from "firebase/firestore";
+import { 
+  doc, 
+  getDoc, 
+  updateDoc, 
+  arrayUnion, 
+  increment,
+  collection,
+  query,
+  where,
+  getDocs
+} from "firebase/firestore";
 
 // Kullanıcı kayıt bilgileri için arayüz
 export interface UserRegistrationData {
@@ -79,6 +89,7 @@ export async function registerUser(email: string, password: string, userData: Us
       miningTime: 21600,
       miningPeriod: 21600,
       miningSession: 0,
+      createdAt: Date.now(), // Add creation timestamp
       ...userData
     });
     
@@ -114,20 +125,18 @@ async function findUsersByReferralCode(referralCode: string): Promise<string[]> 
     debugLog("authService", "Referans kodu ile kullanıcı aranıyor:", referralCode);
     
     // Firestore'da referralCode alanı ile eşleşen kullanıcıları ara
-    // Not: Bu basit bir implementasyon, büyük veritabanlarında daha gelişmiş bir sorgu gerekebilir
+    // Query kullanarak referral kodu ile kullanıcı arama
+    const usersCollection = collection(db, "users");
+    const q = query(usersCollection, where("referralCode", "==", referralCode));
+    const querySnapshot = await getDocs(q);
     
-    // users koleksiyonundaki tüm dokümanları almak yerine,
-    // gerçek bir uygulamada bir index oluşturup ona göre sorgu yapmanız gerekir
-    // Şimdilik basit bir şekilde kullanıcı dokümanını referralCode ile arayalım
-    const userRef = doc(db, "users", referralCode);
-    const userDoc = await getDoc(userRef);
+    const userIds: string[] = [];
+    querySnapshot.forEach((doc) => {
+      userIds.push(doc.id);
+    });
     
-    if (userDoc.exists()) {
-      // Doküman varsa, kullanıcı ID'sini döndür
-      return [userDoc.id];
-    }
-    
-    return [];
+    debugLog("authService", `${userIds.length} kullanıcı bulundu referans kodu ile:`, referralCode);
+    return userIds;
   } catch (error) {
     errorLog("authService", "Referans kodu ile kullanıcı arama hatası:", error);
     return [];
