@@ -1,13 +1,11 @@
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
 import { Button } from "@/components/ui/button";
-
-// EmulatorSwitch bileşenini içe aktar
-import EmulatorSwitch from "@/components/settings/EmulatorSwitch";
 
 const Profile = () => {
   const [loading, setLoading] = useState(false);
@@ -44,14 +42,6 @@ const Profile = () => {
           Çıkış Yap
         </Button>
       </div>
-      
-      {/* Geliştirici ayarları bölümü */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold mb-4">Geliştirici Ayarları</h2>
-          <EmulatorSwitch />
-        </div>
-      )}
     </div>
   );
 };
