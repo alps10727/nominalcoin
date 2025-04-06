@@ -14,6 +14,7 @@ export interface UserData {
   referredBy?: string | null; // User ID who referred this user, if any
   name?: string; // User's name
   emailAddress?: string; // User's email address
+  createdAt?: number; // When the user account was created
 }
 
 /**
