@@ -3,6 +3,7 @@ import { getDocument } from "./dbService";
 import { loadUserData, saveUserData, UserData } from "@/utils/storage";
 import { toast } from "sonner";
 import { debugLog, errorLog } from "@/utils/debugUtils";
+import { generateReferralCode } from "@/utils/referralUtils";
 
 /**
  * Kullanıcı verilerini yükleme - local storage öncelikli ve geliştirilmiş hata işleme
@@ -14,6 +15,14 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
     // ALWAYS check local storage first for fastest response
     const localData = loadUserData();
     if (localData) {
+      // Yerel verilerde referans kodu yoksa, oluştur
+      if (!localData.referralCode) {
+        localData.referralCode = generateReferralCode();
+        localData.referralCount = 0;
+        localData.referrals = [];
+        saveUserData(localData);
+      }
+      
       debugLog("userDataLoader", "FAST PATH: Yerel depodan veri bulundu", localData);
       return localData;
     }
@@ -35,6 +44,10 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
           lastSaved: typeof userData.lastSaved === 'number' ? userData.lastSaved : Date.now(),
           miningActive: !!userData.miningActive,
           userId: userId,
+          // Eğer referans kodu yoksa yeni bir tane oluştur
+          referralCode: userData.referralCode || generateReferralCode(),
+          referralCount: userData.referralCount || 0,
+          referrals: userData.referrals || [],
           ...(userData as any) // Include any additional fields, properly typed now
         };
         
@@ -63,7 +76,10 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
       miningRate: 0.1, 
       lastSaved: Date.now(),
       miningActive: false,
-      userId: userId
+      userId: userId,
+      referralCode: generateReferralCode(),
+      referralCount: 0,
+      referrals: []
     };
   } catch (err) {
     errorLog("userDataLoader", "Veri yükleme hatası:", err);
@@ -74,7 +90,10 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
       miningRate: 0.1, 
       lastSaved: Date.now(),
       miningActive: false,
-      userId: userId
+      userId: userId,
+      referralCode: generateReferralCode(),
+      referralCount: 0,
+      referrals: []
     };
   }
 }

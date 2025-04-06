@@ -1,9 +1,11 @@
+
 import { useState, useEffect } from "react";
 import { User } from "firebase/auth";
 import { loadUserDataFromFirebase } from "@/services/userDataLoader";
 import { loadUserData, saveUserData, UserData } from "@/utils/storage";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { toast } from "sonner";
+import { generateReferralCode } from "@/utils/referralUtils";
 
 export interface UserDataState {
   userData: UserData | null;
@@ -62,6 +64,14 @@ export function useUserDataLoader(
       try {
         const localData = loadUserData();
         if (localData) {
+          // Yerel verilerde referans kodu var mı kontrol et
+          if (!localData.referralCode) {
+            localData.referralCode = generateReferralCode();
+            localData.referralCount = localData.referralCount || 0;
+            localData.referrals = localData.referrals || [];
+            saveUserData(localData);
+          }
+          
           setUserData(localData);
           setDataSource('local');
           debugLog("useUserDataLoader", "Yerel depodan kullanıcı verileri yüklendi:", localData);
@@ -85,18 +95,29 @@ export function useUserDataLoader(
             if (firebaseData) {
               debugLog("useUserDataLoader", "Firebase'den kullanıcı verileri yüklendi:", firebaseData);
               
+              // Firebase verilerinde referans kodu var mı kontrol et
+              if (!firebaseData.referralCode) {
+                firebaseData.referralCode = localData?.referralCode || generateReferralCode();
+                firebaseData.referralCount = firebaseData.referralCount || 0;
+                firebaseData.referrals = firebaseData.referrals || [];
+              }
+              
               const validatedData = ensureValidUserData(firebaseData, currentUser.uid);
               setUserData(validatedData);
               setDataSource('firebase');
               
               saveUserData(validatedData);
             } else if (!localData) {
+              // Hem Firebase hem yerel depoda veri yoksa, yeni profil oluştur
               const emptyData: UserData = {
                 balance: 0,
                 miningRate: 0.1,
                 lastSaved: Date.now(),
                 miningActive: false,
-                userId: currentUser?.uid
+                userId: currentUser?.uid,
+                referralCode: generateReferralCode(),
+                referralCount: 0,
+                referrals: []
               };
               setUserData(emptyData);
               saveUserData(emptyData);
@@ -119,7 +140,10 @@ export function useUserDataLoader(
                 miningRate: 0.1,
                 lastSaved: Date.now(),
                 miningActive: false,
-                userId: currentUser?.uid
+                userId: currentUser?.uid,
+                referralCode: generateReferralCode(),
+                referralCount: 0,
+                referrals: []
               };
               setUserData(emptyData);
               saveUserData(emptyData);
@@ -140,7 +164,10 @@ export function useUserDataLoader(
             miningRate: 0.1,
             lastSaved: Date.now(),
             miningActive: false,
-            userId: currentUser?.uid
+            userId: currentUser?.uid,
+            referralCode: generateReferralCode(),
+            referralCount: 0,
+            referrals: []
           };
           setUserData(emptyData);
           saveUserData(emptyData);
