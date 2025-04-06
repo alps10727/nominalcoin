@@ -23,10 +23,10 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
       console.error("Kritik uygulama hatası:", event.error);
       setLoadingError(event.error);
       
-      // Sayfayı otomatik yenileme seçeneği
+      // Sayfayı otomatik yenileme seçeneği - hızlandırıldı
       setTimeout(() => {
         window.location.reload();
-      }, 5000);
+      }, 3000); // 5000ms'den 3000ms'ye düşürüldü
     };
     
     window.addEventListener('error', handleGlobalError);
@@ -60,7 +60,7 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     
-    // Uygulama ilk yükleme - daha hızlı başlatma için değiştirildi
+    // Uygulama ilk yükleme - daha hızlı başlatma
     const initializeApp = () => {
       try {
         const startTime = performance.now();
@@ -69,12 +69,12 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
         if (!initialLoadAttempted || loadAttempt < 3) {
           setInitialLoadAttempted(true);
           
-          // Uygulamayı daha hızlı başlatma
+          // Uygulamayı daha hızlı başlatma - süre kısaltıldı
           const loadTimer = setTimeout(() => {
             setReady(true);
             const loadTime = performance.now() - startTime;
             debugLog("AppInitializer", `Uygulama ${loadTime.toFixed(0)}ms içinde başlatıldı`);
-          }, 500); // Başlatma süresi 500ms'ye düşürüldü
+          }, 300); // 500ms'den 300ms'ye düşürüldü
           
           return () => {
             clearTimeout(loadTimer);
@@ -96,13 +96,13 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
     };
   }, [reconnecting, initialLoadAttempted, loadAttempt, isOffline]);
   
-  // Yükleme başarısız olursa tekrar dene - maksimum 3 deneme
+  // Yükleme başarısız olursa tekrar dene - süre kısaltıldı
   useEffect(() => {
     if (initialLoadAttempted && !ready && loadAttempt < 3) {
       const retryTimer = setTimeout(() => {
         debugLog("AppInitializer", `Yükleme denemesi ${loadAttempt + 1}/3 başlatılıyor...`);
         setLoadAttempt(prev => prev + 1);
-      }, 2000); // Daha kısa sürede tekrar dene
+      }, 1000); // 2000ms'den 1000ms'ye düşürüldü
       
       return () => {
         clearTimeout(retryTimer);
@@ -120,7 +120,7 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
     );
   }
   
-  // Yükleme ekranı
+  // Yükleme ekranı - süre kısaltıldı
   if (!ready) {
     return (
       <LoadingScreen 

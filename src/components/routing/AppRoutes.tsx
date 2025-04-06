@@ -1,12 +1,12 @@
 
 import { Suspense, lazy, useEffect, useState, useMemo } from "react";
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "../dashboard/LoadingScreen";
 import { toast } from "sonner";
 import { errorLog } from "@/utils/debugUtils";
 
-// Lazy-loaded pages
+// Lazy-loaded pages with reduced loading timeout
 const Index = lazy(() => import("@/pages/Index"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const Profile = lazy(() => import("@/pages/Profile"));
@@ -40,41 +40,41 @@ const ErrorBoundary = ({ children }: { children: React.ReactNode }) => {
     if (hasError) {
       const timer = setTimeout(() => {
         window.location.reload();
-      }, 3000);
+      }, 2000); // Daha hızlı yenileme
       return () => clearTimeout(timer);
     }
   }, [hasError, navigate]);
 
   if (hasError) {
-    return <LoadingScreen message="Bir hata oluştu. Sayfa yeniden yükleniyor..." />;
+    return <LoadingScreen message="Bir hata oluştu, sayfa yeniden yükleniyor..." />;
   }
 
   return <>{children}</>;
 };
 
-// PrivateRoute component - optimize edildi
+// PrivateRoute - hızlandırıldı
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { currentUser, loading } = useAuth();
   const [waitingTooLong, setWaitingTooLong] = useState(false);
   
-  // Sadece yükleme durumunda zamanlayıcıyı başlat
+  // Sadece yükleme durumunda zamanlayıcıyı başlat - süre kısaltıldı
   useEffect(() => {
     if (!loading) return;
     
     const timer = setTimeout(() => {
       setWaitingTooLong(true);
-    }, 1500);
+    }, 800); // 1500ms'den 800ms'ye düşürüldü
     
     return () => clearTimeout(timer);
   }, [loading]);
   
-  // Yükleme durumu değiştiğinde otomatik yönlendirme
+  // Yükleme durumu değiştiğinde otomatik yönlendirme - süre kısaltıldı
   useEffect(() => {
     if (!loading || !waitingTooLong) return;
     
     const redirectTimer = setTimeout(() => {
       window.location.href = "/sign-in";
-    }, 4000);
+    }, 2000); // 4000ms'den 2000ms'ye düşürüldü
     
     return () => clearTimeout(redirectTimer);
   }, [loading, waitingTooLong]);
@@ -90,23 +90,53 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Yeni: Sayfa geçişlerini optimize etmek için kullanılan bileşen
+const PageTransition = ({ children }: { children: React.ReactNode }) => {
+  const [isLoading, setIsLoading] = useState(true);
+  const location = useLocation();
+  
+  useEffect(() => {
+    // Sayfa geçişlerinde kısa bir yükleme göster
+    setIsLoading(true);
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 300); // Çok kısa bir yükleme süresi
+    
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
+  
+  if (isLoading) {
+    return <LoadingScreen message="Sayfa hazırlanıyor..." />;
+  }
+  
+  return <>{children}</>;
+};
+
 const AppRoutes = () => {
   // Ana sayfaları önden yükleme - memoize edildi
   useEffect(() => {
     const prefetchPages = async () => {
       try {
-        await Promise.all([
+        // Tüm sayfaları önceden yükle
+        const importPromises = [
           import("@/pages/Index"),
           import("@/pages/Profile"),
+          import("@/pages/History"),
+          import("@/pages/Referral"),
+          import("@/pages/Tasks"),
+          import("@/pages/MiningUpgrades"),
           import("@/components/MobileNavigation")
-        ]);
-        console.log("Ana sayfalar daha hızlı gezinme için önceden yüklendi");
+        ];
+        
+        // Sayfaları paralel olarak yükle
+        await Promise.all(importPromises);
+        console.log("Sayfalar daha hızlı gezinme için önceden yüklendi");
       } catch (error) {
         errorLog("AppRoutes", "Sayfaları önceden yükleme başarısız oldu:", error);
       }
     };
     
-    // Sadece bir kez çalıştır
+    // Hızlı erişim için ilk yükleme
     prefetchPages();
   }, []);
 
@@ -116,72 +146,93 @@ const AppRoutes = () => {
         <Route path="/" element={
           <PrivateRoute>
             <Suspense fallback={<LoadingScreen message="Ana sayfa yükleniyor..." />}>
-              <Index />
+              <PageTransition>
+                <Index />
+              </PageTransition>
             </Suspense>
           </PrivateRoute>
         } />
         
-        {/* Diğer rotaları koruyoruz */}
         <Route path="/profile" element={
           <PrivateRoute>
             <Suspense fallback={<LoadingScreen message="Profil yükleniyor..." />}>
-              <Profile />
+              <PageTransition>
+                <Profile />
+              </PageTransition>
             </Suspense>
           </PrivateRoute>
         } />
         <Route path="/history" element={
           <PrivateRoute>
             <Suspense fallback={<LoadingScreen message="Geçmiş yükleniyor..." />}>
-              <History />
+              <PageTransition>
+                <History />
+              </PageTransition>
             </Suspense>
           </PrivateRoute>
         } />
         <Route path="/referral" element={
           <PrivateRoute>
             <Suspense fallback={<LoadingScreen message="Referans sistemi yükleniyor..." />}>
-              <Referral />
+              <PageTransition>
+                <Referral />
+              </PageTransition>
             </Suspense>
           </PrivateRoute>
         } />
         <Route path="/tasks" element={
           <PrivateRoute>
             <Suspense fallback={<LoadingScreen message="Görevler yükleniyor..." />}>
-              <Tasks />
+              <PageTransition>
+                <Tasks />
+              </PageTransition>
             </Suspense>
           </PrivateRoute>
         } />
         <Route path="/mining/upgrades" element={
           <PrivateRoute>
             <Suspense fallback={<LoadingScreen message="Yükseltmeler yükleniyor..." />}>
-              <MiningUpgrades />
+              <PageTransition>
+                <MiningUpgrades />
+              </PageTransition>
             </Suspense>
           </PrivateRoute>
         } />
         <Route path="/statistics" element={
           <PrivateRoute>
             <Suspense fallback={<LoadingScreen message="İstatistikler yükleniyor..." />}>
-              <Statistics />
+              <PageTransition>
+                <Statistics />
+              </PageTransition>
             </Suspense>
           </PrivateRoute>
         } />
         <Route path="/sign-in" element={
           <Suspense fallback={<LoadingScreen message="Giriş sayfası yükleniyor..." />}>
-            <SignIn />
+            <PageTransition>
+              <SignIn />
+            </PageTransition>
           </Suspense>
         } />
         <Route path="/sign-up" element={
           <Suspense fallback={<LoadingScreen message="Kayıt sayfası yükleniyor..." />}>
-            <SignUp />
+            <PageTransition>
+              <SignUp />
+            </PageTransition>
           </Suspense>
         } />
         <Route path="/forgot-password" element={
           <Suspense fallback={<LoadingScreen message="Şifre sıfırlama sayfası yükleniyor..." />}>
-            <ForgotPassword />
+            <PageTransition>
+              <ForgotPassword />
+            </PageTransition>
           </Suspense>
         } />
         <Route path="*" element={
           <Suspense fallback={<LoadingScreen message="Sayfa yükleniyor..." />}>
-            <NotFound />
+            <PageTransition>
+              <NotFound />
+            </PageTransition>
           </Suspense>
         } />
       </Routes>
