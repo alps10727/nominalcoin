@@ -36,8 +36,32 @@ export const formatTimeDisplay = (seconds: number): string => {
 
 /**
  * Calculate daily mining rate based on mining rate per minute
+ * Includes base rate + referral bonuses
  */
 export const calculateDailyRate = (miningRate: number): number => {
-  // Dakikada 0.003 NC, 60 dakika/saat, 24 saat/gün
+  // Dakikadaki oran (temel + referral bonus), 60 dakika/saat, 24 saat/gün
   return miningRate * 60 * 24;
+};
+
+/**
+ * Calculate referral bonus portion of mining rate
+ * @param miningRate Total mining rate
+ * @returns Bonus portion only (without base rate)
+ */
+export const calculateReferralBonus = (miningRate: number): number => {
+  const baseRate = 0.003; // Temel madencilik hızı
+  return Math.max(0, miningRate - baseRate);
+};
+
+/**
+ * Calculate number of successful referrals based on mining rate
+ * @param miningRate Total mining rate
+ * @returns Estimated number of successful referrals
+ */
+export const estimateSuccessfulReferrals = (miningRate: number): number => {
+  const baseRate = 0.003; // Temel madencilik hızı
+  const bonusPerReferral = 0.001; // Her başarılı davet için artış
+  
+  const bonus = Math.max(0, miningRate - baseRate);
+  return Math.round(bonus / bonusPerReferral);
 };

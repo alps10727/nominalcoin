@@ -49,7 +49,7 @@ export async function registerUser(email: string, password: string, userData: Us
           const referrerId = referrers[0];
           debugLog("registerService", "Referrer found:", referrerId);
           
-          // Update referrer's referral information
+          // Update referrer's referral information and mining rate
           await updateReferrerInfo(referrerId, user.uid);
         } else {
           // Log invalid referral code but continue with registration
@@ -67,7 +67,7 @@ export async function registerUser(email: string, password: string, userData: Us
       userId: user.uid,
       emailAddress: email,
       balance: 0,
-      miningRate: 0.1,
+      miningRate: 0.003, // Başlangıç mining hızı 0.003 olarak ayarlandı
       lastSaved: Date.now(),
       miningActive: false,
       miningTime: 21600,

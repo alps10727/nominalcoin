@@ -15,7 +15,7 @@ export function useMiningInitialization() {
     miningActive: false,
     progress: 0,
     balance: 0,
-    miningRate: 0.003, // Changed from 0.01 to 0.003 NC per minute
+    miningRate: 0.003, // Temel oran 0.003 NC/dakika
     miningSession: 0,
     miningTime: 21600, // 6 hours in seconds
     miningPeriod: 21600, // Total period 6 hours
@@ -41,12 +41,15 @@ export function useMiningInitialization() {
       if (localData) {
         debugLog("useMiningInitialization", "USING LOCAL STORAGE DATA ONLY:", localData);
         
+        // Madencilik hızının en az 0.003 olmasını garantile (temel oran)
+        const safeRate = Math.max(localData.miningRate || 0.003, 0.003);
+        
         setState(prevState => ({
           ...prevState,
           isLoading: false,
           userId: localData.userId || 'local-user',
           balance: localData.balance || 0,
-          miningRate: 0.003, // Changed from 0.01 to 0.003 NC per minute
+          miningRate: safeRate, // Referral bonusları dahil oran
           miningActive: localData.miningActive || false,
           miningTime: localData.miningTime != null ? localData.miningTime : 21600,
           miningPeriod: localData.miningPeriod || 21600,
@@ -56,7 +59,7 @@ export function useMiningInitialization() {
             : 0
         }));
         
-        debugLog("useMiningInitialization", "Mining state initialized from LOCAL STORAGE with balance:", localData.balance);
+        debugLog("useMiningInitialization", "Mining state initialized from LOCAL STORAGE with balance:", localData.balance, "mining rate:", safeRate);
       } else {
         debugLog("useMiningInitialization", "No local data found, using defaults");
         setState(prev => ({ 

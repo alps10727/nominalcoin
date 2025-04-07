@@ -38,7 +38,8 @@ export async function findUsersByReferralCode(referralCode: string): Promise<str
 }
 
 /**
- * Update referrer's information
+ * Update referrer's information with mining rate boost
+ * Each successful referral increases mining rate by 0.001
  */
 export async function updateReferrerInfo(referrerId: string, newUserId: string): Promise<void> {
   try {
@@ -46,13 +47,15 @@ export async function updateReferrerInfo(referrerId: string, newUserId: string):
     
     const userRef = doc(db, "users", referrerId);
     
-    // Add new user to referrals array and increment referralCount
+    // Add new user to referrals array, increment referralCount and add mining rate boost
     await updateDoc(userRef, {
       referrals: arrayUnion(newUserId),
-      referralCount: increment(1)
+      referralCount: increment(1),
+      // Her başarılı davet için madencilik hızını 0.001 artır
+      miningRate: increment(0.001)
     });
     
-    debugLog("referralService", "Referrer information updated");
+    debugLog("referralService", "Referrer information updated with mining rate boost");
   } catch (error) {
     errorLog("referralService", "Error updating referrer information:", error);
     throw error;
