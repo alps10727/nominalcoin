@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { CheckCircle, Clock, Award, CheckCheck } from "lucide-react";
 import { Task, Badge } from "@/types/tasks";
@@ -78,29 +77,23 @@ export const useTasksData = () => {
     },
   ]);
 
-  // Kullanıcı verilerine göre görevleri ve rozetleri güncelle
   useEffect(() => {
     if (userData) {
-      // Günlük görevleri güncelle
       const updatedTasks = [...dailyTasks];
       
-      // Madencilik görevi - balance değerine göre ilerlemeyi hesapla
       const miningTask = updatedTasks.find(task => task.id === 1);
       if (miningTask) {
-        // Her 5 coin için 1 ilerleme
         const miningProgress = Math.min(5, Math.floor(userData.balance / 5));
         miningTask.progress = miningProgress;
         miningTask.completed = miningTask.progress >= miningTask.totalRequired;
       }
       
-      // Profil görevi - kullanıcı adı varsa tamamlanmış say
       const profileTask = updatedTasks.find(task => task.id === 2);
       if (profileTask && userData.name) {
         profileTask.progress = 1;
         profileTask.completed = true;
       }
       
-      // Davet görevi - referral sayısına göre güncelle
       const inviteTask = updatedTasks.find(task => task.id === 3);
       if (inviteTask && userData.referralCount) {
         inviteTask.progress = Math.min(inviteTask.totalRequired, userData.referralCount);
@@ -109,24 +102,20 @@ export const useTasksData = () => {
       
       setDailyTasks(updatedTasks);
       
-      // Rozetleri güncelle
       const updatedBadges = [...badges];
       
-      // İlk madenci rozeti - herhangi bir bakiye varsa
       const firstMinerBadge = updatedBadges.find(badge => badge.id === 1);
       if (firstMinerBadge) {
         firstMinerBadge.progress = userData.balance > 0 ? 100 : 0;
         firstMinerBadge.earned = userData.balance > 0;
       }
       
-      // Madencilik uzmanı rozeti - 50 coin'e göre ilerleme
       const miningProBadge = updatedBadges.find(badge => badge.id === 2);
       if (miningProBadge) {
         miningProBadge.progress = Math.min(100, Math.floor((userData.balance / 50) * 100));
         miningProBadge.earned = userData.balance >= 50;
       }
       
-      // Sosyal networker rozeti - referral sayısına göre (5 referral için tam rozet)
       const socialBadge = updatedBadges.find(badge => badge.id === 3);
       if (socialBadge) {
         const referrals = userData.referralCount || 0;
@@ -134,8 +123,6 @@ export const useTasksData = () => {
         socialBadge.earned = referrals >= 5;
       }
       
-      // Yükseltme ustası rozeti - miningRate değerine göre
-      // Başlangıç değeri 0.01, maksimum 0.5 varsayalım
       const upgradeBadge = updatedBadges.find(badge => badge.id === 4);
       if (upgradeBadge) {
         const baseRate = 0.01;
@@ -161,31 +148,25 @@ export const useTasksData = () => {
       const task = dailyTasks[taskIndex];
       if (task.progress >= task.totalRequired && !task.completed) {
         try {
-          // Görev ödülünü ekle
           const newBalance = userData.balance + task.reward;
           
-          // Görevi tamamlandı olarak işaretle
           const newTasks = [...dailyTasks];
           newTasks[taskIndex] = { ...task, completed: true };
           setDailyTasks(newTasks);
           
-          // Kullanıcı verisini güncelle
           const updatedUserData = {
             ...userData,
             balance: newBalance
           };
           
-          // Önce yerel depoya kaydet
           saveUserData(updatedUserData);
           
-          // Ardından Firebase'e kaydet (eğer çevrimdışı değilse)
           if (!isOffline && currentUser) {
             await saveUserDataToFirebase(currentUser.uid, updatedUserData);
           }
           
           debugLog("TasksData", `Görev ödülü eklendi: +${task.reward} NC, Yeni bakiye: ${newBalance}`);
           
-          // Başarı bildirimi göster
           toast.success(t("tasks.rewardClaimed", { reward: task.reward }), {
             style: { background: "#4338ca", color: "white", border: "1px solid #3730a3" },
             icon: '💰'
