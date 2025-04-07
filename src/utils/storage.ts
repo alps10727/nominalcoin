@@ -1,3 +1,4 @@
+
 export interface UserData {
   userId?: string;
   balance: number;
@@ -68,7 +69,7 @@ export function saveUserData(userData: UserData): void {
         : 0,
       miningRate: typeof userData.miningRate === 'number' && !isNaN(userData.miningRate) 
         ? userData.miningRate 
-        : 0.1,
+        : 0.003,
       lastSaved: Date.now(),
     };
     
