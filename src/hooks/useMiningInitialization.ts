@@ -41,6 +41,9 @@ export function useMiningInitialization() {
       if (localData) {
         debugLog("useMiningInitialization", "USING LOCAL STORAGE DATA ONLY:", localData);
         
+        const miningTime = localData.miningTime != null ? localData.miningTime : 21600;
+        const miningPeriod = localData.miningPeriod || 21600;
+        
         setState(prevState => ({
           ...prevState,
           isLoading: false,
@@ -48,13 +51,10 @@ export function useMiningInitialization() {
           balance: localData.balance || 0,
           miningRate: 0.01, // Her zaman 0.01 olarak ayarla (dakikada 0.01 NC)
           miningActive: localData.miningActive || false,
-          miningTime: localData.miningTime != null ? localData.miningTime : 21600,
-          miningPeriod: localData.miningPeriod || 21600,
+          miningTime: miningTime,
+          miningPeriod: miningPeriod,
           miningSession: localData.miningSession || 0,
-          progress: calculateProgress(
-            localData.miningTime != null ? localData.miningTime : 21600, 
-            localData.miningPeriod || 21600
-          )
+          progress: calculateProgress(miningTime, miningPeriod)
         }));
         
         debugLog("useMiningInitialization", "Mining state initialized from LOCAL STORAGE with balance:", localData.balance);
