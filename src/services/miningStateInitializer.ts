@@ -61,7 +61,7 @@ function createMiningState(userId: string, userData: any): MiningState {
     isLoading: false,
     userId: userId,
     balance: userData.balance || 0,
-    miningRate: 0.01, // Dakikada 0.01 NC olarak sabit
+    miningRate: 0.003, // Changed from 0.01 to 0.003 NC per minute
     miningActive: userData.miningActive || false,
     miningTime: userData.miningTime || 21600,
     miningPeriod: userData.miningPeriod || 21600,
@@ -75,7 +75,7 @@ function createDefaultMiningState(): MiningState {
   return {
     isLoading: false,
     balance: 0,
-    miningRate: 0.01, // Dakikada 0.01 NC
+    miningRate: 0.003, // Changed from 0.01 to 0.003 NC per minute
     miningActive: false,
     miningTime: 21600,
     miningPeriod: 21600,

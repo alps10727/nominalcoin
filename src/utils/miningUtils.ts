@@ -38,6 +38,6 @@ export const formatTimeDisplay = (seconds: number): string => {
  * Calculate daily mining rate based on mining rate per minute
  */
 export const calculateDailyRate = (miningRate: number): number => {
-  // Dakikada 0.01 NC, 60 dakika/saat, 24 saat/gün
+  // Dakikada 0.003 NC, 60 dakika/saat, 24 saat/gün
   return miningRate * 60 * 24;
 };

@@ -39,8 +39,8 @@ const MiningCard = React.memo<MiningCardProps>(({
     }
   }, [miningActive, onStartMining, onStopMining]);
 
-  // Quick stats for display
-  const hourlyRate = (miningRate * 20).toFixed(1); // 20 cycles per hour (3 mins each)
+  // Quick stats for display - adjusted for 0.003 rate
+  const hourlyRate = (miningRate * 20).toFixed(2); // 20 cycles per hour (3 mins each)
 
   return (
     <Card className="border-0 overflow-hidden shadow-lg transition-all duration-300 relative rounded-xl backdrop-blur-sm group
@@ -124,7 +124,7 @@ const MiningCard = React.memo<MiningCardProps>(({
                 Session Earned
               </div>
               <div className="text-sm font-semibold text-white">
-                +{miningSession.toFixed(2)} FC
+                +{miningSession.toFixed(3)} FC
               </div>
             </div>
           </div>

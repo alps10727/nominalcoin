@@ -12,8 +12,9 @@ export const MiningCardHeader = React.memo<MiningCardHeaderProps>(({
   miningRate, 
   isMobile 
 }) => {
-  // Mining rate'i yüzde olarak göstermek için 3 ile çarpıp 100 ile çarpıyoruz
-  const miningRatePercent = (miningRate * 3 * 100).toFixed(0);
+  // Mining rate'i yüzde olarak göstermek için 10 ile çarpıp 100 ile çarpıyoruz
+  // Adjusted from 3 to 10 to account for the new base rate of 0.003
+  const miningRatePercent = (miningRate * 10 * 100).toFixed(0);
 
   return (
     <CardHeader className={`relative z-10 ${isMobile ? "px-4 py-3" : ""} text-white`}>

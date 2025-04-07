@@ -54,7 +54,7 @@ export function addMiningReward(
   });
   
   // Show reward toast with improved styling
-  toast.success(`+${rewardAmount.toFixed(2)} NC earned!`, {
+  toast.success(`+${rewardAmount.toFixed(3)} NC earned!`, {
     style: { background: "#4338ca", color: "white", border: "1px solid #3730a3" },
     icon: '💰',
     id: `reward-${Date.now()}` // Add unique ID to prevent duplicate toasts
