@@ -102,6 +102,7 @@ export const useTaskManagement = () => {
           
           debugLog("TasksData", `Görev ödülü eklendi: +${task.reward} NC, Yeni bakiye: ${newBalance}`);
           
+          // Fix: Use a simple string with interpolation for the reward
           toast.success(t("tasks.rewardClaimed", { reward: task.reward.toString() }), {
             style: { background: "#4338ca", color: "white", border: "1px solid #3730a3" },
             icon: '💰'
