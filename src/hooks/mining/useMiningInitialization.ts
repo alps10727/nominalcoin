@@ -44,6 +44,9 @@ export function useMiningInitialization() {
         // Madencilik hızının en az 0.003 olmasını garantile (temel oran)
         const safeRate = Math.max(localData.miningRate || 0.003, 0.003);
         
+        const miningTime = localData.miningTime != null ? localData.miningTime : 21600;
+        const miningPeriod = localData.miningPeriod || 21600;
+        
         setState(prevState => ({
           ...prevState,
           isLoading: false,
@@ -51,13 +54,10 @@ export function useMiningInitialization() {
           balance: localData.balance || 0,
           miningRate: safeRate, // Referral bonusları dahil oran
           miningActive: localData.miningActive || false,
-          miningTime: localData.miningTime != null ? localData.miningTime : 21600,
-          miningPeriod: localData.miningPeriod || 21600,
+          miningTime: miningTime,
+          miningPeriod: miningPeriod,
           miningSession: localData.miningSession || 0,
-          progress: calculateProgress(
-            localData.miningTime != null ? localData.miningTime : 21600,
-            localData.miningPeriod || 21600
-          )
+          progress: calculateProgress(miningTime, miningPeriod)
         }));
         
         debugLog("useMiningInitialization", "Mining state initialized from LOCAL STORAGE with balance:", localData.balance, "mining rate:", safeRate);
