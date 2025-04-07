@@ -16,8 +16,8 @@ const ErrorBoundary = ({ children }: ErrorBoundaryProps) => {
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
       event.preventDefault();
-      errorLog("ErrorBoundary", "Kritik hata yakalandı:", event.error);
-      toast.error("Bir hata oluştu. Lütfen sayfayı yenileyin.");
+      errorLog("ErrorBoundary", "Critical error caught:", event.error);
+      toast.error("An error occurred. Please reload the page.");
       setHasError(true);
     };
 
@@ -29,13 +29,13 @@ const ErrorBoundary = ({ children }: ErrorBoundaryProps) => {
     if (hasError) {
       const timer = setTimeout(() => {
         window.location.reload();
-      }, 2000); // Daha hızlı yenileme
+      }, 2000); // Faster reload
       return () => clearTimeout(timer);
     }
   }, [hasError, navigate]);
 
   if (hasError) {
-    return <LoadingScreen message="Bir hata oluştu, sayfa yeniden yükleniyor..." />;
+    return <LoadingScreen message="An error occurred, reloading page..." />;
   }
 
   return <>{children}</>;

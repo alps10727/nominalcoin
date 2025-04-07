@@ -12,30 +12,30 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
   const { currentUser, loading } = useAuth();
   const [waitingTooLong, setWaitingTooLong] = useState(false);
   
-  // Sadece yükleme durumunda zamanlayıcıyı başlat - süre kısaltıldı
+  // Only start timer when loading - reduced duration
   useEffect(() => {
     if (!loading) return;
     
     const timer = setTimeout(() => {
       setWaitingTooLong(true);
-    }, 800); // 1500ms'den 800ms'ye düşürüldü
+    }, 800); // Reduced from 1500ms to 800ms
     
     return () => clearTimeout(timer);
   }, [loading]);
   
-  // Yükleme durumu değiştiğinde otomatik yönlendirme - süre kısaltıldı
+  // Auto-redirect when loading changes - reduced duration
   useEffect(() => {
     if (!loading || !waitingTooLong) return;
     
     const redirectTimer = setTimeout(() => {
       window.location.href = "/sign-in";
-    }, 2000); // 4000ms'den 2000ms'ye düşürüldü
+    }, 2000); // Reduced from 4000ms to 2000ms
     
     return () => clearTimeout(redirectTimer);
   }, [loading, waitingTooLong]);
   
   if (loading) {
-    return <LoadingScreen message={waitingTooLong ? "Kullanıcı bilgileri yüklenemiyor. Lütfen internet bağlantınızı kontrol edin..." : "Kullanıcı bilgileri yükleniyor..."} />;
+    return <LoadingScreen message={waitingTooLong ? "Unable to load user data. Please check your internet connection..." : "Loading user data..."} />;
   }
   
   if (!currentUser) {

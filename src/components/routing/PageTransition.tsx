@@ -12,17 +12,17 @@ const PageTransition = ({ children }: PageTransitionProps) => {
   const location = useLocation();
   
   useEffect(() => {
-    // Sayfa geçişlerinde kısa bir yükleme göster
+    // Show a short loading screen during page transitions
     setIsLoading(true);
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 300); // Çok kısa bir yükleme süresi
+    }, 300); // Very short loading duration
     
     return () => clearTimeout(timer);
   }, [location.pathname]);
   
   if (isLoading) {
-    return <LoadingScreen message="Sayfa hazırlanıyor..." />;
+    return <LoadingScreen message="Loading page..." />;
   }
   
   return <>{children}</>;
