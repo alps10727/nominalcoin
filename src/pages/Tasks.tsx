@@ -5,7 +5,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DailyTaskItem from "@/components/tasks/DailyTaskItem";
 import BadgeItem from "@/components/tasks/BadgeItem";
-import { useTasksData } from "@/components/tasks/TasksData";
+import { useTasksData } from "@/hooks/useTasksData";
 import { Button } from "@/components/ui/button";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { useState } from "react";
