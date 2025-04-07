@@ -15,7 +15,7 @@ export function useMiningInitialization() {
     miningActive: false,
     progress: 0,
     balance: 0,
-    miningRate: 0.01, // Dakikada 0.01 NC
+    miningRate: 0.01, // Her zaman 0.01 olarak ayarla (dakikada 0.01 NC)
     miningSession: 0,
     miningTime: 21600, // 6 hours in seconds
     miningPeriod: 21600, // Total period 6 hours
