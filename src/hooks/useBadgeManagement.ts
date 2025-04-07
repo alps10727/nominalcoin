@@ -13,7 +13,7 @@ export const useBadgeManagement = (userData: UserData | null) => {
       id: 1,
       title: t("badges.firstMiner"),
       description: t("badges.firstMinerDesc"),
-      icon: <CheckCircle className="h-6 w-6 text-green-400" />,
+      icon: { type: CheckCircle, props: { className: "h-6 w-6 text-green-400" } },
       earned: false,
       progress: 0
     },
@@ -21,7 +21,7 @@ export const useBadgeManagement = (userData: UserData | null) => {
       id: 2,
       title: t("badges.miningPro"),
       description: t("badges.miningProDesc"),
-      icon: <Clock className="h-6 w-6 text-indigo-400" />,
+      icon: { type: Clock, props: { className: "h-6 w-6 text-indigo-400" } },
       earned: false,
       progress: 0
     },
@@ -29,7 +29,7 @@ export const useBadgeManagement = (userData: UserData | null) => {
       id: 3,
       title: t("badges.socialNetworker"),
       description: t("badges.socialNetworkerDesc"),
-      icon: <Award className="h-6 w-6 text-yellow-400" />,
+      icon: { type: Award, props: { className: "h-6 w-6 text-yellow-400" } },
       earned: false,
       progress: 0
     },
@@ -37,7 +37,7 @@ export const useBadgeManagement = (userData: UserData | null) => {
       id: 4,
       title: t("badges.upgradeMaster"),
       description: t("badges.upgradeMasterDesc"),
-      icon: <CheckCheck className="h-6 w-6 text-purple-400" />,
+      icon: { type: CheckCheck, props: { className: "h-6 w-6 text-purple-400" } },
       earned: false,
       progress: 0
     },
