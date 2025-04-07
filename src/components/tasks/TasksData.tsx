@@ -135,10 +135,10 @@ export const useTasksData = () => {
       }
       
       // Yükseltme ustası rozeti - miningRate değerine göre
-      // Başlangıç değeri 0.1, maksimum 0.5 varsayalım
+      // Başlangıç değeri 0.01, maksimum 0.5 varsayalım
       const upgradeBadge = updatedBadges.find(badge => badge.id === 4);
       if (upgradeBadge) {
-        const baseRate = 0.1;
+        const baseRate = 0.01;
         const maxRate = 0.5;
         const currentRate = userData.miningRate || baseRate;
         const upgradeProgress = Math.min(100, ((currentRate - baseRate) / (maxRate - baseRate)) * 100);
@@ -186,13 +186,10 @@ export const useTasksData = () => {
           debugLog("TasksData", `Görev ödülü eklendi: +${task.reward} NC, Yeni bakiye: ${newBalance}`);
           
           // Başarı bildirimi göster
-          toast.success(
-            t("tasks.rewardClaimed", { reward: task.reward.toString(), task: task.title }),
-            {
-              style: { background: "#4338ca", color: "white", border: "1px solid #3730a3" },
-              icon: '💰'
-            }
-          );
+          toast.success(t("tasks.rewardClaimed", { reward: task.reward }), {
+            style: { background: "#4338ca", color: "white", border: "1px solid #3730a3" },
+            icon: '💰'
+          });
         } catch (error) {
           console.error("Ödül ekleme hatası:", error);
           toast.error(t("tasks.rewardClaimError"));

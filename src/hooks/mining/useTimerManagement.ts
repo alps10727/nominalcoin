@@ -6,10 +6,12 @@ import { debugLog } from "@/utils/debugUtils";
 
 /**
  * Calculate the updated time and progress values
+ * @param cycleSeconds 1 dakika (60 saniye) döngü süresi
  */
 export function calculateUpdatedTimeValues(
   prevState: MiningState, 
-  elapsedSeconds: number
+  elapsedSeconds: number,
+  cycleSeconds: number = 60 // Yeni parametre: 1 dakika (60 saniye) döngü süresi
 ): {
   newTime: number;
   totalElapsed: number;
@@ -31,10 +33,10 @@ export function calculateUpdatedTimeValues(
   // Calculate new remaining time, prevent negative values
   const newTime = Math.max(prevState.miningTime - elapsedSeconds, 0);
   
-  // Calculate total elapsed time for reward timing (modulo 180 seconds = 3 minutes)
+  // Calculate total elapsed time for reward timing (modulo 60 seconds = 1 minute)
   const totalElapsed = prevState.miningPeriod - newTime;
-  const currentCyclePosition = totalElapsed % 180; 
-  const previousCyclePosition = (totalElapsed - elapsedSeconds) % 180;
+  const currentCyclePosition = totalElapsed % cycleSeconds; 
+  const previousCyclePosition = (totalElapsed - elapsedSeconds) % cycleSeconds;
   
   // Calculate progress percentage
   const progress = calculateProgress(newTime, prevState.miningPeriod);

@@ -12,10 +12,10 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
   const { t } = useLanguage();
   const isMobile = useIsMobile();
   
-  // ÖNEMLİ - Hesaplamalar: 3 dakikada bir kazanılacak NC miktarı
-  const cycleReward = (miningRate * 3).toFixed(2); // 3 dakikalık döngü başına NC
-  const hourlyRate = (miningRate * 20).toFixed(2); // Saatlik: 20 döngü/saat (60/3)
-  const dailyRate = (miningRate * 480).toFixed(2); // Günlük: 480 döngü/gün (24*20)
+  // Dakikada 0.01 NC için hesaplamalar
+  const minuteReward = miningRate.toFixed(2); // Dakika başına NC
+  const hourlyRate = (miningRate * 60).toFixed(2); // Saatlik: 60 dakika/saat
+  const dailyRate = (miningRate * 60 * 24).toFixed(2); // Günlük: 1440 dakika/gün (24*60)
   
   return (
     <Card className="mb-4 overflow-hidden relative border-none shadow-md bg-gradient-to-r from-purple-900/90 to-indigo-900/90">
@@ -44,13 +44,13 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
           <div className="flex flex-col gap-1 mt-1">
             <div className="flex justify-between text-xs">
               <span className="text-purple-200">Base Rate</span>
-              <span className="text-white font-medium">{cycleReward} NC/3min</span>
+              <span className="text-white font-medium">{minuteReward} NC/min</span>
             </div>
             
             <div className="h-2 bg-purple-950 rounded-full overflow-hidden mt-1">
               <div 
                 className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-500"
-                style={{width: `${Math.min((miningRate * 3) * 100, 100)}%`}}
+                style={{width: `${Math.min((miningRate) * 100, 100)}%`}}
               ></div>
             </div>
           </div>
@@ -64,8 +64,8 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
           </div>
           
           <div className="flex justify-between items-end mt-1">
-            <span className="text-xs text-purple-200">NC/cycle</span>
-            <span className="text-xl font-bold text-white">{cycleReward}</span>
+            <span className="text-xs text-purple-200">NC/min</span>
+            <span className="text-xl font-bold text-white">{minuteReward}</span>
           </div>
         </div>
         

@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { debugLog } from "@/utils/debugUtils";
 
 /**
- * Add mining reward when a 3-minute cycle is completed
+ * Add mining reward when a 1-minute cycle is completed
  */
 export function addMiningReward(
   prevState: MiningState, 
@@ -14,7 +14,7 @@ export function addMiningReward(
   previousCyclePosition: number,
   currentCyclePosition: number
 ): Partial<MiningState> | null {
-  // Check if we crossed a 3-minute boundary during this update
+  // Check if we crossed a 1-minute boundary during this update
   const addReward = (previousCyclePosition > currentCyclePosition) || 
                    (currentCyclePosition === 0 && totalElapsed > 0);
   
@@ -34,8 +34,8 @@ export function addMiningReward(
     currentBalance = localData.balance;
   }
   
-  // Per 3-minute reward calculation
-  const rewardAmount = prevState.miningRate * 3;
+  // Per 1-minute reward calculation (dakikada 0.01 NC)
+  const rewardAmount = prevState.miningRate;
   const newBalance = currentBalance + rewardAmount;
   const newSession = prevState.miningSession + rewardAmount;
   
