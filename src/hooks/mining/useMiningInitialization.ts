@@ -54,9 +54,10 @@ export function useMiningInitialization() {
           miningTime: localData.miningTime != null ? localData.miningTime : 21600,
           miningPeriod: localData.miningPeriod || 21600,
           miningSession: localData.miningSession || 0,
-          progress: (localData.miningTime != null && localData.miningPeriod) 
-            ? calculateProgress(localData.miningTime, localData.miningPeriod)
-            : 0
+          progress: calculateProgress(
+            localData.miningTime != null ? localData.miningTime : 21600,
+            localData.miningPeriod || 21600
+          )
         }));
         
         debugLog("useMiningInitialization", "Mining state initialized from LOCAL STORAGE with balance:", localData.balance, "mining rate:", safeRate);
