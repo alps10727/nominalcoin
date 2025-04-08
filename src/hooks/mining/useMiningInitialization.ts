@@ -15,7 +15,7 @@ export function useMiningInitialization() {
     miningActive: false,
     progress: 0,
     balance: 0,
-    miningRate: 0.003, // Temel oran 0.003 NC/dakika
+    miningRate: 0.1, // 3 dakikada 0.3 NC (0.1 * 3)
     miningSession: 0,
     miningTime: 21600, // 6 hours in seconds
     miningPeriod: 21600, // Total period 6 hours
@@ -41,26 +41,22 @@ export function useMiningInitialization() {
       if (localData) {
         debugLog("useMiningInitialization", "USING LOCAL STORAGE DATA ONLY:", localData);
         
-        // Madencilik hızının en az 0.003 olmasını garantile (temel oran)
-        const safeRate = Math.max(localData.miningRate || 0.003, 0.003);
-        
-        const miningTime = localData.miningTime != null ? localData.miningTime : 21600;
-        const miningPeriod = localData.miningPeriod || 21600;
-        
         setState(prevState => ({
           ...prevState,
           isLoading: false,
           userId: localData.userId || 'local-user',
           balance: localData.balance || 0,
-          miningRate: safeRate, // Referral bonusları dahil oran
+          miningRate: localData.miningRate || 0.1,
           miningActive: localData.miningActive || false,
-          miningTime: miningTime,
-          miningPeriod: miningPeriod,
+          miningTime: localData.miningTime != null ? localData.miningTime : 21600,
+          miningPeriod: localData.miningPeriod || 21600,
           miningSession: localData.miningSession || 0,
-          progress: calculateProgress(miningTime, miningPeriod)
+          progress: (localData.miningTime != null && localData.miningPeriod) 
+            ? calculateProgress(localData.miningTime, localData.miningPeriod)
+            : 0
         }));
         
-        debugLog("useMiningInitialization", "Mining state initialized from LOCAL STORAGE with balance:", localData.balance, "mining rate:", safeRate);
+        debugLog("useMiningInitialization", "Mining state initialized from LOCAL STORAGE with balance:", localData.balance);
       } else {
         debugLog("useMiningInitialization", "No local data found, using defaults");
         setState(prev => ({ 

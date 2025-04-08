@@ -1,56 +1,37 @@
 
-import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/types/tasks";
-import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface BadgeItemProps {
   badge: Badge;
 }
 
 const BadgeItem = ({ badge }: BadgeItemProps) => {
-  const IconComponent = badge.icon.type;
+  const { t } = useLanguage();
   
   return (
-    <div className="bg-navy-800/50 border border-navy-700 rounded-xl overflow-hidden">
-      <div className="p-4">
-        <div className="flex items-center mb-3">
-          <div className={cn(
-            "w-10 h-10 rounded-full flex items-center justify-center",
-            badge.earned ? "bg-teal-900/50" : "bg-navy-700/50"
-          )}>
-            <IconComponent {...badge.icon.props} />
+    <Card className={`border-none shadow-md text-gray-100 dark:bg-gray-850 overflow-hidden ${badge.earned ? 'bg-gradient-to-br from-gray-800 to-indigo-900/50' : 'bg-gray-800'}`}>
+      <CardContent className="p-4">
+        <div className="flex items-center mb-2">
+          <div className={`p-2 rounded-lg ${badge.earned ? 'bg-indigo-900/50' : 'bg-gray-700'} mr-3`}>
+            {badge.icon}
           </div>
-          <div className="ml-3">
-            <h3 className={cn(
-              "text-sm font-medium",
-              badge.earned ? "text-teal-400" : "text-gray-300"
-            )}>
-              {badge.title}
-            </h3>
+          <div>
+            <h3 className="font-medium text-gray-200">{badge.title}</h3>
             <p className="text-xs text-gray-400">{badge.description}</p>
           </div>
         </div>
-
-        <div className="w-full bg-navy-700 h-2 rounded-full overflow-hidden">
-          <div 
-            className={cn(
-              "h-full rounded-full transition-all duration-1000",
-              badge.earned ? "bg-gradient-to-r from-teal-500 to-emerald-400" : "bg-blue-600"
-            )}
-            style={{ width: `${badge.progress}%` }}
-          />
+        <div className="mt-3">
+          <div className="flex justify-between text-xs text-gray-400 mb-1">
+            <span>{badge.earned ? t('tasks.completed') : t('tasks.progress')}</span>
+            <span>{badge.progress}%</span>
+          </div>
+          <Progress value={badge.progress} className="h-2 bg-gray-700" />
         </div>
-
-        <div className="mt-2 flex justify-between items-center text-xs">
-          <span className={badge.earned ? "text-teal-400" : "text-gray-400"}>
-            {badge.earned ? "Completed" : `${Math.round(badge.progress)}%`}
-          </span>
-          {badge.earned && (
-            <span className="text-teal-400 font-medium">✓ Earned</span>
-          )}
-        </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

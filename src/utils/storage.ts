@@ -1,4 +1,3 @@
-
 export interface UserData {
   userId?: string;
   balance: number;
@@ -15,7 +14,6 @@ export interface UserData {
   referredBy?: string | null; // User ID who referred this user, if any
   name?: string; // User's name
   emailAddress?: string; // User's email address
-  createdAt?: number; // When the user account was created
 }
 
 /**
@@ -69,7 +67,7 @@ export function saveUserData(userData: UserData): void {
         : 0,
       miningRate: typeof userData.miningRate === 'number' && !isNaN(userData.miningRate) 
         ? userData.miningRate 
-        : 0.003,
+        : 0.1,
       lastSaved: Date.now(),
     };
     

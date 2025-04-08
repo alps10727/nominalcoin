@@ -1,6 +1,6 @@
 
-// This file exists for backwards compatibility
-// New code should use the new service files directly
+// Bu dosya geriye dönük uyumluluk için mevcut
+// Yeni kod doğrudan yeni servis dosyalarını kullanmalıdır
 
 import { 
   loadUserDataFromFirebase
@@ -19,11 +19,10 @@ import {
   registerUser,
   loginUser,
   logoutUser,
-  sendPasswordResetEmail,
-  findUsersByReferralCode
-} from './auth';
+  sendPasswordResetEmail
+} from './authService';
 
-// Export all functions
+// Tüm fonksiyonları dışa aktar
 export {
   loadUserDataFromFirebase,
   saveUserDataToFirebase,
@@ -32,6 +31,5 @@ export {
   loginUser,
   logoutUser,
   sendPasswordResetEmail,
-  updateUserCoinBalance,
-  findUsersByReferralCode
+  updateUserCoinBalance
 };

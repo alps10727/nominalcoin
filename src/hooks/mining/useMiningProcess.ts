@@ -71,9 +71,9 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
           if (potentiallyMissedTime >= remainingTime) {
             debugLog("useMiningProcess", "Uzun yokluktan sonra madencilik süresi tamamlanmış, tüm ödüller hesaplanıyor...");
             
-            // Kaç tam 1 dakikalık döngü kalmış hesapla (kalan süre içinde)
-            const remainingCycles = Math.floor(remainingTime / 60);
-            const rewardAmount = remainingCycles * prev.miningRate;
+            // Kaç tam 3 dakikalık döngü kalmış hesapla (kalan süre içinde)
+            const remainingCycles = Math.floor(remainingTime / 180);
+            const rewardAmount = remainingCycles * prev.miningRate * 3;
             
             // Ödülleri ekle ve madenciliği tamamla
             const completionUpdates = handleMiningCompletion({
@@ -88,14 +88,13 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
         }
         
         // Calculate new time values and cycle position for rewards
-        // Dakikalık döngüler için (60 saniye)
         const { 
           newTime, 
           totalElapsed, 
           previousCyclePosition, 
           currentCyclePosition,
           progress 
-        } = calculateUpdatedTimeValues(prev, elapsedSeconds, 60); // 1 dakikalık döngüler
+        } = calculateUpdatedTimeValues(prev, elapsedSeconds);
         
         // Check if mining cycle is complete
         if (newTime <= 0) {
@@ -108,10 +107,10 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
         let rewardUpdates = null;
         
         // Uzun süre yoklukta birden fazla ödül döngüsü olabilir
-        if (elapsedSeconds >= 60) {
-          // Kaç tam 1 dakikalık döngü geçmiş?
-          const completeCycles = Math.floor(elapsedSeconds / 60);
-          const rewardAmount = completeCycles * prev.miningRate;
+        if (elapsedSeconds >= 180) {
+          // Kaç tam 3 dakikalık döngü geçmiş?
+          const completeCycles = Math.floor(elapsedSeconds / 180);
+          const rewardAmount = completeCycles * prev.miningRate * 3;
           
           // Ödülleri tek seferde ekle
           rewardUpdates = {
@@ -119,7 +118,7 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
             miningSession: prev.miningSession + rewardAmount
           };
         } else {
-          // Normal süreçte 1 dakikalık döngüleri kontrol et
+          // Normal süreçte 3 dakikalık döngüleri kontrol et
           rewardUpdates = addMiningReward(
             prev, 
             totalElapsed, 

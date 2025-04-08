@@ -17,7 +17,7 @@ export async function saveUserDataToFirebase(userId: string, userData: UserData)
       ...userData,
       userId: userId, // Her zaman userId ekle
       balance: userData.balance || 0,
-      miningRate: userData.miningRate || 0.003, // Başlangıçta 0.003, referral bonusları eklenebilir
+      miningRate: userData.miningRate || 0.1, // Updated to 0.1 from 0.01
       lastSaved: Date.now() // Önce client timestamp kullan
     };
     
@@ -82,7 +82,7 @@ export async function updateUserCoinBalance(userId: string, newBalance: number, 
     
     // Güncellenmiş veri nesnesi oluştur
     const updatedData: UserData = {
-      ...(userData || { miningRate: userData?.miningRate || 0.003, lastSaved: Date.now() }),
+      ...(userData || { miningRate: 0.1, lastSaved: Date.now() }),
       balance: updatedBalance,
       lastSaved: Date.now()
     };

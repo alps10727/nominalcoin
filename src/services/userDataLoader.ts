@@ -32,13 +32,6 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
         debugLog("userDataLoader", "Yerel veride userID güncellendi:", userId);
       }
       
-      // Mining rate'i kontrol et - eğer geçerli bir değer değilse 0.003 olarak ayarla
-      if (!localData.miningRate || isNaN(localData.miningRate) || localData.miningRate < 0.003) {
-        localData.miningRate = 0.003;
-        saveUserData(localData);
-        debugLog("userDataLoader", "Mining rate 0.003 olarak güncellendi (geçersiz değer)");
-      }
-      
       // İlk hızlı yol: yerel veriyi döndür, Firebase verisi arkada yüklenecek
       return localData;
     }
@@ -56,8 +49,7 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
         // Ensure the data has all required fields before treating it as UserData
         const validatedData: UserData = {
           balance: typeof userData.balance === 'number' ? userData.balance : 0,
-          miningRate: typeof userData.miningRate === 'number' && userData.miningRate >= 0.003 ? 
-            userData.miningRate : 0.003, // En az 0.003 olmalı
+          miningRate: typeof userData.miningRate === 'number' ? userData.miningRate : 0.1,
           lastSaved: typeof userData.lastSaved === 'number' ? userData.lastSaved : Date.now(),
           miningActive: !!userData.miningActive,
           userId: userId,
@@ -97,7 +89,7 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
     debugLog("userDataLoader", "Varsayılan değerler ile yeni profil oluşturuluyor");
     return {
       balance: localData?.balance || 0, // Yerel bakiye varsa kullan
-      miningRate: 0.003, // Temel oran 0.003 NC/dakika
+      miningRate: localData?.miningRate || 0.1,
       lastSaved: Date.now(),
       miningActive: localData?.miningActive || false,
       userId: userId,
@@ -112,7 +104,7 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
     const localData = loadUserData();
     return {
       balance: localData?.balance || 0,
-      miningRate: 0.003, // Temel oran 0.003 NC/dakika
+      miningRate: localData?.miningRate || 0.1, 
       lastSaved: Date.now(),
       miningActive: localData?.miningActive || false,
       userId: userId,

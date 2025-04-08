@@ -18,39 +18,35 @@ export function useMiningPersistence(state: MiningState) {
     if (!state.isLoading) {
       // Her 2 saniyede bir durum değişirse yerel depolamaya kaydet (3 saniyeden düşürüldü)
       const saveToLocalStorage = () => {
-        try {
-          // Sadece veri değiştiyse kaydet - performans için kontrol
-          const currentData = JSON.stringify({
+        // Sadece veri değiştiyse kaydet - performans için kontrol
+        const currentData = JSON.stringify({
+          balance: state.balance,
+          miningActive: state.miningActive,
+          miningTime: state.miningTime,
+          miningSession: state.miningSession
+        });
+        
+        if (currentData !== lastSavedDataRef.current) {
+          debugLog("useMiningPersistence", "Yerel depolamaya kaydediliyor:", {
             balance: state.balance,
             miningActive: state.miningActive,
-            miningTime: state.miningTime,
-            miningSession: state.miningSession
+            miningTime: state.miningTime
           });
           
-          if (currentData !== lastSavedDataRef.current) {
-            debugLog("useMiningPersistence", "Yerel depolamaya kaydediliyor:", {
-              balance: state.balance,
-              miningActive: state.miningActive,
-              miningTime: state.miningTime
-            });
-            
-            // Her zaman tüm bilgileri kaydet - balance güncellemelerine özel dikkat
-            saveUserData({
-              balance: state.balance,
-              miningRate: state.miningRate,
-              lastSaved: Date.now(),
-              miningActive: state.miningActive,
-              miningTime: state.miningTime,
-              miningPeriod: state.miningPeriod,
-              miningSession: state.miningSession,
-              userId: state.userId
-            });
-            
-            localSaveTimeRef.current = Date.now();
-            lastSavedDataRef.current = currentData;
-          }
-        } catch (error) {
-          console.error("Error saving mining data to local storage:", error);
+          // Her zaman tüm bilgileri kaydet - balance güncellemelerine özel dikkat
+          saveUserData({
+            balance: state.balance,
+            miningRate: state.miningRate,
+            lastSaved: Date.now(),
+            miningActive: state.miningActive,
+            miningTime: state.miningTime,
+            miningPeriod: state.miningPeriod,
+            miningSession: state.miningSession,
+            userId: state.userId
+          });
+          
+          localSaveTimeRef.current = Date.now();
+          lastSavedDataRef.current = currentData;
         }
       };
       

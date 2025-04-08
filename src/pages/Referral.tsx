@@ -10,16 +10,13 @@ import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { validateReferralCode, createReferralLink } from "@/utils/referralUtils";
-import { db } from "@/config/firebase";
-import { doc, getDoc } from "firebase/firestore";
-import LoadingScreen from "@/components/dashboard/LoadingScreen";
 
-// Update ReferredUser interface to include more user details
+// Mock data for demonstrating the referral list
+// In real implementation, this would come from Firebase
 interface ReferredUser {
   id: string;
   name: string;
   joinDate: string;
-  email?: string;
 }
 
 const Referral = () => {
@@ -28,11 +25,11 @@ const Referral = () => {
   const { userData } = useAuth();
   const [showCopied, setShowCopied] = useState<'code' | 'link' | null>(null);
   
+  // Generate a referral code if the user doesn't have one
   const [referralCode, setReferralCode] = useState<string>("");
   const [referralLink, setReferralLink] = useState<string>("");
   const [referralCount, setReferralCount] = useState<number>(0);
   const [referredUsers, setReferredUsers] = useState<ReferredUser[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     if (userData) {
@@ -41,76 +38,24 @@ const Referral = () => {
       setReferralCode(code);
       setReferralLink(createReferralLink(code));
       
-      // Set referral count from actual user data
+      // Set referral count
       setReferralCount(userData.referralCount || 0);
       
-      // Load actual referred users from Firebase
-      loadReferredUsers();
+      // In a real app, we'd fetch the referred users from Firebase
+      // For now, we'll use mock data based on the user's referral count
+      const mockReferredUsers: ReferredUser[] = [];
+      if (userData.referrals && Array.isArray(userData.referrals)) {
+        userData.referrals.forEach((userId, index) => {
+          mockReferredUsers.push({
+            id: userId,
+            name: `Kullanıcı ${index + 1}`,
+            joinDate: new Date(Date.now() - (index * 24 * 60 * 60 * 1000)).toLocaleDateString()
+          });
+        });
+      }
+      setReferredUsers(mockReferredUsers);
     }
   }, [userData]);
-
-  // Function to fetch actual referred users from Firebase
-  const loadReferredUsers = async () => {
-    setIsLoading(true);
-    
-    try {
-      if (!userData || !userData.referrals || !Array.isArray(userData.referrals) || userData.referrals.length === 0) {
-        // No referrals, set empty array and stop loading
-        setReferredUsers([]);
-        setIsLoading(false);
-        return;
-      }
-      
-      const referralsData: ReferredUser[] = [];
-      
-      // Fetch each referred user's data from Firebase
-      for (const userId of userData.referrals) {
-        try {
-          const userRef = doc(db, "users", userId);
-          const userDoc = await getDoc(userRef);
-          
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            referralsData.push({
-              id: userId,
-              name: userData.name || userData.emailAddress?.split('@')[0] || `Kullanıcı`,
-              email: userData.emailAddress,
-              // Format the joinDate if available, otherwise use current date
-              joinDate: userData.createdAt 
-                ? new Date(userData.createdAt).toLocaleDateString() 
-                : new Date().toLocaleDateString()
-            });
-          } else {
-            // User document not found, add basic info
-            referralsData.push({
-              id: userId,
-              name: `Kullanıcı ${referralsData.length + 1}`,
-              joinDate: new Date().toLocaleDateString()
-            });
-          }
-        } catch (error) {
-          console.error("Error fetching referred user data:", error);
-          // Still add a placeholder for this user
-          referralsData.push({
-            id: userId,
-            name: `Kullanıcı ${referralsData.length + 1}`,
-            joinDate: new Date().toLocaleDateString()
-          });
-        }
-      }
-      
-      setReferredUsers(referralsData);
-    } catch (error) {
-      console.error("Error loading referred users:", error);
-      toast({
-        title: "Hata",
-        description: "Davet ettiğiniz kullanıcılar yüklenirken bir hata oluştu.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const copyToClipboard = (text: string, type: 'code' | 'link') => {
     navigator.clipboard.writeText(text);
@@ -121,15 +66,6 @@ const Referral = () => {
       description: type === 'code' ? referralCode : referralLink,
     });
   };
-
-  // Show loading state while fetching referred users
-  if (isLoading && userData?.referrals?.length > 0) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-navy-950 to-blue-950 flex flex-col items-center justify-center">
-        <LoadingScreen message="Davet ettiğiniz kullanıcılar yükleniyor..." />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-navy-950 to-blue-950 flex flex-col">
@@ -201,7 +137,7 @@ const Referral = () => {
           </Card>
         </div>
 
-        {referralCount > 0 && referredUsers.length > 0 && (
+        {referralCount > 0 && (
           <Card className="border-none shadow-md bg-gradient-to-br from-darkPurple-900/80 to-navy-950/90 text-gray-100">
             <CardHeader className="pb-2">
               <CardTitle className="text-base">{t('referral.referredUsers', 'Davet Ettiğiniz Kullanıcılar')}</CardTitle>
