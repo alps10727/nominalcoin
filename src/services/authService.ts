@@ -1,15 +1,14 @@
+
 import { auth } from "@/config/firebase";
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
   signOut,
-  User,
-  sendPasswordResetEmail as firebaseSendPasswordResetEmail
+  User
 } from "firebase/auth";
 import { saveUserDataToFirebase } from "./userService";
 import { debugLog, errorLog } from "@/utils/debugUtils";
-import { db } from "@/config/firebase";
-import { doc, getDoc, updateDoc, arrayUnion, increment } from "firebase/firestore";
+import { findUsersByReferralCode, updateReferrerInfo } from "./referralService";
 
 // Kullanıcı kayıt bilgileri için arayüz
 export interface UserRegistrationData {
@@ -69,8 +68,22 @@ export async function registerUser(email: string, password: string, userData: Us
     }
     
     // Kullanıcı profilini oluşturmayı dene
-    const saveProfilePromise = saveUserDataToFirebase(user.uid, {
-      userId: user.uid,
+    await createUserProfile(user.uid, email, userData);
+    
+    return user;
+  } catch (err) {
+    errorLog("authService", "Kayıt hatası:", err);
+    throw err; // Hataları üst katmana ilet
+  }
+}
+
+/**
+ * Kullanıcı profili oluştur
+ */
+async function createUserProfile(userId: string, email: string, userData: UserRegistrationData): Promise<void> {
+  try {
+    const saveProfilePromise = saveUserDataToFirebase(userId, {
+      userId: userId,
       emailAddress: email, // Using emailAddress instead of email
       balance: 0,
       miningRate: 0.1,
@@ -89,70 +102,13 @@ export async function registerUser(email: string, password: string, userData: Us
       }, 30000);
     });
     
-    try {
-      // Profil kaydetme işlemi için de timeout ekleyelim
-      await Promise.race([saveProfilePromise, profileTimeoutPromise]);
-      debugLog("authService", "Kullanıcı profili başarıyla oluşturuldu");
-    } catch (profileError) {
-      errorLog("authService", "Kullanıcı profili oluşturma hatası:", profileError);
-      // Profil oluşturma hatasını göster ama yine de kullanıcıyı döndür
-      console.warn("Hesap oluşturuldu ancak profil bilgileri kaydedilemedi. Giriş yaparak tekrar deneyebilirsiniz.");
-    }
-    
-    return user;
-  } catch (err) {
-    errorLog("authService", "Kayıt hatası:", err);
-    throw err; // Hataları üst katmana ilet
-  }
-}
-
-/**
- * Referans kodu ile kullanıcı bul
- */
-async function findUsersByReferralCode(referralCode: string): Promise<string[]> {
-  try {
-    debugLog("authService", "Referans kodu ile kullanıcı aranıyor:", referralCode);
-    
-    // Firestore'da referralCode alanı ile eşleşen kullanıcıları ara
-    // Not: Bu basit bir implementasyon, büyük veritabanlarında daha gelişmiş bir sorgu gerekebilir
-    
-    // users koleksiyonundaki tüm dokümanları almak yerine,
-    // gerçek bir uygulamada bir index oluşturup ona göre sorgu yapmanız gerekir
-    // Şimdilik basit bir şekilde kullanıcı dokümanını referralCode ile arayalım
-    const userRef = doc(db, "users", referralCode);
-    const userDoc = await getDoc(userRef);
-    
-    if (userDoc.exists()) {
-      // Doküman varsa, kullanıcı ID'sini döndür
-      return [userDoc.id];
-    }
-    
-    return [];
-  } catch (error) {
-    errorLog("authService", "Referans kodu ile kullanıcı arama hatası:", error);
-    return [];
-  }
-}
-
-/**
- * Referans veren kullanıcının bilgilerini güncelle
- */
-async function updateReferrerInfo(referrerId: string, newUserId: string): Promise<void> {
-  try {
-    debugLog("authService", "Referans veren kullanıcı bilgileri güncelleniyor");
-    
-    const userRef = doc(db, "users", referrerId);
-    
-    // Referrals dizisine yeni kullanıcıyı ekle ve referralCount'u arttır
-    await updateDoc(userRef, {
-      referrals: arrayUnion(newUserId),
-      referralCount: increment(1)
-    });
-    
-    debugLog("authService", "Referans veren kullanıcı bilgileri güncellendi");
-  } catch (error) {
-    errorLog("authService", "Referans veren kullanıcı bilgilerini güncelleme hatası:", error);
-    throw error;
+    // Profil kaydetme işlemi için de timeout ekleyelim
+    await Promise.race([saveProfilePromise, profileTimeoutPromise]);
+    debugLog("authService", "Kullanıcı profili başarıyla oluşturuldu");
+  } catch (profileError) {
+    errorLog("authService", "Kullanıcı profili oluşturma hatası:", profileError);
+    // Profil oluşturma hatasını göster ama yine de kullanıcıyı döndür
+    console.warn("Hesap oluşturuldu ancak profil bilgileri kaydedilemedi. Giriş yaparak tekrar deneyebilirsiniz.");
   }
 }
 
@@ -197,29 +153,5 @@ export async function logoutUser(): Promise<void> {
   }
 }
 
-/**
- * Şifre sıfırlama e-postası gönderme
- */
-export async function sendPasswordResetEmail(email: string): Promise<void> {
-  try {
-    debugLog("authService", "Şifre sıfırlama e-postası gönderiliyor:", email);
-    
-    // Şifre sıfırlama işlemi
-    const resetPromise = firebaseSendPasswordResetEmail(auth, email);
-    
-    // Timeout ile daha hızlı hata bildirimi
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => {
-        reject(new Error("İşlem zaman aşımına uğradı. Lütfen internet bağlantınızı kontrol edin."));
-      }, 10000); // 10 saniye timeout
-    });
-    
-    // Promise.race ile timeout kontrolü
-    await Promise.race([resetPromise, timeoutPromise]);
-    
-    debugLog("authService", "Şifre sıfırlama e-postası gönderildi");
-  } catch (err) {
-    errorLog("authService", "Şifre sıfırlama hatası:", err);
-    throw err; // Hataları üst katmana ilet
-  }
-}
+// passwordService'ten export
+export { sendPasswordResetEmail } from "./passwordService";
