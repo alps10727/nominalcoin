@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useLocalDataLoader } from "@/hooks/user/useLocalDataLoader";
 import { useFirebaseDataLoader } from "@/hooks/user/useFirebaseDataLoader";
 import { useUserDataValidator } from "@/hooks/user/useUserDataValidator";
+import { handleFirebaseConnectionError } from "@/utils/firebaseErrorHandler";
 
 export interface UserDataState {
   userData: UserData | null;
@@ -24,7 +25,7 @@ export function useUserDataLoader(
   const [loadAttempt, setLoadAttempt] = useState(0);
 
   const { loadLocalUserData, ensureReferralData, createDefaultUserData } = useLocalDataLoader();
-  const { loadFirebaseUserData, handleFirebaseError, mergeUserData } = useFirebaseDataLoader();
+  const { loadFirebaseUserData, mergeUserData } = useFirebaseDataLoader();
   const { ensureValidUserData } = useUserDataValidator();
 
   useEffect(() => {
@@ -75,8 +76,7 @@ export function useUserDataLoader(
         } catch (error) {
           if (!isActive) return; // Component unmounted
           
-          errorLog("useUserDataLoader", "Firebase data loading error:", error);
-          handleFirebaseError(error);
+          handleFirebaseConnectionError(error, "useUserDataLoader");
           
           if (!localData) {
             const emptyData = createDefaultUserData(currentUser.uid);

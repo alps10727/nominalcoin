@@ -1,8 +1,8 @@
 
 import { UserData } from "@/utils/storage";
 import { loadUserDataFromFirebase } from "@/services/userDataLoader";
-import { debugLog, errorLog } from "@/utils/debugUtils";
-import { toast } from "sonner";
+import { debugLog } from "@/utils/debugUtils";
+import { handleFirebaseConnectionError, mergeUserData } from "@/utils/firebaseErrorHandler";
 
 /**
  * Hook to load user data from Firebase
@@ -33,49 +33,14 @@ export function useFirebaseDataLoader() {
       return result;
       
     } catch (error) {
-      errorLog("useFirebaseDataLoader", "Error loading from Firebase:", error);
+      handleFirebaseConnectionError(error, "useFirebaseDataLoader");
       return { data: null, source: 'timeout' };
     }
   };
 
-  /**
-   * Handles Firebase errors and shows appropriate toasts
-   */
-  const handleFirebaseError = (error: any): void => {
-    if ((error?.code === 'unavailable' || error?.message?.includes('zaman aşımı'))) {
-      toast.warning("Sunucuya bağlanılamadı, yerel veriler kullanılıyor", {
-        id: "offline-mode-warning",
-        duration: 5000
-      });
-    } else {
-      toast.error("Firebase veri yükleme hatası", {
-        description: error?.message,
-        duration: 5000
-      });
-    }
-  };
-
-  /**
-   * Merges local and Firebase data, using the highest balance
-   */
-  const mergeUserData = (localData: UserData | null, firebaseData: UserData | null): UserData | null => {
-    if (!firebaseData) return localData;
-    if (!localData) return firebaseData;
-    
-    const highestBalance = Math.max(
-      typeof localData.balance === 'number' ? localData.balance : 0,
-      typeof firebaseData.balance === 'number' ? firebaseData.balance : 0
-    );
-    
-    return {
-      ...firebaseData,
-      balance: highestBalance
-    };
-  };
-
   return {
     loadFirebaseUserData,
-    handleFirebaseError,
+    handleFirebaseError: handleFirebaseConnectionError,
     mergeUserData
   };
 }
