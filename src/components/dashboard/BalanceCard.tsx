@@ -1,7 +1,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Diamond, TrendingUp, ArrowUpRight, AlertCircle } from 'lucide-react';
+import { Diamond, ArrowUpRight, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { debugLog } from '@/utils/debugUtils';
@@ -68,10 +68,7 @@ const BalanceCard = ({ balance }: BalanceCardProps) => {
             <span className="text-lg font-medium fc-gradient-text">NC Balance</span>
           </div>
           
-          <div className="flex items-center space-x-1 text-xs text-purple-300/80 bg-purple-950/60 py-1 px-2 rounded-lg border border-purple-700/30">
-            <TrendingUp className="h-3 w-3" />
-            <span>+2.4%</span>
-          </div>
+          {/* Removed the percentage indicator that was here */}
         </div>
         
         {/* Balance display - now with transition animation for smooth updates */}
