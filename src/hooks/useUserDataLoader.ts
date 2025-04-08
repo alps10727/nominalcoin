@@ -1,47 +1,16 @@
-
 import { useState, useEffect } from "react";
 import { User } from "firebase/auth";
-import { loadUserDataFromFirebase } from "@/services/userDataLoader";
-import { loadUserData, saveUserData, UserData } from "@/utils/storage";
+import { UserData, saveUserData } from "@/utils/storage";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { toast } from "sonner";
-import { generateReferralCode } from "@/utils/referralUtils";
+import { useLocalDataLoader } from "@/hooks/user/useLocalDataLoader";
+import { useFirebaseDataLoader } from "@/hooks/user/useFirebaseDataLoader";
+import { useUserDataValidator } from "@/hooks/user/useUserDataValidator";
 
 export interface UserDataState {
   userData: UserData | null;
   loading: boolean;
   dataSource: 'firebase' | 'local' | null;
-}
-
-function validateUserData(data: any): data is UserData {
-  return (
-    data !== null &&
-    typeof data === 'object' &&
-    (typeof data.balance === 'number' || data.balance === undefined) &&
-    (typeof data.miningRate === 'number' || data.miningRate === undefined) &&
-    (typeof data.lastSaved === 'number' || data.lastSaved === undefined)
-  );
-}
-
-function ensureValidUserData(data: any, userId?: string): UserData {
-  if (validateUserData(data)) {
-    return data;
-  }
-  
-  // Yerel depolama verisi var mı diye kontrol et
-  const localData = loadUserData();
-  
-  // Temel değerler için yerel depolamadan bilgi varsa kullan
-  return {
-    balance: typeof data?.balance === 'number' ? data.balance : (localData?.balance || 0),
-    miningRate: typeof data?.miningRate === 'number' ? data.miningRate : (localData?.miningRate || 0.1),
-    lastSaved: typeof data?.lastSaved === 'number' ? data.lastSaved : Date.now(),
-    miningActive: !!data?.miningActive,
-    userId: userId || data?.userId || localData?.userId,
-    referralCode: data?.referralCode || localData?.referralCode || generateReferralCode(userId),
-    referralCount: data?.referralCount || 0,
-    referrals: data?.referrals || []
-  };
 }
 
 export function useUserDataLoader(
@@ -54,9 +23,12 @@ export function useUserDataLoader(
   const [errorOccurred, setErrorOccurred] = useState(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
 
+  const { loadLocalUserData, ensureReferralData, createDefaultUserData } = useLocalDataLoader();
+  const { loadFirebaseUserData, handleFirebaseError, mergeUserData } = useFirebaseDataLoader();
+  const { ensureValidUserData } = useUserDataValidator();
+
   useEffect(() => {
-    let userDataTimeoutId: NodeJS.Timeout;
-    let isActive = true; // Belleği sızıntısı önleyici
+    let isActive = true; // Prevent memory leaks
 
     const loadData = async () => {
       if (!authInitialized) return;
@@ -69,147 +41,78 @@ export function useUserDataLoader(
       }
 
       try {
-        // ÖNCE yerel verileri kontrol et - en hızlı erişim için
-        const localData = loadUserData();
-        let highestBalance = localData?.balance || 0;
+        let localData = loadLocalUserData();
+        localData = ensureReferralData(localData, currentUser.uid);
         
         if (localData) {
-          // Yerel verilerde referans kodu var mı kontrol et
-          if (!localData.referralCode) {
-            localData.referralCode = generateReferralCode(currentUser.uid);
-            localData.referralCount = localData.referralCount || 0;
-            localData.referrals = localData.referrals || [];
-            saveUserData(localData);
-          }
-          
-          // UserID güncelleme - eğer yerel veride UserID yoksa veya farklıysa güncelle
-          if (!localData.userId || localData.userId !== currentUser.uid) {
-            localData.userId = currentUser.uid;
-            saveUserData(localData);
-            debugLog("useUserDataLoader", "Yerel verideki UserID güncellendi:", currentUser.uid);
-          }
-          
           setUserData(localData);
           setDataSource('local');
-          debugLog("useUserDataLoader", "Yerel depodan kullanıcı verileri yüklendi:", localData);
-          
-          debugLog("useUserDataLoader", "Firebase'den veri yükleniyor...");
+          debugLog("useUserDataLoader", "Loaded data from local storage:", localData);
         }
         
         try {
-          const timeoutPromise = new Promise((_, reject) => {
-            userDataTimeoutId = setTimeout(() => {
-              reject(new Error("Firebase veri yükleme zaman aşımı"));
-            }, 10000);
-          });
+          const { data: firebaseData, source } = await loadFirebaseUserData(currentUser.uid);
           
-          const firebaseDataPromise = loadUserDataFromFirebase(currentUser.uid);
+          if (!isActive) return; // Component unmounted
           
-          const firebaseData = await Promise.race([firebaseDataPromise, timeoutPromise]) as any;
-          clearTimeout(userDataTimeoutId);
-          
-          if (isActive) {
-            if (firebaseData) {
-              debugLog("useUserDataLoader", "Firebase'den kullanıcı verileri yüklendi:", firebaseData);
-              
-              // Firebase verilerinde referans kodu var mı kontrol et
-              if (!firebaseData.referralCode) {
-                firebaseData.referralCode = localData?.referralCode || generateReferralCode(currentUser.uid);
-                firebaseData.referralCount = firebaseData.referralCount || 0;
-                firebaseData.referrals = firebaseData.referrals || [];
-              }
-              
-              // ÖNEMLİ: Firebase bakiyesi yerel bakiyeden düşük ise en yüksek bakiyeyi kullan
-              if (typeof firebaseData.balance === 'number' && 
-                  typeof highestBalance === 'number' && 
-                  highestBalance > firebaseData.balance) {
-                debugLog("useUserDataLoader", `Yerel bakiye (${highestBalance}) Firebase bakiyesinden (${firebaseData.balance}) yüksek. Yerel veri kullanılıyor.`);
-                firebaseData.balance = highestBalance;
-              }
-              
-              const validatedData = ensureValidUserData(firebaseData, currentUser.uid);
-              setUserData(validatedData);
-              setDataSource('firebase');
-              
-              saveUserData(validatedData);
-            } else if (!localData) {
-              // Hem Firebase hem yerel depoda veri yoksa, yeni profil oluştur
-              const emptyData: UserData = {
-                balance: 0,
-                miningRate: 0.1,
-                lastSaved: Date.now(),
-                miningActive: false,
-                userId: currentUser?.uid,
-                referralCode: generateReferralCode(currentUser.uid),
-                referralCount: 0,
-                referrals: []
-              };
-              setUserData(emptyData);
-              saveUserData(emptyData);
-              setDataSource('local');
-              
-              toast.warning("Kullanıcı verileriniz bulunamadı. Yeni profil oluşturuldu.");
-            }
+          if (source === 'firebase' && firebaseData) {
+            debugLog("useUserDataLoader", "Firebase data loaded:", firebaseData);
             
-            setLoading(false);
+            const mergedData = mergeUserData(localData, firebaseData);
+            const validatedData = ensureValidUserData(mergedData, currentUser.uid);
+            
+            setUserData(validatedData);
+            setDataSource('firebase');
+            saveUserData(validatedData);
+          } else if (source === 'timeout' && !localData) {
+            const emptyData = createDefaultUserData(currentUser.uid);
+            setUserData(emptyData);
+            saveUserData(emptyData);
+            setDataSource('local');
+            
+            toast.warning("Kullanıcı verileriniz bulunamadı. Yeni profil oluşturuldu.");
           }
         } catch (error) {
-          clearTimeout(userDataTimeoutId);
+          if (!isActive) return; // Component unmounted
           
-          if (isActive) {
-            errorLog("useUserDataLoader", "Firebase veri yükleme hatası:", error);
-            
-            if (!localData) {
-              const emptyData: UserData = {
-                balance: 0,
-                miningRate: 0.1,
-                lastSaved: Date.now(),
-                miningActive: false,
-                userId: currentUser?.uid,
-                referralCode: generateReferralCode(currentUser.uid),
-                referralCount: 0,
-                referrals: []
-              };
-              setUserData(emptyData);
-              saveUserData(emptyData);
-            }
-            
+          errorLog("useUserDataLoader", "Firebase data loading error:", error);
+          handleFirebaseError(error);
+          
+          if (!localData) {
+            const emptyData = createDefaultUserData(currentUser.uid);
+            setUserData(emptyData);
+            saveUserData(emptyData);
             setDataSource('local');
-            setLoading(false);
-            
-            toast.error("Firebase'e bağlanırken hata oluştu. Verileriniz yerel olarak kaydedilecek.");
           }
         }
+        
+        setLoading(false);
       } catch (error) {
-        if (isActive) {
-          errorLog("useUserDataLoader", "Kullanıcı verileri yüklenirken kritik hata:", error);
-          
-          const localData = loadUserData();
-          const emptyData: UserData = {
-            balance: localData?.balance || 0, // Yerel bakiye varsa kullan
-            miningRate: localData?.miningRate || 0.1,
-            lastSaved: Date.now(),
-            miningActive: false,
-            userId: currentUser?.uid,
-            referralCode: generateReferralCode(currentUser.uid),
-            referralCount: 0,
-            referrals: []
-          };
-          setUserData(emptyData);
-          saveUserData(emptyData);
-          setDataSource('local');
-          setLoading(false);
-          
-          toast.error("Veri yüklenirken bir hata oluştu. Lütfen tekrar deneyin.");
+        if (!isActive) return; // Component unmounted
+        
+        errorLog("useUserDataLoader", "Critical error loading user data:", error);
+        
+        const localData = loadLocalUserData();
+        const emptyData = createDefaultUserData(currentUser?.uid);
+        
+        if (localData) {
+          emptyData.balance = localData.balance || 0;
+          emptyData.miningRate = localData.miningRate || 0.1;
         }
+        
+        setUserData(emptyData);
+        saveUserData(emptyData);
+        setDataSource('local');
+        setLoading(false);
+        
+        toast.error("Veri yüklenirken bir hata oluştu. Lütfen tekrar deneyin.");
       }
     };
 
     loadData();
 
     return () => {
-      isActive = false;
-      clearTimeout(userDataTimeoutId);
+      isActive = false; // Cleanup
     };
   }, [currentUser, authInitialized, errorOccurred, loadAttempt]);
 
