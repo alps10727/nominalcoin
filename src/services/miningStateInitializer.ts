@@ -61,7 +61,7 @@ function createMiningState(userId: string, userData: any): MiningState {
     isLoading: false,
     userId: userId,
     balance: userData.balance || 0,
-    miningRate: userData.miningRate || 0.1,
+    miningRate: userData.miningRate || 0.003, // Değiştirildi: 0.1 -> 0.003
     miningActive: userData.miningActive || false,
     miningTime: userData.miningTime || 21600,
     miningPeriod: userData.miningPeriod || 21600,
@@ -75,7 +75,7 @@ function createDefaultMiningState(): MiningState {
   return {
     isLoading: false,
     balance: 0,
-    miningRate: 0.1,
+    miningRate: 0.003, // Değiştirildi: 0.1 -> 0.003
     miningActive: false,
     miningTime: 21600,
     miningPeriod: 21600,
