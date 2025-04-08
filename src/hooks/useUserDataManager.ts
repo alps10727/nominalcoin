@@ -1,10 +1,9 @@
 
 import { useState } from "react";
 import { User } from "firebase/auth";
-import { saveUserDataToFirebase } from "@/services/userDataSaver";
-import { saveUserData, UserData } from "@/utils/storage";
-import { toast } from "sonner";
-import { debugLog, errorLog, Timer } from "@/utils/debugUtils";
+import { UserData } from "@/utils/storage";
+import { debugLog } from "@/utils/debugUtils";
+import { updateUserDataWithStatus } from "@/utils/userDataUpdater";
 
 interface UserDataManager {
   updateUserData: (data: Partial<UserData>) => Promise<void>;
@@ -27,58 +26,28 @@ export function useUserDataManager(
     }
     
     try {
-      debugLog("useUserDataManager", "Kullanıcı verileri güncelleniyor:", data);
-      const timer = new Timer("userDataUpdate");
       setIsUpdating(true);
       
-      const updatedData = {
-        ...userData,
-        ...data
-      } as UserData;
+      // Update UI state first for responsiveness
+      setUserData(prev => ({ ...prev, ...data } as UserData));
       
-      // Önce UI durumunu güncelle
-      try {
-        setUserData(prev => ({ ...prev, ...data } as UserData));
-        timer.mark("UI durumu güncellendi");
-      } catch (uiErr) {
-        errorLog("useUserDataManager", "UI durumu güncelleme hatası:", uiErr);
-      }
+      // Use the extracted utility function to handle the update
+      const { status, updatedData } = await updateUserDataWithStatus(
+        currentUser.uid, 
+        userData, 
+        data
+      );
       
-      // Yerel depoya kaydet (hızlı erişim için)
-      try {
-        saveUserData(updatedData);
-        timer.mark("Yerel depo güncellendi");
-      } catch (storageErr) {
-        errorLog("useUserDataManager", "Yerel depo güncelleme hatası:", storageErr);
-        toast.error("Yerel depolama erişim hatası");
-      }
+      // Update status based on the result
+      setLastUpdateStatus(status);
       
-      // Firebase'e kaydet (öncelikli olarak)
-      try {
-        await saveUserDataToFirebase(currentUser.uid, updatedData);
-        timer.mark("Firebase güncellendi");
-        setLastUpdateStatus('success');
-        toast.success("Verileriniz başarıyla kaydedildi");
-      } catch (firebaseErr) {
-        timer.mark("Firebase güncelleme hatası");
-        
-        if ((firebaseErr as any)?.code === 'unavailable' || (firebaseErr as Error).message.includes('zaman aşımı')) {
-          debugLog("useUserDataManager", "Çevrimdışı modda veri güncellendi");
-          setLastUpdateStatus('offline');
-          toast.warning("Çevrimdışı moddasınız. Verileriniz yeniden bağlandığınızda senkronize edilecek.");
-        } else {
-          errorLog("useUserDataManager", "Veri güncelleme hatası:", firebaseErr);
-          setLastUpdateStatus('error');
-          toast.error("Veri güncelleme başarısız: " + (firebaseErr as Error).message);
-        }
-      }
-      
-      setIsUpdating(false);
-      timer.stop();
+      // Ensure UI state is in sync with the final updated data
+      setUserData(updatedData);
     } catch (err) {
+      setLastUpdateStatus('error');
+      debugLog("useUserDataManager", "Update failed with error:", err);
+    } finally {
       setIsUpdating(false);
-      errorLog("useUserDataManager", "Beklenmeyen hata:", err);
-      toast.error("Kullanıcı verileri güncellenirken beklenmeyen bir hata oluştu");
     }
   };
 
