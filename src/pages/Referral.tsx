@@ -58,13 +58,18 @@ const Referral = () => {
   }, [userData]);
 
   const copyToClipboard = (text: string, type: 'code' | 'link') => {
-    navigator.clipboard.writeText(text);
-    setShowCopied(type);
-    setTimeout(() => setShowCopied(null), 2000);
-    toast({
-      title: t('referral.copied'),
-      description: type === 'code' ? referralCode : referralLink,
-    });
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        setShowCopied(type);
+        setTimeout(() => setShowCopied(null), 2000);
+        toast.success(t('referral.copied'), {
+          description: type === 'code' ? referralCode : referralLink,
+        });
+      })
+      .catch(err => {
+        console.error('Failed to copy: ', err);
+        toast.error(t('referral.copyFailed', 'Kopyalama başarısız oldu'));
+      });
   };
 
   return (
