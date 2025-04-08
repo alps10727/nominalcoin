@@ -94,31 +94,31 @@ const Referral = () => {
           </CardHeader>
           <CardContent>
             <div className="mt-4 space-y-6">
-              {/* Daha göze çarpan ve büyük referans kodu gösterimi */}
-              <div className="bg-navy-800/50 rounded-lg p-6 border border-purple-500/30 shadow-inner">
+              {/* Yarı boyutunda referans kodu gösterimi */}
+              <div className="bg-navy-800/50 rounded-lg p-4 border border-purple-500/30 shadow-inner">
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   {t('referral.code')}
                 </label>
                 <div className="flex items-center justify-between">
                   <div className="text-center flex-grow">
-                    <div className="font-mono text-4xl md:text-5xl tracking-widest font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-blue-300 to-indigo-300 py-3">
+                    <div className="font-mono text-2xl md:text-2xl tracking-widest font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-blue-300 to-indigo-300 py-2">
                       {referralCode}
                     </div>
                   </div>
                   <Button 
                     variant="outline" 
                     size="icon" 
-                    className="ml-3 h-14 w-14 text-gray-300 hover:text-white hover:bg-purple-700/20 border border-purple-500/30"
+                    className="ml-3 h-10 w-10 text-gray-300 hover:text-white hover:bg-purple-700/20 border border-purple-500/30"
                     onClick={() => copyToClipboard(referralCode, 'code')}
                   >
                     {showCopied === 'code' ? 
-                      <CheckCircle className="h-6 w-6 text-green-400" /> : 
-                      <Copy className="h-6 w-6" />
+                      <CheckCircle className="h-4 w-4 text-green-400" /> : 
+                      <Copy className="h-4 w-4" />
                     }
                   </Button>
                 </div>
-                <div className="animate-pulse mt-4 flex justify-center">
-                  <div className="text-sm text-purple-300/80">
+                <div className="animate-pulse mt-2 flex justify-center">
+                  <div className="text-xs text-purple-300/80">
                     {showCopied === 'code' ? 
                       t('referral.codeCopied', 'Kod kopyalandı!') : 
                       t('referral.tapToCopy', 'Kopyalamak için tıklayın')
