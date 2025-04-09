@@ -2,17 +2,18 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, RefreshCw } from "lucide-react";
+import { Search, RefreshCw, Users, AlertCircle } from "lucide-react";
 import { 
   Table, TableBody, TableCaption, TableCell, 
   TableHead, TableHeader, TableRow 
 } from "@/components/ui/table";
 import { useAdminUsers } from "@/hooks/admin/useAdminUsers";
 import UserBalanceModal from "./UserBalanceModal";
+import ErrorAlert from "../auth/alerts/ErrorAlert";
 
 const AdminUserManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const { users, loading, searchUsers, refreshUsers } = useAdminUsers();
+  const { users, loading, error, searchUsers, refreshUsers } = useAdminUsers();
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [showBalanceModal, setShowBalanceModal] = useState(false);
 
@@ -28,6 +29,10 @@ const AdminUserManagement = () => {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <ErrorAlert message={`${error} - Sadece admin kullanıcılar listelenecek.`} />
+      )}
+      
       <div>
         <form onSubmit={handleSearch} className="flex gap-2">
           <div className="relative flex-1">
@@ -40,7 +45,7 @@ const AdminUserManagement = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Button type="submit">Ara</Button>
+          <Button type="submit" disabled={loading}>Ara</Button>
           <Button 
             type="button" 
             variant="outline" 
@@ -50,12 +55,23 @@ const AdminUserManagement = () => {
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
             Yenile
           </Button>
+          <Button 
+            type="button"
+            variant="secondary"
+            onClick={() => refreshUsers()}
+            disabled={loading}
+          >
+            <Users className="h-4 w-4 mr-2" />
+            Tüm Kullanıcılar
+          </Button>
         </form>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-md border bg-card">
         <Table>
-          <TableCaption>Toplam Kullanıcı: {users.length}</TableCaption>
+          <TableCaption>
+            {loading ? "Kullanıcılar yükleniyor..." : `Toplam Kullanıcı: ${users.length}`}
+          </TableCaption>
           <TableHeader>
             <TableRow>
               <TableHead>Kullanıcı ID</TableHead>
@@ -70,13 +86,25 @@ const AdminUserManagement = () => {
             {users.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center">
-                  {loading ? "Yükleniyor..." : "Kullanıcı bulunamadı"}
+                  {loading ? (
+                    <div className="flex items-center justify-center">
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      <span>Kullanıcılar yükleniyor...</span>
+                    </div>
+                  ) : error ? (
+                    <div className="flex items-center justify-center text-destructive">
+                      <AlertCircle className="h-4 w-4 mr-2" />
+                      <span>Hata oluştu</span>
+                    </div>
+                  ) : (
+                    "Kullanıcı bulunamadı"
+                  )}
                 </TableCell>
               </TableRow>
             ) : (
               users.map((user) => (
                 <TableRow key={user.userId}>
-                  <TableCell className="font-mono text-xs">{user.userId.slice(0, 8)}...</TableCell>
+                  <TableCell className="font-mono text-xs">{user.userId?.slice(0, 8)}...</TableCell>
                   <TableCell>{user.emailAddress || "N/A"}</TableCell>
                   <TableCell>{user.balance?.toFixed(4) || "0.0000"}</TableCell>
                   <TableCell>{user.miningRate || "0.003"}</TableCell>

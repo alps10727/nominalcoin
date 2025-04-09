@@ -8,7 +8,8 @@ import {
   startAfter, 
   orderBy,
   QueryDocumentSnapshot,
-  DocumentData
+  DocumentData,
+  getCountFromServer
 } from "firebase/firestore";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { toast } from "sonner";
@@ -17,6 +18,7 @@ export interface PaginationResult<T> {
   items: T[];
   lastDoc: QueryDocumentSnapshot | null;
   hasMore: boolean;
+  totalCount?: number;
 }
 
 /**
@@ -26,13 +28,15 @@ export interface PaginationResult<T> {
  * @param startAfterDoc Başlangıç belgesi (ilk sayfa için null)
  * @param orderByField Sıralama alanı
  * @param direction Sıralama yönü
+ * @param getTotalCount Toplam belge sayısını getir
  */
 export async function fetchPaginatedData<T>(
   collectionName: string,
   pageSize: number = 10,
   startAfterDoc: QueryDocumentSnapshot | null = null,
   orderByField: string = "lastSaved",
-  direction: 'asc' | 'desc' = 'desc'
+  direction: 'asc' | 'desc' = 'desc',
+  getTotalCount: boolean = false
 ): Promise<PaginationResult<T>> {
   try {
     debugLog("paginatedDataService", `${collectionName} koleksiyonundan sayfalandırılmış veri çekiliyor`, {
@@ -62,6 +66,18 @@ export async function fetchPaginatedData<T>(
     // Sorguyu çalıştır
     const querySnapshot = await getDocs(dataQuery);
     
+    // Toplam belge sayısını al (istenirse)
+    let totalCount: number | undefined = undefined;
+    if (getTotalCount) {
+      try {
+        const countSnapshot = await getCountFromServer(collection(db, collectionName));
+        totalCount = countSnapshot.data().count;
+        debugLog("paginatedDataService", `Toplam belge sayısı: ${totalCount}`);
+      } catch (err) {
+        errorLog("paginatedDataService", "Toplam belge sayısı alınamadı:", err);
+      }
+    }
+    
     // Sonuçları işle
     const items: T[] = [];
     let lastVisible: QueryDocumentSnapshot | null = null;
@@ -85,7 +101,8 @@ export async function fetchPaginatedData<T>(
     return {
       items,
       lastDoc: lastVisible,
-      hasMore
+      hasMore,
+      totalCount
     };
   } catch (err) {
     errorLog("paginatedDataService", `${collectionName} verileri yüklenirken hata:`, err);

@@ -3,16 +3,20 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "../dashboard/LoadingScreen";
 import { isAdminEmail } from "@/config/adminConfig";
+import { useEffect } from "react";
+import { toast } from "sonner";
 
 // Admin erişim kontrol bileşeni
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { currentUser, userData, loading } = useAuth();
   
-  console.log("AdminRoute kontrol ediliyor:", { 
-    currentUser: currentUser?.email || "Yok", 
-    isAdmin: userData?.isAdmin || false,
-    localStorageAdmin: localStorage.getItem('isAdminSession') === 'true'
-  });
+  useEffect(() => {
+    console.log("AdminRoute kontrol ediliyor:", { 
+      currentUser: currentUser?.email || "Yok", 
+      isAdmin: userData?.isAdmin || false,
+      localStorageAdmin: localStorage.getItem('isAdminSession') === 'true'
+    });
+  }, [currentUser, userData]);
   
   if (loading) {
     return <LoadingScreen message="Admin yetkisi kontrol ediliyor..." />;
@@ -31,6 +35,7 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
     }
     
     console.log("Admin oturumu yok, giriş sayfasına yönlendiriliyor");
+    toast.error("Admin girişi gerekiyor");
     return <Navigate to="/sign-in" />;
   }
   
@@ -53,6 +58,7 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   // Admin yetkisi yoksa ana sayfaya yönlendir
   console.log("Admin yetkisi bulunamadı, ana sayfaya yönlendiriliyor");
   localStorage.removeItem('isAdminSession');
+  toast.error("Bu sayfaya erişim yetkiniz bulunmamaktadır");
   return <Navigate to="/" />;
 };
 
