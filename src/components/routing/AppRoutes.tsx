@@ -1,3 +1,4 @@
+
 import { Suspense, lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import LoadingScreen from "../dashboard/LoadingScreen";
@@ -6,6 +7,7 @@ import PrivateRoute from "./PrivateRoute";
 import AdminRoute from "./AdminRoute";
 import PageTransition from "./PageTransition";
 import { usePagePreloading } from "@/hooks/routing/usePagePreloading";
+import SignIn from "@/pages/SignIn"; // Direct import instead of lazy loading
 
 // Lazy-loaded pages with reduced loading timeout
 const Index = lazy(() => import("@/pages/Index"));
@@ -16,7 +18,7 @@ const Referral = lazy(() => import("@/pages/Referral"));
 const Tasks = lazy(() => import("@/pages/Tasks"));
 const MiningUpgrades = lazy(() => import("@/pages/MiningUpgrades"));
 const Statistics = lazy(() => import("@/pages/Statistics"));
-const SignIn = lazy(() => import("@/pages/SignIn"));
+// const SignIn = lazy(() => import("@/pages/SignIn")); // Removed lazy loading
 const SignUp = lazy(() => import("@/pages/SignUp"));
 const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
 
@@ -101,11 +103,9 @@ const AppRoutes = () => {
         } />
         
         <Route path="/sign-in" element={
-          <Suspense fallback={<LoadingScreen message="Giriş sayfası yükleniyor..." />}>
-            <PageTransition>
-              <SignIn />
-            </PageTransition>
-          </Suspense>
+          <PageTransition>
+            <SignIn />
+          </PageTransition>
         } />
         
         <Route path="/sign-up" element={

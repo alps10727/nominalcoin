@@ -13,8 +13,9 @@ export function usePagePreloading() {
           import("@/pages/History"),
           import("@/pages/Referral"),
           import("@/pages/Tasks"),
-          import("@/pages/MiningUpgrades"), // This now exists
+          import("@/pages/MiningUpgrades"),
           import("@/components/MobileNavigation")
+          // Removed SignIn from preloading since we're importing it directly
         ];
         
         // Sayfaları paralel olarak yükle
