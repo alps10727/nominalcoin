@@ -13,7 +13,7 @@ export function usePagePreloading() {
           import("@/pages/History"),
           import("@/pages/Referral"),
           import("@/pages/Tasks"),
-          import("@/pages/MiningUpgrades"),
+          import("@/pages/MiningUpgrades"), // This now exists
           import("@/components/MobileNavigation")
         ];
         

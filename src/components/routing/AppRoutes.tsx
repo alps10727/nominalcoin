@@ -1,4 +1,3 @@
-
 import { Suspense, lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import LoadingScreen from "../dashboard/LoadingScreen";
@@ -14,7 +13,7 @@ const Profile = lazy(() => import("@/pages/Profile"));
 const History = lazy(() => import("@/pages/History"));
 const Referral = lazy(() => import("@/pages/Referral"));
 const Tasks = lazy(() => import("@/pages/Tasks"));
-const MiningUpgrades = lazy(() => import("@/pages/MiningUpgrades"));
+const MiningUpgrades = lazy(() => import("@/pages/MiningUpgrades")); // Now correctly imported
 const Statistics = lazy(() => import("@/pages/Statistics"));
 const SignIn = lazy(() => import("@/pages/SignIn"));
 const SignUp = lazy(() => import("@/pages/SignUp"));

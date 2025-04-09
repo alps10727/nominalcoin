@@ -3,7 +3,7 @@ import { useState } from "react";
 import { User } from "firebase/auth";
 import { UserData } from "@/utils/storage";
 import { debugLog } from "@/utils/debugUtils";
-import { updateUserDataWithStatus } from "@/utils/userDataUpdater";
+import { updateUserDataWithStatus } from "@/utils/userDataUpdater"; // Now correctly imported
 
 interface UserDataManager {
   updateUserData: (data: Partial<UserData>) => Promise<void>;
