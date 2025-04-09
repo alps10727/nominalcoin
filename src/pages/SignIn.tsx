@@ -1,15 +1,24 @@
 
+import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
 import SignInContainer from "@/components/auth/SignInContainer";
 import AdminLoginHandler from "@/components/auth/AdminLoginHandler";
 
 const SignIn = () => {
+  useEffect(() => {
+    console.log("SignIn component mounted");
+    return () => {
+      console.log("SignIn component unmounted");
+    };
+  }, []);
+
   // Try to use auth context, but fallback gracefully if not ready
   const auth = (() => {
     try {
       return useAuth();
     } catch (err) {
+      console.error("Auth context error:", err);
       return { loading: true };
     }
   })();

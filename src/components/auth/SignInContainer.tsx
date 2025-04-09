@@ -7,6 +7,7 @@ import { useAdminRedirect } from "@/hooks/auth/useAdminRedirect";
 import { useSignInTimeout } from "@/hooks/auth/useSignInTimeout";
 import SignInCard from "./SignInCard";
 import { isAdminCredentials } from "@/config/adminConfig";
+import { toast } from "sonner";
 
 const SignInContainer = () => {
   const [error, setError] = useState<string | null>(null);
@@ -57,6 +58,7 @@ const SignInContainer = () => {
         
         // Set admin session and redirect
         localStorage.setItem('isAdminSession', 'true');
+        toast.success("Admin girişi başarılı!");
         setLoading(false);
         navigate("/admin");
         return true;

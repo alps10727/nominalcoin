@@ -1,12 +1,7 @@
 
 import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-
-// Admin credentials for direct access
-const ADMIN_CREDENTIALS = {
-  email: "ncowner0001@gmail.com",
-  password: "1069GYSF"
-};
+import { isAdminCredentials } from "@/config/adminConfig";
 
 /**
  * Special component that handles direct admin logins via URL params
@@ -22,12 +17,16 @@ const AdminLoginHandler = () => {
     const adminEmail = params.get('admin_email');
     const adminKey = params.get('admin_key');
     
-    // If admin credentials match, set admin session and redirect
-    if (adminEmail?.toLowerCase() === ADMIN_CREDENTIALS.email.toLowerCase() && 
-        adminKey === ADMIN_CREDENTIALS.password) {
-      console.log("Direct admin login detected");
-      localStorage.setItem('isAdminSession', 'true');
-      navigate("/admin", { replace: true });
+    if (adminEmail && adminKey) {
+      console.log("Checking admin credentials from URL params");
+      // If admin credentials match, set admin session and redirect
+      if (isAdminCredentials(adminEmail, adminKey)) {
+        console.log("Direct admin login successful via URL params");
+        localStorage.setItem('isAdminSession', 'true');
+        navigate("/admin", { replace: true });
+      } else {
+        console.log("Invalid admin credentials in URL params");
+      }
     }
   }, [navigate, location]);
 
