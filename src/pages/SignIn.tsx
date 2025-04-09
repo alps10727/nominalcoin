@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -15,6 +14,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
 import SignInForm from "@/components/auth/SignInForm";
 import { useOfflineLogin } from "@/hooks/auth/useOfflineLogin";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/config/firebase";
 
 const SignIn = () => {
   const [error, setError] = useState<string | null>(null);
@@ -40,11 +41,28 @@ const SignIn = () => {
   const { currentUser, loading: authLoading, isOffline } = auth;
   const { offlineLoginAttempted, attemptOfflineLogin } = useOfflineLogin();
   
-  // Eğer kullanıcı zaten giriş yapmışsa, ana sayfaya yönlendir
+  // Eğer kullanıcı zaten giriş yapmışsa, kullanıcının admin olup olmadığını kontrol et
   useEffect(() => {
-    if (currentUser && !authLoading) {
-      navigate("/");
-    }
+    const checkUserAndRedirect = async () => {
+      if (currentUser && !authLoading) {
+        try {
+          // Kullanıcının admin olup olmadığını kontrol et
+          const userRef = doc(db, "users", currentUser.uid);
+          const userDoc = await getDoc(userRef);
+          
+          if (userDoc.exists() && userDoc.data()?.isAdmin === true) {
+            navigate("/admin");
+          } else {
+            navigate("/");
+          }
+        } catch (error) {
+          console.error("Admin durumu kontrol edilirken hata:", error);
+          navigate("/");
+        }
+      }
+    };
+    
+    checkUserAndRedirect();
   }, [currentUser, authLoading, navigate]);
   
   // Giriş işlemi uzun sürdüğünde kurtarma mekanizması
