@@ -1,3 +1,4 @@
+
 import { UserData, saveUserData } from '@/utils/storage';
 import { saveUserDataToFirebase } from '@/services/userDataSaver';
 import { debugLog, errorLog } from '@/utils/debugUtils';
@@ -21,7 +22,7 @@ export async function updateUserDataWithStatus(
     // Use current data or create defaults
     const baseData: UserData = currentData || {
       balance: 0,
-      miningRate: 0.003,
+      miningRate: 0.003, // Sabit mining rate: 0.003
       lastSaved: Date.now()
     };
     
@@ -29,6 +30,7 @@ export async function updateUserDataWithStatus(
     const updatedData: UserData = {
       ...baseData,
       ...updates,
+      miningRate: 0.003, // Sabit mining rate: 0.003 - Zorla geçersiz kılıyoruz
       lastSaved: Date.now()
     };
     
@@ -59,7 +61,7 @@ export async function updateUserDataWithStatus(
       status: 'error', 
       updatedData: currentData || {
         balance: 0,
-        miningRate: 0.003,
+        miningRate: 0.003, // Sabit mining rate: 0.003
         lastSaved: Date.now()
       }
     };

@@ -32,6 +32,13 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
         debugLog("userDataLoader", "Yerel veride userID güncellendi:", userId);
       }
       
+      // Mining rate'i 0.003 olarak zorluyoruz
+      if (localData.miningRate !== 0.003) {
+        localData.miningRate = 0.003;
+        saveUserData(localData);
+        debugLog("userDataLoader", "Mining rate 0.003 olarak güncellendi");
+      }
+      
       // İlk hızlı yol: yerel veriyi döndür, Firebase verisi arkada yüklenecek
       return localData;
     }
@@ -49,7 +56,7 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
         // Ensure the data has all required fields before treating it as UserData
         const validatedData: UserData = {
           balance: typeof userData.balance === 'number' ? userData.balance : 0,
-          miningRate: typeof userData.miningRate === 'number' ? userData.miningRate : 0.003, // Değiştirildi: 0.1 -> 0.003
+          miningRate: 0.003, // Sabit mining rate: 0.003
           lastSaved: typeof userData.lastSaved === 'number' ? userData.lastSaved : Date.now(),
           miningActive: !!userData.miningActive,
           userId: userId,
@@ -89,7 +96,7 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
     debugLog("userDataLoader", "Varsayılan değerler ile yeni profil oluşturuluyor");
     return {
       balance: localData?.balance || 0, // Yerel bakiye varsa kullan
-      miningRate: localData?.miningRate || 0.003, // Değiştirildi: 0.1 -> 0.003
+      miningRate: 0.003, // Sabit mining rate: 0.003
       lastSaved: Date.now(),
       miningActive: localData?.miningActive || false,
       userId: userId,
@@ -104,7 +111,7 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
     const localData = loadUserData();
     return {
       balance: localData?.balance || 0,
-      miningRate: localData?.miningRate || 0.003, // Değiştirildi: 0.1 -> 0.003
+      miningRate: 0.003, // Sabit mining rate: 0.003
       lastSaved: Date.now(),
       miningActive: localData?.miningActive || false,
       userId: userId,

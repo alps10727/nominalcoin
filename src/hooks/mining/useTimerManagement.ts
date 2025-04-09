@@ -64,7 +64,7 @@ export function savePeriodicState(
     
     saveUserData({
       balance: prevState.balance,
-      miningRate: prevState.miningRate,
+      miningRate: 0.003, // Sabit mining rate: 0.003
       lastSaved: now,
       miningActive: true,
       miningTime: newTime,

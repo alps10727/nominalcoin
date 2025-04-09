@@ -34,8 +34,8 @@ export function addMiningReward(
     currentBalance = localData.balance;
   }
   
-  // Per 3-minute reward calculation - FIX: Adding exactly miningRate value per cycle (0.003)
-  const rewardAmount = prevState.miningRate;
+  // Per 3-minute reward calculation - FIX: Adding exactly 0.003 per cycle (3 minutes)
+  const rewardAmount = 0.003;
   const newBalance = currentBalance + rewardAmount;
   const newSession = prevState.miningSession + rewardAmount;
   
@@ -44,7 +44,7 @@ export function addMiningReward(
   // CRITICAL: Save balance to storage IMMEDIATELY after earning reward
   saveUserData({
     balance: newBalance,
-    miningRate: prevState.miningRate,
+    miningRate: 0.003,
     lastSaved: getCurrentTime(),
     miningActive: true, // Keep mining active
     miningTime: prevState.miningTime,
@@ -86,7 +86,7 @@ export function handleMiningCompletion(prevState: MiningState): Partial<MiningSt
   // CRITICAL: Save final state to storage immediately
   saveUserData({
     balance: finalBalance,
-    miningRate: prevState.miningRate,
+    miningRate: 0.003,
     lastSaved: getCurrentTime(),
     miningActive: false,
     miningTime: prevState.miningPeriod,

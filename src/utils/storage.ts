@@ -66,9 +66,7 @@ export function saveUserData(userData: UserData): void {
       balance: typeof userData.balance === 'number' && !isNaN(userData.balance) 
         ? userData.balance 
         : 0,
-      miningRate: typeof userData.miningRate === 'number' && !isNaN(userData.miningRate) 
-        ? userData.miningRate 
-        : 0.003, // Değiştirildi: 0.1 -> 0.003
+      miningRate: 0.003, // Sabit mining rate: 0.003 - userData.miningRate değerini yok sayıyoruz
       lastSaved: Date.now(),
     };
     
