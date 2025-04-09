@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
 import SignInContainer from "@/components/auth/SignInContainer";
 import AdminLoginHandler from "@/components/auth/AdminLoginHandler";
+import { Toaster } from "sonner";
 
 const SignIn = () => {
   useEffect(() => {
@@ -30,6 +31,9 @@ const SignIn = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+      {/* Toast bildirimleri için Toaster komponenti */}
+      <Toaster richColors position="top-center" />
+      
       {/* Separate admin login handler component */}
       <AdminLoginHandler />
       <SignInContainer />

@@ -60,7 +60,13 @@ const SignInContainer = () => {
         localStorage.setItem('isAdminSession', 'true');
         toast.success("Admin girişi başarılı!");
         setLoading(false);
-        navigate("/admin");
+        
+        // Kısa bir gecikme ekleyerek yönlendirme sorununu çözüyoruz
+        setTimeout(() => {
+          console.log("Admin paneline yönlendiriliyor...");
+          navigate("/admin", { replace: true });
+        }, 100);
+        
         return true;
       }
       

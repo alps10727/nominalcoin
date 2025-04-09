@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { isAdminCredentials } from "@/config/adminConfig";
+import { toast } from "sonner";
 
 /**
  * Special component that handles direct admin logins via URL params
@@ -23,9 +24,16 @@ const AdminLoginHandler = () => {
       if (isAdminCredentials(adminEmail, adminKey)) {
         console.log("Direct admin login successful via URL params");
         localStorage.setItem('isAdminSession', 'true');
-        navigate("/admin", { replace: true });
+        toast.success("Admin girişi başarılı!");
+        
+        // Kısa bir gecikme ekleyerek yönlendirme sorununu çözüyoruz
+        setTimeout(() => {
+          console.log("Admin paneline yönlendiriliyor...");
+          navigate("/admin", { replace: true });
+        }, 100);
       } else {
         console.log("Invalid admin credentials in URL params");
+        toast.error("Geçersiz admin kimlik bilgileri");
       }
     }
   }, [navigate, location]);

@@ -9,6 +9,7 @@ import AppLayout from "./components/layout/AppLayout";
 import AppRoutes from "./components/routing/AppRoutes";
 import { Suspense } from "react";
 import LoadingScreen from "./components/dashboard/LoadingScreen";
+import { Toaster } from "sonner";
 
 // Optimize edilmiş QueryClient yapılandırması
 const queryClient = new QueryClient({
@@ -32,6 +33,7 @@ const App = () => {
             <AuthProvider>
               <AppInitializer>
                 <Suspense fallback={<LoadingScreen message="Yükleniyor..." />}>
+                  <Toaster richColors position="top-center" />
                   <AppLayout>
                     <AppRoutes />
                   </AppLayout>

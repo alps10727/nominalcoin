@@ -1,4 +1,3 @@
-
 import { Suspense, lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import LoadingScreen from "../dashboard/LoadingScreen";
@@ -124,14 +123,6 @@ const AppRoutes = () => {
           </Suspense>
         } />
         
-        <Route path="*" element={
-          <Suspense fallback={<LoadingScreen message="Sayfa yükleniyor..." />}>
-            <PageTransition>
-              <NotFound />
-            </PageTransition>
-          </Suspense>
-        } />
-        
         {/* Admin Routes */}
         <Route path="/admin" element={
           <AdminRoute>
@@ -141,6 +132,15 @@ const AppRoutes = () => {
               </PageTransition>
             </Suspense>
           </AdminRoute>
+        } />
+        
+        {/* Fallback redirect for undefined routes */}
+        <Route path="*" element={
+          <Suspense fallback={<LoadingScreen message="Sayfa yükleniyor..." />}>
+            <PageTransition>
+              <NotFound />
+            </PageTransition>
+          </Suspense>
         } />
       </Routes>
     </ErrorBoundary>
