@@ -14,7 +14,6 @@ interface MiningButtonBaseProps {
 
 /**
  * Base button component that handles the click event and scaling animation
- * Optimized for performance, smoothness, and reliable interaction handling
  */
 export const MiningButtonBase = React.memo<MiningButtonBaseProps>(({ 
   miningActive, 
@@ -48,7 +47,6 @@ export const MiningButtonBase = React.memo<MiningButtonBaseProps>(({
         {children}
       </button>
       
-      {/* Use the extracted CooldownIndicator component */}
       <CooldownIndicator visible={cooldown} />
     </div>
   );

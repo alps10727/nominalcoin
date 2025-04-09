@@ -12,7 +12,7 @@ export const MiningCardHeader = React.memo<MiningCardHeaderProps>(({
   miningRate, 
   isMobile 
 }) => {
-  // Mining rate'i yüzde olarak göstermek için düzeltilmiş hesaplama (0.003 için %0.3)
+  // Mining rate'i yüzde olarak göstermek için (0.003 için %0.3)
   const miningRatePercent = (miningRate * 100).toFixed(1);
 
   return (
