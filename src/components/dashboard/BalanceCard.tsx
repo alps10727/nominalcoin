@@ -1,117 +1,71 @@
 
-import React, { useEffect, useRef, useState } from 'react';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { Diamond, ArrowUpRight, AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { debugLog } from '@/utils/debugUtils';
+import { Card, CardContent } from "@/components/ui/card";
+import { CreditCard } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useTheme } from "@/contexts/ThemeContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface BalanceCardProps {
   balance: number;
 }
 
 const BalanceCard = ({ balance }: BalanceCardProps) => {
+  const isMobile = useIsMobile();
+  const { theme } = useTheme();
   const { t } = useLanguage();
-  const previousBalance = useRef(balance);
-  const [displayBalance, setDisplayBalance] = useState(balance);
-  const stableBalanceRef = useRef(balance);
   
-  // Update display balance with smooth animation when actual balance changes
-  useEffect(() => {
-    debugLog("BalanceCard", `Balance prop changed: ${balance}, Previous: ${previousBalance.current}`);
-    
-    // Yalnızca daha yüksek veya eşit bakiye değerlerini kabul et
-    // Bu, yenileme sırasında değerlerin kaybolmasını önler
-    if (balance >= stableBalanceRef.current) {
-      setDisplayBalance(balance);
-      stableBalanceRef.current = balance;
-      
-      // Show notification when balance increases significantly (more than 0.01)
-      if (previousBalance.current !== 0 && balance > previousBalance.current + 0.01) {
-        const difference = balance - previousBalance.current;
-        toast.success(`Bakiye güncellendi: +${difference.toFixed(2)} NC`, {
-          style: { background: "#4338ca", color: "white", border: "1px solid #3730a3" },
-          icon: '💰',
-          id: `balance-update-${Date.now()}` // Add unique ID to prevent duplicate toasts
-        });
-      }
-      previousBalance.current = balance;
-    } else if (balance < stableBalanceRef.current) {
-      // Bakiye düştüyse konsola log yaz (debugging için)
-      debugLog("BalanceCard", `İgnoring lower balance value: ${balance}, Keeping: ${stableBalanceRef.current}`);
-    }
-  }, [balance]);
-  
-  // Format the balance with commas
-  const formattedBalance = displayBalance.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
+  // Küçük bir bakiye değeri için formatı değiştir - 0.4 yerine 0.40 göster
+  // 0.003 mining rate ile toplanan para az olacak, bu yüzden 2 değil 3 decimal gösterelim
+  const formattedBalance = balance < 1 
+    ? balance.toFixed(3) // 3 decimal point göster (0.003, 0.006, vs.)
+    : balance.toFixed(2); // 1 ve üzeri değerler için 2 decimal point yeterli
   
   return (
-    <div className="fc-card relative overflow-hidden group hover-lift transition-all duration-500">
-      {/* Background elements */}
-      <div className="absolute inset-0 fc-nebula opacity-60"></div>
-      <div className="absolute -top-24 -right-24 w-48 h-48 bg-purple-600/5 rounded-full blur-3xl"></div>
-      <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-indigo-600/5 rounded-full blur-2xl"></div>
+    <Card className="overflow-hidden relative border-none shadow-md bg-gradient-to-r from-indigo-900/90 to-purple-900/90">
+      {/* Subtle background pattern */}
+      <div className="absolute inset-0 opacity-5 bg-grid-pattern"></div>
       
-      {/* Constellation background pattern */}
-      <div className="absolute inset-0 bg-galaxy opacity-5"></div>
-      
-      {/* Content */}
-      <div className="relative z-10 p-5">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center space-x-2">
-            <div className="fc-icon-container">
-              <Diamond className="text-purple-300 h-4 w-4" />
+      <CardContent className={`p-6 relative z-10 ${isMobile ? "px-4 py-5" : ""}`}>
+        <div className="flex justify-between items-start">
+          <div>
+            <div className="flex items-center space-x-2 mb-1">
+              <div className="p-1.5 rounded-lg bg-gradient-to-br from-indigo-800 to-purple-900">
+                <CreditCard className="h-4 w-4 text-indigo-300" />
+              </div>
+              <span className="text-sm text-indigo-300 font-medium">
+                {t('wallet.balance')}
+              </span>
             </div>
-            <span className="text-lg font-medium fc-gradient-text">NC Balance</span>
+            
+            <div className="flex items-end mt-2">
+              <span className="text-3xl sm:text-4xl font-bold text-white mr-1">
+                {formattedBalance}
+              </span>
+              <span className="text-lg sm:text-xl text-indigo-300 font-medium mb-0.5">
+                <span className="relative">
+                  NC
+                  <span className="absolute top-0 -right-2 text-red-500 text-xs font-normal">β</span>
+                </span>
+              </span>
+            </div>
+            
+            <p className="text-xs text-indigo-300/70 mt-2">
+              NOMINAL Coin
+            </p>
           </div>
           
-          {/* Removed the percentage indicator that was here */}
-        </div>
-        
-        {/* Balance display - now with transition animation for smooth updates */}
-        <div className="flex flex-col space-y-1 my-3">
-          <h1 className="text-5xl font-bold text-white fc-glow-text tracking-tight transition-all duration-500">
-            {formattedBalance} <span className="text-lg font-medium text-purple-300">NC</span>
-          </h1>
-          <p className="text-purple-300/80 text-sm">Earned NOMINAL Coin</p>
-        </div>
-        
-        {/* Animated status bar */}
-        <div className="fc-status-bar my-4">
-          <div 
-            className="fc-status-progress animate-pulse-slow"
-            style={{ width: '45%' }}
-          ></div>
-        </div>
-        
-        {/* Stats overview */}
-        <div className="grid grid-cols-2 gap-3 mb-3">
-          <div className="bg-darkPurple-800/40 rounded-lg p-2 border border-purple-700/20">
-            <div className="text-xs text-purple-300/70">Daily Mined</div>
-            <div className="text-sm font-semibold text-white">+173.5 NC</div>
-          </div>
-          <div className="bg-darkPurple-800/40 rounded-lg p-2 border border-purple-700/20">
-            <div className="text-xs text-purple-300/70">Current Value</div>
-            <div className="text-sm font-semibold text-white">$215.38</div>
+          <div className="hidden sm:block">
+            <div className="p-3 rounded-lg bg-indigo-900/50 border border-indigo-700/30 backdrop-blur-sm">
+              <img 
+                src={theme === 'dark' ? "/assets/nc-logo-dark.svg" : "/assets/nc-logo-light.svg"} 
+                alt="NC Logo" 
+                className="h-8 w-8"
+              />
+            </div>
           </div>
         </div>
-        
-        {/* Action buttons */}
-        <div className="flex gap-2 mt-3">
-          <Button variant="ghost" size="sm" className="flex-1 bg-purple-900/50 border border-purple-700/30 hover:bg-purple-800/60">
-            <ArrowUpRight className="h-4 w-4 mr-1" />
-            Transfer
-          </Button>
-          <Button variant="ghost" size="sm" className="flex-1 bg-darkPurple-900/50 border border-purple-700/30 hover:bg-darkPurple-800/60">
-            <AlertCircle className="h-4 w-4 mr-1" />
-            Details
-          </Button>
-        </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
