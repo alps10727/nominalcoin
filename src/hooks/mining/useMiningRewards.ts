@@ -34,8 +34,8 @@ export function addMiningReward(
     currentBalance = localData.balance;
   }
   
-  // Per 3-minute reward calculation
-  const rewardAmount = prevState.miningRate * 3;
+  // Per 3-minute reward calculation - FIX: Adding exactly miningRate value per cycle (0.003)
+  const rewardAmount = prevState.miningRate;
   const newBalance = currentBalance + rewardAmount;
   const newSession = prevState.miningSession + rewardAmount;
   
@@ -54,7 +54,7 @@ export function addMiningReward(
   });
   
   // Show reward toast with improved styling
-  toast.success(`+${rewardAmount.toFixed(2)} NC earned!`, {
+  toast.success(`+${rewardAmount.toFixed(3)} NC earned!`, {
     style: { background: "#4338ca", color: "white", border: "1px solid #3730a3" },
     icon: '💰',
     id: `reward-${Date.now()}` // Add unique ID to prevent duplicate toasts
