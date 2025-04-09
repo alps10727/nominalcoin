@@ -8,9 +8,9 @@ import { useAuth } from "@/contexts/AuthContext";
 export function useUpgrades() {
   const { currentUser, userData, updateUserData } = useAuth();
   
-  // Initialize with default values for new users - updated default mining rate to 0.1
+  // Initialize with default values for new users - updated default mining rate to 0.003
   const [balance, setBalance] = useState(0);
-  const [miningRate, setMiningRate] = useState(0.1);
+  const [miningRate, setMiningRate] = useState(0.003);
   
   // Default upgrade configurations for new users
   const [upgrades, setUpgrades] = useState<Upgrade[]>([
@@ -60,13 +60,13 @@ export function useUpgrades() {
     if (userData) {
       // Firebase'den gelen verileri kullan
       setBalance(userData.balance || 0);
-      setMiningRate(userData.miningRate || 0.1);
+      setMiningRate(userData.miningRate || 0.003);
       
       if (userData.upgrades && userData.upgrades.length > 0) {
         setUpgrades(userData.upgrades);
-      } else if (userData.miningRate && userData.miningRate > 0.01) {
+      } else if (userData.miningRate && userData.miningRate > 0.003) {
         // Eski veri formatı uyumluluğu için
-        const currentRateLevel = Math.round((userData.miningRate - 0.01) / 0.005);
+        const currentRateLevel = Math.round((userData.miningRate - 0.003) / 0.005);
         if (currentRateLevel > 0) {
           const updatedUpgrades = [...upgrades];
           const rateUpgradeIndex = updatedUpgrades.findIndex(u => u.id === "rate");
@@ -126,7 +126,7 @@ export function useUpgrades() {
         
         if (upgradeId === "rate") {
           const newLevel = upgrade.level + 1;
-          const newMiningRate = 0.01 + newLevel * 0.005;
+          const newMiningRate = 0.003 + newLevel * 0.005;
           setMiningRate(newMiningRate);
           
           updateUserData({

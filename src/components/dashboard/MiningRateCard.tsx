@@ -12,10 +12,10 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
   const { t } = useLanguage();
   const isMobile = useIsMobile();
   
-  // ÖNEMLİ - Hesaplamalar: 3 dakikada bir kazanılacak NC miktarı
-  const cycleReward = (miningRate * 3).toFixed(3); // 3 dakikalık döngü başına NC
-  const hourlyRate = (miningRate * 20).toFixed(3); // Saatlik: 20 döngü/saat (60/3)
-  const dailyRate = (miningRate * 480).toFixed(3); // Günlük: 480 döngü/gün (24*20)
+  // ÖNEMLİ - Hesaplamalar: 3 dakikada bir kazanılacak NC miktarı 
+  const cycleReward = (miningRate * 3).toFixed(3); // 3 dakikalık döngü başına NC (0.003 * 3 = 0.009)
+  const hourlyRate = (miningRate * 60).toFixed(3); // Saatlik: 60 dakikada = 20 döngü (0.003 * 60 = 0.18)
+  const dailyRate = (miningRate * 60 * 24).toFixed(3); // Günlük: 24 saat = 1440 dakika / 3 = 480 döngü
   
   return (
     <Card className="mb-4 overflow-hidden relative border-none shadow-md bg-gradient-to-r from-purple-900/90 to-indigo-900/90">
@@ -50,7 +50,7 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
             <div className="h-2 bg-purple-950 rounded-full overflow-hidden mt-1">
               <div 
                 className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-500"
-                style={{width: `${Math.min((miningRate * 3) * 100, 100)}%`}}
+                style={{width: `${Math.min((miningRate * 300), 100)}%`}}
               ></div>
             </div>
           </div>
