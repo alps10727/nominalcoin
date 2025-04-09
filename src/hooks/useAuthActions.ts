@@ -1,8 +1,13 @@
-
 import { toast } from "sonner";
 import { User } from "firebase/auth";
 import { loginUser, logoutUser, registerUser, UserRegistrationData } from "@/services/authService";
 import { debugLog, errorLog } from "@/utils/debugUtils";
+
+// Admin kimlik bilgileri
+const ADMIN_CREDENTIALS = {
+  email: "ncowner0001@gmail.com",
+  password: "1069GYSF"
+};
 
 interface AuthActions {
   login: (email: string, password: string) => Promise<boolean>;
@@ -13,6 +18,19 @@ interface AuthActions {
 export function useAuthActions(): AuthActions {
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
+      // Admin giriş kontrolü - Firebase'i atla
+      if (email.trim().toLowerCase() === ADMIN_CREDENTIALS.email.toLowerCase() && 
+          password === ADMIN_CREDENTIALS.password) {
+        debugLog("useAuthActions", "Admin girişi tespit edildi, Firebase atlanıyor");
+        
+        // Admin oturumunu local storage'a kaydet
+        localStorage.setItem('isAdminSession', 'true');
+        
+        // Başarılı bildirim göster
+        toast.success("Admin girişi başarılı!");
+        return true;
+      }
+      
       debugLog("useAuthActions", "Starting login process:", email);
       const user = await loginUser(email, password);
       if (user) {
@@ -26,14 +44,15 @@ export function useAuthActions(): AuthActions {
       
       if (errorMessage.includes("user-not-found") || 
          errorMessage.includes("wrong-password") || 
-         errorMessage.includes("invalid-credential")) {
-        toast.error("Email or password is incorrect.");
+         errorMessage.includes("invalid-credential") ||
+         errorMessage.includes("invalid-email")) {
+        toast.error("Email veya şifre hatalı.");
       } else if (errorMessage.includes("too-many-requests")) {
-        toast.error("Too many attempts. Please try again later.");
+        toast.error("Çok fazla deneme yaptınız. Lütfen daha sonra tekrar deneyin.");
       } else if (errorMessage.includes("network-request-failed") || errorMessage.includes("timeout")) {
-        toast.error("Please check your internet connection.");
+        toast.error("Lütfen internet bağlantınızı kontrol edin.");
       } else {
-        toast.error("Login failed: " + errorMessage);
+        toast.error("Giriş başarısız: " + errorMessage);
       }
       return false;
     }

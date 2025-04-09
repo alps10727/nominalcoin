@@ -18,7 +18,7 @@ import { useOfflineLogin } from "@/hooks/auth/useOfflineLogin";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/config/firebase";
 
-// Admin e-posta ve şifre bilgisi
+// Admin e-posta ve şifre bilgisi - Doğru şekilde tanımlandı
 const ADMIN_CREDENTIALS = {
   email: "ncowner0001@gmail.com",
   password: "1069GYSF"
@@ -103,24 +103,21 @@ const SignIn = () => {
     try {
       console.log("Giriş işlemi başlatılıyor:", email);
       
-      // Admin giriş kontrolü
-      if (email.trim().toLowerCase() === ADMIN_CREDENTIALS.email.toLowerCase() && password === ADMIN_CREDENTIALS.password) {
-        console.log("Admin giriş denemesi tespit edildi");
-        const success = await auth.login(email, password);
+      // Özel admin giriş kontrolü - Doğrudan karşılaştırma
+      // Email ve password tam eşleşme için trim ve lowercase kullanıldı
+      if (email.trim().toLowerCase() === ADMIN_CREDENTIALS.email.toLowerCase() && 
+          password === ADMIN_CREDENTIALS.password) {
+        console.log("Admin girişi başarılı - Firebase atlanıyor");
+        
+        // Firebase kimlik doğrulamasını atlayarak doğrudan admin paneline yönlendir
         setLoading(false);
-        if (success) {
-          navigate("/admin");
-          return true;
-        } else {
-          // Admin girişi başarısız oldu, özel hata mesajı göster
-          console.error("Admin girişi başarısız oldu");
-          setError("Admin girişi yapılamadı. E-posta ve şifrenizi kontrol edin.");
-          return false;
-        }
+        navigate("/admin");
+        return true;
       }
       
-      // Normal giriş işlemi
+      // Normal giriş işlemi için Firebase kimlik doğrulamasını kullan
       const success = await auth.login(email, password);
+      setLoading(false);
       
       if (!success) {
         // Eğer normal giriş başarısız olursa, çevrimdışı girişi dene
@@ -135,6 +132,7 @@ const SignIn = () => {
     } catch (error) {
       console.error("Giriş hatası:", error);
       const errorMessage = (error as Error).message;
+      setLoading(false);
       
       // Network hatası durumunda çevrimdışı girişi dene
       if (errorMessage.includes("timeout") || errorMessage.includes("network") || 
@@ -148,8 +146,6 @@ const SignIn = () => {
         setError("Giriş yapılamadı: " + errorMessage);
         return false;
       }
-    } finally {
-      setLoading(false);
     }
   };
   

@@ -23,6 +23,15 @@ export function useIsAdmin() {
 
   useEffect(() => {
     const checkAdminStatus = async () => {
+      // Önce localStorage kontrolü - özel admin oturumu kontrolü
+      const isAdminSession = localStorage.getItem('isAdminSession') === 'true';
+      
+      if (isAdminSession) {
+        setIsAdmin(true);
+        setLoading(false);
+        return;
+      }
+      
       if (!currentUser) {
         setIsAdmin(false);
         setLoading(false);
@@ -31,8 +40,9 @@ export function useIsAdmin() {
 
       try {
         // Önce sabit e-posta listesine göre kontrol et
-        if (ADMIN_EMAILS.includes(currentUser.email || "")) {
+        if (currentUser.email && ADMIN_EMAILS.includes(currentUser.email.toLowerCase())) {
           setIsAdmin(true);
+          localStorage.setItem('isAdminSession', 'true');
           setLoading(false);
           return;
         }
@@ -43,12 +53,15 @@ export function useIsAdmin() {
         
         if (userDoc.exists() && userDoc.data()?.isAdmin === true) {
           setIsAdmin(true);
+          localStorage.setItem('isAdminSession', 'true');
         } else {
           setIsAdmin(false);
+          localStorage.removeItem('isAdminSession');
         }
       } catch (error) {
         console.error("Admin durumu kontrol edilirken hata:", error);
         setIsAdmin(false);
+        localStorage.removeItem('isAdminSession');
       } finally {
         setLoading(false);
       }
