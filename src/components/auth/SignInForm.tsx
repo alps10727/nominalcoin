@@ -1,12 +1,11 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Mail, AlertCircle, LogIn } from "lucide-react";
+import EmailInput from "./inputs/EmailInput";
 import PasswordInput from "./PasswordInput";
+import RememberMeCheckbox from "./inputs/RememberMeCheckbox";
+import LoginButton from "./buttons/LoginButton";
+import ErrorAlert from "./alerts/ErrorAlert";
 
 interface SignInFormProps {
   onSubmit: (email: string, password: string) => Promise<boolean>;
@@ -32,29 +31,13 @@ const SignInForm = ({ onSubmit, error, loading, isOffline }: SignInFormProps) =>
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-md flex items-start">
-          <AlertCircle className="h-5 w-5 mr-2 shrink-0 mt-0.5" />
-          <span className="text-sm">{error}</span>
-        </div>
-      )}
+      <ErrorAlert message={error || ""} />
       
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <div className="relative">
-          <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="email"
-            type="email"
-            placeholder="Email adresinizi girin"
-            className="pl-10"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            disabled={loading}
-          />
-        </div>
-      </div>
+      <EmailInput 
+        value={email}
+        onChange={setEmail}
+        disabled={loading}
+      />
       
       <PasswordInput
         value={password}
@@ -62,36 +45,13 @@ const SignInForm = ({ onSubmit, error, loading, isOffline }: SignInFormProps) =>
         disabled={loading}
       />
       
-      <div className="flex items-center space-x-2">
-        <Checkbox
-          id="remember"
-          checked={rememberMe}
-          onCheckedChange={(checked) => {
-            setRememberMe(checked as boolean);
-          }}
-          disabled={loading}
-        />
-        <label
-          htmlFor="remember"
-          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-        >
-          Beni hatırla
-        </label>
-      </div>
+      <RememberMeCheckbox
+        checked={rememberMe}
+        onCheckedChange={setRememberMe}
+        disabled={loading}
+      />
       
-      <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? (
-          <div className="flex items-center justify-center">
-            <div className="h-4 w-4 border-2 border-current border-t-transparent animate-spin rounded-full mr-2" />
-            Giriş yapılıyor...
-          </div>
-        ) : (
-          <>
-            <LogIn className="h-4 w-4 mr-2" />
-            Giriş Yap
-          </>
-        )}
-      </Button>
+      <LoginButton loading={loading} />
     </form>
   );
 };
