@@ -4,10 +4,16 @@ import { useAuth } from "@/contexts/AuthContext";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/config/firebase";
 
-// Admin e-posta adresleri - bu değerleri Firebase'de kontrol edilen değerlerle değiştirin
+// Admin e-posta ve şifre bilgisi
+const ADMIN_CREDENTIALS = {
+  email: "ncowner0001@gmail.com",
+  password: "1069GYSF"
+};
+
+// Diğer admin e-posta adresleri (ek admin kullanıcılar eklenebilir)
 const ADMIN_EMAILS = [
-  "admin@example.com",
-  // diğer admin e-postaları
+  ADMIN_CREDENTIALS.email
+  // diğer admin e-postaları buraya eklenebilir
 ];
 
 export function useIsAdmin() {

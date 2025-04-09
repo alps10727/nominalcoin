@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -16,6 +17,12 @@ import SignInForm from "@/components/auth/SignInForm";
 import { useOfflineLogin } from "@/hooks/auth/useOfflineLogin";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/config/firebase";
+
+// Admin e-posta ve şifre bilgisi
+const ADMIN_CREDENTIALS = {
+  email: "ncowner0001@gmail.com",
+  password: "1069GYSF"
+};
 
 const SignIn = () => {
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +53,13 @@ const SignIn = () => {
     const checkUserAndRedirect = async () => {
       if (currentUser && !authLoading) {
         try {
-          // Kullanıcının admin olup olmadığını kontrol et
+          // Admin e-posta kontrolü
+          if (currentUser.email === ADMIN_CREDENTIALS.email) {
+            navigate("/admin");
+            return;
+          }
+          
+          // Kullanıcının admin olup olmadığını Firebase'den kontrol et
           const userRef = doc(db, "users", currentUser.uid);
           const userDoc = await getDoc(userRef);
           
@@ -89,6 +102,18 @@ const SignIn = () => {
     
     try {
       console.log("Giriş işlemi başlatılıyor:", email);
+      
+      // Admin giriş kontrolü
+      if (email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
+        const success = await auth.login(email, password);
+        setLoading(false);
+        if (success) {
+          navigate("/admin");
+          return true;
+        }
+      }
+      
+      // Normal giriş işlemi
       const success = await auth.login(email, password);
       
       if (!success) {
