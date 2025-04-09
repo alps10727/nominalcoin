@@ -24,7 +24,9 @@ export function useAuthActions(): AuthActions {
       errorLog("useAuthActions", "Login error:", error);
       const errorMessage = (error as Error).message;
       
-      if (errorMessage.includes("user-not-found") || errorMessage.includes("wrong-password")) {
+      if (errorMessage.includes("user-not-found") || 
+         errorMessage.includes("wrong-password") || 
+         errorMessage.includes("invalid-credential")) {
         toast.error("Email or password is incorrect.");
       } else if (errorMessage.includes("too-many-requests")) {
         toast.error("Too many attempts. Please try again later.");

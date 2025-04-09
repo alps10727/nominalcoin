@@ -104,12 +104,18 @@ const SignIn = () => {
       console.log("Giriş işlemi başlatılıyor:", email);
       
       // Admin giriş kontrolü
-      if (email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
+      if (email.trim().toLowerCase() === ADMIN_CREDENTIALS.email.toLowerCase() && password === ADMIN_CREDENTIALS.password) {
+        console.log("Admin giriş denemesi tespit edildi");
         const success = await auth.login(email, password);
         setLoading(false);
         if (success) {
           navigate("/admin");
           return true;
+        } else {
+          // Admin girişi başarısız oldu, özel hata mesajı göster
+          console.error("Admin girişi başarısız oldu");
+          setError("Admin girişi yapılamadı. E-posta ve şifrenizi kontrol edin.");
+          return false;
         }
       }
       
