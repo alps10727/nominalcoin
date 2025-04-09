@@ -35,9 +35,10 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
       
       <CardContent className={`p-4 relative z-10 grid grid-cols-2 gap-3`}>
         {/* Mining Power - Sol Üst */}
-        <div className="flex flex-col justify-between bg-purple-900/60 rounded-lg p-3 border border-purple-700/30">
-          <div className="flex items-center gap-2 mb-1">
-            <Activity className="h-4 w-4 text-purple-300" />
+        <div className="flex flex-col justify-between bg-purple-900/60 rounded-lg p-3 border border-purple-700/30 backdrop-blur-sm 
+                    hover:bg-purple-900/80 transition-all duration-300 group">
+          <div className="flex items-center text-xs text-purple-400/80 mb-1">
+            <Activity className="h-3 w-3 mr-1 group-hover:text-purple-300 transition-colors" />
             <span className="text-xs font-medium text-white">Mining Power</span>
           </div>
           
@@ -50,16 +51,17 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
             <div className="h-2 bg-purple-950 rounded-full overflow-hidden mt-1">
               <div 
                 className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-500"
-                style={{width: `${Math.min((miningRate * 300), 100)}%`}}
+                style={{width: `${Math.min((miningRate * 1000), 100)}%`}}
               ></div>
             </div>
           </div>
         </div>
         
         {/* Rewards - Sağ Üst */}
-        <div className="flex flex-col justify-between bg-purple-900/60 rounded-lg p-3 border border-purple-700/30">
-          <div className="flex items-center gap-2 mb-1">
-            <Zap className="h-4 w-4 text-purple-300" />
+        <div className="flex flex-col justify-between bg-purple-900/60 rounded-lg p-3 border border-purple-700/30 backdrop-blur-sm 
+                    hover:bg-purple-900/80 transition-all duration-300 group">
+          <div className="flex items-center text-xs text-purple-400/80 mb-1">
+            <Zap className="h-3 w-3 mr-1 group-hover:text-purple-300 transition-colors" />
             <span className="text-xs font-medium text-white">Rewards</span>
           </div>
           
@@ -70,9 +72,10 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
         </div>
         
         {/* Hourly Rate - Sol Alt */}
-        <div className="bg-purple-900/60 rounded-lg p-3 border border-purple-700/30">
-          <div className="flex items-center gap-2 mb-1">
-            <Clock className="h-4 w-4 text-purple-300" />
+        <div className="bg-purple-900/60 rounded-lg p-3 border border-purple-700/30 backdrop-blur-sm 
+                    hover:bg-purple-900/80 transition-all duration-300 group">
+          <div className="flex items-center text-xs text-purple-400/80 mb-1">
+            <Clock className="h-3 w-3 mr-1 group-hover:text-purple-300 transition-colors" />
             <span className="text-xs font-medium text-white">Hourly</span>
           </div>
           <div className="flex justify-between items-center">
@@ -82,9 +85,10 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
         </div>
         
         {/* Daily Rate - Sağ Alt */}
-        <div className="bg-purple-900/60 rounded-lg p-3 border border-purple-700/30">
-          <div className="flex items-center gap-2 mb-1">
-            <Clock className="h-4 w-4 text-purple-300" />
+        <div className="bg-purple-900/60 rounded-lg p-3 border border-purple-700/30 backdrop-blur-sm 
+                    hover:bg-purple-900/80 transition-all duration-300 group">
+          <div className="flex items-center text-xs text-purple-400/80 mb-1">
+            <Clock className="h-3 w-3 mr-1 group-hover:text-purple-300 transition-colors" />
             <span className="text-xs font-medium text-white">Daily</span>
           </div>
           <div className="flex justify-between items-center">
