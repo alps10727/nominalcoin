@@ -2,12 +2,7 @@ import { toast } from "sonner";
 import { User } from "firebase/auth";
 import { loginUser, logoutUser, registerUser, UserRegistrationData } from "@/services/authService";
 import { debugLog, errorLog } from "@/utils/debugUtils";
-
-// Admin kimlik bilgileri
-const ADMIN_CREDENTIALS = {
-  email: "ncowner0001@gmail.com",
-  password: "1069GYSF"
-};
+import { isAdminCredentials } from "@/config/adminConfig";
 
 interface AuthActions {
   login: (email: string, password: string) => Promise<boolean>;
@@ -18,15 +13,14 @@ interface AuthActions {
 export function useAuthActions(): AuthActions {
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      // Admin giriş kontrolü - Firebase'i atla
-      if (email.trim().toLowerCase() === ADMIN_CREDENTIALS.email.toLowerCase() && 
-          password === ADMIN_CREDENTIALS.password) {
+      // Admin login check - bypass Firebase
+      if (isAdminCredentials(email, password)) {
         debugLog("useAuthActions", "Admin girişi tespit edildi, Firebase atlanıyor");
         
-        // Admin oturumunu local storage'a kaydet
+        // Set admin session in local storage
         localStorage.setItem('isAdminSession', 'true');
         
-        // Başarılı bildirim göster
+        // Show success message
         toast.success("Admin girişi başarılı!");
         return true;
       }

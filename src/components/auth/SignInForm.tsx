@@ -1,13 +1,12 @@
 
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Mail, Lock, AlertCircle, LogIn } from "lucide-react";
-import { toast } from "sonner";
-import { loadUserData } from "@/utils/storage";
+import { Mail, AlertCircle, LogIn } from "lucide-react";
+import PasswordInput from "./PasswordInput";
 
 interface SignInFormProps {
   onSubmit: (email: string, password: string) => Promise<boolean>;
@@ -57,27 +56,11 @@ const SignInForm = ({ onSubmit, error, loading, isOffline }: SignInFormProps) =>
         </div>
       </div>
       
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="password">Şifre</Label>
-          <Link to="/forgot-password" className="text-xs text-primary hover:underline">
-            Şifremi unuttum?
-          </Link>
-        </div>
-        <div className="relative">
-          <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="password"
-            type="password"
-            placeholder="Şifrenizi girin"
-            className="pl-10"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            disabled={loading}
-          />
-        </div>
-      </div>
+      <PasswordInput
+        value={password}
+        onChange={setPassword}
+        disabled={loading}
+      />
       
       <div className="flex items-center space-x-2">
         <Checkbox

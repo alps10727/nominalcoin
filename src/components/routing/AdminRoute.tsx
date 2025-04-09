@@ -2,9 +2,7 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "../dashboard/LoadingScreen";
-
-// Admin e-posta ve şifre bilgisi
-const ADMIN_EMAIL = "ncowner0001@gmail.com";
+import { isAdminEmail } from "@/config/adminConfig";
 
 // Admin erişim kontrol bileşeni
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
@@ -26,8 +24,8 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/sign-in" />;
   }
   
-  // Özel admin e-posta kontrolü
-  if (currentUser.email && currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+  // Admin email kontrolü - centralized config
+  if (currentUser.email && isAdminEmail(currentUser.email)) {
     // Admin oturumu olduğunu local storage'a kaydet
     localStorage.setItem('isAdminSession', 'true');
     return <>{children}</>;

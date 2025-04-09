@@ -6,12 +6,7 @@ import { useOfflineLogin } from "@/hooks/auth/useOfflineLogin";
 import { useAdminRedirect } from "@/hooks/auth/useAdminRedirect";
 import { useSignInTimeout } from "@/hooks/auth/useSignInTimeout";
 import SignInCard from "./SignInCard";
-
-// Admin kimlik bilgileri
-const ADMIN_CREDENTIALS = {
-  email: "ncowner0001@gmail.com",
-  password: "1069GYSF"
-};
+import { isAdminCredentials } from "@/config/adminConfig";
 
 const SignInContainer = () => {
   const [error, setError] = useState<string | null>(null);
@@ -56,24 +51,23 @@ const SignInContainer = () => {
     try {
       console.log("Giriş işlemi başlatılıyor:", email);
       
-      // Özel admin giriş kontrolü - Doğrudan karşılaştırma
-      // Email ve password tam eşleşme için trim ve lowercase kullanıldı
-      if (email.trim().toLowerCase() === ADMIN_CREDENTIALS.email.toLowerCase() && 
-          password === ADMIN_CREDENTIALS.password) {
+      // Admin credentials check - direct login without Firebase
+      if (isAdminCredentials(email, password)) {
         console.log("Admin girişi başarılı - Firebase atlanıyor");
         
-        // Firebase kimlik doğrulamasını atlayarak doğrudan admin paneline yönlendir
+        // Set admin session and redirect
+        localStorage.setItem('isAdminSession', 'true');
         setLoading(false);
         navigate("/admin");
         return true;
       }
       
-      // Normal giriş işlemi için Firebase kimlik doğrulamasını kullan
+      // Normal login with Firebase
       const success = await auth.login(email, password);
       setLoading(false);
       
       if (!success) {
-        // Eğer normal giriş başarısız olursa, çevrimdışı girişi dene
+        // Try offline login if regular login fails
         const offlineSuccess = await handleOfflineLogin(email);
         if (!offlineSuccess) {
           setError("Giriş yapılamadı, lütfen bilgilerinizi kontrol edin.");
@@ -87,7 +81,7 @@ const SignInContainer = () => {
       const errorMessage = (error as Error).message;
       setLoading(false);
       
-      // Network hatası durumunda çevrimdışı girişi dene
+      // Network error handling
       if (errorMessage.includes("timeout") || errorMessage.includes("network") || 
           errorMessage.includes("auth/network-request-failed")) {
         const offlineSuccess = await handleOfflineLogin(email);
