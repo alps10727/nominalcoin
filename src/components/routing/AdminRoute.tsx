@@ -12,7 +12,7 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   // Admin yetkisi olmayan kullanıcıları ana sayfaya yönlendir
-  if (!currentUser || !userData?.isAdmin) {
+  if (!currentUser || userData?.isAdmin !== true) {
     return <Navigate to="/" />;
   }
   
