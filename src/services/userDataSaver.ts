@@ -119,7 +119,7 @@ export async function updateUserCoinBalance(userId: string, newBalance: number, 
     }
     
     try {
-      // Firebase'e kaydet
+      // Firebase'e kaydet - merge: true parametresi ile diğer verileri koruyarak sadece belirtilen alanları güncelle
       await saveDocument("users", userId, {
         balance: updatedBalance,
         miningRate: miningRate, // Hesaplanmış mining rate'i kullan
