@@ -40,7 +40,7 @@ export async function saveUserDataToFirebase(userId: string, userData: UserData)
     
     try {
       // Verileri Firebase'e kaydet (arkaplanda ve otomatik yeniden deneme ile)
-      await saveDocument("users", userId, sanitizedData, true); // merge: true parametresi
+      await saveDocument("users", userId, sanitizedData, true);
       debugLog("userDataSaver", "Kullanıcı verileri başarıyla kaydedildi:", userId);
     } catch (firebaseErr) {
       errorLog("userDataSaver", "Firebase'e veri kaydetme hatası:", firebaseErr);
