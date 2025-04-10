@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { UserPlus } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Skeleton } from "@/components/ui/skeleton";
 
 interface ReferredUser {
   id: string;
@@ -14,32 +13,12 @@ interface ReferredUser {
 interface ReferredUsersTableProps {
   referredUsers: ReferredUser[];
   referralCount: number;
-  isLoading?: boolean;
 }
 
-export const ReferredUsersTable = ({ referredUsers, referralCount, isLoading = false }: ReferredUsersTableProps) => {
+export const ReferredUsersTable = ({ referredUsers, referralCount }: ReferredUsersTableProps) => {
   const { t } = useLanguage();
 
-  // Loading state
-  if (isLoading) {
-    return (
-      <Card className="border-none shadow-md bg-gradient-to-br from-darkPurple-900/80 to-navy-950/90 text-gray-100">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">{t('referral.referredUsers', 'Davet Ettiğiniz Kullanıcılar')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <Skeleton className="h-10 w-full bg-navy-800/50" />
-            <Skeleton className="h-16 w-full bg-navy-800/50" />
-            <Skeleton className="h-16 w-full bg-navy-800/50" />
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // No referrals state
-  if (referralCount === 0 || referredUsers.length === 0) {
+  if (referralCount === 0) {
     return (
       <Card className="border-none shadow-md bg-gradient-to-br from-darkPurple-900/80 to-navy-950/90 text-gray-100">
         <CardContent className="p-6 text-center">
@@ -55,7 +34,6 @@ export const ReferredUsersTable = ({ referredUsers, referralCount, isLoading = f
     );
   }
 
-  // Referrals exist
   return (
     <Card className="border-none shadow-md bg-gradient-to-br from-darkPurple-900/80 to-navy-950/90 text-gray-100">
       <CardHeader className="pb-2">
