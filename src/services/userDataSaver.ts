@@ -13,14 +13,21 @@ export async function saveUserDataToFirebase(userId: string, userData: UserData)
   try {
     debugLog("userDataSaver", "Kullanıcı verileri kaydediliyor...", userId);
     
+    // Referans sayısına göre madencilik hızını yeniden hesapla
+    const calculatedMiningRate = calculateMiningRate(userData);
+    
     // Boş veya null değerleri temizle
     const sanitizedData = {
       ...userData,
       userId: userId, // Her zaman userId ekle
       balance: userData.balance || 0,
-      miningRate: calculateMiningRate(userData), // Referans sayısına göre hesapla
+      miningRate: calculatedMiningRate, // Referans sayısına göre hesapla
       lastSaved: Date.now() // Önce client timestamp kullan
     };
+    
+    debugLog("userDataSaver", "Hesaplanan madencilik hızı:", calculatedMiningRate, {
+      referralCount: userData.referralCount || 0
+    });
     
     try {
       // Her zaman önce yerel depoya kaydet (daha hızlı erişim için)
@@ -81,11 +88,24 @@ export async function updateUserCoinBalance(userId: string, newBalance: number, 
       ? (userData.balance || 0) + newBalance 
       : newBalance;
     
+    // Referans sayısını korumak önemli
+    const referralCount = userData?.referralCount || 0;
+    const referrals = userData?.referrals || [];
+    
+    // Madencilik hızını hesapla
+    const miningRate = calculateMiningRate({
+      ...userData,
+      referralCount,
+      referrals
+    });
+    
     // Güncellenmiş veri nesnesi oluştur
     const updatedData: UserData = {
-      ...(userData || { miningRate: 0.003, lastSaved: Date.now() }),
+      ...(userData || { lastSaved: Date.now() }),
       balance: updatedBalance,
-      miningRate: 0.003, // Sabit mining rate: 0.003
+      miningRate: miningRate, // Hesaplanmış mining rate'i kullan
+      referralCount: referralCount, // Referans sayısını koru
+      referrals: referrals, // Referans dizisini koru
       lastSaved: Date.now()
     };
     
@@ -102,7 +122,7 @@ export async function updateUserCoinBalance(userId: string, newBalance: number, 
       // Firebase'e kaydet
       await saveDocument("users", userId, {
         balance: updatedBalance,
-        miningRate: 0.003, // Sabit mining rate: 0.003
+        miningRate: miningRate, // Hesaplanmış mining rate'i kullan
         lastSaved: Date.now()
       }, { merge: true });
       

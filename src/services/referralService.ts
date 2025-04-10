@@ -79,13 +79,34 @@ export async function updateReferrerInfo(referrerId: string, newUserId: string):
     // Aynı kullanıcıyı birden fazla kez eklememek için kontrol
     const currentReferrals = userData.referrals || [];
     if (!currentReferrals.includes(newUserId)) {
-      // DÜZELTİLDİ: increment kullanımını düzelt ve referans güncelleme işlemini doğru şekilde uygula
+      // İki aşamalı güncelleme: Önce referrals ve referralCount, sonra mining rate
       await updateDoc(userRef, {
         referrals: arrayUnion(newUserId),
         referralCount: increment(1) // Firebase'in increment fonksiyonunu kullan
       });
       
       debugLog("referralService", `Referral sayısı güncellendi: ${updatedReferralCount}`, { referrerId });
+      
+      // Yeni mining rate hesapla
+      const updatedUserData = {
+        ...userData,
+        referralCount: updatedReferralCount
+      };
+      
+      const newMiningRate = calculateMiningRate(updatedUserData);
+      
+      // Mining rate'i ayrı bir güncelleme olarak yap - bu kritik öneme sahip
+      await updateDoc(userRef, {
+        miningRate: newMiningRate
+      });
+      
+      debugLog("referralService", `Referans veren kullanıcının madencilik hızı güncellendi: ${newMiningRate}`, { 
+        referrerId, 
+        newRate: newMiningRate,
+        referralCount: updatedReferralCount
+      });
+      
+      toast.success("Referans ödülü kazandınız! Madencilik hızınız artırıldı.");
     } else {
       debugLog("referralService", "Bu kullanıcı zaten referral listesinde var, güncelleme yapılmadı", { 
         referrerId, 
@@ -94,25 +115,6 @@ export async function updateReferrerInfo(referrerId: string, newUserId: string):
       return;
     }
     
-    // Yeni mining rate hesapla
-    const updatedUserData = {
-      ...userData,
-      referralCount: updatedReferralCount
-    };
-    
-    const newMiningRate = calculateMiningRate(updatedUserData);
-    
-    // Mining rate'i güncelle
-    await updateDoc(userRef, {
-      miningRate: newMiningRate
-    });
-    
-    debugLog("referralService", `Referans veren kullanıcının madencilik hızı güncellendi: ${newMiningRate}`, { 
-      referrerId, 
-      newRate: newMiningRate 
-    });
-    
-    toast.success("Referans ödülü kazandınız! Madencilik hızınız artırıldı.");
     debugLog("referralService", "Referans veren kullanıcı bilgileri güncellendi");
   } catch (error) {
     errorLog("referralService", "Referans veren kullanıcı bilgilerini güncelleme hatası:", error);

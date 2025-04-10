@@ -3,6 +3,7 @@ import { UserData } from '@/utils/storage';
 import { saveUserData } from '@/utils/storage';
 import { saveUserDataToFirebase } from '@/services/userDataSaver';
 import { debugLog, errorLog } from '@/utils/debugUtils';
+import { calculateMiningRate } from '@/utils/miningCalculator';
 
 /**
  * Updates user data with status tracking
@@ -23,17 +24,25 @@ export async function updateUserDataWithStatus(
     // Use current data or create defaults
     const baseData: UserData = currentData || {
       balance: 0,
-      miningRate: 0.003, // Sabit mining rate: 0.003
+      miningRate: 0.003,
       lastSaved: Date.now()
     };
     
-    // Create updated data object
+    // Create updated data object with preserved referral data
     const updatedData: UserData = {
       ...baseData,
       ...updates,
-      miningRate: 0.003, // Sabit mining rate: 0.003 - Zorla geçersiz kılıyoruz
+      referralCount: updates.referralCount !== undefined ? updates.referralCount : baseData.referralCount,
+      referrals: updates.referrals || baseData.referrals,
       lastSaved: Date.now()
     };
+    
+    // Hesaplanmış mining rate'i kullan - referral sayısına göre hesapla
+    updatedData.miningRate = calculateMiningRate(updatedData);
+    
+    debugLog("userDataUpdater", "Hesaplanan madencilik hızı:", updatedData.miningRate, {
+      referralCount: updatedData.referralCount || 0
+    });
     
     try {
       // Try to save to Firebase first
@@ -62,7 +71,7 @@ export async function updateUserDataWithStatus(
       status: 'error', 
       updatedData: currentData || {
         balance: 0,
-        miningRate: 0.003, // Sabit mining rate: 0.003
+        miningRate: 0.003, // Varsayılan değer
         lastSaved: Date.now()
       }
     };

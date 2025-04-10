@@ -3,6 +3,7 @@ import { UserData } from "@/utils/storage";
 import { loadUserDataFromFirebase } from "@/services/userDataLoader";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { handleFirebaseConnectionError } from "@/utils/firebaseErrorHandler";
+import { calculateMiningRate } from "@/utils/miningCalculator";
 
 /**
  * Hook to load user data from Firebase
@@ -57,14 +58,18 @@ export function useFirebaseDataLoader() {
       referralCode: firebaseData.referralCode || localData.referralCode,
       referralCount: firebaseData.referralCount || localData.referralCount || 0,
       referrals: firebaseData.referrals || localData.referrals || [],
-      miningRate: firebaseData.miningRate || localData.miningRate || 0.003,
       lastSaved: Math.max(firebaseData.lastSaved || 0, localData.lastSaved || 0)
     };
+    
+    // Her zaman referral count'a göre mining rate'i yeniden hesapla
+    result.miningRate = calculateMiningRate(result);
 
     debugLog("useFirebaseDataLoader", "Merged data:", {
       localBalance: localData.balance,
       firebaseBalance: firebaseData.balance,
       resultBalance: result.balance,
+      referralCount: result.referralCount,
+      calculatedMiningRate: result.miningRate,
       localLastSaved: new Date(localData.lastSaved || 0).toLocaleString(),
       firebaseLastSaved: new Date(firebaseData.lastSaved || 0).toLocaleString()
     });
