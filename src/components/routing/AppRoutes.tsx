@@ -1,9 +1,9 @@
+
 import { Suspense, lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import LoadingScreen from "../dashboard/LoadingScreen";
 import ErrorBoundary from "./ErrorBoundary";
 import PrivateRoute from "./PrivateRoute";
-import AdminRoute from "./AdminRoute";
 import PageTransition from "./PageTransition";
 import { usePagePreloading } from "@/hooks/routing/usePagePreloading";
 import SignIn from "@/pages/SignIn"; // Direct import instead of lazy loading
@@ -20,9 +20,6 @@ const Statistics = lazy(() => import("@/pages/Statistics"));
 // const SignIn = lazy(() => import("@/pages/SignIn")); // Removed lazy loading
 const SignUp = lazy(() => import("@/pages/SignUp"));
 const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
-
-// Admin sayfaları
-const AdminIndex = lazy(() => import("@/pages/admin/AdminIndex"));
 
 const AppRoutes = () => {
   // Sayfaları önceden yükle
@@ -121,17 +118,6 @@ const AppRoutes = () => {
               <ForgotPassword />
             </PageTransition>
           </Suspense>
-        } />
-        
-        {/* Admin Routes */}
-        <Route path="/admin" element={
-          <AdminRoute>
-            <Suspense fallback={<LoadingScreen message="Admin paneli yükleniyor..." />}>
-              <PageTransition>
-                <AdminIndex />
-              </PageTransition>
-            </Suspense>
-          </AdminRoute>
         } />
         
         {/* Fallback redirect for undefined routes */}
