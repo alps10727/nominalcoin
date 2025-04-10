@@ -40,7 +40,7 @@ export async function saveUserDataToFirebase(userId: string, userData: UserData)
     
     try {
       // Verileri Firebase'e kaydet (arkaplanda ve otomatik yeniden deneme ile)
-      await saveDocument("users", userId, sanitizedData, true); // Fixed: added the 'merge' parameter
+      await saveDocument("users", userId, sanitizedData, true); // merge: true parametresi
       debugLog("userDataSaver", "Kullanıcı verileri başarıyla kaydedildi:", userId);
     } catch (firebaseErr) {
       errorLog("userDataSaver", "Firebase'e veri kaydetme hatası:", firebaseErr);
@@ -124,7 +124,7 @@ export async function updateUserCoinBalance(userId: string, newBalance: number, 
         balance: updatedBalance,
         miningRate: miningRate, // Hesaplanmış mining rate'i kullan
         lastSaved: Date.now()
-      }, true); // merge: true parametresi ile düzeltildi
+      }, true); // merge: true parametresi
       
       debugLog("userDataSaver", "Coin bakiyesi başarıyla güncellendi:", updatedBalance);
       toast.success(`${isIncrement ? newBalance.toFixed(2) + ' coin kazandınız!' : 'Coin bakiyeniz güncellendi!'}`);
