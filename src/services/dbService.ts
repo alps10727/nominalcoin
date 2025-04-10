@@ -1,6 +1,6 @@
 
 import { db } from "@/config/firebase";
-import { collection, doc, getDoc, setDoc, DocumentData, deleteDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, setDoc, DocumentData, deleteDoc } from "firebase/firestore";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 
 /**
