@@ -3,7 +3,7 @@
  * Firebase işlemlerini izlemek için yardımcı debugger
  */
 import { db } from "@/config/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { debugLog } from "@/utils/debugUtils";
 
 /**
@@ -52,8 +52,11 @@ export async function debugFindUserByReferralCode(referralCode: string): Promise
   try {
     debugLog("firebaseDebugger", `Referans kodu ile kullanıcı aranıyor: ${referralCode}`);
     
-    // Firestore'da referralCode alanına göre sorgula (collection group query ile)
-    const snapshot = await db.collection("users").where("referralCode", "==", referralCode).get();
+    // Firestore'da referralCode alanına göre sorgula
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("referralCode", "==", referralCode));
+    
+    const snapshot = await getDocs(q);
     
     if (snapshot.empty) {
       debugLog("firebaseDebugger", `Referans kodu ile kullanıcı bulunamadı: ${referralCode}`);
