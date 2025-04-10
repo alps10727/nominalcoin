@@ -1,8 +1,8 @@
+
 import { toast } from "sonner";
 import { User } from "firebase/auth";
 import { loginUser, logoutUser, registerUser, UserRegistrationData } from "@/services/authService";
 import { debugLog, errorLog } from "@/utils/debugUtils";
-import { isAdminCredentials } from "@/config/adminConfig";
 
 interface AuthActions {
   login: (email: string, password: string) => Promise<boolean>;
@@ -13,18 +13,6 @@ interface AuthActions {
 export function useAuthActions(): AuthActions {
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      // Admin login check - bypass Firebase
-      if (isAdminCredentials(email, password)) {
-        debugLog("useAuthActions", "Admin girişi tespit edildi, Firebase atlanıyor");
-        
-        // Set admin session in local storage
-        localStorage.setItem('isAdminSession', 'true');
-        
-        // Show success message
-        toast.success("Admin girişi başarılı!");
-        return true;
-      }
-      
       debugLog("useAuthActions", "Starting login process:", email);
       const user = await loginUser(email, password);
       if (user) {
