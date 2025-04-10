@@ -73,21 +73,20 @@ export async function updateReferrerInfo(referrerId: string, newUserId: string):
     
     const userData = userDoc.data() as UserData;
     
-    // Referrals dizisine yeni kullanıcıyı ekle ve referralCount'u arttır
-    const updatedReferralCount = (userData.referralCount || 0) + 1;
-    
     // Aynı kullanıcıyı birden fazla kez eklememek için kontrol
     const currentReferrals = userData.referrals || [];
     if (!currentReferrals.includes(newUserId)) {
       // İki aşamalı güncelleme: Önce referrals ve referralCount, sonra mining rate
       await updateDoc(userRef, {
         referrals: arrayUnion(newUserId),
-        referralCount: updatedReferralCount // INCREMENT yerine doğrudan sayıyı kullan
+        referralCount: increment(1) // INCREMENT kullanarak sayıyı arttır
       });
       
-      debugLog("referralService", `Referral sayısı güncellendi: ${updatedReferralCount}`, { referrerId });
+      debugLog("referralService", "Referral sayısı güncellendi (increment kullanılarak)", { referrerId });
       
-      // Yeni mining rate hesapla
+      // Yeni mining rate hesapla - Burada güncel referral sayısını bir arttırarak hesaplıyoruz
+      // çünkü increment işlemi sonucunu hemen okuyamayız
+      const updatedReferralCount = (userData.referralCount || 0) + 1;
       const updatedUserData = {
         ...userData,
         referralCount: updatedReferralCount,
