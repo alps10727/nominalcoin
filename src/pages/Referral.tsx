@@ -72,6 +72,7 @@ const Referral = () => {
         else {
           try {
             debugLog("Referral", "Trying to fetch referrals from subcollection");
+            // Here we use the sub-collection path correctly
             const referralsRef = collection(db, "users", currentUser.uid, "referrals");
             const snapshot = await getDocs(referralsRef);
             
