@@ -5,6 +5,9 @@ import { debugLog } from '@/utils/debugUtils';
 // Temel madencilik hızı sabiti
 export const BASE_MINING_RATE = 0.003;
 
+// Her referral için bonus hız (temel hızın %10'u)
+export const REFERRAL_BONUS_RATE = BASE_MINING_RATE * 0.1;
+
 /**
  * Referans sayısına göre madencilik hızını hesapla
  * Her referral için %10 (0.0003) artar
@@ -18,7 +21,7 @@ export function calculateMiningRate(userData: UserData): number {
   }
   
   // Her referral için %10 bonus (temel hızın %10'u = 0.0003)
-  const bonusRate = userData.referralCount * (BASE_MINING_RATE * 0.1);
+  const bonusRate = userData.referralCount * REFERRAL_BONUS_RATE;
   
   // Temel hız + bonus (maksimum 3 katı olabilir)
   const calculatedRate = Math.min(

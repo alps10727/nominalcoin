@@ -40,8 +40,8 @@ export async function saveUserDataToFirebase(userId: string, userData: UserData)
     
     try {
       // Verileri Firebase'e kaydet (arkaplanda ve otomatik yeniden deneme ile)
-      // Düzeltme: saveDocument'in doğru argümanlarını kullan (3 yerine 4 değil)
-      await saveDocument("users", userId, sanitizedData, true);
+      // saveDocument fonksiyonu için gerekli parametreler: koleksiyon adı, doküman ID'si ve veri
+      await saveDocument("users", userId, sanitizedData);
       debugLog("userDataSaver", "Kullanıcı verileri başarıyla kaydedildi:", userId);
     } catch (firebaseErr) {
       errorLog("userDataSaver", "Firebase'e veri kaydetme hatası:", firebaseErr);
@@ -121,12 +121,12 @@ export async function updateUserCoinBalance(userId: string, newBalance: number, 
     
     try {
       // Firebase'e kaydet
-      // Düzeltme: saveDocument'in doğru argümanlarını kullan
+      // saveDocument fonksiyonu için doğru parametre sayısı: koleksiyon, id, veri
       await saveDocument("users", userId, {
         balance: updatedBalance,
         miningRate: miningRate, // Hesaplanmış mining rate'i kullan
         lastSaved: Date.now()
-      }, true); // merge: true parametresi
+      });
       
       debugLog("userDataSaver", "Coin bakiyesi başarıyla güncellendi:", updatedBalance);
       toast.success(`${isIncrement ? newBalance.toFixed(2) + ' coin kazandınız!' : 'Coin bakiyeniz güncellendi!'}`);
