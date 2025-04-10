@@ -1,3 +1,4 @@
+
 import { auth } from "@/config/firebase";
 import { 
   createUserWithEmailAndPassword, 
@@ -9,6 +10,7 @@ import { saveUserDataToFirebase } from "./userService";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { findUsersByReferralCode, updateReferrerInfo } from "./referralService";
 import { BASE_MINING_RATE } from "@/utils/miningCalculator";
+import { toast } from "sonner";
 
 // Kullanıcı kayıt bilgileri için arayüz
 export interface UserRegistrationData {
