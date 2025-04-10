@@ -18,12 +18,16 @@ export interface UserData {
   isAdmin?: boolean; // Added isAdmin property for admin panel access
 }
 
+// USER_DATA_VERSION sayesinde API değişikliklerini takip edebiliriz
+const USER_DATA_VERSION = "v1.0";
+const GLOBAL_STORAGE_KEY = 'fcMinerUserData';
+
 // Kullanıcıya özel localStorage anahtarı oluştur
 function getUserStorageKey(userId?: string): string {
   if (userId) {
-    return `fcMinerUserData_${userId}`;
+    return `fcMinerUserData_${userId}_${USER_DATA_VERSION}`;
   }
-  return 'fcMinerUserData';
+  return GLOBAL_STORAGE_KEY;
 }
 
 /**
@@ -56,21 +60,33 @@ export function loadUserData(userId?: string): UserData | null {
     
     // Try to load from legacy storage key if userId provided but nothing found
     if (userId) {
-      const legacyData = localStorage.getItem('fcMinerUserData');
+      const legacyData = localStorage.getItem(GLOBAL_STORAGE_KEY);
       if (legacyData) {
         try {
           const parsedLegacyData = JSON.parse(legacyData) as UserData;
           
           // Check if legacy data belongs to current user
           if (parsedLegacyData.userId === userId) {
+            console.log("Legacy data found and migrated for user:", userId);
             // Migrate to new storage key
             saveUserData(parsedLegacyData, userId);
-            // Clean up legacy data to prevent conflicts
-            localStorage.removeItem('fcMinerUserData');
             return parsedLegacyData;
+          } else {
+            // Bu eski veri başka bir kullanıcıya ait, temizleme yapma!
+            console.log("Legacy data belongs to different user, not migrating");
           }
         } catch (err) {
           console.error('Legacy data parse error:', err);
+        }
+      }
+    } else {
+      // userId olmadan global storage'a bak
+      const globalData = localStorage.getItem(GLOBAL_STORAGE_KEY);
+      if (globalData) {
+        try {
+          return JSON.parse(globalData) as UserData;
+        } catch (err) {
+          console.error('Global data parse error:', err);
         }
       }
     }
@@ -108,10 +124,18 @@ export function saveUserData(userData: UserData, userId?: string): void {
     
     try {
       const jsonData = JSON.stringify(sanitizedData);
-      localStorage.setItem(getUserStorageKey(actualUserId), jsonData);
+      const storageKey = getUserStorageKey(actualUserId);
+      
+      localStorage.setItem(storageKey, jsonData);
+      
+      // Kullanıcı-spesifik veriyi GLOBAL_STORAGE_KEY'e de kaydet
+      // Böylece giriş yapmayan kullanıcılar için de erişilebilir olur
+      if (actualUserId) {
+        localStorage.setItem(GLOBAL_STORAGE_KEY, jsonData);
+      }
       
       // Veri doğrulaması - kaydedilen verinin doğruluğunu kontrol et
-      const verifyData = localStorage.getItem(getUserStorageKey(actualUserId));
+      const verifyData = localStorage.getItem(storageKey);
       if (verifyData) {
         const parsed = JSON.parse(verifyData);
         if (parsed.balance !== sanitizedData.balance) {
@@ -131,30 +155,38 @@ export function saveUserData(userData: UserData, userId?: string): void {
 
 /**
  * Clear user data from localStorage
+ * 
+ * @param clearAllUsers If true, clears all user data, otherwise only clears global data
  */
-export function clearUserData(): void {
+export function clearUserData(clearAllUsers: boolean = false): void {
   try {
-    // Tüm kullanıcı verilerini temizle
-    const keysToRemove: string[] = [];
-    
-    // localStorage'daki tüm anahtarları kontrol et
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith('fcMinerUserData')) {
-        keysToRemove.push(key);
+    if (clearAllUsers) {
+      // Tüm kullanıcı verilerini temizle
+      const keysToRemove: string[] = [];
+      
+      // localStorage'daki tüm anahtarları kontrol et
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('fcMinerUserData')) {
+          keysToRemove.push(key);
+        }
       }
+      
+      // Tespit edilen anahtarları temizle
+      keysToRemove.forEach(key => {
+        try {
+          localStorage.removeItem(key);
+        } catch (err) {
+          console.error(`${key} anahtarını temizlerken hata:`, err);
+        }
+      });
+      
+      console.log(`${keysToRemove.length} kullanıcı verisi temizlendi`);
+    } else {
+      // Sadece genel depoyu temizle
+      localStorage.removeItem(GLOBAL_STORAGE_KEY);
+      console.log('Global user data cleared');
     }
-    
-    // Tespit edilen anahtarları temizle
-    keysToRemove.forEach(key => {
-      try {
-        localStorage.removeItem(key);
-      } catch (err) {
-        console.error(`${key} anahtarını temizlerken hata:`, err);
-      }
-    });
-    
-    console.log(`${keysToRemove.length} kullanıcı verisi temizlendi`);
   } catch (err) {
     console.error('Error clearing user data:', err);
   }

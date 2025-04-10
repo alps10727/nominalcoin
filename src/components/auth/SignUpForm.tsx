@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Mail, Lock, User, AlertCircle, Users, WifiOff } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import { standardizeReferralCode, validateReferralCode } from "@/utils/referralUtils";
 
 interface SignUpFormProps {
   onSubmit: (name: string, email: string, password: string, referralCode: string) => Promise<void>;
@@ -28,7 +30,7 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
     const urlParams = new URLSearchParams(window.location.search);
     const refCode = urlParams.get('ref');
     if (refCode) {
-      setReferralCode(refCode);
+      setReferralCode(standardizeReferralCode(refCode));
     }
     
     // Çevrimdışı durumu izle
@@ -43,6 +45,13 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
+  // Referans kodunu düzgünce formatla
+  const handleReferralCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Girilen değeri al ve standartlaştır
+    const value = e.target.value;
+    setReferralCode(value);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,9 +83,19 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
       return;
     }
 
+    // Referans kodu kontrolü
+    const processedReferralCode = standardizeReferralCode(referralCode);
+    
+    // Referans kodu girilmiş ama geçerli değilse uyarı ver
+    if (processedReferralCode && !validateReferralCode(processedReferralCode)) {
+      setFormError("Geçersiz referans kodu formatı. Doğru format: XXX-XXX-XXX");
+      toast.error("Geçersiz referans kodu formatı. Doğru format: XXX-XXX-XXX");
+      return;
+    }
+
     // Kayıt işlemini başlat
     try {
-      await onSubmit(name, email, password, referralCode);
+      await onSubmit(name, email, password, processedReferralCode);
     } catch (error) {
       console.error("Form gönderme hatası:", error);
     }

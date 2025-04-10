@@ -62,13 +62,17 @@ function generateRandomString(characters: string, length: number): string {
 
 /**
  * Verilen referans kodunun doğru formatta olup olmadığını kontrol eder
+ * Hata düzeltme: Kod daha toleranslı hale getirildi, büyük-küçük harf duyarsız yapıldı
  */
 export function validateReferralCode(code: string): boolean {
   if (!code) return false;
   
+  // Kodu standartlaştır: boşlukları temizle ve büyük harfe çevir
+  const standardizedCode = code.trim().toUpperCase();
+  
   // XXX-XXX-XXX formatını kontrol et (X: alfanümerik karakter)
   const pattern = /^[A-Z0-9]{3}-[A-Z0-9]{3}-[A-Z0-9]{3}$/;
-  return pattern.test(code);
+  return pattern.test(standardizedCode);
 }
 
 /**
@@ -77,4 +81,13 @@ export function validateReferralCode(code: string): boolean {
 export function createReferralLink(referralCode: string): string {
   const baseUrl = window.location.origin;
   return `${baseUrl}/sign-up?ref=${referralCode}`;
+}
+
+/**
+ * Referans kodunu standartlaştır (büyük harfe çevir ve boşlukları temizle)
+ * Bu fonksiyon, kullanıcı girdisini temizlemek için kullanılır
+ */
+export function standardizeReferralCode(code: string): string {
+  if (!code) return '';
+  return code.trim().toUpperCase();
 }

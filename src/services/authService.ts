@@ -1,172 +1,115 @@
 
-import { auth } from "@/config/firebase";
 import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
   signOut,
   User
 } from "firebase/auth";
-import { saveUserDataToFirebase } from "./userDataSaver";
+import { auth, db } from "@/config/firebase";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import { toast } from "sonner";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { findUsersByReferralCode, updateReferrerInfo } from "./referralService";
-import { BASE_MINING_RATE } from "@/utils/miningCalculator";
-import { toast } from "sonner";
-import { clearUserData } from "@/utils/storage";
+import { standardizeReferralCode } from "@/utils/referralUtils";
 
-// Kullanıcı kayıt bilgileri için arayüz
 export interface UserRegistrationData {
   name?: string;
   referralCode?: string;
   referredBy?: string | null;
   referrals?: string[];
   referralCount?: number;
-  emailAddress?: string; // Changed from email to emailAddress to match UserData type
-  [key: string]: any;
 }
 
-/**
- * Kayıt olma - Referans sistemi desteği eklendi
- */
-export async function registerUser(email: string, password: string, userData: UserRegistrationData): Promise<User | null> {
+export async function registerUser(email: string, password: string, userData: UserRegistrationData = {}): Promise<User | null> {
   try {
-    debugLog("authService", "Firebase kayıt işlemi başlatılıyor:", email);
+    debugLog("authService", "Registering user...", { email });
     
-    // Kayıttan önce localStorage'ı temizle - bu yeni kullanıcı için temiz başlangıç sağlar
-    clearUserData();
-    
-    // Kayıt için race condition'ı düzelttik
-    const createPromise = createUserWithEmailAndPassword(auth, email, password);
-    
-    // Daha uzun timeout tanımladık
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => {
-        reject(new Error("Kayıt zaman aşımına uğradı. Lütfen internet bağlantınızı kontrol edin."));
-      }, 30000); // 30 saniye timeout
-    });
-    
-    // Promise.race ile timeout kontrolü
-    const userCredential = await Promise.race([createPromise, timeoutPromise]);
+    // Firebase'de kullanıcı oluştur
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
     
-    debugLog("authService", "Firebase Auth kaydı başarılı:", user.uid);
+    // Kullanıcı verileri için varsayılan değerler
+    const defaultUserData = {
+      name: userData.name || "",
+      emailAddress: email,
+      balance: 0, // Yeni kullanıcılar için bakiye sıfırdan başlar
+      miningRate: 0.003, // Temel madencilik hızı
+      lastSaved: Date.now(),
+      miningActive: false,
+      referralCode: userData.referralCode || "", // Benzersiz referans kodu
+      referredBy: userData.referredBy || null, // Bu kullanıcıyı kim davet etti?
+      referrals: userData.referrals || [], // Bu kullanıcının davet ettiği kişiler
+      referralCount: userData.referralCount || 0, // Davet edilen kişi sayısı
+      isAdmin: false // Normal kullanıcı
+    };
     
-    // Eğer referredBy verilmişse, bu referans kodu geçerli mi kontrol et
+    // Kullanıcı bilgilerini Firestore'a kaydet
+    await setDoc(doc(db, "users", user.uid), defaultUserData);
+    
+    debugLog("authService", "User registered and data saved to Firestore", { userId: user.uid });
+    
+    // Eğer bir referans kodu ile kaydolunduysa, referans veren kullanıcının bilgilerini güncelle
     if (userData.referredBy) {
       try {
-        // Referans veren kullanıcıyı bulmaya çalış
-        debugLog("authService", "Referans kodu kontrolü:", userData.referredBy);
-        const referrers = await findUsersByReferralCode(userData.referredBy);
+        // Referans kodunu standartlaştır ve referans veren kullanıcıyı bul
+        const standardizedReferralCode = standardizeReferralCode(userData.referredBy);
+        debugLog("authService", "Looking for referrer with code:", standardizedReferralCode);
         
-        if (referrers.length > 0) {
-          const referrerId = referrers[0];
-          debugLog("authService", "Referans veren kullanıcı bulundu:", referrerId);
+        // Referral kodu ile kullanıcıyı bul
+        const referrerIds = await findUsersByReferralCode(standardizedReferralCode);
+        
+        if (referrerIds.length > 0) {
+          const referrerId = referrerIds[0]; // İlk bulunan kullanıcıyı al
           
-          // Referrers'ın referral bilgilerini güncelle ve mining hız bonusu ekle
+          // Referans veren kullanıcının bilgilerini güncelle
           await updateReferrerInfo(referrerId, user.uid);
           
-          toast.success("Referans kodunuz başarıyla kullanıldı!");
+          // Kullanıcının kendi verisine de referredBy bilgisini ekle
+          await setDoc(doc(db, "users", user.uid), {
+            referredBy: referrerId
+          }, { merge: true });
+          
+          debugLog("authService", "Referrer updated successfully", { 
+            referrerId, 
+            newUserId: user.uid 
+          });
         } else {
-          // Geçersiz referans kodu durumunda loglama yap ama işlemi durdurmadan devam et
-          errorLog("authService", "Geçersiz referans kodu:", userData.referredBy);
-          userData.referredBy = null; // Geçersiz referans kodunu temizle
-          toast.error("Geçersiz referans kodu");
+          debugLog("authService", "No referrer found with the given code", { 
+            code: standardizedReferralCode 
+          });
+          toast.warning("Girdiğiniz referans kodu geçersiz veya bulunamadı.");
         }
       } catch (referralError) {
-        // Referans işlemi başarısız olursa loglama yap ama kayıt işlemine devam et
-        errorLog("authService", "Referans işlemi hatası:", referralError);
-        toast.error("Referans işlemi başarısız oldu");
+        errorLog("authService", "Error updating referrer:", referralError);
+        // Referral güncellemesi başarısız olsa bile kullanıcı kaydı tamamlandı
+        toast.warning("Referans işlemi sırasında bir hata oluştu.");
       }
     }
     
-    // Kullanıcı profilini oluşturmayı dene
-    await createUserProfile(user.uid, email, userData);
-    
     return user;
-  } catch (err) {
-    errorLog("authService", "Kayıt hatası:", err);
-    throw err; // Hataları üst katmana ilet
+  } catch (error) {
+    errorLog("authService", "Registration error:", error);
+    throw error;
   }
 }
 
-/**
- * Kullanıcı profili oluştur
- */
-async function createUserProfile(userId: string, email: string, userData: UserRegistrationData): Promise<void> {
-  try {
-    const saveProfilePromise = saveUserDataToFirebase(userId, {
-      userId: userId,
-      emailAddress: email, // Using emailAddress instead of email
-      balance: 0, // Her zaman 0 bakiye ile başlat
-      miningRate: BASE_MINING_RATE, // Her zaman temel mining hızı ile başla
-      lastSaved: Date.now(),
-      miningActive: false,
-      miningTime: 21600,
-      miningPeriod: 21600,
-      miningSession: 0,
-      referralCount: 0, // Başlangıçta referansı yok
-      referrals: [],
-      ...userData
-    });
-    
-    // Profil kaydetme için 30 saniye timeout
-    const profileTimeoutPromise = new Promise<void>((_, reject) => {
-      setTimeout(() => {
-        reject(new Error("Profil oluşturma zaman aşımına uğradı, ancak hesabınız oluşturuldu. Giriş yaparak devam edebilirsiniz."));
-      }, 30000);
-    });
-    
-    // Profil kaydetme işlemi için de timeout ekleyelim
-    await Promise.race([saveProfilePromise, profileTimeoutPromise]);
-    debugLog("authService", "Kullanıcı profili başarıyla oluşturuldu");
-  } catch (profileError) {
-    errorLog("authService", "Kullanıcı profili oluşturma hatası:", profileError);
-    // Profil oluşturma hatasını göster ama yine de kullanıcıyı döndür
-    console.warn("Hesap oluşturuldu ancak profil bilgileri kaydedilemedi. Giriş yaparak tekrar deneyebilirsiniz.");
-  }
-}
-
-/**
- * Giriş yapma - Timeout düşürüldü
- */
 export async function loginUser(email: string, password: string): Promise<User | null> {
   try {
-    debugLog("authService", "Giriş işlemi başlatılıyor:", email);
-    
-    // Login için race condition'ı düzelttik
-    const loginPromise = signInWithEmailAndPassword(auth, email, password);
-    
-    // Daha uzun timeout ile hata bildirimi
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => {
-        reject(new Error("Giriş zaman aşımına uğradı. Lütfen internet bağlantınızı kontrol edin."));
-      }, 30000); // 30 saniye timeout
-    });
-    
-    // Promise.race ile timeout kontrolü
-    const userCredential = await Promise.race([loginPromise, timeoutPromise]);
-    
-    debugLog("authService", "Giriş başarılı");
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    debugLog("authService", "User logged in successfully", { email });
     return userCredential.user;
-  } catch (err) {
-    errorLog("authService", "Giriş hatası:", err);
-    throw err; // Hataları üst katmana ilet
+  } catch (error) {
+    errorLog("authService", "Login error:", error);
+    throw error;
   }
 }
 
-/**
- * Çıkış yapma
- */
 export async function logoutUser(): Promise<void> {
   try {
     await signOut(auth);
-    // Çıkış yaparken yerel veriyi temizle
-    clearUserData();
-    debugLog("authService", "Kullanıcı başarıyla çıkış yaptı");
-  } catch (err) {
-    errorLog("authService", "Çıkış hatası:", err);
-    throw err; // Hataları üst katmana ilet
+    debugLog("authService", "User logged out successfully");
+  } catch (error) {
+    errorLog("authService", "Logout error:", error);
+    throw error;
   }
 }
-
-// passwordService'ten export
-export { sendPasswordResetEmail } from "./passwordService";

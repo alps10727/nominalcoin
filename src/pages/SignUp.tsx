@@ -8,7 +8,8 @@ import LoadingScreen from "@/components/dashboard/LoadingScreen";
 import SignUpForm from "@/components/auth/SignUpForm";
 import FormHeader from "@/components/auth/FormHeader";
 import FormFooter from "@/components/auth/FormFooter";
-import { generateReferralCode } from "@/utils/referralUtils";
+import { generateReferralCode, standardizeReferralCode } from "@/utils/referralUtils";
+import { debugLog, errorLog } from "@/utils/debugUtils";
 
 const SignUp = () => {
   const [loading, setLoading] = useState(false);
@@ -42,31 +43,40 @@ const SignUp = () => {
     setLoading(true);
     
     try {
-      console.log("Kayıt işlemi başlıyor...");
+      debugLog("SignUp", "Kayıt işlemi başlıyor...", { email, hasReferral: !!referralCode });
+      
       // Kullanıcı için benzersiz bir referans kodu oluştur
       // Not: Gerçek kullanıcı ID'si henüz mevcut değil, bu yüzden timestamp kullanıyoruz
       const timestamp = Date.now().toString();
       const newReferralCode = generateReferralCode(timestamp);
       
+      // Standartlaştırılmış referans kodunu kullan
+      const processedReferralCode = standardizeReferralCode(referralCode);
+      
+      debugLog("SignUp", "Referans bilgileri:", { 
+        newUserReferralCode: newReferralCode, 
+        referredByCode: processedReferralCode || "Yok" 
+      });
+      
       // Kullanıcı bilgilerine referans verilerini ekleyerek kayıt işlemini başlat
       const success = await register(email, password, {
         name,
         referralCode: newReferralCode, // Kullanıcının kendi referans kodu
-        referredBy: referralCode || null, // Kullanıcıyı davet eden kişinin referans kodu
+        referredBy: processedReferralCode || null, // Kullanıcıyı davet eden kişinin referans kodu
         referrals: [], // Kullanıcının davet ettiği kişilerin listesi (boş başlar)
         referralCount: 0, // Kullanıcının kaç kişiyi davet ettiği (sıfır başlar)
       });
       
       if (success) {
-        console.log("Kayıt başarılı, yönlendiriliyor...");
+        debugLog("SignUp", "Kayıt başarılı, yönlendiriliyor...");
         toast.success("Hesabınız başarıyla oluşturuldu! Giriş yapabilirsiniz.");
         navigate("/sign-in");
       } else {
-        console.log("Kayıt başarısız oldu");
+        debugLog("SignUp", "Kayıt başarısız oldu");
         setError("Kayıt işlemi başarısız oldu. Lütfen tekrar deneyin.");
       }
     } catch (error) {
-      console.error("Kayıt hatası:", error);
+      errorLog("SignUp", "Kayıt hatası:", error);
       const errorMessage = (error as Error).message;
       
       setError(errorMessage);
