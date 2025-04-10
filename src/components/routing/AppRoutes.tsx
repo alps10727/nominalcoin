@@ -1,15 +1,15 @@
 
 import { Suspense, lazy } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import LoadingScreen from "../dashboard/LoadingScreen";
 import ErrorBoundary from "./ErrorBoundary";
 import PrivateRoute from "./PrivateRoute";
 import PageTransition from "./PageTransition";
 import { usePagePreloading } from "@/hooks/routing/usePagePreloading";
-import SignIn from "@/pages/SignIn"; // Direct import instead of lazy loading
+import SignIn from "@/pages/SignIn"; // Direct import
+import Index from "@/pages/Index"; // Direct import instead of lazy loading
 
 // Lazy-loaded pages with reduced loading timeout
-const Index = lazy(() => import("@/pages/Index"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const Profile = lazy(() => import("@/pages/Profile"));
 const History = lazy(() => import("@/pages/History"));
@@ -17,7 +17,6 @@ const Referral = lazy(() => import("@/pages/Referral"));
 const Tasks = lazy(() => import("@/pages/Tasks"));
 const MiningUpgrades = lazy(() => import("@/pages/MiningUpgrades"));
 const Statistics = lazy(() => import("@/pages/Statistics"));
-// const SignIn = lazy(() => import("@/pages/SignIn")); // Removed lazy loading
 const SignUp = lazy(() => import("@/pages/SignUp"));
 const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
 
@@ -30,11 +29,9 @@ const AppRoutes = () => {
       <Routes>
         <Route path="/" element={
           <PrivateRoute>
-            <Suspense fallback={<LoadingScreen message="Ana sayfa yükleniyor..." />}>
-              <PageTransition>
-                <Index />
-              </PageTransition>
-            </Suspense>
+            <PageTransition>
+              <Index />
+            </PageTransition>
           </PrivateRoute>
         } />
         

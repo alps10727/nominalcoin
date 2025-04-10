@@ -8,7 +8,7 @@ export function usePagePreloading() {
       try {
         // Tüm sayfaları önceden yükle
         const importPromises = [
-          import("@/pages/Index"),
+          // Index is now directly imported, so don't prefetch
           import("@/pages/Profile"),
           import("@/pages/History"),
           import("@/pages/Referral"),
