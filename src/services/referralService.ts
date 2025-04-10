@@ -2,6 +2,9 @@
 import { db } from "@/config/firebase";
 import { doc, getDoc, updateDoc, arrayUnion, increment } from "firebase/firestore";
 import { debugLog, errorLog } from "@/utils/debugUtils";
+import { UserData } from "@/utils/storage";
+import { toast } from "sonner";
+import { calculateMiningRate } from "@/utils/miningCalculator";
 
 /**
  * Referans kodu ile kullanıcı bul
@@ -37,11 +40,37 @@ export async function updateReferrerInfo(referrerId: string, newUserId: string):
     
     const userRef = doc(db, "users", referrerId);
     
+    // Önce kullanıcı verilerini al
+    const userDoc = await getDoc(userRef);
+    if (!userDoc.exists()) {
+      throw new Error("Referans veren kullanıcı bulunamadı");
+    }
+    
+    const userData = userDoc.data() as UserData;
+    
     // Referrals dizisine yeni kullanıcıyı ekle ve referralCount'u arttır
+    const updatedReferralCount = (userData.referralCount || 0) + 1;
+    
     await updateDoc(userRef, {
       referrals: arrayUnion(newUserId),
-      referralCount: increment(1)
+      referralCount: updatedReferralCount
     });
+    
+    // Yeni mining rate hesapla
+    const updatedUserData = {
+      ...userData,
+      referralCount: updatedReferralCount
+    };
+    
+    const newMiningRate = calculateMiningRate(updatedUserData);
+    
+    // Mining rate'i güncelle
+    await updateDoc(userRef, {
+      miningRate: newMiningRate
+    });
+    
+    toast.success("Referans ödülü kazandınız! Madencilik hızınız artırıldı.");
+    debugLog("referralService", `Referans veren kullanıcının madencilik hızı güncellendi: ${newMiningRate}`);
     
     debugLog("referralService", "Referans veren kullanıcı bilgileri güncellendi");
   } catch (error) {

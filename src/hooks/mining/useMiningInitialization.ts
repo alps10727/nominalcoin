@@ -4,6 +4,7 @@ import { MiningState } from '@/types/mining';
 import { calculateProgress } from '@/utils/miningUtils';
 import { loadUserData } from "@/utils/storage";
 import { debugLog } from "@/utils/debugUtils";
+import { BASE_MINING_RATE, calculateMiningRate } from "@/utils/miningCalculator";
 
 /**
  * Hook for initializing mining state from local storage ONLY
@@ -15,7 +16,7 @@ export function useMiningInitialization() {
     miningActive: false,
     progress: 0,
     balance: 0,
-    miningRate: 0.003, // Sabit mining rate: 0.003
+    miningRate: BASE_MINING_RATE, // Başlangıçta temel değeri kullan
     miningSession: 0,
     miningTime: 21600, // 6 hours in seconds
     miningPeriod: 21600, // Total period 6 hours
@@ -41,12 +42,15 @@ export function useMiningInitialization() {
       if (localData) {
         debugLog("useMiningInitialization", "USING LOCAL STORAGE DATA ONLY:", localData);
         
+        // Referans sayısına göre mining hızını hesapla
+        const calculatedMiningRate = calculateMiningRate(localData);
+        
         setState(prevState => ({
           ...prevState,
           isLoading: false,
           userId: localData.userId || 'local-user',
           balance: localData.balance || 0,
-          miningRate: 0.003, // Sabit mining rate: 0.003 - localData.miningRate değerini yok sayıyoruz
+          miningRate: calculatedMiningRate, // Hesaplanmış hızı kullan
           miningActive: localData.miningActive || false,
           miningTime: localData.miningTime != null ? localData.miningTime : 21600,
           miningPeriod: localData.miningPeriod || 21600,

@@ -4,6 +4,7 @@ import { loadUserData, saveUserData, UserData } from "@/utils/storage";
 import { toast } from "sonner";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { generateReferralCode } from "@/utils/referralUtils";
+import { calculateMiningRate, BASE_MINING_RATE } from "@/utils/miningCalculator";
 
 /**
  * Kullanıcı verilerini yükleme - local storage öncelikli ve geliştirilmiş hata işleme
@@ -32,11 +33,12 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
         debugLog("userDataLoader", "Yerel veride userID güncellendi:", userId);
       }
       
-      // Mining rate'i 0.003 olarak zorluyoruz
-      if (localData.miningRate !== 0.003) {
-        localData.miningRate = 0.003;
+      // Mining rate'i referans sayısına göre hesapla
+      const calculatedRate = calculateMiningRate(localData);
+      if (localData.miningRate !== calculatedRate) {
+        localData.miningRate = calculatedRate;
         saveUserData(localData);
-        debugLog("userDataLoader", "Mining rate 0.003 olarak güncellendi");
+        debugLog("userDataLoader", "Mining rate güncellendi:", calculatedRate);
       }
       
       // İlk hızlı yol: yerel veriyi döndür, Firebase verisi arkada yüklenecek
@@ -56,7 +58,7 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
         // Ensure the data has all required fields before treating it as UserData
         const validatedData: UserData = {
           balance: typeof userData.balance === 'number' ? userData.balance : 0,
-          miningRate: 0.003, // Sabit mining rate: 0.003
+          miningRate: BASE_MINING_RATE, // Önce temel değer ile başlat
           lastSaved: typeof userData.lastSaved === 'number' ? userData.lastSaved : Date.now(),
           miningActive: !!userData.miningActive,
           userId: userId,
@@ -66,6 +68,9 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
           referrals: userData.referrals || [],
           ...(userData as any) // Include any additional fields, properly typed now
         };
+        
+        // Referans sayısına göre mining rate hesapla
+        validatedData.miningRate = calculateMiningRate(validatedData);
         
         // Eğer yerel veri ve Firebase verisi varsa, en yüksek bakiyeyi kullan
         if (localData && localData.balance > validatedData.balance) {
@@ -96,7 +101,7 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
     debugLog("userDataLoader", "Varsayılan değerler ile yeni profil oluşturuluyor");
     return {
       balance: localData?.balance || 0, // Yerel bakiye varsa kullan
-      miningRate: 0.003, // Sabit mining rate: 0.003
+      miningRate: BASE_MINING_RATE, // Her zaman temel hızı başlangıç değeri olarak kullan
       lastSaved: Date.now(),
       miningActive: localData?.miningActive || false,
       userId: userId,
@@ -111,7 +116,7 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
     const localData = loadUserData();
     return {
       balance: localData?.balance || 0,
-      miningRate: 0.003, // Sabit mining rate: 0.003
+      miningRate: BASE_MINING_RATE, // Her zaman temel hızı başlangıç değeri olarak kullan
       lastSaved: Date.now(),
       miningActive: localData?.miningActive || false,
       userId: userId,

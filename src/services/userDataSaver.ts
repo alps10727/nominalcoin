@@ -4,6 +4,7 @@ import { saveUserData as saveToLocalStorage } from "@/utils/storage";
 import { UserData } from "./userDataLoader";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { toast } from "sonner";
+import { calculateMiningRate } from "@/utils/miningCalculator";
 
 /**
  * Kullanıcı verilerini Firestore'a kaydetme
@@ -17,7 +18,7 @@ export async function saveUserDataToFirebase(userId: string, userData: UserData)
       ...userData,
       userId: userId, // Her zaman userId ekle
       balance: userData.balance || 0,
-      miningRate: 0.003, // Sabit mining rate: 0.003
+      miningRate: calculateMiningRate(userData), // Referans sayısına göre hesapla
       lastSaved: Date.now() // Önce client timestamp kullan
     };
     

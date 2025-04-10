@@ -1,4 +1,3 @@
-
 import { auth } from "@/config/firebase";
 import { 
   createUserWithEmailAndPassword, 
@@ -9,6 +8,7 @@ import {
 import { saveUserDataToFirebase } from "./userService";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { findUsersByReferralCode, updateReferrerInfo } from "./referralService";
+import { BASE_MINING_RATE } from "@/utils/miningCalculator";
 
 // Kullanıcı kayıt bilgileri için arayüz
 export interface UserRegistrationData {
@@ -54,8 +54,10 @@ export async function registerUser(email: string, password: string, userData: Us
           const referrerId = referrers[0];
           debugLog("authService", "Referans veren kullanıcı bulundu:", referrerId);
           
-          // Referrers'ın referral bilgilerini güncelle
+          // Referrers'ın referral bilgilerini güncelle ve mining hız bonusu ekle
           await updateReferrerInfo(referrerId, user.uid);
+          
+          toast.success("Referans kodunuz başarıyla kullanıldı!");
         } else {
           // Geçersiz referans kodu durumunda loglama yap ama işlemi durdurmadan devam et
           errorLog("authService", "Geçersiz referans kodu:", userData.referredBy);
@@ -86,12 +88,13 @@ async function createUserProfile(userId: string, email: string, userData: UserRe
       userId: userId,
       emailAddress: email, // Using emailAddress instead of email
       balance: 0,
-      miningRate: 0.1,
+      miningRate: BASE_MINING_RATE, // Her zaman temel mining hızı ile başla
       lastSaved: Date.now(),
       miningActive: false,
       miningTime: 21600,
       miningPeriod: 21600,
       miningSession: 0,
+      referralCount: 0, // Başlangıçta referansı yok
       ...userData
     });
     

@@ -2,16 +2,17 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, CheckCircle, UserPlus } from "lucide-react";
+import { Copy, CheckCircle, UserPlus, Zap } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
+import { REFERRAL_BONUS_RATE } from "@/utils/miningCalculator";
 
 interface ReferralCodeCardProps {
   referralCode: string;
-  referralLink: string;
+  referralLink?: string;
 }
 
-export const ReferralCodeCard = ({ referralCode }: ReferralCodeCardProps) => {
+export const ReferralCodeCard = ({ referralCode, referralLink }: ReferralCodeCardProps) => {
   const { t } = useLanguage();
   const [showCopied, setShowCopied] = useState<'code' | 'link' | null>(null);
 
@@ -78,7 +79,10 @@ export const ReferralCodeCard = ({ referralCode }: ReferralCodeCardProps) => {
           </div>
 
           <div className="text-center mt-6 text-gray-300">
-            <p>{t('referral.reward', "5.0")}</p>
+            <p className="flex items-center justify-center">
+              <Zap className="h-4 w-4 mr-1 text-yellow-400" />
+              Her referans için <span className="text-green-400 font-bold mx-1">+{REFERRAL_BONUS_RATE}</span> mining hızı
+            </p>
           </div>
         </div>
       </CardContent>

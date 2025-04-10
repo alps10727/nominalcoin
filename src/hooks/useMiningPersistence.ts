@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import { saveUserData } from "@/utils/storage";
 import { MiningState } from '@/types/mining';
 import { debugLog } from "@/utils/debugUtils";
+import { calculateMiningRate } from '@/utils/miningCalculator';
 
 /**
  * Madencilik verilerinin kalıcılığını sağlamak için kanca - SADECE yerel depolama kullanır
@@ -36,7 +37,7 @@ export function useMiningPersistence(state: MiningState) {
           // Her zaman tüm bilgileri kaydet - balance güncellemelerine özel dikkat
           saveUserData({
             balance: state.balance,
-            miningRate: state.miningRate,
+            miningRate: state.miningRate, // Mevcut hızı kullan 
             lastSaved: Date.now(),
             miningActive: state.miningActive,
             miningTime: state.miningTime,

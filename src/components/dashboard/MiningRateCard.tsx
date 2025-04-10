@@ -1,8 +1,10 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Clock, Zap } from "lucide-react";
+import { Activity, Clock, Zap, Users } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/contexts/AuthContext";
+import { BASE_MINING_RATE, REFERRAL_BONUS_RATE } from "@/utils/miningCalculator";
 
 interface MiningRateCardProps {
   miningRate: number;
@@ -11,11 +13,16 @@ interface MiningRateCardProps {
 const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
   const { t } = useLanguage();
   const isMobile = useIsMobile();
+  const { userData } = useAuth();
   
-  // ÖNEMLİ - Hesaplamalar: 3 dakikada bir kazanılacak NC miktarı 
-  const cycleReward = "0.003"; // Bir döngüde kazanılan NC (0.003)
-  const hourlyRate = (0.003 * 20).toFixed(3); // Saatlik: 20 döngü/saat (3dk * 20 = 60dk)
-  const dailyRate = (0.003 * 20 * 24).toFixed(3); // Günlük: 24 saat * 20 döngü/saat
+  // Referans sayısı
+  const referralCount = userData?.referralCount || 0;
+  const referralBonus = referralCount * REFERRAL_BONUS_RATE;
+  
+  // Hesaplamalar: 3 dakikada bir kazanılacak NC miktarı
+  const cycleReward = miningRate.toFixed(3); // Bir döngüde kazanılan NC
+  const hourlyRate = (miningRate * 20).toFixed(3); // Saatlik: 20 döngü/saat (3dk * 20 = 60dk)
+  const dailyRate = (miningRate * 20 * 24).toFixed(3); // Günlük: 24 saat * 20 döngü/saat
   
   return (
     <Card className="mb-4 overflow-hidden relative border-none shadow-md bg-gradient-to-r from-purple-900/90 to-indigo-900/90">
@@ -45,13 +52,23 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
           <div className="flex flex-col gap-1 mt-1">
             <div className="flex justify-between text-xs">
               <span className="text-purple-200">Base Rate</span>
-              <span className="text-white font-medium">{cycleReward} NC/cycle</span>
+              <span className="text-white font-medium">{BASE_MINING_RATE} NC/cycle</span>
             </div>
+            
+            {referralCount > 0 && (
+              <div className="flex justify-between text-xs">
+                <span className="text-green-300 flex items-center">
+                  <Users className="h-3 w-3 mr-1" />
+                  Referral Bonus
+                </span>
+                <span className="text-green-300 font-medium">+{referralBonus.toFixed(3)} NC/cycle</span>
+              </div>
+            )}
             
             <div className="h-2 bg-purple-950 rounded-full overflow-hidden mt-1">
               <div 
                 className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-500"
-                style={{width: `${Math.min((0.003 * 1000), 100)}%`}}
+                style={{width: `${Math.min((miningRate * 100), 100)}%`}}
               ></div>
             </div>
           </div>
