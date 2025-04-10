@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import { User } from "firebase/auth";
 import { loginUser, logoutUser, registerUser, UserRegistrationData } from "@/services/authService";
