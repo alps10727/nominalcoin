@@ -29,27 +29,19 @@ const SignInForm = ({ onSubmit, error, loading, isOffline }: SignInFormProps) =>
     }
   };
 
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
-  };
-
-  const handlePasswordChange = (value: string) => {
-    setPassword(value);
-  };
-
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <ErrorAlert message={error || ""} />
       
       <EmailInput 
         value={email}
-        onChange={handleEmailChange}
+        onChange={setEmail}
         disabled={loading}
       />
       
       <PasswordInput
         value={password}
-        onChange={handlePasswordChange}
+        onChange={setPassword}
         disabled={loading}
       />
       

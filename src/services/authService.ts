@@ -10,7 +10,7 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 import { toast } from "sonner";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { findUsersByReferralCode, updateReferrerInfo } from "./referralService";
-import { standardizeReferralCode, generateReferralCode } from "@/utils/referralUtils";
+import { standardizeReferralCode } from "@/utils/referralUtils";
 
 export interface UserRegistrationData {
   name?: string;
@@ -28,9 +28,6 @@ export async function registerUser(email: string, password: string, userData: Us
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
     
-    // Kullanıcıya özel bir referans kodu oluştur
-    const userReferralCode = generateReferralCode(user.uid);
-    
     // Kullanıcı verileri için varsayılan değerler
     const defaultUserData = {
       name: userData.name || "",
@@ -39,14 +36,12 @@ export async function registerUser(email: string, password: string, userData: Us
       miningRate: 0.003, // Temel madencilik hızı
       lastSaved: Date.now(),
       miningActive: false,
-      referralCode: userReferralCode, // Kullanıcıya özel referans kodu atadık
+      referralCode: userData.referralCode || "", // Benzersiz referans kodu
       referredBy: userData.referredBy || null, // Bu kullanıcıyı kim davet etti?
       referrals: userData.referrals || [], // Bu kullanıcının davet ettiği kişiler
       referralCount: userData.referralCount || 0, // Davet edilen kişi sayısı
       isAdmin: false // Normal kullanıcı
     };
-    
-    debugLog("authService", "Kullanıcı verisi oluşturuldu, referans kodu:", userReferralCode);
     
     // Kullanıcı bilgilerini Firestore'a kaydet
     await setDoc(doc(db, "users", user.uid), defaultUserData);
@@ -66,20 +61,18 @@ export async function registerUser(email: string, password: string, userData: Us
         if (referrerIds.length > 0) {
           const referrerId = referrerIds[0]; // İlk bulunan kullanıcıyı al
           
-          // Kullanıcının verisine referredBy bilgisini ekle
+          // Referans veren kullanıcının bilgilerini güncelle
+          await updateReferrerInfo(referrerId, user.uid);
+          
+          // Kullanıcının kendi verisine de referredBy bilgisini ekle
           await setDoc(doc(db, "users", user.uid), {
             referredBy: referrerId
           }, { merge: true });
-          
-          // Referans veren kullanıcının bilgilerini güncelle
-          await updateReferrerInfo(referrerId, user.uid);
           
           debugLog("authService", "Referrer updated successfully", { 
             referrerId, 
             newUserId: user.uid 
           });
-          
-          toast.success("Referans kodu başarıyla uygulandı!");
         } else {
           debugLog("authService", "No referrer found with the given code", { 
             code: standardizedReferralCode 

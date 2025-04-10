@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 
 interface EmailInputProps {
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange: (value: string) => void;
   disabled?: boolean;
 }
 
@@ -21,7 +21,7 @@ const EmailInput = ({ value, onChange, disabled = false }: EmailInputProps) => {
           placeholder="Email adresinizi girin"
           className="pl-10"
           value={value}
-          onChange={onChange}
+          onChange={(e) => onChange(e.target.value)}
           required
           disabled={disabled}
         />
