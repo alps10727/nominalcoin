@@ -102,12 +102,12 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-transparent relative pb-20">
+    <div className="min-h-screen flex flex-col relative pb-20">
       {/* Main content */}
       <main className={`flex-1 ${isMobile ? 'px-4 py-4' : 'px-6 py-6'} max-w-3xl mx-auto w-full relative z-10`}>
         {/* Welcome section */}
         <div className="mt-2 mb-6">
-          <h1 className="text-2xl font-bold fc-gradient-text">NOMINAL Coin Dashboard</h1>
+          <h1 className="text-2xl font-bold text-purple-300">NOMINAL Coin Dashboard</h1>
           <p className="text-purple-300/80 text-sm mt-1">
             Welcome to the NC mining hub - Earn cryptocurrency by mining!
           </p>
@@ -121,7 +121,7 @@ const Index = () => {
           {/* Mining section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold fc-gradient-text flex items-center">
+              <h2 className="text-xl font-semibold text-purple-200 flex items-center">
                 <Zap className="h-5 w-5 mr-1.5 text-purple-400" />
                 Mining Hub
               </h2>

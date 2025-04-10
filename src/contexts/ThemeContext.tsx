@@ -46,10 +46,18 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       document.documentElement.style.setProperty('--primary', '262 83% 58%'); // vibrant purple
       document.documentElement.style.setProperty('--secondary', '262 64% 27%'); // muted purple
       document.documentElement.style.setProperty('--accent', '262 95% 39%'); // deep purple
+      
+      // Ensure text is visible in dark mode
+      document.documentElement.style.setProperty('--text-primary', '0 0% 95%'); // almost white
+      document.documentElement.style.setProperty('--text-secondary', '250 95% 85%'); // light purple
     } else {
       document.documentElement.style.setProperty('--primary', '262 83% 68%'); // lighter purple
       document.documentElement.style.setProperty('--secondary', '262 60% 30%'); // medium purple
       document.documentElement.style.setProperty('--accent', '262 95% 45%'); // bright purple
+      
+      // Ensure text is visible in light mode
+      document.documentElement.style.setProperty('--text-primary', '0 0% 10%'); // almost black
+      document.documentElement.style.setProperty('--text-secondary', '250 50% 30%'); // dark purple
     }
     
     return () => clearTimeout(timer);

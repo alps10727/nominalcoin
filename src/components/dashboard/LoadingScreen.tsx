@@ -103,12 +103,12 @@ const LoadingScreen = ({
   };
   
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-950 to-purple-950">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-900 to-purple-900">
       <div className="text-center relative">
         {/* Background elements */}
         <div className="absolute inset-0 -z-10">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-indigo-600/10 rounded-full blur-3xl"></div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-purple-500/15 rounded-full blur-3xl animate-pulse" style={{animationDuration: '5s'}}></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-indigo-600/20 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{animationDuration: '5s'}}></div>
         </div>
         
         {/* Subtle stars/particles */}
@@ -131,8 +131,8 @@ const LoadingScreen = ({
         {/* Main loading animation */}
         <div className="relative flex flex-col items-center justify-center mb-10">
           {/* Outer rotating ring */}
-          <div className="absolute w-36 h-36 border border-purple-400/20 rounded-full animate-spin" style={{animationDuration: '10s'}}></div>
-          <div className="absolute w-32 h-32 border border-purple-300/15 rounded-full animate-spin" style={{animationDuration: '15s', animationDirection: 'reverse'}}></div>
+          <div className="absolute w-36 h-36 border border-purple-400/40 rounded-full animate-spin" style={{animationDuration: '10s'}}></div>
+          <div className="absolute w-32 h-32 border border-purple-300/30 rounded-full animate-spin" style={{animationDuration: '15s', animationDirection: 'reverse'}}></div>
           
           {/* Star decorations */}
           <Sparkles className="absolute top-0 right-12 h-5 w-5 text-purple-300/80 animate-pulse" style={{animationDuration: '3s'}} />
@@ -188,7 +188,7 @@ const LoadingScreen = ({
         
         {/* Only show after delay */}
         {(loadingTime > 5 || forceOffline) && (
-          <div className="mt-8 p-4 backdrop-blur-md bg-indigo-900/30 border border-indigo-700/40 rounded-xl text-sm text-indigo-200 max-w-xs mx-auto">
+          <div className="mt-8 p-4 backdrop-blur-md bg-indigo-900/40 border border-indigo-700/40 rounded-xl text-sm text-indigo-200 max-w-xs mx-auto">
             {forceOffline ? (
               <p>Bu uygulama çevrimdışı modda da çalışır, ancak verileri daha sonra senkronize etmek için internet gerekecektir.</p>
             ) : (
@@ -197,7 +197,7 @@ const LoadingScreen = ({
             
             <button
               onClick={handleManualReload}
-              className="mt-3 w-full flex items-center justify-center bg-indigo-800/50 hover:bg-indigo-700/50 text-indigo-100 px-4 py-2 rounded-md text-sm transition-colors"
+              className="mt-3 w-full flex items-center justify-center bg-indigo-800/60 hover:bg-indigo-700/60 text-indigo-100 px-4 py-2 rounded-md text-sm transition-colors"
             >
               <RefreshCw className="h-4 w-4 mr-2" />
               Sayfayı Yenile
