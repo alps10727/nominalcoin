@@ -13,44 +13,10 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
   try {
     debugLog("userDataLoader", "Kullanıcı verileri yükleniyor... UserId:", userId);
     
-    // ALWAYS check local storage first for fastest response
-    const localData = loadUserData();
-    if (localData) {
-      // Yerel verilerde referans kodu yoksa, kullanıcı ID'sini kullanarak benzersiz kod oluştur
-      if (!localData.referralCode) {
-        localData.referralCode = generateReferralCode(userId);
-        localData.referralCount = 0;
-        localData.referrals = [];
-        saveUserData(localData);
-      }
-      
-      debugLog("userDataLoader", "FAST PATH: Yerel depodan veri bulundu", localData);
-      
-      // Kullanıcı ID'sini güncelle - farklı bir kullanıcı ile giriş yapılmışsa da doğru ID kullanılsın
-      if (localData.userId !== userId) {
-        localData.userId = userId;
-        saveUserData(localData);
-        debugLog("userDataLoader", "Yerel veride userID güncellendi:", userId);
-      }
-      
-      // Mining rate'i referans sayısına göre hesapla
-      const calculatedRate = calculateMiningRate(localData);
-      if (localData.miningRate !== calculatedRate) {
-        localData.miningRate = calculatedRate;
-        saveUserData(localData);
-        debugLog("userDataLoader", "Mining rate güncellendi:", calculatedRate);
-      }
-      
-      // İlk hızlı yol: yerel veriyi döndür, Firebase verisi arkada yüklenecek
-      return localData;
-    }
-    
-    // Fast timeout for Firebase (3 seconds max)
-    const firebasePromise = getDocumentWithTimeout("users", userId, 3000);
-    
+    // Firebase'den kullanıcı verilerini yükle
     try {
-      // Try to get Firebase data with strict timeout
-      const userData = await firebasePromise;
+      // Fast timeout for Firebase (10 seconds max)
+      const userData = await getDocumentWithTimeout("users", userId, 10000);
       
       if (userData) {
         debugLog("userDataLoader", "Firebase'den kullanıcı verileri başarıyla yüklendi:", userData);
@@ -62,7 +28,7 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
           lastSaved: typeof userData.lastSaved === 'number' ? userData.lastSaved : Date.now(),
           miningActive: !!userData.miningActive,
           userId: userId,
-          // Eğer referans kodu yoksa kullanıcı ID'sini kullanarak benzersiz bir tane oluştur
+          // Referans kodunu Firebase'den al - bu kod artık sabit kalacak
           referralCode: userData.referralCode || generateReferralCode(userId),
           referralCount: userData.referralCount || 0,
           referrals: userData.referrals || [],
@@ -71,13 +37,6 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
         
         // Referans sayısına göre mining rate hesapla
         validatedData.miningRate = calculateMiningRate(validatedData);
-        
-        // Eğer yerel veri ve Firebase verisi varsa, en yüksek bakiyeyi kullan
-        if (localData && localData.balance > validatedData.balance) {
-          debugLog("userDataLoader", "Yerel bakiye daha yüksek, yerel veri kullanılıyor", 
-            { local: localData.balance, firebase: validatedData.balance });
-          validatedData.balance = localData.balance;
-        }
         
         // Save to local storage for future fast access
         saveUserData(validatedData);
@@ -88,43 +47,44 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
     } catch (error) {
       errorLog("userDataLoader", "Firebase'e erişim hatası:", error);
       
-      // Let the user know we're in offline mode
-      if (error instanceof Error && error.message.includes('zaman aşımı')) {
-        toast.warning("Sunucuya bağlanılamadı, yerel veriler kullanılıyor", {
-          id: "offline-mode-warning",
-          duration: 5000
-        });
+      // ALWAYS check local storage after Firebase fails
+      const localData = loadUserData();
+      if (localData) {
+        // Eğer yerel veride kullanıcı ID aynı değilse, bu farklı bir kullanıcı demektir
+        // Bu durumda yerel veriyi KULLANMA!
+        if (localData.userId !== userId) {
+          debugLog("userDataLoader", "Yerel veri farklı kullanıcıya ait, kullanılmıyor", 
+            { localUserId: localData.userId, currentUserId: userId });
+          // Yeni kullanıcı için yeni referans kodu oluştur
+          return createDefaultUserData(userId);
+        }
+        
+        debugLog("userDataLoader", "Firebase erişilemedi, yerel veri kullanılıyor:", localData);
+        return localData;
       }
     }
     
     // Return default data if nothing else is available
-    debugLog("userDataLoader", "Varsayılan değerler ile yeni profil oluşturuluyor");
-    return {
-      balance: localData?.balance || 0, // Yerel bakiye varsa kullan
-      miningRate: BASE_MINING_RATE, // Her zaman temel hızı başlangıç değeri olarak kullan
-      lastSaved: Date.now(),
-      miningActive: localData?.miningActive || false,
-      userId: userId,
-      referralCode: localData?.referralCode || generateReferralCode(userId),
-      referralCount: localData?.referralCount || 0,
-      referrals: localData?.referrals || []
-    };
+    return createDefaultUserData(userId);
   } catch (err) {
     errorLog("userDataLoader", "Veri yükleme hatası:", err);
-    
-    // Fallback to defaults - yerel veri varsa kullan
-    const localData = loadUserData();
-    return {
-      balance: localData?.balance || 0,
-      miningRate: BASE_MINING_RATE, // Her zaman temel hızı başlangıç değeri olarak kullan
-      lastSaved: Date.now(),
-      miningActive: localData?.miningActive || false,
-      userId: userId,
-      referralCode: localData?.referralCode || generateReferralCode(userId),
-      referralCount: localData?.referralCount || 0,
-      referrals: localData?.referrals || []
-    };
+    return createDefaultUserData(userId);
   }
+}
+
+// Varsayılan kullanıcı verisi oluştur
+function createDefaultUserData(userId: string): UserData {
+  debugLog("userDataLoader", "Varsayılan değerler ile yeni profil oluşturuluyor");
+  return {
+    balance: 0,
+    miningRate: BASE_MINING_RATE,
+    lastSaved: Date.now(),
+    miningActive: false,
+    userId: userId,
+    referralCode: generateReferralCode(userId),
+    referralCount: 0,
+    referrals: []
+  };
 }
 
 // Helper function to get Firebase document with strict timeout

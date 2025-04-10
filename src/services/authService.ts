@@ -6,11 +6,12 @@ import {
   signOut,
   User
 } from "firebase/auth";
-import { saveUserDataToFirebase } from "./userService";
+import { saveUserDataToFirebase } from "./userDataSaver";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { findUsersByReferralCode, updateReferrerInfo } from "./referralService";
 import { BASE_MINING_RATE } from "@/utils/miningCalculator";
 import { toast } from "sonner";
+import { clearUserData } from "@/utils/storage";
 
 // Kullanıcı kayıt bilgileri için arayüz
 export interface UserRegistrationData {
@@ -29,6 +30,9 @@ export interface UserRegistrationData {
 export async function registerUser(email: string, password: string, userData: UserRegistrationData): Promise<User | null> {
   try {
     debugLog("authService", "Firebase kayıt işlemi başlatılıyor:", email);
+    
+    // Kayıttan önce localStorage'ı temizle - bu yeni kullanıcı için temiz başlangıç sağlar
+    clearUserData();
     
     // Kayıt için race condition'ı düzelttik
     const createPromise = createUserWithEmailAndPassword(auth, email, password);
@@ -50,6 +54,7 @@ export async function registerUser(email: string, password: string, userData: Us
     if (userData.referredBy) {
       try {
         // Referans veren kullanıcıyı bulmaya çalış
+        debugLog("authService", "Referans kodu kontrolü:", userData.referredBy);
         const referrers = await findUsersByReferralCode(userData.referredBy);
         
         if (referrers.length > 0) {
@@ -64,10 +69,12 @@ export async function registerUser(email: string, password: string, userData: Us
           // Geçersiz referans kodu durumunda loglama yap ama işlemi durdurmadan devam et
           errorLog("authService", "Geçersiz referans kodu:", userData.referredBy);
           userData.referredBy = null; // Geçersiz referans kodunu temizle
+          toast.error("Geçersiz referans kodu");
         }
       } catch (referralError) {
         // Referans işlemi başarısız olursa loglama yap ama kayıt işlemine devam et
         errorLog("authService", "Referans işlemi hatası:", referralError);
+        toast.error("Referans işlemi başarısız oldu");
       }
     }
     
@@ -89,7 +96,7 @@ async function createUserProfile(userId: string, email: string, userData: UserRe
     const saveProfilePromise = saveUserDataToFirebase(userId, {
       userId: userId,
       emailAddress: email, // Using emailAddress instead of email
-      balance: 0,
+      balance: 0, // Her zaman 0 bakiye ile başlat
       miningRate: BASE_MINING_RATE, // Her zaman temel mining hızı ile başla
       lastSaved: Date.now(),
       miningActive: false,
@@ -97,6 +104,7 @@ async function createUserProfile(userId: string, email: string, userData: UserRe
       miningPeriod: 21600,
       miningSession: 0,
       referralCount: 0, // Başlangıçta referansı yok
+      referrals: [],
       ...userData
     });
     
@@ -151,6 +159,8 @@ export async function loginUser(email: string, password: string): Promise<User |
 export async function logoutUser(): Promise<void> {
   try {
     await signOut(auth);
+    // Çıkış yaparken yerel veriyi temizle
+    clearUserData();
     debugLog("authService", "Kullanıcı başarıyla çıkış yaptı");
   } catch (err) {
     errorLog("authService", "Çıkış hatası:", err);

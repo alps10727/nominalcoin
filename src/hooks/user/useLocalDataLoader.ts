@@ -21,6 +21,13 @@ export function useLocalDataLoader() {
   const ensureReferralData = (userData: UserData | null, userId?: string): UserData | null => {
     if (!userData) return null;
     
+    // Eğer userId farklıysa, bu farklı bir kullanıcı demektir - veriyi NULL olarak döndür
+    if (userId && userData.userId && userData.userId !== userId) {
+      debugLog("useLocalDataLoader", "Farklı kullanıcı verisi tespit edildi, veriler temizleniyor", 
+        { storedId: userData.userId, currentId: userId });
+      return null;
+    }
+    
     // If no referral code exists, generate one
     if (!userData.referralCode && userId) {
       userData.referralCode = generateReferralCode(userId);
@@ -44,13 +51,16 @@ export function useLocalDataLoader() {
    * Creates default user data when no data exists
    */
   const createDefaultUserData = (userId?: string): UserData => {
+    const newReferralCode = userId ? generateReferralCode(userId) : '';
+    debugLog("useLocalDataLoader", "Creating default user data with referral code:", newReferralCode);
+    
     return {
       balance: 0,
-      miningRate: 0.1,
+      miningRate: 0.003,
       lastSaved: Date.now(),
       miningActive: false,
       userId: userId,
-      referralCode: userId ? generateReferralCode(userId) : '',
+      referralCode: newReferralCode,
       referralCount: 0,
       referrals: []
     };

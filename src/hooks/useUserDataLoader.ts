@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from "react";
 import { User } from "firebase/auth";
-import { UserData, saveUserData } from "@/utils/storage";
+import { UserData, saveUserData, clearUserData } from "@/utils/storage";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { toast } from "sonner";
 import { useLocalDataLoader } from "@/hooks/user/useLocalDataLoader";
@@ -23,6 +24,7 @@ export function useUserDataLoader(
   const [dataSource, setDataSource] = useState<'firebase' | 'local' | null>(null);
   const [errorOccurred, setErrorOccurred] = useState(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
+  const [lastLoadedUserId, setLastLoadedUserId] = useState<string | null>(null);
 
   const { loadLocalUserData, ensureReferralData, createDefaultUserData } = useLocalDataLoader();
   const { loadFirebaseUserData, mergeUserData } = useFirebaseDataLoader();
@@ -41,8 +43,32 @@ export function useUserDataLoader(
         return;
       }
 
+      // Kullanıcı değişti mi kontrol et
+      if (lastLoadedUserId && lastLoadedUserId !== currentUser.uid) {
+        debugLog("useUserDataLoader", "Kullanıcı değişti, veriler temizleniyor", 
+          { lastUser: lastLoadedUserId, newUser: currentUser.uid });
+        // Temizle
+        clearUserData();
+        setUserData(null);
+      }
+      
+      // Güncel kullanıcı ID'sini kaydet
+      setLastLoadedUserId(currentUser.uid);
+
       try {
+        // Mevcut kullanıcının yerel verilerini yükle
         let localData = loadLocalUserData();
+        
+        // Farklı kullanıcı kontrolü
+        if (localData && localData.userId && localData.userId !== currentUser.uid) {
+          debugLog("useUserDataLoader", "Farklı kullanıcıya ait yerel veri temizleniyor", 
+            { storedId: localData.userId, currentId: currentUser.uid });
+          // Temizle ve null ata
+          clearUserData();
+          localData = null;
+        }
+        
+        // Referans kodunu kontrol et ve oluştur
         localData = ensureReferralData(localData, currentUser.uid);
         
         if (localData) {
@@ -64,11 +90,11 @@ export function useUserDataLoader(
             
             setUserData(validatedData);
             setDataSource('firebase');
-            saveUserData(validatedData);
+            saveUserData(validatedData, currentUser.uid);
           } else if (source === 'timeout' && !localData) {
             const emptyData = createDefaultUserData(currentUser.uid);
             setUserData(emptyData);
-            saveUserData(emptyData);
+            saveUserData(emptyData, currentUser.uid);
             setDataSource('local');
             
             toast.warning("Kullanıcı verileriniz bulunamadı. Yeni profil oluşturuldu.");
@@ -81,7 +107,7 @@ export function useUserDataLoader(
           if (!localData) {
             const emptyData = createDefaultUserData(currentUser.uid);
             setUserData(emptyData);
-            saveUserData(emptyData);
+            saveUserData(emptyData, currentUser.uid);
             setDataSource('local');
           }
         }
@@ -92,16 +118,10 @@ export function useUserDataLoader(
         
         errorLog("useUserDataLoader", "Critical error loading user data:", error);
         
-        const localData = loadLocalUserData();
         const emptyData = createDefaultUserData(currentUser?.uid);
         
-        if (localData) {
-          emptyData.balance = localData.balance || 0;
-          emptyData.miningRate = localData.miningRate || 0.1;
-        }
-        
         setUserData(emptyData);
-        saveUserData(emptyData);
+        saveUserData(emptyData, currentUser?.uid);
         setDataSource('local');
         setLoading(false);
         

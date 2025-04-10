@@ -1,3 +1,4 @@
+
 export interface UserData {
   userId?: string;
   balance: number;
@@ -17,12 +18,22 @@ export interface UserData {
   isAdmin?: boolean; // Added isAdmin property for admin panel access
 }
 
+// Kullanıcıya özel localStorage anahtarı oluştur
+function getUserStorageKey(userId?: string): string {
+  if (userId) {
+    return `fcMinerUserData_${userId}`;
+  }
+  return 'fcMinerUserData';
+}
+
 /**
  * Load user data from localStorage
  */
-export function loadUserData(): UserData | null {
+export function loadUserData(userId?: string): UserData | null {
   try {
-    const savedData = localStorage.getItem('fcMinerUserData');
+    const storageKey = getUserStorageKey(userId);
+    const savedData = localStorage.getItem(storageKey);
+    
     if (savedData) {
       try {
         // Parse the data and validate it
@@ -38,15 +49,36 @@ export function loadUserData(): UserData | null {
       } catch (parseErr) {
         console.error('JSON parse hatası:', parseErr);
         // If there's an error parsing, clean up the corrupt data
-        localStorage.removeItem('fcMinerUserData');
+        localStorage.removeItem(getUserStorageKey(userId));
         return null;
+      }
+    }
+    
+    // Try to load from legacy storage key if userId provided but nothing found
+    if (userId) {
+      const legacyData = localStorage.getItem('fcMinerUserData');
+      if (legacyData) {
+        try {
+          const parsedLegacyData = JSON.parse(legacyData) as UserData;
+          
+          // Check if legacy data belongs to current user
+          if (parsedLegacyData.userId === userId) {
+            // Migrate to new storage key
+            saveUserData(parsedLegacyData, userId);
+            // Clean up legacy data to prevent conflicts
+            localStorage.removeItem('fcMinerUserData');
+            return parsedLegacyData;
+          }
+        } catch (err) {
+          console.error('Legacy data parse error:', err);
+        }
       }
     }
   } catch (err) {
     console.error('Error loading user data:', err);
     // If there's an error parsing, clean up the corrupt data
     try {
-      localStorage.removeItem('fcMinerUserData');
+      localStorage.removeItem(getUserStorageKey(userId));
     } catch (removeErr) {
       console.error('Corrupt data temizleme hatası:', removeErr);
     }
@@ -58,24 +90,28 @@ export function loadUserData(): UserData | null {
 /**
  * Save user data to localStorage
  */
-export function saveUserData(userData: UserData): void {
+export function saveUserData(userData: UserData, userId?: string): void {
   try {
+    // Get userId from data or parameter
+    const actualUserId = userId || userData.userId;
+    
     // Ensure we're not saving undefined or null values
     const sanitizedData: UserData = {
       ...userData,
+      userId: actualUserId, // Make sure userId is included
       balance: typeof userData.balance === 'number' && !isNaN(userData.balance) 
         ? userData.balance 
         : 0,
-      miningRate: 0.003, // Sabit mining rate: 0.003 - userData.miningRate değerini yok sayıyoruz
+      miningRate: userData.miningRate || 0.003,
       lastSaved: Date.now(),
     };
     
     try {
       const jsonData = JSON.stringify(sanitizedData);
-      localStorage.setItem('fcMinerUserData', jsonData);
+      localStorage.setItem(getUserStorageKey(actualUserId), jsonData);
       
       // Veri doğrulaması - kaydedilen verinin doğruluğunu kontrol et
-      const verifyData = localStorage.getItem('fcMinerUserData');
+      const verifyData = localStorage.getItem(getUserStorageKey(actualUserId));
       if (verifyData) {
         const parsed = JSON.parse(verifyData);
         if (parsed.balance !== sanitizedData.balance) {
@@ -89,16 +125,36 @@ export function saveUserData(userData: UserData): void {
     }
   } catch (err) {
     console.error('Error saving user data:', err);
-    throw err; // Yeniden fırlat, böylece çağıran fonksiyon işleyebilir
+    throw err;
   }
 }
 
 /**
- * Clear user data from localStorage (for sign out)
+ * Clear user data from localStorage
  */
 export function clearUserData(): void {
   try {
-    localStorage.removeItem('fcMinerUserData');
+    // Tüm kullanıcı verilerini temizle
+    const keysToRemove: string[] = [];
+    
+    // localStorage'daki tüm anahtarları kontrol et
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('fcMinerUserData')) {
+        keysToRemove.push(key);
+      }
+    }
+    
+    // Tespit edilen anahtarları temizle
+    keysToRemove.forEach(key => {
+      try {
+        localStorage.removeItem(key);
+      } catch (err) {
+        console.error(`${key} anahtarını temizlerken hata:`, err);
+      }
+    });
+    
+    console.log(`${keysToRemove.length} kullanıcı verisi temizlendi`);
   } catch (err) {
     console.error('Error clearing user data:', err);
   }

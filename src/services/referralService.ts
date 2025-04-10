@@ -1,6 +1,6 @@
 
 import { db } from "@/config/firebase";
-import { doc, getDoc, updateDoc, arrayUnion, increment } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, updateDoc, arrayUnion, increment, where } from "firebase/firestore";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { UserData } from "@/utils/storage";
 import { toast } from "sonner";
@@ -14,16 +14,22 @@ export async function findUsersByReferralCode(referralCode: string): Promise<str
     debugLog("referralService", "Referans kodu ile kullanıcı aranıyor:", referralCode);
     
     // Firestore'da referralCode alanı ile eşleşen kullanıcıları ara
-    // Not: Bu basit bir implementasyon, büyük veritabanlarında daha gelişmiş bir sorgu gerekebilir
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("referralCode", "==", referralCode));
     
-    const userRef = doc(db, "users", referralCode);
-    const userDoc = await getDoc(userRef);
+    const querySnapshot = await getDocs(q);
     
-    if (userDoc.exists()) {
-      // Doküman varsa, kullanıcı ID'sini döndür
-      return [userDoc.id];
+    if (!querySnapshot.empty) {
+      const userIds: string[] = [];
+      querySnapshot.forEach((doc) => {
+        userIds.push(doc.id);
+      });
+      
+      debugLog("referralService", `${userIds.length} kullanıcı bulundu referral kodu ile:`, referralCode);
+      return userIds;
     }
     
+    debugLog("referralService", "Referans kodu ile kullanıcı bulunamadı:", referralCode);
     return [];
   } catch (error) {
     errorLog("referralService", "Referans kodu ile kullanıcı arama hatası:", error);

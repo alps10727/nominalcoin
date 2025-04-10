@@ -7,22 +7,34 @@
 export function generateReferralCode(userId?: string): string {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   
-  // Kullanıcı ID'sinden bir tohum (seed) oluştur (eğer mevcutsa)
-  let seed = Date.now();
+  // Seed (tohum) oluştur, eğer userId varsa her zaman aynı kodu üretecek
+  let seed = 1234567; // Varsayılan başlangıç
+  
   if (userId) {
-    // Kullanıcı ID'sini sayısal bir değere dönüştür
-    const idValue = userId.split('').reduce((acc, char) => {
-      return acc + char.charCodeAt(0);
-    }, 0);
-    
-    // Sayısal değeri kullan
-    seed = seed + idValue;
+    // Kullanıcı ID'sini sayısal değere dönüştür (deterministik olarak)
+    seed = userId.split('').reduce((acc, char, index) => {
+      // Prime kullanarak benzersiz özellikler ekle
+      const prime = 31;
+      return (acc * prime + char.charCodeAt(0)) % 2147483647; // 32-bit integer sınırı
+    }, seed);
+  } else {
+    // userId yoksa, rastgele bir tohum (seed) oluştur
+    seed = Date.now() + Math.floor(Math.random() * 10000);
   }
   
-  // Rastgele üreteci kullanıcı ID'si ile tohumla
+  // LCG (Linear Congruential Generator) ile deterministik rastgele sayılar üret
+  const getNextRandom = () => {
+    // Bu katsayılar deterministik davranış için önemli
+    const a = 1103515245;
+    const c = 12345;
+    const m = 2147483647; // 2^31 - 1
+    
+    seed = (a * seed + c) % m;
+    return seed / m; // 0-1 arası değer
+  };
+  
   const getRandomIndex = () => {
-    seed = (seed * 9301 + 49297) % 233280;
-    return Math.floor(seed / 233280 * characters.length);
+    return Math.floor(getNextRandom() * characters.length);
   };
   
   // 3-3-3 formatında bir referans kodu oluştur
