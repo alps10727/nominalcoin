@@ -1,10 +1,11 @@
 
 import { getDocument } from "./dbService";
-import { loadUserData, saveUserData, UserData } from "@/utils/storage";
+import { loadUserData, saveUserData } from "@/utils/storage";
 import { toast } from "sonner";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { generateReferralCode } from "@/utils/referralUtils";
 import { calculateMiningRate, BASE_MINING_RATE } from "@/utils/miningCalculator";
+import { UserData } from "@/utils/storage/types";
 
 /**
  * Kullanıcı verilerini yükleme - local storage öncelikli ve geliştirilmiş hata işleme
@@ -109,4 +110,5 @@ async function getDocumentWithTimeout(collection: string, id: string, timeoutMs:
 }
 
 // Re-export the UserData type for consumers of this module
-export { UserData };
+// Fixed: Use 'export type' syntax for re-exporting types
+export type { UserData };
