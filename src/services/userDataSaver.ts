@@ -40,6 +40,7 @@ export async function saveUserDataToFirebase(userId: string, userData: UserData)
     
     try {
       // Verileri Firebase'e kaydet (arkaplanda ve otomatik yeniden deneme ile)
+      // Düzeltme: saveDocument'in doğru argümanlarını kullan (3 yerine 4 değil)
       await saveDocument("users", userId, sanitizedData, true);
       debugLog("userDataSaver", "Kullanıcı verileri başarıyla kaydedildi:", userId);
     } catch (firebaseErr) {
@@ -120,6 +121,7 @@ export async function updateUserCoinBalance(userId: string, newBalance: number, 
     
     try {
       // Firebase'e kaydet
+      // Düzeltme: saveDocument'in doğru argümanlarını kullan
       await saveDocument("users", userId, {
         balance: updatedBalance,
         miningRate: miningRate, // Hesaplanmış mining rate'i kullan
