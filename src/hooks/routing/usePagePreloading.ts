@@ -6,27 +6,31 @@ export function usePagePreloading() {
   useEffect(() => {
     const prefetchPages = async () => {
       try {
-        // Tüm sayfaları önceden yükle
+        // Optimize preloading by using smaller chunks and handling errors individually
         const importPromises = [
-          // Index is now directly imported, so don't prefetch
-          import("@/pages/Profile"),
-          import("@/pages/History"),
-          import("@/pages/Referral"),
-          import("@/pages/Tasks"),
-          import("@/pages/MiningUpgrades"),
-          import("@/components/MobileNavigation")
-          // Removed SignIn from preloading since we're importing it directly
+          import("@/pages/Profile").catch(e => errorLog("usePagePreloading", "Failed to preload Profile:", e)),
+          import("@/pages/History").catch(e => errorLog("usePagePreloading", "Failed to preload History:", e)),
+          import("@/pages/Referral").catch(e => errorLog("usePagePreloading", "Failed to preload Referral:", e)),
+          import("@/pages/Tasks").catch(e => errorLog("usePagePreloading", "Failed to preload Tasks:", e)),
+          import("@/pages/MiningUpgrades").catch(e => errorLog("usePagePreloading", "Failed to preload MiningUpgrades:", e)),
+          import("@/components/MobileNavigation").catch(e => errorLog("usePagePreloading", "Failed to preload MobileNavigation:", e))
         ];
         
-        // Sayfaları paralel olarak yükle
-        await Promise.all(importPromises);
-        console.log("Sayfalar daha hızlı gezinme için önceden yüklendi");
+        // Handle preload results individually to prevent one failure from affecting others
+        const results = await Promise.allSettled(importPromises);
+        const successCount = results.filter(result => result.status === 'fulfilled').length;
+        console.log(`${successCount}/${importPromises.length} sayfalar başarıyla önceden yüklendi`);
       } catch (error) {
-        errorLog("usePagePreloading", "Sayfaları önceden yükleme başarısız oldu:", error);
+        // This catch should only trigger for errors not caught by individual promises
+        errorLog("usePagePreloading", "Sayfaları önceden yükleme genel hatası:", error);
       }
     };
     
-    // Hızlı erişim için ilk yükleme
-    prefetchPages();
+    // Use setTimeout to delay preloading and prioritize initial page render
+    const timer = setTimeout(() => {
+      prefetchPages();
+    }, 1000); // 1-second delay for initial render to complete
+    
+    return () => clearTimeout(timer);
   }, []);
 }
