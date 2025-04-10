@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { 
@@ -14,8 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, AlertCircle, ArrowLeft, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
-import { sendPasswordResetEmail } from "firebase/auth";
-import { auth } from "@/config/firebase";
+import { sendPasswordResetEmail } from "@/services/firebaseService";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -30,7 +28,7 @@ const ForgotPassword = () => {
     
     try {
       console.log("Şifre sıfırlama e-postası gönderiliyor:", email);
-      await sendPasswordResetEmail(auth, email);
+      await sendPasswordResetEmail(email);
       toast.success("Şifre sıfırlama bağlantısı e-posta adresinize gönderildi");
       setSent(true);
     } catch (error) {

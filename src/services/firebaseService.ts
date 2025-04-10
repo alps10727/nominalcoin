@@ -19,8 +19,11 @@ import {
   registerUser,
   loginUser,
   logoutUser,
-  sendPasswordResetEmail
 } from './authService';
+
+import {
+  sendPasswordResetEmail
+} from './passwordService';
 
 // Tüm fonksiyonları dışa aktar
 export {
