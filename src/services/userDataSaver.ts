@@ -124,7 +124,7 @@ export async function updateUserCoinBalance(userId: string, newBalance: number, 
         balance: updatedBalance,
         miningRate: miningRate, // Hesaplanmış mining rate'i kullan
         lastSaved: Date.now()
-      }, { merge: true });
+      }, true); // merge: true parametresi ile düzeltildi
       
       debugLog("userDataSaver", "Coin bakiyesi başarıyla güncellendi:", updatedBalance);
       toast.success(`${isIncrement ? newBalance.toFixed(2) + ' coin kazandınız!' : 'Coin bakiyeniz güncellendi!'}`);

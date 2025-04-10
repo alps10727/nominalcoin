@@ -82,7 +82,7 @@ export async function updateReferrerInfo(referrerId: string, newUserId: string):
       // İki aşamalı güncelleme: Önce referrals ve referralCount, sonra mining rate
       await updateDoc(userRef, {
         referrals: arrayUnion(newUserId),
-        referralCount: increment(1) // Firebase'in increment fonksiyonunu kullan
+        referralCount: updatedReferralCount // INCREMENT yerine doğrudan sayıyı kullan
       });
       
       debugLog("referralService", `Referral sayısı güncellendi: ${updatedReferralCount}`, { referrerId });
@@ -90,7 +90,8 @@ export async function updateReferrerInfo(referrerId: string, newUserId: string):
       // Yeni mining rate hesapla
       const updatedUserData = {
         ...userData,
-        referralCount: updatedReferralCount
+        referralCount: updatedReferralCount,
+        referrals: [...currentReferrals, newUserId]
       };
       
       const newMiningRate = calculateMiningRate(updatedUserData);
