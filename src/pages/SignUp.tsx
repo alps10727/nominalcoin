@@ -8,7 +8,7 @@ import LoadingScreen from "@/components/dashboard/LoadingScreen";
 import SignUpForm from "@/components/auth/SignUpForm";
 import FormHeader from "@/components/auth/FormHeader";
 import FormFooter from "@/components/auth/FormFooter";
-import { generateReferralCode, standardizeReferralCode } from "@/utils/referralUtils";
+import { standardizeReferralCode } from "@/utils/referralUtils";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 
 const SignUp = () => {
@@ -45,23 +45,16 @@ const SignUp = () => {
     try {
       debugLog("SignUp", "Kayıt işlemi başlıyor...", { email, hasReferral: !!referralCode });
       
-      // Kullanıcı için benzersiz bir referans kodu oluştur
-      // Not: Gerçek kullanıcı ID'si henüz mevcut değil, bu yüzden timestamp kullanıyoruz
-      const timestamp = Date.now().toString();
-      const newReferralCode = generateReferralCode(timestamp);
-      
       // Standartlaştırılmış referans kodunu kullan
       const processedReferralCode = standardizeReferralCode(referralCode);
       
       debugLog("SignUp", "Referans bilgileri:", { 
-        newUserReferralCode: newReferralCode, 
         referredByCode: processedReferralCode || "Yok" 
       });
       
       // Kullanıcı bilgilerine referans verilerini ekleyerek kayıt işlemini başlat
       const success = await register(email, password, {
         name,
-        referralCode: newReferralCode, // Kullanıcının kendi referans kodu
         referredBy: processedReferralCode || null, // Kullanıcıyı davet eden kişinin referans kodu
         referrals: [], // Kullanıcının davet ettiği kişilerin listesi (boş başlar)
         referralCount: 0, // Kullanıcının kaç kişiyi davet ettiği (sıfır başlar)

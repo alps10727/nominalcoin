@@ -30,7 +30,9 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
     const urlParams = new URLSearchParams(window.location.search);
     const refCode = urlParams.get('ref');
     if (refCode) {
-      setReferralCode(standardizeReferralCode(refCode));
+      const standardizedCode = standardizeReferralCode(refCode);
+      console.log("URL'den referans kodu alındı:", standardizedCode);
+      setReferralCode(standardizedCode);
     }
     
     // Çevrimdışı durumu izle
@@ -48,7 +50,6 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
 
   // Referans kodunu düzgünce formatla
   const handleReferralCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Girilen değeri al ve standartlaştır
     const value = e.target.value;
     setReferralCode(value);
   };
@@ -85,6 +86,7 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
 
     // Referans kodu kontrolü
     const processedReferralCode = standardizeReferralCode(referralCode);
+    console.log("Gönderilecek referans kodu:", processedReferralCode);
     
     // Referans kodu girilmiş ama geçerli değilse uyarı ver
     if (processedReferralCode && !validateReferralCode(processedReferralCode)) {

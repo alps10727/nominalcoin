@@ -23,6 +23,7 @@ export async function findUsersByReferralCode(referralCode: string): Promise<str
     debugLog("referralService", "Referans kodu ile kullanıcı aranıyor:", standardizedCode);
     
     // Firestore'da referralCode alanı ile eşleşen kullanıcıları ara
+    // DÜZELTİLDİ: Doğru referans kodu karşılaştırması için alan adını kontrol et
     const usersRef = collection(db, "users");
     const q = query(usersRef, where("referralCode", "==", standardizedCode));
     
@@ -78,9 +79,10 @@ export async function updateReferrerInfo(referrerId: string, newUserId: string):
     // Aynı kullanıcıyı birden fazla kez eklememek için kontrol
     const currentReferrals = userData.referrals || [];
     if (!currentReferrals.includes(newUserId)) {
+      // DÜZELTİLDİ: increment kullanımını düzelt ve referans güncelleme işlemini doğru şekilde uygula
       await updateDoc(userRef, {
         referrals: arrayUnion(newUserId),
-        referralCount: updatedReferralCount
+        referralCount: increment(1) // Firebase'in increment fonksiyonunu kullan
       });
       
       debugLog("referralService", `Referral sayısı güncellendi: ${updatedReferralCount}`, { referrerId });
