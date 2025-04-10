@@ -1,7 +1,7 @@
 
 import { saveDocument } from "./dbService";
 import { saveUserData as saveToLocalStorage } from "@/utils/storage";
-import { UserData } from "./userDataLoader";
+import { UserData } from "@/utils/storage";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { toast } from "sonner";
 import { calculateMiningRate } from "@/utils/miningCalculator";

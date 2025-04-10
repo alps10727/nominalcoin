@@ -109,4 +109,4 @@ async function getDocumentWithTimeout(collection: string, id: string, timeoutMs:
 }
 
 // Re-export the UserData type for consumers of this module
-export type { UserData } from "@/utils/storage";
+export { UserData };

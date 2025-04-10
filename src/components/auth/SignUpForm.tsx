@@ -3,7 +3,7 @@ import { useSignUpForm } from "@/hooks/useSignUpForm";
 import ErrorAlert from "@/components/auth/alerts/ErrorAlert";
 import OfflineAlert from "@/components/auth/alerts/OfflineAlert";
 import NameInput from "@/components/auth/inputs/NameInput";
-import { EmailInput } from "@/components/auth/inputs/EmailInput";
+import EmailInput from "@/components/auth/inputs/EmailInput";
 import ReferralCodeInput from "@/components/auth/inputs/ReferralCodeInput";
 import PasswordInputField from "@/components/auth/inputs/PasswordInputField";
 import TermsCheckbox from "@/components/auth/inputs/TermsCheckbox";
