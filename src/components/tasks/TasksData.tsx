@@ -178,13 +178,16 @@ export const useTasksData = () => {
         newTasks[taskIndex] = { ...task, completed: true };
         setDailyTasks(newTasks);
         
+        // Task ID'sini number tipine dönüştürelim (string olabilir)
+        const taskIdAsNumber = typeof task.id === 'string' ? parseInt(task.id, 10) : task.id;
+        
         // Kullanıcı verisini güncelle
         const updatedUserData = {
           ...userData,
           balance: (userData.balance || 0) + task.reward,
           tasks: {
             ...(userData.tasks || {}),
-            completed: [...(userData.tasks?.completed || []), task.id]
+            completed: [...(userData.tasks?.completed || []), taskIdAsNumber]
           }
         };
         
