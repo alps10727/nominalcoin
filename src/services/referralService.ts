@@ -48,8 +48,15 @@ export async function findUsersByReferralCode(referralCode: string): Promise<str
 
 /**
  * Referans veren kullanıcının bilgilerini güncelle
+ * @param referrerId Referans veren kullanıcının ID'si
+ * @param newUserId Yeni kaydolan kullanıcının ID'si
+ * @param rewardRate Ödül oranı (varsayılan: 1 - tam ödül)
  */
-export async function updateReferrerInfo(referrerId: string, newUserId: string): Promise<void> {
+export async function updateReferrerInfo(
+  referrerId: string, 
+  newUserId: string, 
+  rewardRate: number = 1
+): Promise<void> {
   try {
     if (!referrerId || !newUserId) {
       debugLog("referralService", "Geçersiz referrer veya user ID, güncelleme yapılmadı", { referrerId, newUserId });
@@ -58,7 +65,8 @@ export async function updateReferrerInfo(referrerId: string, newUserId: string):
     
     debugLog("referralService", "Referans veren kullanıcı bilgileri güncelleniyor", { 
       referrerId, 
-      newUserId 
+      newUserId,
+      rewardRate
     });
     
     const userRef = doc(db, "users", referrerId);
@@ -98,7 +106,8 @@ export async function updateReferrerInfo(referrerId: string, newUserId: string):
       referralCount: updatedReferralCount
     };
     
-    const newMiningRate = calculateMiningRate(updatedUserData);
+    // Ödül oranı ile mining rate'i güncelle
+    const newMiningRate = calculateMiningRate(updatedUserData) * rewardRate;
     
     // Mining rate'i güncelle
     await updateDoc(userRef, {
@@ -107,10 +116,17 @@ export async function updateReferrerInfo(referrerId: string, newUserId: string):
     
     debugLog("referralService", `Referans veren kullanıcının madencilik hızı güncellendi: ${newMiningRate}`, { 
       referrerId, 
-      newRate: newMiningRate 
+      newRate: newMiningRate,
+      rewardRate
     });
     
-    toast.success("Referans ödülü kazandınız! Madencilik hızınız artırıldı.");
+    // Rewardları oranında göster
+    if (rewardRate === 1) {
+      toast.success("Referans ödülü kazandınız! Madencilik hızınız artırıldı.");
+    } else if (rewardRate > 0) {
+      toast.success(`İkincil referans ödülü kazandınız! (${rewardRate * 100}%)`);
+    }
+    
     debugLog("referralService", "Referans veren kullanıcı bilgileri güncellendi");
   } catch (error) {
     errorLog("referralService", "Referans veren kullanıcı bilgilerini güncelleme hatası:", error);
