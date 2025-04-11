@@ -15,15 +15,15 @@ import { getAnalytics } from "firebase/analytics";
 import { getStorage, connectStorageEmulator } from "firebase/storage";
 import { emulatorConfig, isEmulatorEnabled } from "./firebaseEmulator";
 
-// Firebase yapılandırma bilgileri
+// Firebase yapılandırma bilgilerini çevre değişkenlerinden al
 const firebaseConfig = {
-  apiKey: "AIzaSyA25GTCK5zJIgrDR1RQK5cesSpJCqTmw1A",
-  authDomain: "nominal-25c8a.firebaseapp.com",
-  projectId: "nominal-25c8a",
-  storageBucket: "nominal-25c8a.firebasestorage.app",
-  messagingSenderId: "754037394526",
-  appId: "1:754037394526:web:9a39f2cc84213a5d8678cf",
-  measurementId: "G-C1QMWWHVHH"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyA25GTCK5zJIgrDR1RQK5cesSpJCqTmw1A",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "nominal-25c8a.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "nominal-25c8a",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "nominal-25c8a.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "754037394526",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:754037394526:web:9a39f2cc84213a5d8678cf",
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-C1QMWWHVHH"
 };
 
 // Firebase'i başlat
