@@ -23,34 +23,37 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
   const [isClickable, setIsClickable] = useState(true);
   const lastClickTimeRef = useRef<number>(0);
   
-  // Format and update time display - yeni formatTimeDisplay fonksiyonunu kullanıyoruz
+  // Format and update time display
   useEffect(() => {
     setDisplayTime(formatTimeDisplay(miningTime));
   }, [miningTime]);
 
-  // Memoize click handler with debounce logic
+  // Optimized debounce logic with useCallback
   const handleClick = useCallback(() => {
     const now = Date.now();
-    // Prevent rapid clicks (3-second cooldown)
-    if (now - lastClickTimeRef.current < 3000) {
+    // Cooldown period decreased from 3s to 1s for better UX
+    const cooldownPeriod = 1000;
+    
+    if (now - lastClickTimeRef.current < cooldownPeriod) {
       console.log("Button clicked too quickly, ignoring");
       return;
     }
     
-    // Set button as not clickable
     setIsClickable(false);
     lastClickTimeRef.current = now;
     
-    // Call the actual handler
+    // Call handler immediately
     onButtonClick();
     
-    // Re-enable button after cooldown
-    setTimeout(() => {
-      setIsClickable(true);
-    }, 3000);
+    // Enable after cooldown - optimized to minimize delay
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        setIsClickable(true);
+      }, cooldownPeriod);
+    });
   }, [onButtonClick]);
   
-  // Handle hover state
+  // Optimized hover handlers with useCallback
   const handleMouseEnter = useCallback(() => {
     setButtonHovered(true);
   }, []);
@@ -90,10 +93,10 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
         />
       </MiningButtonBase>
       
-      {/* Cooldown indicator */}
+      {/* Optimized cooldown indicator - only shows when needed */}
       {!isClickable && (
         <div className="absolute top-full left-0 right-0 text-xs text-purple-400/80 text-center mt-2">
-          Please wait...
+          Lütfen bekleyin...
         </div>
       )}
     </div>

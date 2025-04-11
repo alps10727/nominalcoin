@@ -13,6 +13,7 @@ import MiningCard from "@/components/dashboard/MiningCard";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
 import MiningRateCard from "@/components/dashboard/MiningRateCard";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton"; // Import skeleton for better loading states
 import { toast } from "sonner";
 import { loadUserData } from "@/utils/storage";
 import { debugLog } from "@/utils/debugUtils";
@@ -30,7 +31,7 @@ const Index = () => {
     handleStopMining
   } = useMiningData();
   
-  // En son bilinen bakiyeyi localStorage'dan alarak başlat
+  // Optimistik UI güncelleme için hazırlık
   const [balance, setBalance] = useState<number>(() => {
     const localData = loadUserData();
     const initialBalance = localData?.balance || 0;
@@ -41,17 +42,14 @@ const Index = () => {
   const isFirstRender = useRef(true);
   const storedBalanceRef = useRef(balance);
   
-  // Ayrıca auth context'ten de balance al - yedek olarak
   const { userData, loading: authLoading, isOffline } = useAuth();
   const [isInitialized, setIsInitialized] = useState(!!loadUserData());
   
-  // En yüksek bakiyeyi takip et ve kullan
+  // Optimistik veri güncelleme - API yanıtı beklemeden UI güncelleme
   useEffect(() => {
-    // İlk render dışında bakiyeyi madencilik verisinden güncelle
     if (!isFirstRender.current && !miningLoading && miningBalance > 0) {
       debugLog("Index", `Checking mining balance: ${miningBalance}, Current: ${storedBalanceRef.current}`);
       
-      // Sadece daha yüksek değerler için güncelle
       if (miningBalance > storedBalanceRef.current) {
         debugLog("Index", `Updating balance from mining: ${miningBalance}`);
         setBalance(miningBalance);
@@ -59,18 +57,16 @@ const Index = () => {
       }
     }
     
-    // İlk render işareti kaldır
     if (isFirstRender.current) {
       isFirstRender.current = false;
     }
   }, [miningBalance, miningLoading]);
   
-  // Yedek yöntem: Auth userData'dan bakiye geliyorsa ve mevcut bakiyeden yüksekse
+  // Veri senkronizasyonu - gereksiz beklemeler kaldırıldı
   useEffect(() => {
     if (!authLoading && userData?.balance !== undefined) {
       debugLog("Index", `Checking auth balance: ${userData.balance}, Current: ${storedBalanceRef.current}`);
       
-      // Sadece daha yüksek değerler için güncelle
       if (userData.balance > storedBalanceRef.current) {
         debugLog("Index", `Using higher balance from auth: ${userData.balance}`);
         setBalance(userData.balance);
@@ -79,27 +75,19 @@ const Index = () => {
     }
   }, [userData, authLoading]);
   
-  // Verilerin yüklenmesinde hata olsa bile 2 saniye sonra initialize et
+  // Yükleme durumunda gecikmeli başlatma - performans için gereksiz beklemeler kaldırıldı
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (!isInitialized) {
-        setIsInitialized(true);
-      }
-    }, 2000);
-    
-    return () => clearTimeout(timeout);
+    if (!isInitialized) {
+      setIsInitialized(true);
+    }
   }, [isInitialized]);
 
   const isMobile = useIsMobile();
   const { t } = useLanguage();
   const { theme } = useTheme();
 
-  // Hiçbir kaynaktan veri gelmediyse loading göster
+  // Tüm kaynakların yüklenmesi için optimistik kontrol
   const isLoading = !isInitialized && authLoading;
-
-  if (isLoading) {
-    return <LoadingScreen message={isOffline ? "Çevrimdışı modda yükleniyor..." : "Veriler hazırlanıyor..."} />;
-  }
 
   return (
     <div className="min-h-screen flex flex-col relative pb-20">
@@ -113,10 +101,14 @@ const Index = () => {
           </p>
         </div>
         
-        {/* Cards */}
+        {/* Cards - Skeleton UI kullanımı eklenmiş */}
         <div className="space-y-5">
-          {/* Balance card */}
-          <BalanceCard balance={balance} />
+          {/* Balance card with loading state */}
+          {isLoading ? (
+            <Skeleton className="h-28 w-full" />
+          ) : (
+            <BalanceCard balance={balance} />
+          )}
           
           {/* Mining section */}
           <div className="space-y-4">
@@ -131,19 +123,27 @@ const Index = () => {
               </Button>
             </div>
             
-            {/* Mining card */}
-            <MiningCard 
-              miningActive={miningActive}
-              progress={progress}
-              miningRate={miningRate}
-              miningSession={miningSession}
-              miningTime={miningTime}
-              onStartMining={handleStartMining}
-              onStopMining={handleStopMining}
-            />
+            {/* Mining card with optimized loading */}
+            {isLoading ? (
+              <Skeleton className="h-64 w-full rounded-xl" />
+            ) : (
+              <MiningCard 
+                miningActive={miningActive}
+                progress={progress}
+                miningRate={miningRate}
+                miningSession={miningSession}
+                miningTime={miningTime}
+                onStartMining={handleStartMining}
+                onStopMining={handleStopMining}
+              />
+            )}
             
-            {/* Mining rate card for stats */}
-            <MiningRateCard miningRate={miningRate} />
+            {/* Mining rate card with loading */}
+            {isLoading ? (
+              <Skeleton className="h-24 w-full" />
+            ) : (
+              <MiningRateCard miningRate={miningRate} />
+            )}
           </div>
         </div>
       </main>
