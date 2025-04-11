@@ -3,7 +3,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
-  User
+  User,
+  UserCredential
 } from "firebase/auth";
 import { auth, db } from "@/config/firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
@@ -14,13 +15,14 @@ import { standardizeReferralCode } from "@/utils/referralUtils";
 
 export interface UserRegistrationData {
   name?: string;
+  emailAddress?: string;
   referralCode?: string;
   referredBy?: string | null;
   referrals?: string[];
   referralCount?: number;
 }
 
-export async function registerUser(email: string, password: string, userData: UserRegistrationData = {}): Promise<User | null> {
+export async function registerUser(email: string, password: string, userData: UserRegistrationData = {}): Promise<User> {
   try {
     debugLog("authService", "Registering user...", { email });
     

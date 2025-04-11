@@ -38,17 +38,17 @@ const SignUp = () => {
       }
 
       // Kullanıcıyı kaydet
-      const userData = await registerUser(email, password, {
+      const userCredential = await registerUser(email, password, {
         name,
         emailAddress: email,
         referredBy: referrerId,
       });
 
       // Referans varsa, hem doğrudan hem de üst seviye referanslara ödül ver
-      if (referrerId && userData?.user?.uid) {
+      if (referrerId && userCredential?.uid) {
         try {
           // Yeni çok seviyeli referans sistemini kullan
-          await rewardMultiLevelReferrers(userData.user.uid, referrerId);
+          await rewardMultiLevelReferrers(userCredential.uid, referrerId);
           debugLog("SignUp", "Çok seviyeli referans ödülleri verildi");
         } catch (refError) {
           errorLog("SignUp", "Referans ödüllerinde hata:", refError);
