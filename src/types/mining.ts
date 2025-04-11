@@ -16,4 +16,6 @@ export interface MiningActions {
   handleStopMining: () => void;
 }
 
-export type MiningData = MiningState & MiningActions;
+export type MiningData = MiningState & MiningActions & {
+  isOffline?: boolean; // Added isOffline property
+};
