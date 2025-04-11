@@ -26,4 +26,5 @@ export interface UserData {
   tasks?: {
     completed?: number[]  // Tamamlanan görev ID'leri
   };
+  miningEndTime?: number; // Added absolute end time for reliable timing
 }
