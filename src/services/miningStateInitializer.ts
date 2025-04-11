@@ -1,7 +1,7 @@
 
 import { loadUserData, saveUserData } from "@/utils/storage";
-import { loadUserDataFromFirebase } from "./userDataLoader";
-import { saveUserDataToFirebase } from "./userDataSaver";
+import { loadUserDataFromFirebase } from "./user/userDataLoaderService";
+import { saveUserDataToFirebase } from "./user/saveUserDataService";
 import { MiningState } from "@/types/mining";
 import { calculateProgress } from "@/utils/miningUtils";
 import { debugLog, errorLog } from "@/utils/debugUtils";

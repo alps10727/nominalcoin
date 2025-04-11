@@ -4,12 +4,12 @@
 
 import { 
   loadUserDataFromFirebase
-} from './userDataLoader';
+} from './user/userDataLoaderService';
 
 import {
   saveUserDataToFirebase,
   updateUserCoinBalance
-} from './userDataSaver';
+} from './user/saveUserDataService';
 
 import {
   initializeMiningStateFromFirebase 
