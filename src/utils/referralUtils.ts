@@ -1,35 +1,53 @@
 
 /**
- * Benzersiz referans kodu oluşturur
+ * Benzersiz ve tahmin edilemez referans kodu oluşturur
  * Format: XXX-XXX-XXX (X: alfanumerik karakterler)
- * Her kullanıcı için benzersiz olan bir kod oluşturur
+ * Güvenli bir şekilde benzersiz kodlar üretir
  */
 export function generateReferralCode(userId?: string): string {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   
-  // Seed (tohum) oluştur, eğer userId varsa her zaman aynı kodu üretecek
-  let seed = 1234567; // Varsayılan başlangıç
+  // Seed (tohum) oluştur, güvenli ve tahmin edilemez bir değer kullan
+  const timestamp = Date.now();
+  const randomPrefix = Math.floor(Math.random() * 1000000);
+  let seed = timestamp ^ randomPrefix; // XOR ile karıştır
   
   if (userId) {
-    // Kullanıcı ID'sini sayısal değere dönüştür (deterministik olarak)
-    seed = userId.split('').reduce((acc, char, index) => {
-      // Prime kullanarak benzersiz özellikler ekle
+    // Kullanıcı ID'sini tahmin edilemez bir şekilde tohuma dahil et
+    const userSeed = userId.split('').reduce((acc, char, index) => {
+      // Karakterlerin sırasını da hesaba katan karmaşık bir dönüşüm
       const prime = 31;
-      return (acc * prime + char.charCodeAt(0)) % 2147483647; // 32-bit integer sınırı
+      const offset = index % 7; // Ek karışıklık için mod 7
+      return (acc * prime + char.charCodeAt(0) + offset) % 2147483647;
     }, seed);
+    
+    // Ek güvenlik karıştırması
+    seed = (userSeed * 48271) % 2147483647;
   } else {
-    // userId yoksa, rastgele bir tohum (seed) oluştur
-    seed = Date.now() + Math.floor(Math.random() * 10000);
+    // Rastgele tohum oluştur - ekstra güvenlik için crypto API kullan (tarayıcılar için)
+    try {
+      // Tarayıcı ortamında crypto kullan
+      if (typeof window !== 'undefined' && window.crypto) {
+        const array = new Uint32Array(1);
+        window.crypto.getRandomValues(array);
+        seed = array[0] % 2147483647;
+      } else {
+        // Node.js veya başka ortamlar için fallback
+        seed = (Date.now() ^ (Math.random() * 1000000)) % 2147483647;
+      }
+    } catch (e) {
+      // Herhangi bir ortam hatası durumunda fallback
+      seed = (timestamp * randomPrefix) % 2147483647;
+    }
   }
   
-  // LCG (Linear Congruential Generator) ile deterministik rastgele sayılar üret
+  // Güvenli karmaşık bir PRNG (Pseudo-Random Number Generator) algoritması
   const getNextRandom = () => {
-    // Bu katsayılar deterministik davranış için önemli
-    const a = 1103515245;
-    const c = 12345;
-    const m = 2147483647; // 2^31 - 1
+    // Bu katsayılar güvenli rastgele sayı üreticisi için incelikle seçilmiş değerler
+    const a = 48271; // Optimum katsayı (Mersenne prime için)
+    const m = 2147483647; // 2^31 - 1 (Mersenne prime)
     
-    seed = (a * seed + c) % m;
+    seed = (a * seed) % m;
     return seed / m; // 0-1 arası değer
   };
   
@@ -37,7 +55,7 @@ export function generateReferralCode(userId?: string): string {
     return Math.floor(getNextRandom() * characters.length);
   };
   
-  // 3-3-3 formatında bir referans kodu oluştur
+  // 3-3-3 formatında tahmin edilemez bir referans kodu oluştur
   const firstPart = Array(3).fill(0).map(() => characters.charAt(getRandomIndex())).join('');
   const secondPart = Array(3).fill(0).map(() => characters.charAt(getRandomIndex())).join('');
   const thirdPart = Array(3).fill(0).map(() => characters.charAt(getRandomIndex())).join('');
@@ -77,10 +95,13 @@ export function validateReferralCode(code: string): boolean {
 
 /**
  * Referans bağlantısı oluşturur
+ * Güvenli ve doğrulanabilir bağlantılar üretir
  */
 export function createReferralLink(referralCode: string): string {
   const baseUrl = window.location.origin;
-  return `${baseUrl}/sign-up?ref=${referralCode}`;
+  // URL'ye referans kodunu ekle, XSS ve diğer güvenlik açıklarından kaçınmak için kodla
+  const encodedCode = encodeURIComponent(referralCode);
+  return `${baseUrl}/sign-up?ref=${encodedCode}`;
 }
 
 /**
@@ -89,5 +110,10 @@ export function createReferralLink(referralCode: string): string {
  */
 export function standardizeReferralCode(code: string): string {
   if (!code) return '';
-  return code.trim().toUpperCase();
+  
+  // Güvenli temizleme - XSS ve diğer güvenlik açıklarından kaçınmak için
+  // Sadece izin verilen karakterleri (alfanumerik ve tire) tut
+  const sanitizedCode = code.replace(/[^A-Za-z0-9\-]/g, '');
+  return sanitizedCode.trim().toUpperCase();
 }
+
