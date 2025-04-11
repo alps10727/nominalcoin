@@ -12,7 +12,11 @@ type ThemeContextType = {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  // Initialize theme state safely
   const [theme, setTheme] = useState<Theme>(() => {
+    // Default to dark mode if we can't determine
+    if (typeof window === "undefined") return "dark";
+    
     // Check if theme is stored in localStorage
     const storedTheme = localStorage.getItem("futureCoinTheme") as Theme | null;
     

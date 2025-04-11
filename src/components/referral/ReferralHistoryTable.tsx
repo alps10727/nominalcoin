@@ -21,16 +21,16 @@ interface ReferralTransaction {
 
 export const ReferralHistoryTable = () => {
   const { t } = useLanguage();
-  const { user } = useAuth();
+  const { currentUser } = useAuth(); // Changed from user to currentUser which exists in AuthContextProps
   const [transactions, setTransactions] = useState<ReferralTransaction[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadTransactions = async () => {
-      if (user?.uid) {
+      if (currentUser?.uid) {
         try {
           setLoading(true);
-          const data = await getUserReferralTransactions(user.uid);
+          const data = await getUserReferralTransactions(currentUser.uid);
           setTransactions(data as ReferralTransaction[]);
         } catch (error) {
           console.error("Referans işlemleri yüklenirken hata:", error);
@@ -41,7 +41,7 @@ export const ReferralHistoryTable = () => {
     };
 
     loadTransactions();
-  }, [user?.uid]);
+  }, [currentUser?.uid]);
 
   if (loading) {
     return (
