@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { standardizeReferralCode } from "@/utils/referralUtils";
 import EmailInput from "./inputs/EmailInput";
 import NameInput from "./inputs/NameInput";
 import ReferralCodeInput from "./inputs/ReferralCodeInput";
-import PasswordInput from "@/components/auth/PasswordInput";
+import PasswordInput from "./inputs/PasswordInput";
 import ConfirmPasswordInput from "./inputs/ConfirmPasswordInput";
 import TermsAgreement from "./terms/TermsAgreement";
 import SignUpButton from "./buttons/SignUpButton";
@@ -28,7 +27,6 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
   const [referralCode, setReferralCode] = useState("");
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   
-  // URL'den referans kodunu al (varsa)
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const refCode = urlParams.get('ref');
@@ -36,7 +34,6 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
       setReferralCode(standardizeReferralCode(refCode));
     }
     
-    // Çevrimdışı durumu izle
     const handleOnline = () => setIsOffline(false);
     const handleOffline = () => setIsOffline(true);
     
@@ -52,10 +49,8 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Çevrimdışı durumda kayıt yapılamaz
     if (isOffline) return;
     
-    // Formu doğrula
     setFormError(null);
     
     const formValues: FormValues = {
@@ -73,7 +68,6 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
       return;
     }
 
-    // Kayıt işlemini başlat
     try {
       const processedReferralCode = standardizeReferralCode(referralCode);
       await onSubmit(name, email, password, processedReferralCode);
