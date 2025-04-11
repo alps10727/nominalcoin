@@ -1,12 +1,13 @@
 
 import { useState, useEffect } from "react";
 import { MiningState } from '@/types/mining';
-import { calculateProgress } from '@/utils/miningUtils';
+import { calculateProgress, getCurrentTime } from '@/utils/miningUtils';
 import { loadUserData } from "@/utils/storage";
 import { debugLog } from "@/utils/debugUtils";
 
 /**
  * Hook for initializing mining state from local storage ONLY
+ * Enhanced with support for absolute timestamp-based mining periods
  */
 export function useMiningInitialization() {
   // Default initial state for new users
@@ -15,7 +16,7 @@ export function useMiningInitialization() {
     miningActive: false,
     progress: 0,
     balance: 0,
-    miningRate: 0.003, // Değiştirildi: 0.1 -> 0.003
+    miningRate: 0.003,
     miningSession: 0,
     miningTime: 21600, // 6 hours in seconds
     miningPeriod: 21600, // Total period 6 hours
@@ -41,19 +42,39 @@ export function useMiningInitialization() {
       if (localData) {
         debugLog("useMiningInitialization", "USING LOCAL STORAGE DATA ONLY:", localData);
         
+        // Check if we have a stored mining end time to calculate remaining time
+        let calculatedMiningTime = localData.miningTime != null ? localData.miningTime : 21600;
+        
+        // If mining is active and we have an end time, calculate precise remaining time
+        if (localData.miningActive && localData.miningEndTime) {
+          const currentTime = getCurrentTime();
+          const endTime = localData.miningEndTime;
+          
+          if (endTime > currentTime) {
+            // Calculate remaining time in seconds
+            calculatedMiningTime = Math.floor((endTime - currentTime) / 1000);
+            debugLog("useMiningInitialization", `Calculating remaining time from end time: ${calculatedMiningTime}s`);
+          } else {
+            // Mining period already completed
+            calculatedMiningTime = 0;
+            debugLog("useMiningInitialization", "Mining period already completed based on end time");
+          }
+        }
+        
         setState(prevState => ({
           ...prevState,
           isLoading: false,
           userId: localData.userId || 'local-user',
           balance: localData.balance || 0,
-          miningRate: localData.miningRate || 0.003, // Değiştirildi: 0.1 -> 0.003
+          miningRate: localData.miningRate || 0.003,
           miningActive: localData.miningActive || false,
-          miningTime: localData.miningTime != null ? localData.miningTime : 21600,
+          miningTime: calculatedMiningTime,
           miningPeriod: localData.miningPeriod || 21600,
           miningSession: localData.miningSession || 0,
-          progress: (localData.miningTime != null && localData.miningPeriod) 
-            ? calculateProgress(localData.miningTime, localData.miningPeriod)
-            : 0
+          miningEndTime: localData.miningEndTime,
+          progress: calculatedMiningTime > 0 ? 
+            calculateProgress(calculatedMiningTime, localData.miningPeriod || 21600) : 
+            0
         }));
         
         debugLog("useMiningInitialization", "Mining state initialized from LOCAL STORAGE with balance:", localData.balance);

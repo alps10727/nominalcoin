@@ -9,6 +9,7 @@ export interface MiningState {
   miningTime: number;
   miningPeriod: number; // Toplam madencilik periyodu (sn olarak)
   userId?: string; // Optional user ID
+  miningEndTime?: number; // Added absolute timestamp for mining end time
 }
 
 export interface MiningActions {

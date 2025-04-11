@@ -5,35 +5,37 @@ import { MiningState } from '@/types/mining';
 import { debugLog } from "@/utils/debugUtils";
 
 /**
- * Madencilik verilerinin kalıcılığını sağlamak için kanca - SADECE yerel depolama kullanır
- * Daha sık kaydetme ve daha güvenilir veri tutarlılığı için optimize edildi
+ * Hook for mining data persistence - LOCAL STORAGE ONLY
+ * Enhanced with support for absolute timestamp-based mining periods
  */
 export function useMiningPersistence(state: MiningState) {
   const localSaveTimeRef = useRef<number>(Date.now());
   const saveTimeoutRef = useRef<number | null>(null);
   const lastSavedDataRef = useRef<string>("");
   
-  // SADECE yerel depolamaya kaydet, asla Firebase'e değil
+  // SAVE to local storage ONLY, never Firebase
   useEffect(() => {
     if (!state.isLoading) {
-      // Her 2 saniyede bir durum değişirse yerel depolamaya kaydet (3 saniyeden düşürüldü)
+      // Save to local storage every 2 seconds if data changes
       const saveToLocalStorage = () => {
-        // Sadece veri değiştiyse kaydet - performans için kontrol
+        // Only save if data has changed - performance check
         const currentData = JSON.stringify({
           balance: state.balance,
           miningActive: state.miningActive,
           miningTime: state.miningTime,
-          miningSession: state.miningSession
+          miningSession: state.miningSession,
+          miningEndTime: state.miningEndTime
         });
         
         if (currentData !== lastSavedDataRef.current) {
-          debugLog("useMiningPersistence", "Yerel depolamaya kaydediliyor:", {
+          debugLog("useMiningPersistence", "Saving to local storage:", {
             balance: state.balance,
             miningActive: state.miningActive,
-            miningTime: state.miningTime
+            miningTime: state.miningTime,
+            miningEndTime: state.miningEndTime
           });
           
-          // Her zaman tüm bilgileri kaydet - balance güncellemelerine özel dikkat
+          // Always save all information - special attention to balance updates
           saveUserData({
             balance: state.balance,
             miningRate: state.miningRate,
@@ -42,7 +44,8 @@ export function useMiningPersistence(state: MiningState) {
             miningTime: state.miningTime,
             miningPeriod: state.miningPeriod,
             miningSession: state.miningSession,
-            userId: state.userId
+            userId: state.userId,
+            miningEndTime: state.miningEndTime // Save the absolute end time
           });
           
           localSaveTimeRef.current = Date.now();
@@ -50,30 +53,30 @@ export function useMiningPersistence(state: MiningState) {
         }
       };
       
-      // Düzenli kaydetme aralığı - daha sık kaydetme (3s -> 2s)
+      // Regular save interval - every 2 seconds
       const localSaveInterval = setInterval(() => {
-        // Son yerel kaydetmeden bu yana veri değişip değişmediğini kontrol et
+        // Check if data has changed since last local save
         if (Date.now() - localSaveTimeRef.current > 2000) {
           saveToLocalStorage();
         }
-      }, 2000); // Her 2 saniyede bir yerel olarak kaydet
+      }, 2000);
       
-      // Değişiklik olduğunda hemen kaydet
+      // Save immediately on change
       const immediateTimeout = setTimeout(() => {
         saveToLocalStorage();
       }, 500);
       
-      // Unmount işleminde temizleme yap
+      // Cleanup on unmount
       return () => {
         clearInterval(localSaveInterval);
         clearTimeout(immediateTimeout);
         
-        // Zamanlanmış bekleyen bir kaydetme varsa temizle
+        // Clear any pending scheduled save
         if (saveTimeoutRef.current !== null) {
           clearTimeout(saveTimeoutRef.current);
         }
         
-        // Çıkarken her zaman kaydet - bu çok önemli
+        // Always save on exit - this is critical
         saveToLocalStorage();
       };
     }
@@ -85,6 +88,7 @@ export function useMiningPersistence(state: MiningState) {
     state.miningPeriod, 
     state.miningSession,
     state.isLoading,
-    state.userId
+    state.userId,
+    state.miningEndTime // Added miningEndTime to dependency array
   ]);
 }

@@ -1,4 +1,3 @@
-
 import { useCallback, useRef } from 'react';
 import { MiningState } from '@/types/mining';
 import { getCurrentTime } from '@/utils/miningUtils';
@@ -11,6 +10,7 @@ import { loadUserData } from '@/utils/storage';
 /**
  * Hook for handling the mining process with local storage only
  * Refactored for better separation of concerns and improved performance
+ * Enhanced to use timestamp-based mining periods for reliable tracking
  */
 export function useMiningProcess(state: MiningState, setState: React.Dispatch<React.SetStateAction<MiningState>>) {
   // References for tracking timing and processing state
@@ -40,109 +40,164 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
         // Calculate actual elapsed time since last update
         const now = getCurrentTime();
         
-        // Sayfadan ayrılma kontrolü - uzun süre yokluk tespiti
+        // Check for long absence from the page - improved using endTime instead of elapsed time
         const storedData = loadUserData();
-        const lastSavedTime = storedData?.lastSaved || now;
-        const potentiallyMissedTime = Math.floor((now - lastSavedTime) / 1000);
         
-        // Eğer son güncelleme çok önceyse (10 saniyeden fazla zaman geçmişse)
-        // Kullanıcı sayfayı kapatıp tekrar açmış olabilir
-        const elapsedSeconds = Math.max(
-          Math.floor((now - lastUpdateTimeRef.current) / 1000),
-          potentiallyMissedTime > 10 ? potentiallyMissedTime : 0
-        );
+        // Use absolute mining end time if available
+        const miningEndTime = storedData?.miningEndTime || null;
         
-        // Eğer geçen zaman 0 ise, henüz sayım yapma
-        if (elapsedSeconds === 0) {
-          isProcessingRef.current = false;
-          return prev;
-        }
-        
-        // Update last update timestamp
-        lastUpdateTimeRef.current = now;
-        lastVisitTimeRef.current = now;
-        
-        // EKLEME: Toplam madencilik süresi (6 saat) aşıldıysa, madenciliği durdur ve tüm ödülleri hesapla
-        if (prev.miningActive && potentiallyMissedTime > 0) {
-          const totalMiningDuration = prev.miningPeriod; // 6 saat = 21600 saniye
-          const remainingTime = prev.miningTime; // kalan süre
+        // If we have an end time, calculate remaining time precisely
+        if (miningEndTime) {
+          const currentTime = now;
+          const remainingMillis = Math.max(0, miningEndTime - currentTime);
+          const remainingSeconds = Math.floor(remainingMillis / 1000);
           
-          // Eğer geçen süre, kalan süreden fazlaysa (yani madencilik süresi tamamlanmışsa)
-          if (potentiallyMissedTime >= remainingTime) {
-            debugLog("useMiningProcess", "Uzun yokluktan sonra madencilik süresi tamamlanmış, tüm ödüller hesaplanıyor...");
+          // If time is up, complete mining
+          if (remainingSeconds <= 0) {
+            debugLog("useMiningProcess", "Mining period completed based on end time");
             
-            // Kaç tam 3 dakikalık döngü kalmış hesapla (kalan süre içinde)
-            const remainingCycles = Math.floor(remainingTime / 180);
-            // Doğru oran: Her cycle için 0.003 NC ödül
-            const rewardAmount = remainingCycles * 0.003;
+            // Calculate final rewards (any remaining full cycles)
+            const totalCyclesCompleted = Math.floor((prev.miningPeriod - prev.miningTime) / 180);
+            const finalReward = totalCyclesCompleted * prev.miningRate;
             
-            // Ödülleri ekle ve madenciliği tamamla
+            // Complete mining with accumulated rewards
             const completionUpdates = handleMiningCompletion({
               ...prev,
-              balance: prev.balance + rewardAmount,
-              miningSession: prev.miningSession + rewardAmount
+              balance: prev.balance + finalReward,
+              miningSession: prev.miningSession + finalReward
             });
             
             isProcessingRef.current = false;
             return { ...prev, ...completionUpdates };
           }
-        }
-        
-        // Calculate new time values and cycle position for rewards
-        const { 
-          newTime, 
-          totalElapsed, 
-          previousCyclePosition, 
-          currentCyclePosition,
-          progress 
-        } = calculateUpdatedTimeValues(prev, elapsedSeconds);
-        
-        // Check if mining cycle is complete
-        if (newTime <= 0) {
-          const completionUpdates = handleMiningCompletion(prev);
-          isProcessingRef.current = false;
-          return { ...prev, ...completionUpdates };
-        }
-        
-        // Check for and add rewards if applicable
-        let rewardUpdates = null;
-        
-        // Uzun süre yoklukta birden fazla ödül döngüsü olabilir
-        if (elapsedSeconds >= 180) {
-          // Kaç tam 3 dakikalık döngü geçmiş?
-          const completeCycles = Math.floor(elapsedSeconds / 180);
-          // Doğru oran: Her cycle için 0.003 NC ödül
-          const rewardAmount = completeCycles * 0.003;
           
-          // Ödülleri tek seferde ekle
-          rewardUpdates = {
-            balance: prev.balance + rewardAmount,
-            miningSession: prev.miningSession + rewardAmount
+          // Otherwise update based on actual real-world time difference
+          const lastSavedTime = storedData?.lastSaved || now;
+          const elapsedSeconds = Math.floor((now - lastSavedTime) / 1000);
+          
+          // Ensure we have at least 1 second passed to update
+          if (elapsedSeconds === 0) {
+            isProcessingRef.current = false;
+            return prev;
+          }
+          
+          // Update timestamps
+          lastUpdateTimeRef.current = now;
+          lastVisitTimeRef.current = now;
+          
+          // Calculate new time values and cycle position for rewards
+          const newTime = Math.max(remainingSeconds, 0);
+          const totalElapsed = prev.miningPeriod - newTime;
+          const previousCyclePosition = (prev.miningPeriod - prev.miningTime) % 180;
+          const currentCyclePosition = totalElapsed % 180;
+          const progress = (prev.miningPeriod - newTime) / prev.miningPeriod;
+          
+          // Calculate rewards if cycles were completed
+          let rewardUpdates = null;
+          
+          // Check for multiple reward cycles
+          if (elapsedSeconds >= 180) {
+            // Calculate complete 3-minute cycles
+            const completeCycles = Math.floor(elapsedSeconds / 180);
+            // Use the mining rate for reward calculation
+            const rewardAmount = completeCycles * prev.miningRate;
+            
+            rewardUpdates = {
+              balance: prev.balance + rewardAmount,
+              miningSession: prev.miningSession + rewardAmount
+            };
+          } else {
+            // Check if we crossed a cycle boundary
+            rewardUpdates = addMiningReward(
+              prev,
+              totalElapsed,
+              previousCyclePosition,
+              currentCyclePosition
+            );
+          }
+          
+          // Perform periodic save if needed
+          const didSave = savePeriodicState(prev, newTime, lastSaveTimeRef);
+          if (didSave) {
+            lastSaveTimeRef.current = now;
+          }
+          
+          // Continue mining cycle - update timer and progress
+          isProcessingRef.current = false;
+          return {
+            ...prev,
+            ...(rewardUpdates || {}),
+            miningTime: newTime,
+            progress: progress
           };
         } else {
-          // Normal süreçte 3 dakikalık döngüleri kontrol et
-          rewardUpdates = addMiningReward(
-            prev, 
+          // Fallback to traditional time calculation if no end time available
+          const elapsedSeconds = Math.floor((now - lastUpdateTimeRef.current) / 1000);
+          
+          // Ensure we have at least 1 second passed to update
+          if (elapsedSeconds === 0) {
+            isProcessingRef.current = false;
+            return prev;
+          }
+          
+          // Update timestamps
+          lastUpdateTimeRef.current = now;
+          
+          // Calculate new time values and cycle position for rewards
+          const { 
+            newTime, 
             totalElapsed, 
             previousCyclePosition, 
-            currentCyclePosition
-          );
+            currentCyclePosition,
+            progress 
+          } = calculateUpdatedTimeValues(prev, elapsedSeconds);
+          
+          // Check if mining cycle is complete
+          if (newTime <= 0) {
+            const completionUpdates = handleMiningCompletion(prev);
+            isProcessingRef.current = false;
+            return { ...prev, ...completionUpdates };
+          }
+          
+          // Check for and add rewards if applicable
+          let rewardUpdates = null;
+          
+          // Long absence handling
+          if (elapsedSeconds >= 180) {
+            // Calculate complete 3-minute cycles
+            const completeCycles = Math.floor(elapsedSeconds / 180);
+            // Use the mining rate for reward calculation
+            const rewardAmount = completeCycles * prev.miningRate;
+            
+            rewardUpdates = {
+              balance: prev.balance + rewardAmount,
+              miningSession: prev.miningSession + rewardAmount
+            };
+          } else {
+            // Normal cycle rewards check
+            rewardUpdates = addMiningReward(
+              prev, 
+              totalElapsed, 
+              previousCyclePosition, 
+              currentCyclePosition
+            );
+          }
+          
+          // Perform periodic save if needed
+          const didSave = savePeriodicState(prev, newTime, lastSaveTimeRef);
+          if (didSave) {
+            lastSaveTimeRef.current = now;
+          }
+          
+          // Continue mining cycle - update timer and progress
+          isProcessingRef.current = false;
+          return {
+            ...prev,
+            ...(rewardUpdates || {}),
+            miningTime: newTime,
+            progress: progress
+          };
         }
-        
-        // Perform periodic save if needed
-        const didSave = savePeriodicState(prev, newTime, lastSaveTimeRef);
-        if (didSave) {
-          lastSaveTimeRef.current = now;
-        }
-        
-        // Continue mining cycle - update timer and progress
-        isProcessingRef.current = false;
-        return {
-          ...prev,
-          ...(rewardUpdates || {}),
-          miningTime: newTime,
-          progress: progress
-        };
       } catch (stateUpdateErr) {
         errorLog("useMiningProcess", "Madencilik durumu güncellenirken beklenmeyen hata:", stateUpdateErr);
         // In case of error, return unchanged state
