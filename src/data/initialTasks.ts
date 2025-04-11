@@ -1,6 +1,7 @@
 
 import { Task, Badge } from "@/types/tasks";
 import { CheckCircle, Clock, Award, CheckCheck } from "lucide-react";
+import React from "react";
 
 type TranslationFunction = (key: string, ...args: any[]) => string;
 
@@ -42,7 +43,7 @@ export function getInitialBadges(t: TranslationFunction): Badge[] {
       id: 1,
       title: t("badges.firstMiner"),
       description: t("badges.firstMinerDesc"),
-      icon: <CheckCircle className="h-6 w-6 text-green-400" />,
+      icon: React.createElement(CheckCircle, { className: "h-6 w-6 text-green-400" }),
       earned: false,
       progress: 0
     },
@@ -50,7 +51,7 @@ export function getInitialBadges(t: TranslationFunction): Badge[] {
       id: 2,
       title: t("badges.miningPro"),
       description: t("badges.miningProDesc"),
-      icon: <Clock className="h-6 w-6 text-indigo-400" />,
+      icon: React.createElement(Clock, { className: "h-6 w-6 text-indigo-400" }),
       earned: false,
       progress: 0
     },
@@ -58,7 +59,7 @@ export function getInitialBadges(t: TranslationFunction): Badge[] {
       id: 3,
       title: t("badges.socialNetworker"),
       description: t("badges.socialNetworkerDesc"),
-      icon: <Award className="h-6 w-6 text-yellow-400" />,
+      icon: React.createElement(Award, { className: "h-6 w-6 text-yellow-400" }),
       earned: false,
       progress: 0
     },
@@ -66,7 +67,7 @@ export function getInitialBadges(t: TranslationFunction): Badge[] {
       id: 4,
       title: t("badges.upgradeMaster"),
       description: t("badges.upgradeMasterDesc"),
-      icon: <CheckCheck className="h-6 w-6 text-purple-400" />,
+      icon: React.createElement(CheckCheck, { className: "h-6 w-6 text-purple-400" }),
       earned: false,
       progress: 0
     },
