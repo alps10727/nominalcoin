@@ -1,6 +1,6 @@
 
 import { db } from "@/config/firebase";
-import { collection, doc, getDoc, getDocs, query, updateDoc, arrayUnion, increment, where } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, updateDoc, arrayUnion, increment, where, setDoc, Timestamp } from "firebase/firestore";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { UserData } from "@/utils/storage";
 import { toast } from "sonner";
@@ -47,7 +47,7 @@ export async function findUsersByReferralCode(referralCode: string): Promise<str
 }
 
 /**
- * Referans veren kullanıcının bilgilerini güncelle
+ * Referans veren kullanıcının bilgilerini güncelle ve ödül ver
  * @param referrerId Referans veren kullanıcının ID'si
  * @param newUserId Yeni kaydolan kullanıcının ID'si
  * @param rewardRate Ödül oranı (varsayılan: 1 - tam ödül)
@@ -79,6 +79,24 @@ export async function updateReferrerInfo(
     }
     
     const userData = userDoc.data() as UserData;
+    
+    // Önce kontrol et - bu kullanıcıya daha önce bu referans için ödül verilmiş mi?
+    const transactionsRef = collection(db, "transactions");
+    const q = query(
+      transactionsRef, 
+      where("userId", "==", referrerId), 
+      where("referredUserId", "==", newUserId), 
+      where("isReferralBonus", "==", true)
+    );
+    const existingBonuses = await getDocs(q);
+    
+    if (!existingBonuses.empty) {
+      debugLog("referralService", "Bu referans için zaten ödül verilmiş, işlem atlanıyor", { 
+        referrerId, 
+        newUserId 
+      });
+      return; // İşlemi durdur, tekrarlı ödül verme
+    }
     
     // Referrals dizisine yeni kullanıcıyı ekle ve referralCount'u arttır
     const updatedReferralCount = (userData.referralCount || 0) + 1;
@@ -119,6 +137,22 @@ export async function updateReferrerInfo(
       newRate: newMiningRate,
       rewardRate
     });
+    
+    // Ödülü kaydet (transactions tablosuna)
+    const transactionId = `refbonus_${referrerId}_${newUserId}_${Date.now()}`;
+    await setDoc(doc(db, "transactions", transactionId), {
+      userId: referrerId,
+      referredUserId: newUserId,
+      type: "referral_bonus",
+      isReferralBonus: true,  // Referral ödülü işareti
+      bonusLevel: rewardRate === 1 ? "direct" : "indirect",
+      bonusRate: rewardRate,
+      miningRateIncrease: newMiningRate - (userData.miningRate || 0),
+      timestamp: Timestamp.now(),
+      description: `Referans ödülü (${rewardRate === 1 ? 'doğrudan' : 'dolaylı'} referans)`
+    });
+    
+    debugLog("referralService", "Referral bonus işlemi kaydedildi", { transactionId });
     
     // Rewardları oranında göster
     if (rewardRate === 1) {

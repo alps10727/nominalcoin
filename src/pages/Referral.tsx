@@ -7,6 +7,7 @@ import { validateReferralCode, createReferralLink } from "@/utils/referralUtils"
 import { ReferralCodeCard } from "@/components/referral/ReferralCodeCard";
 import { ReferralStatsCard } from "@/components/referral/ReferralStatsCard";
 import { ReferredUsersTable } from "@/components/referral/ReferredUsersTable";
+import { ReferralHistoryTable } from "@/components/referral/ReferralHistoryTable";
 
 // Gerçek veri için tipi tanımlıyoruz
 interface ReferredUser {
@@ -71,6 +72,9 @@ const Referral = () => {
           referredUsers={referredUsers} 
           referralCount={referralCount} 
         />
+        
+        {/* Referans bonusu geçmişi */}
+        <ReferralHistoryTable />
       </main>
     </div>
   );
