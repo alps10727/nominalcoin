@@ -2,13 +2,26 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { REFERRAL_BONUS_RATE } from "@/utils/miningCalculator";
+import { useAuth } from "@/contexts/AuthContext";
+import { useEffect, useState } from "react";
 
 interface ReferralStatsCardProps {
-  referralCount: number;
+  referralCount?: number; // Opsiyonel, verildiyse bu değer kullanılır
 }
 
-export const ReferralStatsCard = ({ referralCount }: ReferralStatsCardProps) => {
+export const ReferralStatsCard = ({ referralCount: propReferralCount }: ReferralStatsCardProps) => {
   const { t } = useLanguage();
+  const { userData } = useAuth();
+  const [referralCount, setReferralCount] = useState(propReferralCount || 0);
+  
+  // Props veya context'ten referral sayısını al
+  useEffect(() => {
+    if (propReferralCount !== undefined) {
+      setReferralCount(propReferralCount);
+    } else if (userData) {
+      setReferralCount(userData.referralCount || 0);
+    }
+  }, [propReferralCount, userData]);
   
   // Her referans için madencilik hız artışı
   const miningRateBoost = referralCount * REFERRAL_BONUS_RATE;

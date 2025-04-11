@@ -1,4 +1,3 @@
-
 export interface UserData {
   userId?: string;
   balance: number;
@@ -16,6 +15,9 @@ export interface UserData {
   name?: string; // User's name
   emailAddress?: string; // User's email address
   isAdmin?: boolean; // Added isAdmin property for admin panel access
+  tasks?: {
+    completed?: number[]  // Tamamlanan görev ID'leri
+  };
 }
 
 // USER_DATA_VERSION sayesinde API değişikliklerini takip edebiliriz
