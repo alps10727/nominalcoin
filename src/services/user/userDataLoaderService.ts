@@ -3,6 +3,7 @@ import { getDocumentWithTimeout } from "./documentLoader";
 import { createDefaultUserData, validateUserData } from "./userDataValidator";
 import { loadUserData, saveUserData } from "@/utils/storage";
 import { debugLog, errorLog } from "@/utils/debugUtils";
+import { UserData } from "@/types/storage";
 
 /**
  * Kullanıcı verilerini yükleme - local storage öncelikli ve geliştirilmiş hata işleme
@@ -57,4 +58,4 @@ export async function loadUserDataFromFirebase(userId: string): Promise<UserData
 }
 
 // Re-export the UserData type for consumers of this module
-export type { UserData } from "@/utils/storage";
+export type { UserData } from "@/types/storage";

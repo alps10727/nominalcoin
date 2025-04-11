@@ -8,8 +8,11 @@ import {
 
 import {
   saveUserDataToFirebase,
-  updateUserCoinBalance
 } from './user/saveUserDataService';
+
+import {
+  updateUserCoinBalance
+} from './user/updateBalanceService';
 
 import {
   initializeMiningStateFromFirebase 
