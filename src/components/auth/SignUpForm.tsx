@@ -1,13 +1,16 @@
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Mail, Lock, User, AlertCircle, Users, WifiOff } from "lucide-react";
-import { Link } from "react-router-dom";
-import { toast } from "sonner";
-import { standardizeReferralCode, validateReferralCode } from "@/utils/referralUtils";
+import { standardizeReferralCode } from "@/utils/referralUtils";
+import EmailInput from "./inputs/EmailInput";
+import NameInput from "./inputs/NameInput";
+import ReferralCodeInput from "./inputs/ReferralCodeInput";
+import PasswordInput from "@/components/auth/PasswordInput";
+import ConfirmPasswordInput from "./inputs/ConfirmPasswordInput";
+import TermsAgreement from "./terms/TermsAgreement";
+import SignUpButton from "./buttons/SignUpButton";
+import ErrorAlert from "./alerts/ErrorAlert";
+import OfflineAlert from "./alerts/OfflineAlert";
+import { validateSignUpForm, FormValues } from "@/utils/formValidation";
 
 interface SignUpFormProps {
   onSubmit: (name: string, email: string, password: string, referralCode: string) => Promise<void>;
@@ -46,55 +49,33 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
     };
   }, []);
 
-  // Referans kodunu düzgünce formatla
-  const handleReferralCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Girilen değeri al ve standartlaştır
-    const value = e.target.value;
-    setReferralCode(value);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Çevrimdışı durumda kayıt yapılamaz
-    if (isOffline) {
-      toast.error("İnternet bağlantınız yok. Kayıt olmak için internet bağlantınızı kontrol edin.");
-      return;
-    }
+    if (isOffline) return;
     
     // Formu doğrula
     setFormError(null);
     
-    if (password !== confirmPassword) {
-      setFormError("Şifreler eşleşmiyor, lütfen kontrol edin.");
-      toast.error("Şifreler eşleşmiyor, lütfen kontrol edin.");
-      return;
-    }
-
-    if (!agreeTerms) {
-      setFormError("Devam etmek için kullanım şartlarını kabul etmelisiniz.");
-      toast.error("Devam etmek için kullanım şartlarını kabul etmelisiniz.");
-      return;
-    }
+    const formValues: FormValues = {
+      name,
+      email,
+      password,
+      confirmPassword,
+      referralCode,
+      agreeTerms
+    };
     
-    if (password.length < 6) {
-      setFormError("Şifre en az 6 karakter olmalıdır.");
-      toast.error("Şifre en az 6 karakter olmalıdır.");
-      return;
-    }
-
-    // Referans kodu kontrolü
-    const processedReferralCode = standardizeReferralCode(referralCode);
-    
-    // Referans kodu girilmiş ama geçerli değilse uyarı ver
-    if (processedReferralCode && !validateReferralCode(processedReferralCode)) {
-      setFormError("Geçersiz referans kodu formatı. Doğru format: XXX-XXX-XXX");
-      toast.error("Geçersiz referans kodu formatı. Doğru format: XXX-XXX-XXX");
+    const validationError = validateSignUpForm(formValues);
+    if (validationError) {
+      setFormError(validationError);
       return;
     }
 
     // Kayıt işlemini başlat
     try {
+      const processedReferralCode = standardizeReferralCode(referralCode);
       await onSubmit(name, email, password, processedReferralCode);
     } catch (error) {
       console.error("Form gönderme hatası:", error);
@@ -104,144 +85,51 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {(error || formError) && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-md flex items-start">
-          <AlertCircle className="h-5 w-5 mr-2 shrink-0 mt-0.5" />
-          <span className="text-sm">{error || formError}</span>
-        </div>
+        <ErrorAlert message={error || formError} />
       )}
       
-      {isOffline && (
-        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 text-amber-600 rounded-md flex items-start">
-          <WifiOff className="h-5 w-5 mr-2 shrink-0 mt-0.5" />
-          <span className="text-sm">İnternet bağlantınız yok. Kayıt olmak için internet bağlantınızı kontrol edin.</span>
-        </div>
-      )}
+      {isOffline && <OfflineAlert />}
       
-      <div className="space-y-2">
-        <Label htmlFor="name">Ad Soyad</Label>
-        <div className="relative">
-          <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="name"
-            type="text"
-            placeholder="Adınızı ve soyadınızı girin"
-            className="pl-10"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            disabled={loading || isOffline}
-          />
-        </div>
-      </div>
+      <NameInput 
+        value={name} 
+        onChange={setName}
+        disabled={loading || isOffline}
+      />
       
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <div className="relative">
-          <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="email"
-            type="email"
-            placeholder="Email adresinizi girin"
-            className="pl-10"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            disabled={loading || isOffline}
-          />
-        </div>
-      </div>
+      <EmailInput 
+        value={email} 
+        onChange={setEmail}
+        disabled={loading || isOffline}
+      />
       
-      <div className="space-y-2">
-        <Label htmlFor="referralCode">Referans Kodu (Opsiyonel)</Label>
-        <div className="relative">
-          <Users className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="referralCode"
-            type="text"
-            placeholder="Referans kodunuz varsa girin"
-            className="pl-10"
-            value={referralCode}
-            onChange={(e) => setReferralCode(e.target.value)}
-            disabled={loading || isOffline}
-          />
-        </div>
-      </div>
+      <ReferralCodeInput 
+        value={referralCode} 
+        onChange={setReferralCode}
+        disabled={loading || isOffline}
+      />
       
-      <div className="space-y-2">
-        <Label htmlFor="password">Şifre</Label>
-        <div className="relative">
-          <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="password"
-            type="password"
-            placeholder="Şifre oluşturun"
-            className="pl-10"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            disabled={loading || isOffline}
-            minLength={6}
-          />
-        </div>
-      </div>
+      <PasswordInput 
+        value={password} 
+        onChange={setPassword}
+        disabled={loading || isOffline}
+      />
       
-      <div className="space-y-2">
-        <Label htmlFor="confirmPassword">Şifre Tekrar</Label>
-        <div className="relative">
-          <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="confirmPassword"
-            type="password"
-            placeholder="Şifrenizi tekrar girin"
-            className="pl-10"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-            disabled={loading || isOffline}
-            minLength={6}
-          />
-        </div>
-      </div>
+      <ConfirmPasswordInput 
+        value={confirmPassword} 
+        onChange={setConfirmPassword}
+        disabled={loading || isOffline}
+      />
       
-      <div className="flex items-center space-x-2">
-        <Checkbox
-          id="terms"
-          checked={agreeTerms}
-          onCheckedChange={(checked) => {
-            setAgreeTerms(checked as boolean);
-          }}
-          disabled={loading || isOffline}
-        />
-        <label
-          htmlFor="terms"
-          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-        >
-          <Link to="/terms" className="text-primary hover:underline">
-            Kullanım şartlarını
-          </Link>{" "}
-          ve{" "}
-          <Link to="/privacy" className="text-primary hover:underline">
-            gizlilik politikasını
-          </Link>{" "}
-          kabul ediyorum
-        </label>
-      </div>
+      <TermsAgreement 
+        checked={agreeTerms}
+        onCheckedChange={setAgreeTerms}
+        disabled={loading || isOffline}
+      />
       
-      <Button type="submit" className="w-full" disabled={loading || isOffline}>
-        {loading ? (
-          <div className="flex items-center justify-center">
-            <div className="h-4 w-4 border-2 border-current border-t-transparent animate-spin rounded-full mr-2" />
-            Hesap oluşturuluyor...
-          </div>
-        ) : isOffline ? (
-          <div className="flex items-center justify-center">
-            <WifiOff className="h-4 w-4 mr-2" />
-            Çevrimdışı
-          </div>
-        ) : (
-          "Kayıt Ol"
-        )}
-      </Button>
+      <SignUpButton 
+        loading={loading} 
+        isOffline={isOffline} 
+      />
     </form>
   );
 };
