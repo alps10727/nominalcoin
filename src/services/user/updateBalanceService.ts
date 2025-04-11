@@ -7,6 +7,8 @@ import { handleDataSavingError } from "@/utils/errorHandling";
 
 /**
  * Kullanıcının coin bakiyesini güncelleyen fonksiyon
+ * Firebase ve localStorage senkronizasyonu ile güvenilir bakiye yönetimi sağlar
+ * 
  * @param userId Kullanıcı kimliği
  * @param newBalance Yeni coin bakiyesi
  * @param isIncrement Ekleme işlemi mi yoksa tam değer güncellemesi mi?
@@ -27,21 +29,24 @@ export async function updateUserCoinBalance(userId: string, newBalance: number, 
       }
     }
     
+    // Tutarsızlık kontrolü (manipülasyon tespiti)
+    // Anormal artış tespiti (güvenlik kontrolü)
+    const safeNewBalance = isIncrement ? Math.min(newBalance, 10) : newBalance; // Tek seferde max 10 coin artış
+    
     // Güncellenmiş bakiye hesapla
-    const updatedBalance = isIncrement && userData 
-      ? (userData.balance || 0) + newBalance 
-      : newBalance;
+    const currentBalance = (userData && typeof userData.balance === 'number') ? userData.balance : 0;
+    const updatedBalance = isIncrement ? currentBalance + safeNewBalance : safeNewBalance;
     
     // Güncellenmiş veri nesnesi oluştur
     const updatedData: UserData = {
       ...(userData || { miningRate: 0.003, lastSaved: Date.now() }),
       balance: updatedBalance,
-      miningRate: 0.003, // Sabit mining rate: 0.003
+      miningRate: userData?.miningRate || 0.003, // Mevcut miningRate'i koru
       lastSaved: Date.now()
     };
     
     try {
-      // Önce yerel depoya kaydet
+      // Önce yerel depoya kaydet (hızlı erişim için)
       saveToLocalStorage(updatedData);
       debugLog("updateBalanceService", "Güncellenen bakiye yerel depoya kaydedildi", updatedBalance);
     } catch (storageErr) {
@@ -50,18 +55,21 @@ export async function updateUserCoinBalance(userId: string, newBalance: number, 
     }
     
     try {
-      // Firebase'e kaydet
+      // Firebase'e kaydet (güvenilir veri senkronizasyonu için)
       await saveDocument("users", userId, {
         balance: updatedBalance,
-        miningRate: 0.003, // Sabit mining rate: 0.003
+        miningRate: updatedData.miningRate || 0.003, 
         lastSaved: Date.now()
       }, { merge: true });
       
       debugLog("updateBalanceService", "Coin bakiyesi başarıyla güncellendi:", updatedBalance);
-      toast.success(`${isIncrement ? newBalance.toFixed(2) + ' coin kazandınız!' : 'Coin bakiyeniz güncellendi!'}`);
+      toast.success(`${isIncrement ? safeNewBalance.toFixed(2) + ' coin kazandınız!' : 'Coin bakiyeniz güncellendi!'}`);
     } catch (firebaseErr) {
-      // Handle Firebase specific errors
+      // Firebase bağlantı hatalarını ele al
       handleDataSavingError(firebaseErr, "Bakiye");
+      
+      // Çevrimdışı mod - daha sonra senkronize edilecek
+      toast.info("Çevrimdışı modda bakiye güncellendi. İnternet bağlantısı olduğunda senkronize edilecek.");
     }
   } catch (err) {
     errorLog("updateBalanceService", "Coin bakiyesi güncelleme hatası:", err);

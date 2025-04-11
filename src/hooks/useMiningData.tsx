@@ -7,73 +7,84 @@ import { useMiningPersistence } from "./mining/useMiningPersistence";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { loadUserData } from "@/utils/storage";
 import { debugLog } from "@/utils/debugUtils";
+import { useAuth } from "@/contexts/AuthContext";
 
 /**
- * Enhanced hook for handling all mining related data and operations
- * Using ONLY local storage, no Firebase dependency
+ * Madencilik verileri için geliştirilmiş kanca
+ * Firebase ve yerel depo senkronizasyonu ile güvenilir bakiye yönetimi
  */
 export function useMiningData(): MiningData {
-  // Initialize mining data with local storage ONLY
+  // Mining verisini başlat
   const { state, setState } = useMiningInitialization();
   const latestStateRef = useRef(state);
+  const { userData, isOffline } = useAuth();
   
-  // Bakiyeyi takip etmek için persistentBalance durumu
+  // Kalıcı bakiye durumu - her zaman en güvenilir kaynaktan alınır
   const [persistentBalance, setPersistentBalance] = useState<number>(() => {
-    // İlk yüklemede localStorage'dan direkt bakiyeyi al
+    // Önce yerel depodan başlatılır
     const storedData = loadUserData();
     const initialBalance = storedData?.balance || 0;
     debugLog("useMiningData", "Initial balance from localStorage:", initialBalance);
     return initialBalance;
   });
   
-  // Keep a reference to the latest state for callbacks
+  // En güncel durumu referansta tut
   useEffect(() => {
     latestStateRef.current = state;
     
-    // Balance değiştiğinde persistentBalance'ı güncelle
-    // Ancak sadece state balansı daha büyükse güncelle (kayıp önleme)
+    // Bakiye değiştiğinde persistentBalance'ı güncelle
+    // State bakiyesi daha yüksekse ve yükleme durumunda değilse
     if (state.balance > persistentBalance && !state.isLoading) {
       debugLog("useMiningData", "Updating persistent balance:", state.balance);
       setPersistentBalance(state.balance);
     }
   }, [state, persistentBalance]);
   
-  // Handle mining process logic (countdown timer and rewards)
+  // Firebase verisi geldiğinde bakiyeyi kontrol et
+  useEffect(() => {
+    if (userData && userData.balance > persistentBalance) {
+      debugLog("useMiningData", "Firebase'den daha yüksek bakiye alındı:", userData.balance);
+      setPersistentBalance(userData.balance);
+    }
+  }, [userData, persistentBalance]);
+  
+  // Mining işlemlerini yönet
   useMiningProcess(state, setState);
   
-  // Handle data persistence with local storage ONLY
+  // Veri kalıcılığını sağla
   useMiningPersistence(state);
   
-  // Get mining control actions
+  // Mining kontrol aksiyonları
   const { handleStartMining, handleStopMining } = useMiningActions(state, setState);
 
-  // Create memoized versions of handlers with safety checks
+  // Güvenli handler fonksiyonları
   const memoizedStartMining = useCallback(() => {
-    console.log("Starting mining process");
-    // Don't start if already mining to prevent duplicate processes
+    console.log("Mining süreci başlatılıyor");
+    // Zaten aktifse başlatmayı önle
     if (!latestStateRef.current.miningActive) {
       handleStartMining();
     } else {
-      console.log("Mining is already active, ignoring start request");
+      console.log("Mining zaten aktif, başlatma isteği görmezden geliniyor");
     }
   }, [handleStartMining]);
 
   const memoizedStopMining = useCallback(() => {
-    console.log("Stopping mining process");
-    // Only stop if actually mining
+    console.log("Mining süreci durduruluyor");
+    // Aktif değilse durdurma işlemi yapma
     if (latestStateRef.current.miningActive) {
       handleStopMining();
     } else {
-      console.log("Mining is not active, ignoring stop request");
+      console.log("Mining aktif değil, durdurma isteği görmezden geliniyor");
     }
   }, [handleStopMining]);
 
-  // Return combined mining data and actions
+  // Birleştirilmiş mining verilerini ve aksiyonlarını döndür
   return {
     ...state,
-    balance: Math.max(persistentBalance, state.balance || 0), // Her zaman en yüksek bakiyeyi kullan
+    balance: Math.max(persistentBalance, state.balance || 0), // Her zaman en yüksek güvenilir bakiyeyi kullan
     handleStartMining: memoizedStartMining,
-    handleStopMining: memoizedStopMining
+    handleStopMining: memoizedStopMining,
+    isOffline: isOffline // Çevrimdışı durumunu ekledik
   };
 }
 

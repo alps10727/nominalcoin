@@ -31,8 +31,8 @@ export function useUserDataLoader(
   const { ensureValidUserData } = useUserDataValidator();
 
   useEffect(() => {
-    let isActive = true; // Prevent memory leaks
-
+    let isActive = true; // Memory leak önleme için
+    
     const loadData = async () => {
       if (!authInitialized) return;
       
@@ -43,11 +43,10 @@ export function useUserDataLoader(
         return;
       }
 
-      // Kullanıcı değişti mi kontrol et
+      // Kullanıcı değiştiğinde verileri temizle
       if (lastLoadedUserId && lastLoadedUserId !== currentUser.uid) {
         debugLog("useUserDataLoader", "Kullanıcı değişti, veriler temizleniyor", 
           { lastUser: lastLoadedUserId, newUser: currentUser.uid });
-        // Temizle
         clearUserData();
         setUserData(null);
       }
@@ -63,35 +62,48 @@ export function useUserDataLoader(
         if (localData && localData.userId && localData.userId !== currentUser.uid) {
           debugLog("useUserDataLoader", "Farklı kullanıcıya ait yerel veri temizleniyor", 
             { storedId: localData.userId, currentId: currentUser.uid });
-          // Temizle ve null ata
           clearUserData();
           localData = null;
         }
         
-        // Referans kodunu kontrol et ve oluştur
+        // Referans kodunu kontrol et ve gerekirse oluştur
         localData = ensureReferralData(localData, currentUser.uid);
         
         if (localData) {
+          // Geçici olarak yerel veriyi kullan (hız için)
           setUserData(localData);
           setDataSource('local');
-          debugLog("useUserDataLoader", "Loaded data from local storage:", localData);
+          debugLog("useUserDataLoader", "Yerel depodan veriler yüklendi:", localData);
         }
         
         try {
+          // Firebase'den verileri yüklemeyi dene
           const { data: firebaseData, source } = await loadFirebaseUserData(currentUser.uid);
           
           if (!isActive) return; // Component unmounted
           
           if (source === 'firebase' && firebaseData) {
-            debugLog("useUserDataLoader", "Firebase data loaded:", firebaseData);
+            debugLog("useUserDataLoader", "Firebase verileri yüklendi:", firebaseData);
             
+            // Yerel ve Firebase verilerini karşılaştır ve akıllı birleştirme yap
+            // Bu işlem, manipüle edilmiş localStorage verilerini tespit edecek
             const mergedData = mergeUserData(localData, firebaseData);
             const validatedData = ensureValidUserData(mergedData, currentUser.uid);
+            
+            // Firebase ve yerel depo arasında uyuşmazlık varsa bildirim göster
+            if (localData && Math.abs(localData.balance - firebaseData.balance) > 0.1) {
+              if (localData.balance > firebaseData.balance * 1.2) { // %20'den fazla fark varsa şüpheli
+                toast.warning("Hesap bakiyesinde tutarsızlık tespit edildi. Doğru değer kullanılıyor.");
+                debugLog("useUserDataLoader", "Şüpheli bakiye farkı tespit edildi", 
+                  { local: localData.balance, server: firebaseData.balance });
+              }
+            }
             
             setUserData(validatedData);
             setDataSource('firebase');
             saveUserData(validatedData, currentUser.uid);
           } else if (source === 'timeout' && !localData) {
+            // Firebase'e erişilemedi ve yerel veri de yoksa, yeni veri oluştur
             const emptyData = createDefaultUserData(currentUser.uid);
             setUserData(emptyData);
             saveUserData(emptyData, currentUser.uid);
@@ -116,7 +128,7 @@ export function useUserDataLoader(
       } catch (error) {
         if (!isActive) return; // Component unmounted
         
-        errorLog("useUserDataLoader", "Critical error loading user data:", error);
+        errorLog("useUserDataLoader", "Kullanıcı verileri yüklenirken kritik hata:", error);
         
         const emptyData = createDefaultUserData(currentUser?.uid);
         
@@ -132,7 +144,7 @@ export function useUserDataLoader(
     loadData();
 
     return () => {
-      isActive = false; // Cleanup
+      isActive = false; // Temizleme
     };
   }, [currentUser, authInitialized, errorOccurred, loadAttempt]);
 

@@ -12,8 +12,9 @@ import BalanceCard from "@/components/dashboard/BalanceCard";
 import MiningCard from "@/components/dashboard/MiningCard";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
 import MiningRateCard from "@/components/dashboard/MiningRateCard";
+import MiningRateDisplay from "@/components/mining/MiningRateDisplay"; // Yeni eklenen bileşen
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton"; // Import skeleton for better loading states
+import { Skeleton } from "@/components/ui/skeleton"; 
 import { toast } from "sonner";
 import { loadUserData } from "@/utils/storage";
 import { debugLog } from "@/utils/debugUtils";
@@ -28,10 +29,11 @@ const Index = () => {
     miningSession,
     miningTime,
     handleStartMining,
-    handleStopMining
+    handleStopMining,
+    isOffline
   } = useMiningData();
   
-  // Optimistik UI güncelleme için hazırlık
+  // Optimistik UI güncelleme için bakiye durumu
   const [balance, setBalance] = useState<number>(() => {
     const localData = loadUserData();
     const initialBalance = localData?.balance || 0;
@@ -42,10 +44,10 @@ const Index = () => {
   const isFirstRender = useRef(true);
   const storedBalanceRef = useRef(balance);
   
-  const { userData, loading: authLoading, isOffline } = useAuth();
+  const { userData, loading: authLoading, isOffline: authOffline } = useAuth();
   const [isInitialized, setIsInitialized] = useState(!!loadUserData());
   
-  // Optimistik veri güncelleme - API yanıtı beklemeden UI güncelleme
+  // Optimistik veri güncelleme - UI'ı anında güncellemek için
   useEffect(() => {
     if (!isFirstRender.current && !miningLoading && miningBalance > 0) {
       debugLog("Index", `Checking mining balance: ${miningBalance}, Current: ${storedBalanceRef.current}`);
@@ -62,11 +64,12 @@ const Index = () => {
     }
   }, [miningBalance, miningLoading]);
   
-  // Veri senkronizasyonu - gereksiz beklemeler kaldırıldı
+  // Firebase'den gelen veri senkronizasyonu
   useEffect(() => {
     if (!authLoading && userData?.balance !== undefined) {
       debugLog("Index", `Checking auth balance: ${userData.balance}, Current: ${storedBalanceRef.current}`);
       
+      // Firebase verisinde daha yüksek bakiye varsa güncelle
       if (userData.balance > storedBalanceRef.current) {
         debugLog("Index", `Using higher balance from auth: ${userData.balance}`);
         setBalance(userData.balance);
@@ -75,7 +78,7 @@ const Index = () => {
     }
   }, [userData, authLoading]);
   
-  // Yükleme durumunda gecikmeli başlatma - performans için gereksiz beklemeler kaldırıldı
+  // Yükleme durumunda gecikmeyi azalt
   useEffect(() => {
     if (!isInitialized) {
       setIsInitialized(true);
@@ -86,14 +89,23 @@ const Index = () => {
   const { t } = useLanguage();
   const { theme } = useTheme();
 
-  // Tüm kaynakların yüklenmesi için optimistik kontrol
+  // Yükleme durumu kontrolü
   const isLoading = !isInitialized && authLoading;
+  
+  // İki sistemden de çevrimdışıysa göster
+  const showOfflineIndicator = isOffline && authOffline;
 
   return (
     <div className="min-h-screen flex flex-col relative pb-20">
-      {/* Main content */}
+      {showOfflineIndicator && (
+        <div className="bg-orange-500/80 text-white text-center text-sm py-1.5 px-2 shadow-sm">
+          Çevrimdışı moddasınız. Senkronizasyon internet bağlantısıyla yeniden sağlanacak.
+        </div>
+      )}
+      
+      {/* Ana içerik */}
       <main className={`flex-1 ${isMobile ? 'px-4 py-4' : 'px-6 py-6'} max-w-3xl mx-auto w-full relative z-10`}>
-        {/* Welcome section */}
+        {/* Karşılama bölümü */}
         <div className="mt-2 mb-6">
           <h1 className="text-2xl font-bold text-purple-300">NOMINAL Coin Dashboard</h1>
           <p className="text-purple-300/80 text-sm mt-1">
@@ -101,16 +113,16 @@ const Index = () => {
           </p>
         </div>
         
-        {/* Cards - Skeleton UI kullanımı eklenmiş */}
+        {/* Kartlar */}
         <div className="space-y-5">
-          {/* Balance card with loading state */}
+          {/* Bakiye kartı */}
           {isLoading ? (
             <Skeleton className="h-28 w-full" />
           ) : (
             <BalanceCard balance={balance} />
           )}
           
-          {/* Mining section */}
+          {/* Madencilik bölümü */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-purple-200 flex items-center">
@@ -123,7 +135,7 @@ const Index = () => {
               </Button>
             </div>
             
-            {/* Mining card with optimized loading */}
+            {/* Mining card */}
             {isLoading ? (
               <Skeleton className="h-64 w-full rounded-xl" />
             ) : (
@@ -138,11 +150,14 @@ const Index = () => {
               />
             )}
             
-            {/* Mining rate card with loading */}
+            {/* Madencilik hızı kartı (yeni bileşen ile güncellendi) */}
             {isLoading ? (
               <Skeleton className="h-24 w-full" />
             ) : (
-              <MiningRateCard miningRate={miningRate} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <MiningRateDisplay />
+                <MiningRateCard miningRate={miningRate} />
+              </div>
             )}
           </div>
         </div>
