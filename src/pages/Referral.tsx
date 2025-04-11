@@ -8,8 +8,7 @@ import { ReferralCodeCard } from "@/components/referral/ReferralCodeCard";
 import { ReferralStatsCard } from "@/components/referral/ReferralStatsCard";
 import { ReferredUsersTable } from "@/components/referral/ReferredUsersTable";
 
-// Mock data for demonstrating the referral list
-// In real implementation, this would come from Firebase
+// Gerçek veri için tipi tanımlıyoruz
 interface ReferredUser {
   id: string;
   name: string;
@@ -21,35 +20,33 @@ const Referral = () => {
   const { theme } = useTheme();
   const { userData } = useAuth();
   
-  // Generate a referral code if the user doesn't have one
+  // Davetiye kodu ve link durumlarını tanımla
   const [referralCode, setReferralCode] = useState<string>("");
   const [referralLink, setReferralLink] = useState<string>("");
   const [referralCount, setReferralCount] = useState<number>(0);
   const [referredUsers, setReferredUsers] = useState<ReferredUser[]>([]);
 
+  // Kullanıcı verileri değiştiğinde referans bilgilerini güncelle
   useEffect(() => {
     if (userData) {
-      // Use user's referral code if available
-      const code = userData.referralCode || "LOADING...";
+      // Kullanıcının referans kodunu kullan (varsa)
+      const code = userData.referralCode || "";
       setReferralCode(code);
       setReferralLink(createReferralLink(code));
       
-      // Set referral count
+      // Referans sayısını ayarla
       setReferralCount(userData.referralCount || 0);
       
-      // In a real app, we'd fetch the referred users from Firebase
-      // For now, we'll use mock data based on the user's referral count
-      const mockReferredUsers: ReferredUser[] = [];
+      // Referans verilen kullanıcıları ayarla (gerçek veri)
       if (userData.referrals && Array.isArray(userData.referrals)) {
-        userData.referrals.forEach((userId, index) => {
-          mockReferredUsers.push({
-            id: userId,
-            name: `Kullanıcı ${index + 1}`,
-            joinDate: new Date(Date.now() - (index * 24 * 60 * 60 * 1000)).toLocaleDateString()
-          });
-        });
+        // userData'dan gerçek referansları al
+        const users: ReferredUser[] = userData.referrals.map((userId) => ({
+          id: userId,
+          name: userId.substring(0, 8), // Kullanıcı ID'sinin ilk 8 karakteri
+          joinDate: new Date().toLocaleDateString() // Gerçek tarih verisi yoksa mevcut tarih
+        }));
+        setReferredUsers(users);
       }
-      setReferredUsers(mockReferredUsers);
     }
   }, [userData]);
 

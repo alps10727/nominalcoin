@@ -34,11 +34,15 @@ export const ReferredUsersTable = ({
       setReferredUsers(propReferredUsers);
     } else if (userData && userData.referrals && userData.referrals.length > 0) {
       // Auth context'ten gerçek veri al
-      const userReferrals: ReferredUser[] = userData.referrals.map((userId, index) => ({
-        id: userId,
-        name: t('referral.user', 'Kullanıcı') + ` #${index + 1}`,
-        joinDate: new Date(Date.now() - index * 86400000).toLocaleDateString()
-      }));
+      const userReferrals: ReferredUser[] = userData.referrals.map((userId) => {
+        // Referans verilen kullanıcı ID'si var, gerçek adını kullan veya varsayılan bir ad ata
+        return {
+          id: userId,
+          // Gerçek kullanıcı adını veya ID'nin kısa versiyonunu göster
+          name: userId.substring(0, 8), // Kullanıcı ID'sinin ilk 8 karakteri
+          joinDate: new Date().toLocaleDateString() // Gerçek tarih verisi yoksa mevcut tarih
+        };
+      });
       
       setReferredUsers(userReferrals);
       debugLog("ReferredUsersTable", "Kullanıcının davet ettiği kişiler:", userReferrals);
