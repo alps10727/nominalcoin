@@ -16,7 +16,7 @@ interface AuthContextProps {
   userData: UserData | null;
   updateUserData: (data: Partial<UserData>) => Promise<void>;
   isOffline: boolean;
-  dataSource: 'firebase' | 'local' | null;
+  dataSource: 'firebase' | 'cache' | 'local' | null;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
