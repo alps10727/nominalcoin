@@ -10,7 +10,8 @@ import { auth, db } from "@/config/firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { toast } from "sonner";
 import { debugLog, errorLog } from "@/utils/debugUtils";
-import { findUsersByReferralCode, updateReferrerInfo } from "./referralService";
+import { findUsersByReferralCode } from "./referralService";
+import { updateReferrerInfo } from "./multiLevelReferralService";
 import { generateReferralCode, standardizeReferralCode, prepareReferralCodeForStorage } from "@/utils/referralUtils";
 
 export interface UserRegistrationData {
