@@ -1,5 +1,5 @@
 
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 
 export interface VirtualScrollOptions {
   itemCount: number;
@@ -7,6 +7,7 @@ export interface VirtualScrollOptions {
   viewportHeight: number;
   overscan?: number;
   initialScrollTop?: number;
+  onScroll?: (scrollInfo: { scrollTop: number, scrollHeight: number, clientHeight: number }) => void;
 }
 
 export interface VirtualScrollResult {
@@ -33,40 +34,52 @@ export function useVirtualScroll({
   itemHeight,
   viewportHeight,
   overscan = 3,
-  initialScrollTop = 0
+  initialScrollTop = 0,
+  onScroll
 }: VirtualScrollOptions): VirtualScrollResult {
   const [scrollTop, setScrollTop] = useState(initialScrollTop);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   
-  // Görünür öğelerin başlangıç ve bitiş indekslerini hesapla
+  // Calculate visible items' start and end indices
   const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - overscan);
   const endIndex = Math.min(
     itemCount - 1,
     Math.floor((scrollTop + viewportHeight) / itemHeight) + overscan
   );
   
-  // Görünür öğelerin dizisini oluştur
+  // Create array of visible items
   const visibleItems = Array.from(
     { length: endIndex - startIndex + 1 },
     (_, i) => startIndex + i
-  );
+  ).filter(index => index >= 0 && index < itemCount); // Ensure indices are within bounds
   
-  // Bir öğeye kaydır
-  const scrollTo = (index: number) => {
-    const top = index * itemHeight;
+  // Scroll to specific item
+  const scrollTo = useCallback((index: number) => {
+    const top = Math.max(0, index * itemHeight);
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop = top;
     }
     setScrollTop(top);
-  };
+  }, [itemHeight]);
   
-  // Kaydırma olayını işle
-  const handleScroll = (e: React.UIEvent) => {
-    const { scrollTop } = e.currentTarget;
+  // Handle scroll events
+  const handleScroll = useCallback((e: React.UIEvent) => {
+    const target = e.currentTarget;
+    const scrollTop = target.scrollTop;
+    
     setScrollTop(scrollTop);
-  };
+    
+    // Call external scroll handler if provided
+    if (onScroll) {
+      onScroll({
+        scrollTop,
+        scrollHeight: target.scrollHeight,
+        clientHeight: target.clientHeight
+      });
+    }
+  }, [onScroll]);
   
-  // Önbelleğe alma ve geri yükleme
+  // Restore scroll position on remount or initialization
   useEffect(() => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop = initialScrollTop;
@@ -82,7 +95,8 @@ export function useVirtualScroll({
         height: `${viewportHeight}px`,
         overflow: 'auto',
         position: 'relative',
-        willChange: 'transform'
+        willChange: 'transform',
+        WebkitOverflowScrolling: 'touch' // Improve mobile scrolling
       },
       onScroll: handleScroll
     },
