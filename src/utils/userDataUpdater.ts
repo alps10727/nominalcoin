@@ -34,10 +34,22 @@ export async function updateUserDataWithStatus(
       lastSaved: Date.now()
     };
     
+    // Special handling for mining end time if mining is active
+    if (updates.miningActive === true && !updatedData.miningEndTime) {
+      // Calculate absolute end time
+      const miningPeriod = updatedData.miningPeriod || 6 * 60 * 60; // Default 6 hours
+      updatedData.miningEndTime = Date.now() + miningPeriod * 1000;
+      debugLog("userDataUpdater", `Mining end time set to: ${new Date(updatedData.miningEndTime).toISOString()}`);
+    }
+    
     try {
       // Try to save to Firebase first
       await saveUserDataToFirebase(userId, updatedData);
       debugLog("userDataUpdater", "Data successfully saved to Firebase");
+      
+      // Always save locally too for offline access
+      saveUserData(updatedData);
+      
       return { status: 'success', updatedData };
     } catch (err) {
       // Check if offline error

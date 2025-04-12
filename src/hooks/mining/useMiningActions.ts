@@ -1,84 +1,108 @@
 
-import { useCallback } from "react";
-import { MiningState } from "@/types/mining";
-import { updateUserCoinBalance } from "@/services/user/updateBalanceService";
-import { toast } from "sonner";
-import { debugLog, errorLog } from "@/utils/debugUtils";
-import { getCurrentTime } from '@/utils/miningUtils';
-import { saveUserData } from "@/utils/storage";
+import { MiningState } from '@/types/mining';
+import { UserData } from '@/utils/storage';
+import { useAuth } from '@/contexts/AuthContext';
+import { debugLog, errorLog } from '@/utils/debugUtils';
+import { toast } from 'sonner';
 
-/**
- * Hook for mining control actions (start/stop)
- * Enhanced with timestamp-based end time calculation for reliable timing
- */
-export function useMiningActions(state: MiningState, setState: React.Dispatch<React.SetStateAction<MiningState>>) {
-  const handleStartMining = useCallback(() => {
-    if (state.isLoading) return;
-    
-    debugLog("useMiningActions", "Starting mining process...");
-
-    // Calculate absolute end time for the mining session (6 hours from now)
-    const miningEndTime = getCurrentTime() + (state.miningPeriod * 1000);
-    
-    // Save the end time to make it accessible even when browser tab is inactive
-    saveUserData({
-      balance: state.balance,
-      miningRate: state.miningRate,
-      lastSaved: getCurrentTime(),
-      miningActive: true,
-      miningTime: state.miningPeriod,
-      miningPeriod: state.miningPeriod,
-      miningSession: 0,
-      userId: state.userId,
-      miningEndTime: miningEndTime // Store the absolute end timestamp
-    });
-
-    setState(prev => ({
-      ...prev,
-      miningActive: true,
-      miningTime: prev.miningPeriod, // Reset mining time to full period
-      miningSession: 0, // Reset session earnings
-      progress: 0
-    }));
-
-    toast.success("Mining started! You'll now earn coins automatically.");
-  }, [state, setState]);
-
-  const handleStopMining = useCallback(async () => {
-    if (state.isLoading) return;
-    
-    debugLog("useMiningActions", "Stopping mining process...");
-    
-    // Save final state without mining active
-    saveUserData({
-      balance: state.balance,
-      miningRate: state.miningRate,
-      lastSaved: getCurrentTime(),
-      miningActive: false,
-      miningTime: state.miningTime,
-      miningPeriod: state.miningPeriod,
-      miningSession: state.miningSession,
-      userId: state.userId,
-      miningEndTime: null // Clear the end timestamp when stopped manually
-    });
-
-    setState(prev => ({
-      ...prev,
-      miningActive: false
-    }));
-
-    // Save earned coins to user account if connected
-    if (state.userId && state.userId !== 'local-user' && state.miningSession > 0) {
-      try {
-        await updateUserCoinBalance(state.userId, state.miningSession, true);
-        debugLog("useMiningActions", `Mining session completed, earned ${state.miningSession.toFixed(3)} coins`);
-      } catch (err) {
-        errorLog("useMiningActions", "Error updating balance on mining stop:", err);
-      }
+export function useMiningActions(
+  state: MiningState, 
+  setState: React.Dispatch<React.SetStateAction<MiningState>>
+) {
+  const { userData, currentUser, updateUserData } = useAuth();
+  
+  const handleStartMining = async () => {
+    if (state.isLoading) {
+      debugLog("useMiningActions", "Yükleme sırasında madencilik başlatma isteği engellendi");
+      return;
     }
-
-    toast.info(`Mining stopped. You earned ${state.miningSession.toFixed(2)} coins this session.`);
-  }, [state, setState]);
-
+    
+    try {
+      const miningPeriod = 6 * 60 * 60; // 6 saat = 21600 saniye
+      const miningEndTime = Date.now() + miningPeriod * 1000; // Bitiş zamanını mutlak olarak ayarla
+      
+      // State'i güncelle
+      setState(prev => ({
+        ...prev,
+        miningActive: true,
+        miningTime: miningPeriod,
+        miningPeriod: miningPeriod,
+        progress: 0,
+        miningSession: 0,
+        miningEndTime: miningEndTime
+      }));
+      
+      debugLog("useMiningActions", "Mining başlatıldı", { 
+        miningPeriod, 
+        endTime: new Date(miningEndTime).toLocaleString() 
+      });
+      
+      // Kullanıcı oturum açmışsa, Firebase'e kaydet
+      if (currentUser && updateUserData) {
+        const updates: Partial<UserData> = {
+          miningActive: true,
+          miningTime: miningPeriod,
+          miningPeriod: miningPeriod,
+          miningSession: 0,
+          miningEndTime: miningEndTime
+        };
+        
+        await updateUserData(updates);
+        debugLog("useMiningActions", "Mining durumu Firebase'e kaydedildi");
+      }
+    } catch (error) {
+      errorLog("useMiningActions", "Mining başlatılırken hata:", error);
+      toast.error("Mining başlatılırken bir hata oluştu");
+    }
+  };
+  
+  const handleStopMining = async () => {
+    if (state.isLoading) {
+      debugLog("useMiningActions", "Yükleme sırasında madencilik durdurma isteği engellendi");
+      return;
+    }
+    
+    try {
+      // Kazanılan bakiyeyi hesapla
+      const currentBalance = state.balance || 0;
+      const miningSession = state.miningSession || 0;
+      
+      // State'i güncelle
+      setState(prev => ({
+        ...prev,
+        miningActive: false,
+        miningTime: 0,
+        progress: 1,
+        miningEndTime: undefined // End time'ı kaldır
+      }));
+      
+      // Kazanılan miktar görünümü
+      if (miningSession > 0) {
+        toast.success(`+${miningSession.toFixed(3)} coin kazandınız!`);
+      }
+      
+      debugLog("useMiningActions", "Mining durduruldu", { 
+        currentBalance, 
+        earnedInSession: miningSession 
+      });
+      
+      // Kullanıcı oturum açmışsa, Firebase'e kaydet
+      if (currentUser && updateUserData) {
+        const updates: Partial<UserData> = {
+          miningActive: false,
+          miningTime: 0,
+          balance: currentBalance,
+          miningEndTime: undefined
+        };
+        
+        await updateUserData(updates);
+        debugLog("useMiningActions", "Mining durumu Firebase'e kaydedildi");
+      }
+    } catch (error) {
+      errorLog("useMiningActions", "Mining durdurulurken hata:", error);
+      toast.error("Mining durdurulurken bir hata oluştu");
+    }
+  };
+  
   return { handleStartMining, handleStopMining };
 }

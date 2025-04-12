@@ -46,7 +46,21 @@ export function useMiningData(): MiningData {
       debugLog("useMiningData", "Firebase'den daha yüksek bakiye alındı:", userData.balance);
       setPersistentBalance(userData.balance);
     }
-  }, [userData, persistentBalance]);
+    
+    // Mutlak bitiş zamanı kontrolü - sunucu tabanlı güvenilir zamanlama
+    if (userData && userData.miningActive && userData.miningEndTime) {
+      const now = Date.now();
+      if (now >= userData.miningEndTime) {
+        debugLog("useMiningData", "Mining süresi sunucu zamanına göre doldu, durduruluyor");
+        // Mining'i durdur ve gerekli işlemleri yap
+        setState(prev => ({
+          ...prev,
+          miningActive: false,
+          miningTime: 0
+        }));
+      }
+    }
+  }, [userData, persistentBalance, setState]);
   
   // Mining işlemlerini yönet
   useMiningProcess(state, setState);

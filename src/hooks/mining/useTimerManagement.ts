@@ -70,7 +70,9 @@ export function savePeriodicState(
       miningTime: newTime,
       miningPeriod: prevState.miningPeriod,
       miningSession: prevState.miningSession,
-      userId: prevState.userId
+      userId: prevState.userId,
+      // Absolute timestamp-based mining end time
+      miningEndTime: prevState.miningEndTime || (now + newTime * 1000)
     });
     
     return true;
