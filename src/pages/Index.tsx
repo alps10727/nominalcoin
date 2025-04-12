@@ -5,7 +5,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useMiningData } from "@/hooks/useMiningData";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 
 // Imported components
 import BalanceCard from "@/components/dashboard/BalanceCard";
@@ -18,6 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { loadUserData } from "@/utils/storage";
 import { debugLog } from "@/utils/debugUtils";
+import { QueryCacheManager } from "@/services/optimizationService";
 
 const Index = () => {
   const {
@@ -78,6 +79,16 @@ const Index = () => {
     }
   }, [userData, authLoading]);
   
+  // Periyodik önbellek temizleme
+  useEffect(() => {
+    const cleanupInterval = setInterval(() => {
+      // Eskimiş önbellek girdilerini temizle
+      QueryCacheManager.manageSize(500);
+    }, 300000); // 5 dakikada bir
+    
+    return () => clearInterval(cleanupInterval);
+  }, []);
+  
   // Yükleme durumunda gecikmeyi azalt
   useEffect(() => {
     if (!isInitialized) {
@@ -94,6 +105,23 @@ const Index = () => {
   
   // İki sistemden de çevrimdışıysa göster
   const showOfflineIndicator = isOffline && authOffline;
+  
+  // Memoize edilen kartlar - gereksiz render'ları önlemek için
+  const memoizedBalanceCard = useMemo(() => (
+    <BalanceCard balance={balance} />
+  ), [balance]);
+  
+  const memoizedMiningCard = useMemo(() => (
+    <MiningCard 
+      miningActive={miningActive}
+      progress={progress}
+      miningRate={miningRate}
+      miningSession={miningSession}
+      miningTime={miningTime}
+      onStartMining={handleStartMining}
+      onStopMining={handleStopMining}
+    />
+  ), [miningActive, progress, miningRate, miningSession, miningTime, handleStartMining, handleStopMining]);
 
   return (
     <div className="min-h-screen flex flex-col relative pb-20">
@@ -119,7 +147,7 @@ const Index = () => {
           {isLoading ? (
             <Skeleton className="h-28 w-full" />
           ) : (
-            <BalanceCard balance={balance} />
+            memoizedBalanceCard
           )}
           
           {/* Madencilik bölümü */}
@@ -139,18 +167,10 @@ const Index = () => {
             {isLoading ? (
               <Skeleton className="h-64 w-full rounded-xl" />
             ) : (
-              <MiningCard 
-                miningActive={miningActive}
-                progress={progress}
-                miningRate={miningRate}
-                miningSession={miningSession}
-                miningTime={miningTime}
-                onStartMining={handleStartMining}
-                onStopMining={handleStopMining}
-              />
+              memoizedMiningCard
             )}
             
-            {/* Madencilik hızı kartı (yeni bileşen ile güncellendi) */}
+            {/* Madencilik hızı kartları */}
             {isLoading ? (
               <Skeleton className="h-24 w-full" />
             ) : (

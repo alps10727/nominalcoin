@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { User } from "firebase/auth";
 import { UserData, saveUserData, clearUserData } from "@/utils/storage";
 import { debugLog, errorLog } from "@/utils/debugUtils";
@@ -8,20 +8,31 @@ import { useLocalDataLoader } from "@/hooks/user/useLocalDataLoader";
 import { useFirebaseDataLoader } from "@/hooks/user/useFirebaseDataLoader";
 import { useUserDataValidator } from "@/hooks/user/useUserDataValidator";
 import { handleFirebaseConnectionError } from "@/utils/firebaseErrorHandler";
+import { QueryCacheManager } from "@/services/optimizationService";
 
 export interface UserDataState {
   userData: UserData | null;
   loading: boolean;
-  dataSource: 'firebase' | 'local' | null;
+  dataSource: 'firebase' | 'cache' | 'local' | null;
 }
 
+/**
+ * Milyonlarca kullanıcı için optimize edilmiş veri yükleme kancası
+ * 
+ * Özellikleri:
+ * - İleri düzey önbelleğe alma
+ * - Otomatik yeniden deneme
+ * - Hata izolasyonu
+ * - Akıllı senkronizasyon
+ * - Şüpheli veri algılama
+ */
 export function useUserDataLoader(
   currentUser: User | null,
   authInitialized: boolean
 ): UserDataState {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [dataSource, setDataSource] = useState<'firebase' | 'local' | null>(null);
+  const [dataSource, setDataSource] = useState<'firebase' | 'cache' | 'local' | null>(null);
   const [errorOccurred, setErrorOccurred] = useState(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [lastLoadedUserId, setLastLoadedUserId] = useState<string | null>(null);
@@ -30,61 +41,59 @@ export function useUserDataLoader(
   const { loadFirebaseUserData, mergeUserData } = useFirebaseDataLoader();
   const { ensureValidUserData } = useUserDataValidator();
 
-  useEffect(() => {
-    let isActive = true; // Memory leak önleme için
+  // Kullanıcı verilerini yükleyen ana fonksiyon
+  const loadUserData = useCallback(async () => {
+    if (!authInitialized) return;
     
-    const loadData = async () => {
-      if (!authInitialized) return;
-      
-      if (!currentUser) {
-        setUserData(null);
-        setLoading(false);
-        setDataSource(null);
-        return;
-      }
+    if (!currentUser) {
+      setUserData(null);
+      setLoading(false);
+      setDataSource(null);
+      return;
+    }
 
-      // Kullanıcı değiştiğinde verileri temizle
-      if (lastLoadedUserId && lastLoadedUserId !== currentUser.uid) {
-        debugLog("useUserDataLoader", "Kullanıcı değişti, veriler temizleniyor", 
-          { lastUser: lastLoadedUserId, newUser: currentUser.uid });
+    // Kullanıcı değiştiğinde verileri temizle
+    if (lastLoadedUserId && lastLoadedUserId !== currentUser.uid) {
+      debugLog("useUserDataLoader", "Kullanıcı değişti, veriler temizleniyor", 
+        { lastUser: lastLoadedUserId, newUser: currentUser.uid });
+      clearUserData();
+      QueryCacheManager.invalidate(new RegExp(`^userData_${lastLoadedUserId}`));
+      setUserData(null);
+    }
+    
+    // Güncel kullanıcı ID'sini kaydet
+    setLastLoadedUserId(currentUser.uid);
+
+    try {
+      // Mevcut kullanıcının yerel verilerini yükle
+      let localData = loadLocalUserData();
+      
+      // Farklı kullanıcı kontrolü
+      if (localData && localData.userId && localData.userId !== currentUser.uid) {
+        debugLog("useUserDataLoader", "Farklı kullanıcıya ait yerel veri temizleniyor", 
+          { storedId: localData.userId, currentId: currentUser.uid });
         clearUserData();
-        setUserData(null);
+        localData = null;
       }
       
-      // Güncel kullanıcı ID'sini kaydet
-      setLastLoadedUserId(currentUser.uid);
-
+      // Referans kodunu kontrol et ve gerekirse oluştur
+      localData = ensureReferralData(localData, currentUser.uid);
+      
+      if (localData) {
+        // Geçici olarak yerel veriyi kullan (hız için)
+        setUserData(localData);
+        setDataSource('local');
+        debugLog("useUserDataLoader", "Yerel depodan veriler yüklendi:", localData);
+      }
+      
       try {
-        // Mevcut kullanıcının yerel verilerini yükle
-        let localData = loadLocalUserData();
+        // Firebase'den verileri yüklemeyi dene
+        const { data: firebaseData, source } = await loadFirebaseUserData(currentUser.uid);
         
-        // Farklı kullanıcı kontrolü
-        if (localData && localData.userId && localData.userId !== currentUser.uid) {
-          debugLog("useUserDataLoader", "Farklı kullanıcıya ait yerel veri temizleniyor", 
-            { storedId: localData.userId, currentId: currentUser.uid });
-          clearUserData();
-          localData = null;
-        }
-        
-        // Referans kodunu kontrol et ve gerekirse oluştur
-        localData = ensureReferralData(localData, currentUser.uid);
-        
-        if (localData) {
-          // Geçici olarak yerel veriyi kullan (hız için)
-          setUserData(localData);
-          setDataSource('local');
-          debugLog("useUserDataLoader", "Yerel depodan veriler yüklendi:", localData);
-        }
-        
-        try {
-          // Firebase'den verileri yüklemeyi dene
-          const { data: firebaseData, source } = await loadFirebaseUserData(currentUser.uid);
+        if (source === 'firebase' || source === 'cache') {
+          debugLog("useUserDataLoader", `Veriler ${source} kaynağından yüklendi:`, firebaseData);
           
-          if (!isActive) return; // Component unmounted
-          
-          if (source === 'firebase' && firebaseData) {
-            debugLog("useUserDataLoader", "Firebase verileri yüklendi:", firebaseData);
-            
+          if (firebaseData) {
             // Yerel ve Firebase verilerini karşılaştır ve akıllı birleştirme yap
             // Bu işlem, manipüle edilmiş localStorage verilerini tespit edecek
             const mergedData = mergeUserData(localData, firebaseData);
@@ -100,53 +109,99 @@ export function useUserDataLoader(
             }
             
             setUserData(validatedData);
-            setDataSource('firebase');
+            setDataSource(source);
             saveUserData(validatedData, currentUser.uid);
-          } else if (source === 'timeout' && !localData) {
-            // Firebase'e erişilemedi ve yerel veri de yoksa, yeni veri oluştur
-            const emptyData = createDefaultUserData(currentUser.uid);
-            setUserData(emptyData);
-            saveUserData(emptyData, currentUser.uid);
-            setDataSource('local');
-            
-            toast.warning("Kullanıcı verileriniz bulunamadı. Yeni profil oluşturuldu.");
           }
-        } catch (error) {
-          if (!isActive) return; // Component unmounted
+        } else if (source === 'timeout' && !localData) {
+          // Firebase'e erişilemedi ve yerel veri de yoksa, yeni veri oluştur
+          const emptyData = createDefaultUserData(currentUser.uid);
+          setUserData(emptyData);
+          saveUserData(emptyData, currentUser.uid);
+          setDataSource('local');
           
-          handleFirebaseConnectionError(error, "useUserDataLoader");
-          
-          if (!localData) {
-            const emptyData = createDefaultUserData(currentUser.uid);
-            setUserData(emptyData);
-            saveUserData(emptyData, currentUser.uid);
-            setDataSource('local');
-          }
+          toast.warning("Kullanıcı verileriniz bulunamadı. Yeni profil oluşturuldu.");
         }
-        
-        setLoading(false);
       } catch (error) {
-        if (!isActive) return; // Component unmounted
+        handleFirebaseConnectionError(error, "useUserDataLoader");
         
-        errorLog("useUserDataLoader", "Kullanıcı verileri yüklenirken kritik hata:", error);
-        
-        const emptyData = createDefaultUserData(currentUser?.uid);
-        
-        setUserData(emptyData);
-        saveUserData(emptyData, currentUser?.uid);
-        setDataSource('local');
-        setLoading(false);
-        
-        toast.error("Veri yüklenirken bir hata oluştu. Lütfen tekrar deneyin.");
+        if (!localData) {
+          const emptyData = createDefaultUserData(currentUser.uid);
+          setUserData(emptyData);
+          saveUserData(emptyData, currentUser.uid);
+          setDataSource('local');
+        }
       }
+      
+      setLoading(false);
+    } catch (error) {
+      errorLog("useUserDataLoader", "Kullanıcı verileri yüklenirken kritik hata:", error);
+      
+      const emptyData = createDefaultUserData(currentUser?.uid);
+      
+      setUserData(emptyData);
+      saveUserData(emptyData, currentUser?.uid);
+      setDataSource('local');
+      setLoading(false);
+      
+      toast.error("Veri yüklenirken bir hata oluştu. Lütfen tekrar deneyin.");
+    }
+  }, [currentUser, authInitialized, errorOccurred, loadAttempt, lastLoadedUserId]);
+
+  // Yükleme işlemini başlat
+  useEffect(() => {
+    let isActive = true;
+    
+    const initializeData = async () => {
+      await loadUserData();
+      if (!isActive) return;
     };
-
-    loadData();
-
+    
+    initializeData();
+    
+    // Periyodik yeniden doğrulama (5 dakikada bir)
+    const refreshInterval = setInterval(() => {
+      if (currentUser) {
+        // Sadece önbelleği güncelleyerek sunucu verilerini kontrol et
+        // Bu UI'ı dondurmadan arka planda gerçekleşir
+        loadFirebaseUserData(currentUser.uid)
+          .then(({ data, source }) => {
+            if (data && (source === 'firebase' || source === 'cache')) {
+              // Sunucudaki veri yerel veriden daha yüksek bakiye içeriyorsa güncelle
+              setUserData(current => {
+                if (!current) return data;
+                
+                if (data.balance > current.balance) {
+                  debugLog("useUserDataLoader", "Sunucudan daha yüksek bakiye tespit edildi, güncelleniyor", {
+                    currentBalance: current.balance,
+                    serverBalance: data.balance
+                  });
+                  
+                  const updatedData = {
+                    ...current,
+                    balance: data.balance
+                  };
+                  
+                  saveUserData(updatedData, currentUser.uid);
+                  return updatedData;
+                }
+                
+                return current;
+              });
+            }
+          });
+      }
+    }, 300000); // 5 dakika
+    
     return () => {
-      isActive = false; // Temizleme
+      isActive = false;
+      clearInterval(refreshInterval);
     };
-  }, [currentUser, authInitialized, errorOccurred, loadAttempt]);
+  }, [loadUserData, currentUser]);
+
+  // Yeniden yükleme fonksiyonu (dışa açılabilir)
+  const reloadUserData = () => {
+    setLoadAttempt(prev => prev + 1);
+  };
 
   return { userData, loading, dataSource };
 }

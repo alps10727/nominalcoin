@@ -3,9 +3,11 @@ import { UserData } from "@/utils/storage";
 import { loadUserDataFromFirebase } from "@/services/userDataLoader";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { handleFirebaseConnectionError } from "@/utils/firebaseErrorHandler";
+import { QueryCacheManager } from "@/services/optimizationService";
 
 /**
- * Firebase'den veri yükleme için kanca
+ * Firebase'den veri yükleme için geliştirilmiş kanca
+ * Milyonlarca kullanıcı için optimize edilmiş
  */
 export function useFirebaseDataLoader() {
   /**
@@ -14,22 +16,43 @@ export function useFirebaseDataLoader() {
   const loadFirebaseUserData = async (
     userId: string, 
     timeoutMs: number = 10000
-  ): Promise<{ data: UserData | null; source: 'firebase' | 'timeout' }> => {
+  ): Promise<{ data: UserData | null; source: 'firebase' | 'cache' | 'timeout' }> => {
     try {
       debugLog("useFirebaseDataLoader", "Firebase'den veriler yükleniyor...");
       
+      // Önce önbellekte kontrol et
+      const cacheKey = `userData_${userId}`;
+      const cachedData = QueryCacheManager.get<UserData>(cacheKey);
+      
+      if (cachedData) {
+        debugLog("useFirebaseDataLoader", "Kullanıcı verisi önbellekten yüklendi", userId);
+        return { data: cachedData, source: 'cache' };
+      }
+      
+      // Önbellekte yoksa, Firebase'den yükle
       const timeoutPromise = new Promise<{ data: null; source: 'timeout' }>((resolve) => {
         setTimeout(() => {
           resolve({ data: null, source: 'timeout' });
         }, timeoutMs);
       });
       
-      const firebasePromise = loadUserDataFromFirebase(userId).then(data => ({
-        data,
-        source: 'firebase' as const
-      }));
+      const firebasePromise = loadUserDataFromFirebase(userId).then(data => {
+        // Başarılı yüklemeyi önbelleğe al (2 dakika TTL)
+        if (data) {
+          QueryCacheManager.set(cacheKey, data, 120000);
+        }
+        
+        return {
+          data,
+          source: 'firebase' as const
+        };
+      });
       
       const result = await Promise.race([firebasePromise, timeoutPromise]);
+      
+      // Önbellek boyutunu yönet
+      QueryCacheManager.manageSize(1000);
+      
       return result;
       
     } catch (error) {
@@ -46,10 +69,13 @@ export function useFirebaseDataLoader() {
     if (!firebaseData) return localData || { balance: 0, miningRate: 0.003, lastSaved: Date.now() };
     if (!localData) return firebaseData;
 
-    // Şüpheli manipülasyon tespiti
-    const isLocalBalanceSuspicious = localData && firebaseData && 
+    // Şüpheli manipülasyon tespiti - daha gelişmiş hile tespiti
+    const isLocalBalanceSuspicious = localData && firebaseData && (
       localData.balance > firebaseData.balance * 1.5 && // %50'den fazla yüksekse şüpheli
-      localData.balance > firebaseData.balance + 10; // En az 10 coin farkı varsa
+      localData.balance > firebaseData.balance + 10 || // En az 10 coin farkı varsa
+      // Veya aşırı ani artışlar
+      localData.balance > 1000 && firebaseData.balance < 100
+    ); 
     
     // Son kayıt zamanını kontrol et
     const wasFirebaseUpdatedAfterLocal = firebaseData.lastSaved > (localData.lastSaved || 0);

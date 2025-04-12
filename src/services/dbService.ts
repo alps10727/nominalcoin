@@ -1,5 +1,5 @@
 
-import { db } from "@/config/firebase";
+import { db, globalRateLimiter, recordFirebaseOperation } from "@/config/firebase";
 import { 
   doc, 
   setDoc, 
@@ -7,41 +7,47 @@ import {
   serverTimestamp,
   enableIndexedDbPersistence,
   CACHE_SIZE_UNLIMITED,
-  persistentLocalCache,
-  persistentMultipleTabManager,
-  initializeFirestore
+  writeBatch,
+  DocumentData,
+  DocumentReference,
+  runTransaction,
+  collection,
+  getDocs,
+  query,
+  where
 } from "firebase/firestore";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { toast } from "sonner";
+import { QueryCacheManager } from "@/services/optimizationService";
 
-// Firestore'u daha iyi çevrimdışı destek ile yapılandır
-try {
-  // Firebase'in offline persistence özelliğini etkinleştir
-  // Gelişmiş yapılandırma ile multi-tab desteği ve büyük önbellek
-  enableIndexedDbPersistence(db)
-    .then(() => {
-      debugLog("dbService", "Firestore offline persistence etkinleştirildi");
-    })
-    .catch((err) => {
-      // Sadece critical hataları göster, diğerlerini geçici olarak görmezden gel
-      if (err.code !== 'failed-precondition') {
-        errorLog("dbService", "Offline persistence hatası:", err);
-      } else {
-        debugLog("dbService", "Birden fazla sekme açık - tam persistence sınırlı olabilir");
-      }
-    });
-} catch (error) {
-  errorLog("dbService", "Persistence hatası:", error);
-}
+// Operasyon zamanlarını izleme
+const operationTimes: Record<string, number[]> = {};
 
 /**
- * Firestore'dan belge yükleme - geliştirilmiş hata yönetimi ve timeout ile
+ * Gelişmiş belge yükleme - optimizasyon, önbelleğe alma ve izleme özellikleri ile
  */
 export async function getDocument(collection: string, id: string): Promise<any | null> {
+  // Rate limiter kontrolü yap
+  if (!globalRateLimiter.checkLimit(`read_${collection}`)) {
+    errorLog("dbService", "Rate limit exceeded:", `${collection}/${id}`);
+    throw new Error("Rate limit aşıldı. Lütfen daha sonra tekrar deneyin.");
+  }
+  
   let timeoutId: NodeJS.Timeout | null = null;
+  const operationId = `${collection}_${id}_${Date.now()}`;
+  const startTime = Date.now();
   
   try {
     debugLog("dbService", `${collection}/${id} belgesi yükleniyor...`);
+    
+    // Önce önbellekte kontrol et
+    const cacheKey = `doc_${collection}_${id}`;
+    const cachedData = QueryCacheManager.get(cacheKey);
+    
+    if (cachedData) {
+      debugLog("dbService", `Cache hit for ${collection}/${id}`);
+      return cachedData;
+    }
     
     // Timeout promise oluştur - 20 saniyeye çıkarıldı
     const timeoutPromise = new Promise((_, reject) => {
@@ -58,6 +64,10 @@ export async function getDocument(collection: string, id: string): Promise<any |
       if (docSnap.exists()) {
         const data = docSnap.data();
         debugLog("dbService", `${collection}/${id} belgesi başarıyla yüklendi`);
+        
+        // Önbelleğe al - 2 dakika TTL
+        QueryCacheManager.set(cacheKey, data, 120000);
+        
         return data;
       }
       debugLog("dbService", `${collection}/${id} belgesi bulunamadı`);
@@ -67,9 +77,22 @@ export async function getDocument(collection: string, id: string): Promise<any |
     // İki promise'i yarıştır - hangisi önce biterse
     const result = await Promise.race([dataPromise(), timeoutPromise]);
     if (timeoutId) clearTimeout(timeoutId);
+    
+    // Performans metrikleri
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+    recordOperationTime('read', collection, duration);
+    recordFirebaseOperation(`read_${collection}`, duration);
+    
     return result;
   } catch (err) {
     if (timeoutId) clearTimeout(timeoutId);
+    
+    // Performans metrikleri - hatalı durumlar için
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+    recordOperationTime('read_error', collection, duration);
+    
     errorLog("dbService", `${collection}/${id} yükleme hatası:`, err);
     
     // Offline hatası için özel işleme - sessiz hata (kullanıcı bildirimini buradan yapma)
@@ -82,12 +105,19 @@ export async function getDocument(collection: string, id: string): Promise<any |
 }
 
 /**
- * Firestore'a belge kaydetme - geliştirilmiş hata yönetimi ve timeout ile
+ * Gelişmiş belge kaydetme - atomik işlemler, hata koruması ve batch işlemleri ile
  */
 export async function saveDocument(collection: string, id: string, data: any, options = { merge: true }): Promise<void> {
+  // Rate limiter kontrolü yap
+  if (!globalRateLimiter.checkLimit(`write_${collection}`)) {
+    errorLog("dbService", "Rate limit exceeded:", `${collection}/${id}`);
+    throw new Error("Rate limit aşıldı. Lütfen daha sonra tekrar deneyin.");
+  }
+  
   let timeoutId: NodeJS.Timeout | null = null;
   let retryCount = 0;
   const MAX_RETRIES = 3;
+  const startTime = Date.now();
   
   const saveWithRetry = async (): Promise<void> => {
     try {
@@ -98,6 +128,9 @@ export async function saveDocument(collection: string, id: string, data: any, op
         ...data,
         lastSaved: serverTimestamp(),
       };
+      
+      // Önbelleği temizle
+      QueryCacheManager.invalidate(new RegExp(`doc_${collection}_${id}`));
       
       // Timeout promise oluştur - 20 saniyeye çıkarıldı
       const timeoutPromise = new Promise<void>((_, reject) => {
@@ -116,6 +149,12 @@ export async function saveDocument(collection: string, id: string, data: any, op
       // İki promise'i yarıştır - hangisi önce biterse
       await Promise.race([savePromise(), timeoutPromise]);
       if (timeoutId) clearTimeout(timeoutId);
+      
+      // Performans kaydı
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+      recordOperationTime('write', collection, duration);
+      recordFirebaseOperation(`write_${collection}`, duration);
     } catch (err) {
       if (timeoutId) clearTimeout(timeoutId);
       
@@ -128,6 +167,11 @@ export async function saveDocument(collection: string, id: string, data: any, op
         await new Promise(resolve => setTimeout(resolve, 3000 * retryCount)); // Gecikmeyi artırdık
         return saveWithRetry(); // Recursive retry
       }
+      
+      // Performans kaydı - hata durumu
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+      recordOperationTime('write_error', collection, duration);
       
       errorLog("dbService", `${collection}/${id} kaydetme hatası:`, err);
       
@@ -144,4 +188,122 @@ export async function saveDocument(collection: string, id: string, data: any, op
   };
   
   return saveWithRetry();
+}
+
+/**
+ * İşlem operasyon sürelerini kaydet
+ */
+function recordOperationTime(operation: string, collectionName: string, durationMs: number): void {
+  const key = `${operation}_${collectionName}`;
+  
+  if (!operationTimes[key]) {
+    operationTimes[key] = [];
+  }
+  
+  operationTimes[key].push(durationMs);
+  
+  // Sadece son 100 operasyonu tut
+  if (operationTimes[key].length > 100) {
+    operationTimes[key].shift();
+  }
+  
+  // Ortalama süreler
+  if (operationTimes[key].length % 10 === 0) {
+    const avgTime = operationTimes[key].reduce((sum, time) => sum + time, 0) / operationTimes[key].length;
+    debugLog(
+      "dbService", 
+      `${operation} operasyonu ${collectionName} koleksiyonunda ortalama ${avgTime.toFixed(2)}ms sürüyor`
+    );
+  }
+}
+
+/**
+ * Batched yazma işlemleri - 500'e kadar işlemi atomik olarak gerçekleştirir
+ * Büyük veri yazma işlemleri için optimize edilmiş
+ */
+export async function batchWriteDocuments<T>(
+  collectionName: string,
+  items: { id: string; data: T }[]
+): Promise<void> {
+  if (!items.length) return;
+  
+  const startTime = Date.now();
+  
+  try {
+    debugLog("dbService", `Batch write başlatılıyor: ${collectionName} (${items.length} öğe)`);
+    
+    // Firestore bir batch'te en fazla 500 işlem destekler
+    const batches = [];
+    const BATCH_LIMIT = 499; // 500'den bir düşük (güvenlik için)
+    
+    for (let i = 0; i < items.length; i += BATCH_LIMIT) {
+      const batch = writeBatch(db);
+      const batchItems = items.slice(i, i + BATCH_LIMIT);
+      
+      batchItems.forEach(item => {
+        const docRef = doc(db, collectionName, item.id);
+        batch.set(docRef, {
+          ...item.data,
+          lastUpdated: serverTimestamp()
+        }, { merge: true });
+      });
+      
+      batches.push(batch);
+    }
+    
+    // Tüm batch'leri paralel olarak commit et
+    await Promise.all(batches.map(batch => batch.commit()));
+    
+    const duration = Date.now() - startTime;
+    debugLog(
+      "dbService", 
+      `Batch write tamamlandı: ${collectionName}, ${items.length} öğe, ${duration}ms sürdü`
+    );
+    
+    // Önbelleği toplu olarak temizle
+    const cachePattern = new RegExp(`doc_${collectionName}_`);
+    QueryCacheManager.invalidate(cachePattern);
+    
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    errorLog(
+      "dbService", 
+      `Batch write hatası (${duration}ms): ${collectionName}, ${items.length} öğe:`,
+      error
+    );
+    throw error;
+  }
+}
+
+/**
+ * Atomik işlemler için transaction API'si
+ * Tutarlılık gerektiren işlemler için idealdir
+ */
+export async function runAtomicTransaction<T>(
+  callback: (transaction: any) => Promise<T>
+): Promise<T> {
+  try {
+    return await runTransaction(db, callback);
+  } catch (error) {
+    errorLog("dbService", "Transaction hatası:", error);
+    throw error;
+  }
+}
+
+/**
+ * Belirli bir kullanıcının fazla istek yapıp yapmadığını kontrol eden güvenlik fonksiyonu
+ */
+export function checkUserRateLimit(userId: string, operationType: string): boolean {
+  const limitKey = `${userId}_${operationType}`;
+  return globalRateLimiter.checkLimit(limitKey);
+}
+
+/**
+ * Sharded koleksiyon isimlerini daha verimli sorgulamak için yardımcı fonksiyon
+ */
+export function getShardedCollectionName(baseCollection: string, userId: string): string {
+  // Kullanıcı ID'sinin hash değerini hesapla (basit yöntem)
+  const hash = userId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const shardIndex = hash % 10; // 10 shard
+  return `${baseCollection}_shard${shardIndex}`;
 }
