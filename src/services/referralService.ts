@@ -2,14 +2,14 @@
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/config/firebase";
 import { debugLog, errorLog } from "@/utils/debugUtils";
-import { standardizeReferralCode } from "@/utils/referralUtils";
+import { standardizeReferralCode, prepareReferralCodeForStorage } from "@/utils/referralUtils";
 
 export async function findUsersByReferralCode(referralCode: string): Promise<string[]> {
   try {
     if (!referralCode) return [];
     
-    // Use standardized code for searching
-    const storageCode = standardizeReferralCode(referralCode);
+    // Use standardized code for searching - ensure NO DASHES for storage format
+    const storageCode = prepareReferralCodeForStorage(referralCode);
     
     debugLog("referralService", "Searching for referral code:", storageCode);
     

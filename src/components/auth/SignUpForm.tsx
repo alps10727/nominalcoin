@@ -76,6 +76,7 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
     }
 
     try {
+      // Convert to storage format before submitting (standardized with no dashes)
       const processedReferralCode = standardizeReferralCode(referralCode);
       debugLog("SignUpForm", "Form gönderiliyor, referans kodu:", processedReferralCode);
       await onSubmit(name, email, password, processedReferralCode);

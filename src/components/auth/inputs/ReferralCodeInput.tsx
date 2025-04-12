@@ -31,17 +31,21 @@ const ReferralCodeInput = ({ value, onChange, disabled = false }: ReferralCodeIn
 
   return (
     <div className="space-y-2">
-      <Label htmlFor="referralCode">Referans Kodu (Opsiyonel)</Label>
+      <Label htmlFor="referralCode" className="flex items-center">
+        Referans Kodu <span className="text-red-500 ml-1">*</span>
+        <span className="text-xs text-muted-foreground ml-2">(Zorunlu)</span>
+      </Label>
       <div className="relative">
         <Users className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
         <Input
           id="referralCode"
           type="text"
-          placeholder="Referans kodunuz varsa girin"
+          placeholder="Referans kodunuzu girin (XXX-XXX-XXX)"
           className="pl-10"
           value={displayValue}
           onChange={handleChange}
           disabled={disabled}
+          required
         />
       </div>
     </div>

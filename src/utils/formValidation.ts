@@ -27,11 +27,17 @@ export const validateSignUpForm = (values: FormValues): string | null => {
     return "Şifre en az 6 karakter olmalıdır.";
   }
 
-  // Referans kodu kontrolü
+  // Referral code is now required - enforce this requirement
   const processedReferralCode = standardizeReferralCode(values.referralCode);
   
-  // Referans kodu girilmiş ama geçerli değilse uyarı ver
-  if (processedReferralCode && !validateReferralCode(processedReferralCode)) {
+  // Check if referral code is empty
+  if (!processedReferralCode) {
+    toast.error("Referans kodu gereklidir. Lütfen geçerli bir referans kodu giriniz.");
+    return "Referans kodu gereklidir. Lütfen geçerli bir referans kodu giriniz.";
+  }
+  
+  // If referral code is provided but invalid
+  if (!validateReferralCode(processedReferralCode)) {
     toast.error("Geçersiz referans kodu formatı. Doğru format: XXX-XXX-XXX");
     return "Geçersiz referans kodu formatı. Doğru format: XXX-XXX-XXX";
   }

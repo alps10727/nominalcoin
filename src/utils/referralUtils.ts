@@ -57,7 +57,7 @@ export function prepareReferralCodeForStorage(code: string): string {
 
 /**
  * Generates a referral code
- * @returns An object containing both display and storage formats of the code
+ * @returns A standardized code that's 9 characters long
  */
 export function generateReferralCode(userId: string | undefined): string {
   if (!userId) return '';
@@ -104,4 +104,3 @@ export function createReferralLink(code: string): string {
   
   return `${baseUrl}?ref=${standardCode}`;
 }
-

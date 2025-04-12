@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import SignUpForm from "../components/auth/SignUpForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,36 +21,43 @@ const SignUp = () => {
       setLoading(true);
       setError(null);
       
-      // Check referral code (if any)
+      // Check referral code (now required)
+      if (!referralCode || referralCode.trim() === '') {
+        setError("Referans kodu gereklidir.");
+        setLoading(false);
+        return;
+      }
+      
       let referrerId: string | null = null;
       
-      if (referralCode && referralCode.trim() !== '') {
-        try {
-          // Standardize the referral code (remove spaces, convert to uppercase, remove dashes)
-          const storageCode = prepareReferralCodeForStorage(referralCode);
-          
-          debugLog("SignUp", "Standardized referral code:", { 
-            original: referralCode,
-            standardized: storageCode
-          });
-          
-          // Search with standardized code regardless of upper/lower case
-          const referrerIds = await findUsersByReferralCode(storageCode);
-          
-          if (referrerIds.length > 0) {
-            referrerId = referrerIds[0];
-            debugLog("SignUp", "Found user with referral code:", referrerId);
-          } else {
-            toast.error("Geçersiz referans kodu. Kayıt işlemi referans olmadan devam edecek.");
-            debugLog("SignUp", "Invalid referral code. No match found:", storageCode);
-          }
-        } catch (err) {
-          errorLog("SignUp", "Error checking referral code:", err);
-          toast.error("Referans kodu kontrolünde bir hata oluştu.");
+      try {
+        // Standardize the referral code (remove spaces, convert to uppercase, remove dashes)
+        const storageCode = prepareReferralCodeForStorage(referralCode);
+        
+        debugLog("SignUp", "Standardized referral code:", { 
+          original: referralCode,
+          standardized: storageCode
+        });
+        
+        // Search with standardized code regardless of upper/lower case
+        const referrerIds = await findUsersByReferralCode(storageCode);
+        
+        if (referrerIds.length > 0) {
+          referrerId = referrerIds[0];
+          debugLog("SignUp", "Found user with referral code:", referrerId);
+        } else {
+          setError("Geçersiz referans kodu. Lütfen geçerli bir referans kodu girin.");
+          setLoading(false);
+          return;
         }
+      } catch (err) {
+        errorLog("SignUp", "Error checking referral code:", err);
+        setError("Referans kodu kontrolünde bir hata oluştu. Lütfen tekrar deneyin.");
+        setLoading(false);
+        return;
       }
 
-      // Register user
+      // Register user only if referral code is valid
       const userCredential = await registerUser(email, password, {
         name,
         emailAddress: email,
