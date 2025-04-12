@@ -1,4 +1,3 @@
-
 import { db } from "@/config/firebase";
 import { collection, doc, getDoc, getDocs, query, updateDoc, arrayUnion, increment, where, setDoc, Timestamp } from "firebase/firestore";
 import { debugLog, errorLog } from "@/utils/debugUtils";
@@ -65,8 +64,7 @@ export async function updateReferrerInfo(
     
     debugLog("referralService", "Referans veren kullanıcı bilgileri güncelleniyor", { 
       referrerId, 
-      newUserId,
-      rewardRate
+      newUserId
     });
     
     const userRef = doc(db, "users", referrerId);
@@ -124,18 +122,16 @@ export async function updateReferrerInfo(
       referralCount: updatedReferralCount
     };
     
-    // Ödül oranı ile mining rate'i güncelle
-    const newMiningRate = calculateMiningRate(updatedUserData) * rewardRate;
-    
     // Mining rate'i güncelle
+    const newMiningRate = calculateMiningRate(updatedUserData);
+    
     await updateDoc(userRef, {
       miningRate: newMiningRate
     });
     
     debugLog("referralService", `Referans veren kullanıcının madencilik hızı güncellendi: ${newMiningRate}`, { 
       referrerId, 
-      newRate: newMiningRate,
-      rewardRate
+      newRate: newMiningRate
     });
     
     // Ödülü kaydet (transactions tablosuna)
@@ -144,22 +140,18 @@ export async function updateReferrerInfo(
       userId: referrerId,
       referredUserId: newUserId,
       type: "referral_bonus",
-      isReferralBonus: true,  // Referral ödülü işareti
-      bonusLevel: rewardRate === 1 ? "direct" : "indirect",
-      bonusRate: rewardRate,
+      isReferralBonus: true,
+      bonusLevel: "direct",
+      bonusRate: 1,
       miningRateIncrease: newMiningRate - (userData.miningRate || 0),
       timestamp: Timestamp.now(),
-      description: `Referans ödülü (${rewardRate === 1 ? 'doğrudan' : 'dolaylı'} referans)`
+      description: "Doğrudan referans ödülü"
     });
     
     debugLog("referralService", "Referral bonus işlemi kaydedildi", { transactionId });
     
-    // Rewardları oranında göster
-    if (rewardRate === 1) {
-      toast.success("Referans ödülü kazandınız! Madencilik hızınız artırıldı.");
-    } else if (rewardRate > 0) {
-      toast.success(`İkincil referans ödülü kazandınız! (${rewardRate * 100}%)`);
-    }
+    // Ödül bildirimini göster
+    toast.success("Referans ödülü kazandınız! Madencilik hızınız artırıldı.");
     
     debugLog("referralService", "Referans veren kullanıcı bilgileri güncellendi");
   } catch (error) {

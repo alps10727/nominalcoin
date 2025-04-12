@@ -40,7 +40,7 @@ const Referral = () => {
       
       // Referans verilen kullanıcıları ayarla (gerçek veri)
       if (userData.referrals && Array.isArray(userData.referrals)) {
-        // userData'dan gerçek referansları al
+        // userData'dan gerçek referansları al - sadece doğrudan referanslar
         const users: ReferredUser[] = userData.referrals.map((userId) => ({
           id: userId,
           name: userId.substring(0, 8), // Kullanıcı ID'sinin ilk 8 karakteri
@@ -73,7 +73,7 @@ const Referral = () => {
           referralCount={referralCount} 
         />
         
-        {/* Referans bonusu geçmişi */}
+        {/* Sadece doğrudan referans bonusu geçmişi */}
         <ReferralHistoryTable />
       </main>
     </div>

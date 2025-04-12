@@ -1,4 +1,3 @@
-
 import { db } from "@/config/firebase";
 import { doc, getDoc, query, collection, where, getDocs } from "firebase/firestore";
 import { debugLog, errorLog } from "@/utils/debugUtils";
@@ -6,48 +5,31 @@ import { UserData } from "@/types/storage";
 import { updateReferrerInfo } from "./referralService";
 
 /**
- * Kullanıcının tüm üst referans veren kullanıcılarını bulur
- * A→B→C zincirinde, C kullanıcısı için [B, A] listesi döndürür
+ * Kullanıcının doğrudan referans veren kullanıcısını bulur
+ * @param userId Kullanıcı ID
  */
-export async function getAllReferrers(userId: string, maxLevels = 3): Promise<string[]> {
+export async function getDirectReferrer(userId: string): Promise<string | null> {
   try {
     if (!userId) {
-      debugLog("multiLevelReferralService", "Geçersiz kullanıcı ID");
-      return [];
+      debugLog("referralService", "Geçersiz kullanıcı ID");
+      return null;
     }
     
-    const referrers: string[] = [];
-    let currentUserId = userId;
-    let level = 0;
+    // Kullanıcı bilgilerini al
+    const userDoc = await getDoc(doc(db, "users", userId));
     
-    // Zincirleme referansları takip et (maksimum seviyeye kadar)
-    while (currentUserId && level < maxLevels) {
-      // Kullanıcı bilgilerini al
-      const userDoc = await getDoc(doc(db, "users", currentUserId));
-      
-      if (!userDoc.exists()) {
-        debugLog("multiLevelReferralService", `Kullanıcı bulunamadı: ${currentUserId}`);
-        break;
-      }
-      
-      const userData = userDoc.data() as UserData;
-      
-      // Referans veren kullanıcı var mı kontrol et
-      if (userData.referredBy) {
-        referrers.push(userData.referredBy);
-        currentUserId = userData.referredBy;
-        level++;
-      } else {
-        // Referans veren kullanıcı yoksa döngüyü sonlandır
-        break;
-      }
+    if (!userDoc.exists()) {
+      debugLog("referralService", `Kullanıcı bulunamadı: ${userId}`);
+      return null;
     }
     
-    debugLog("multiLevelReferralService", `${userId} için referans verenler:`, referrers);
-    return referrers;
+    const userData = userDoc.data() as UserData;
+    
+    // Doğrudan referans veren kullanıcı ID'sini döndür
+    return userData.referredBy || null;
   } catch (error) {
-    errorLog("multiLevelReferralService", "Referans zincirleri alınırken hata:", error);
-    return [];
+    errorLog("referralService", "Referans veren kullanıcı arama hatası:", error);
+    return null;
   }
 }
 
@@ -68,65 +50,46 @@ export async function hasExistingReferralBonus(referrerId: string, newUserId: st
     const querySnapshot = await getDocs(q);
     return !querySnapshot.empty;
   } catch (error) {
-    errorLog("multiLevelReferralService", "Referans ödül kontrolünde hata:", error);
+    errorLog("referralService", "Referans ödül kontrolünde hata:", error);
     return false; // Hata durumunda false dön, böylece ödül işlemi devam edebilir
   }
 }
 
 /**
- * Yeni bir kullanıcı kaydolduğunda tüm üst referans zincirine ödül verir
+ * Yeni bir kullanıcı kaydolduğunda SADECE doğrudan referans veren kullanıcıya ödül verir
+ * Önceki çok seviyeli (multi-level) ödül sistemi kaldırıldı
  */
-export async function rewardMultiLevelReferrers(newUserId: string, directReferrerId: string): Promise<void> {
+export async function rewardDirectReferrer(newUserId: string): Promise<void> {
   try {
-    if (!newUserId || !directReferrerId) {
-      debugLog("multiLevelReferralService", "Geçersiz kullanıcı veya referans ID'si");
+    if (!newUserId) {
+      debugLog("referralService", "Geçersiz kullanıcı ID'si");
+      return;
+    }
+    
+    // Doğrudan referans veren kullanıcıyı bul
+    const directReferrerId = await getDirectReferrer(newUserId);
+    
+    if (!directReferrerId) {
+      debugLog("referralService", "Bu kullanıcının referans veren kullanıcısı yok:", newUserId);
       return;
     }
     
     // Önce doğrudan referans veren kullanıcıya ödül verip vermemeyi kontrol et
-    const hasDirectBonus = await hasExistingReferralBonus(directReferrerId, newUserId);
-    if (!hasDirectBonus) {
-      // Daha önce ödül verilmemişse, doğrudan referans veren kullanıcıya ödül ver
-      await updateReferrerInfo(directReferrerId, newUserId);
-    } else {
-      debugLog("multiLevelReferralService", "Doğrudan referans için zaten ödül verilmiş:", {
+    const hasBonus = await hasExistingReferralBonus(directReferrerId, newUserId);
+    if (hasBonus) {
+      debugLog("referralService", "Doğrudan referans için zaten ödül verilmiş:", {
         referrerId: directReferrerId,
         newUserId
       });
+      return;
     }
     
-    // Sonra üst seviye referansları bul (doğrudan referans verenin referans verenleri)
-    const upperReferrers = await getAllReferrers(directReferrerId);
+    // Sadece doğrudan referans veren kullanıcıya ödül ver - tam ödül oranı (1.0)
+    await updateReferrerInfo(directReferrerId, newUserId);
     
-    // Farklı komisyon oranları ile üst seviye referanslara ödül ver
-    for (let i = 0; i < upperReferrers.length; i++) {
-      const referrerId = upperReferrers[i];
-      
-      // Önce bu referans için daha önce ödül verilmiş mi kontrol et
-      const hasBonus = await hasExistingReferralBonus(referrerId, newUserId);
-      if (hasBonus) {
-        debugLog("multiLevelReferralService", "Bu üst seviye referans için zaten ödül verilmiş:", {
-          referrerId,
-          newUserId
-        });
-        continue; // Sonraki referrer'a geç
-      }
-      
-      // İlk seviye için tam ödül zaten verildi, burada ikinci seviye ve sonrası için daha düşük oranlar
-      const isSecondLevel = i === 0; // doğrudan referans verenin referans vereni
-      const isThirdLevel = i === 1; // 3. seviye referans
-      
-      // Seviyeye göre farklı ödüller ver
-      if (isSecondLevel) {
-        // İkinci seviye için ödül (örneğin: %50 oranında)
-        await updateReferrerInfo(referrerId, newUserId, 0.5);
-      } else if (isThirdLevel) {
-        // Üçüncü seviye için ödül (örneğin: %25 oranında)
-        await updateReferrerInfo(referrerId, newUserId, 0.25);
-      }
-    }
+    debugLog("referralService", `Doğrudan referans veren kullanıcıya ödül verildi: ${directReferrerId}`);
   } catch (error) {
-    errorLog("multiLevelReferralService", "Çok seviyeli referans ödüllerinde hata:", error);
+    errorLog("referralService", "Referans ödüllerinde hata:", error);
   }
 }
 
