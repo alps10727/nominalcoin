@@ -56,26 +56,38 @@ export function prepareReferralCodeForStorage(code: string): string {
 }
 
 /**
- * Generates a referral code based on a user ID
- * @param userId The user ID to base the referral code on
- * @returns A 9-character referral code
+ * Generates a referral code
+ * @returns An object containing both display and storage formats of the code
  */
 export function generateReferralCode(userId: string | undefined): string {
   if (!userId) return '';
   
+  // Generate a random code consisting of uppercase letters and numbers
+  // Avoid confusing characters like I, O, 1, 0
+  const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  
   // Use the first 5 chars of userId + 4 random chars
   const userPart = userId.slice(0, 5).toUpperCase();
-  const randomChars = Math.random().toString(36).substring(2, 6).toUpperCase();
+  
+  // Generate 4 random characters
+  let randomChars = '';
+  for (let i = 0; i < 4; i++) {
+    randomChars += charset.charAt(Math.floor(Math.random() * charset.length));
+  }
   
   // Ensure we have exactly 9 characters
   const combined = (userPart + randomChars).slice(0, 9);
   
   // Pad with random characters if needed
   const paddingNeeded = 9 - combined.length;
-  const padding = paddingNeeded > 0 
-    ? Math.random().toString(36).substring(2, 2 + paddingNeeded).toUpperCase()
-    : '';
+  let padding = '';
+  if (paddingNeeded > 0) {
+    for (let i = 0; i < paddingNeeded; i++) {
+      padding += charset.charAt(Math.floor(Math.random() * charset.length));
+    }
+  }
     
+  // Return storage format (no dashes)
   return (combined + padding).slice(0, 9);
 }
 
@@ -92,3 +104,4 @@ export function createReferralLink(code: string): string {
   
   return `${baseUrl}?ref=${standardCode}`;
 }
+

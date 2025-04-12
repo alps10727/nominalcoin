@@ -1,4 +1,3 @@
-
 import { 
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -27,45 +26,43 @@ export async function registerUser(email: string, password: string, userData: Us
   try {
     debugLog("authService", "Registering user...", { email });
     
-    // Firebase'de kullanıcı oluştur
+    // Create user in Firebase
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
     
-    // Yeni bir referans kodu oluştur (tiresiz formatta saklanacak)
-    const displayReferralCode = generateReferralCode(user.uid);
-    const storageReferralCode = prepareReferralCodeForStorage(displayReferralCode);
+    // Generate a storage referral code (no dashes)
+    const storageReferralCode = generateReferralCode(user.uid);
     
     debugLog("authService", "Generated referral code:", { 
-      display: displayReferralCode, 
       storage: storageReferralCode 
     });
     
-    // Kullanıcı verileri için varsayılan değerler
+    // Default user data
     const defaultUserData = {
       name: userData.name || "",
       emailAddress: email,
-      balance: 0, // Yeni kullanıcılar için bakiye sıfırdan başlar
-      miningRate: 0.003, // Temel madencilik hızı
+      balance: 0,
+      miningRate: 0.003,
       lastSaved: Date.now(),
       miningActive: false,
-      referralCode: storageReferralCode, // Tiresiz formatta sakla
-      referredBy: userData.referredBy || null, // Bu kullanıcıyı kim davet etti?
-      referrals: userData.referrals || [], // Bu kullanıcının davet ettiği kişiler
-      referralCount: userData.referralCount || 0, // Davet edilen kişi sayısı
-      isAdmin: false // Normal kullanıcı
+      referralCode: storageReferralCode, // Store the code without dashes
+      referredBy: userData.referredBy || null,
+      referrals: userData.referrals || [],
+      referralCount: userData.referralCount || 0,
+      isAdmin: false
     };
     
-    // Kullanıcı bilgilerini Firestore'a kaydet
+    // Save user information to Firestore
     await setDoc(doc(db, "users", user.uid), defaultUserData);
     
     debugLog("authService", "User registered and data saved to Firestore", { userId: user.uid });
     
-    // Eğer bir referans kodu ile kaydolunduysa, referans veren kullanıcının bilgilerini güncelle
+    // Process referral if provided
     if (userData.referredBy) {
       try {
         debugLog("authService", "Referral reward process starting for:", userData.referredBy);
         
-        // Referans veren kullanıcının bilgilerini güncelle ve ödül ver
+        // Update referrer information and give reward
         await updateReferrerInfo(userData.referredBy, user.uid);
         
         debugLog("authService", "Referrer updated successfully", { 
@@ -74,7 +71,6 @@ export async function registerUser(email: string, password: string, userData: Us
         });
       } catch (referralError) {
         errorLog("authService", "Error updating referrer:", referralError);
-        // Referral güncellemesi başarısız olsa bile kullanıcı kaydı tamamlandı
         toast.warning("Referans işlemi sırasında bir hata oluştu.");
       }
     }

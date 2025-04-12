@@ -6,6 +6,7 @@ import { Copy, CheckCircle, UserPlus, Zap } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 import { REFERRAL_BONUS_RATE } from "@/utils/miningCalculator";
+import { formatReferralCodeForDisplay } from "@/utils/referralUtils";
 
 interface ReferralCodeCardProps {
   referralCode: string;
@@ -15,6 +16,9 @@ interface ReferralCodeCardProps {
 export const ReferralCodeCard = ({ referralCode, referralLink }: ReferralCodeCardProps) => {
   const { t } = useLanguage();
   const [showCopied, setShowCopied] = useState<'code' | 'link' | null>(null);
+
+  // Format the code for display (with dashes)
+  const displayCode = formatReferralCodeForDisplay(referralCode);
 
   const copyToClipboard = (text: string, type: 'code' | 'link') => {
     navigator.clipboard.writeText(text)
@@ -53,14 +57,14 @@ export const ReferralCodeCard = ({ referralCode, referralLink }: ReferralCodeCar
             <div className="flex items-center justify-between">
               <div className="text-center flex-grow">
                 <div className="font-mono text-2xl md:text-2xl tracking-widest font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-blue-300 to-indigo-300 py-2">
-                  {referralCode}
+                  {displayCode}
                 </div>
               </div>
               <Button 
                 variant="outline" 
                 size="icon" 
                 className="ml-3 h-10 w-10 text-gray-300 hover:text-white hover:bg-purple-700/20 border border-purple-500/30"
-                onClick={() => copyToClipboard(referralCode, 'code')}
+                onClick={() => copyToClipboard(displayCode, 'code')}
               >
                 {showCopied === 'code' ? 
                   <CheckCircle className="h-4 w-4 text-green-400" /> : 
