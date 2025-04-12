@@ -27,4 +27,5 @@ export interface UserData {
     completed?: number[]  // Tamamlanan görev ID'leri
   };
   miningEndTime?: number; // Added absolute end time for reliable timing
+  progress?: number; // Added progress property for mining state tracking
 }
