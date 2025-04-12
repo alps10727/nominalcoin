@@ -36,7 +36,7 @@ function generateRandomString(characters: string, length: number): string {
 
 /**
  * Verilen referans kodunun doğru formatta olup olmadığını kontrol eder
- * Hata düzeltme: Kod daha toleranslı hale getirildi, büyük-küçük harf duyarsız yapıldı
+ * Daha esnek doğrulama: küçük harf girdilerini de kabul eder
  */
 export function validateReferralCode(code: string): boolean {
   if (!code) return false;
@@ -45,6 +45,7 @@ export function validateReferralCode(code: string): boolean {
   const standardizedCode = code.trim().toUpperCase();
   
   // XXX-XXX-XXX formatını kontrol et (X: alfanümerik karakter)
+  // Tirelerin opsiyonel olmasına izin ver (hem XXX-XXX-XXX hem de XXXXXXXXX)
   const pattern = /^[A-Z0-9]{3}-?[A-Z0-9]{3}-?[A-Z0-9]{3}$/;
   return pattern.test(standardizedCode);
 }

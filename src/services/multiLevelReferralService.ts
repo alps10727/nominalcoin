@@ -1,3 +1,4 @@
+
 import { db } from "@/config/firebase";
 import { doc, getDoc, query, collection, where, getDocs } from "firebase/firestore";
 import { debugLog, errorLog } from "@/utils/debugUtils";
@@ -38,13 +39,12 @@ export async function getDirectReferrer(userId: string): Promise<string | null> 
  */
 export async function hasExistingReferralBonus(referrerId: string, newUserId: string): Promise<boolean> {
   try {
-    // Transactions tablosunda arama yap
-    const transactionsRef = collection(db, "transactions");
+    // referralTransactions tablosunda arama yap (yeni koleksiyon adı)
+    const transactionsRef = collection(db, "referralTransactions");
     const q = query(
       transactionsRef, 
-      where("userId", "==", referrerId),
-      where("referredUserId", "==", newUserId),
-      where("isReferralBonus", "==", true)
+      where("referrerId", "==", referrerId),
+      where("referredId", "==", newUserId)
     );
     
     const querySnapshot = await getDocs(q);
@@ -101,12 +101,11 @@ export async function getUserReferralTransactions(userId: string): Promise<any[]
   try {
     if (!userId) return [];
     
-    // Kullanıcının referans işlemleri
-    const transactionsRef = collection(db, "transactions");
+    // Kullanıcının referans işlemleri - referralTransactions koleksiyonundan
+    const transactionsRef = collection(db, "referralTransactions");
     const q = query(
       transactionsRef,
-      where("userId", "==", userId),
-      where("isReferralBonus", "==", true)
+      where("referrerId", "==", userId)
     );
     
     const querySnapshot = await getDocs(q);

@@ -11,17 +11,18 @@ import { tr } from "date-fns/locale";
 
 interface ReferralTransaction {
   id: string;
-  referredUserId: string;
+  referredId: string; // Değiştirildi: referredUserId -> referredId
   bonusLevel: string;
   bonusRate: number;
-  miningRateIncrease: number;
+  bonus: number; // Eklendi: bonus değeri
+  miningRateIncrease?: number; // Opsiyonel yapıldı
   timestamp: { toDate: () => Date };
   description: string;
 }
 
 export const ReferralHistoryTable = () => {
   const { t } = useLanguage();
-  const { currentUser } = useAuth(); // Changed from user to currentUser which exists in AuthContextProps
+  const { currentUser } = useAuth();
   const [transactions, setTransactions] = useState<ReferralTransaction[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -95,7 +96,7 @@ export const ReferralHistoryTable = () => {
                 <TableCell className="py-2">
                   <div className="flex items-center">
                     <MessageCirclePlus className="h-4 w-4 mr-2 text-blue-400" />
-                    <span className="text-gray-200 text-sm">{tx.referredUserId.substring(0, 6)}...</span>
+                    <span className="text-gray-200 text-sm">{tx.referredId.substring(0, 6)}...</span>
                   </div>
                 </TableCell>
                 <TableCell className="py-2 text-sm">
@@ -111,7 +112,7 @@ export const ReferralHistoryTable = () => {
                   </span>
                 </TableCell>
                 <TableCell className="py-2 text-right font-mono text-green-400">
-                  +{tx.miningRateIncrease.toFixed(3)}
+                  +{(tx.miningRateIncrease || tx.bonus).toFixed(3)}
                 </TableCell>
                 <TableCell className="py-2 text-right text-gray-400 text-xs">
                   {formatDistanceToNow(tx.timestamp.toDate(), { addSuffix: true, locale: tr })}
@@ -123,4 +124,4 @@ export const ReferralHistoryTable = () => {
       </CardContent>
     </Card>
   );
-};
+}

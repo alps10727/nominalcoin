@@ -1,3 +1,4 @@
+
 import { db } from "@/config/firebase";
 import { collection, doc, getDoc, getDocs, query, updateDoc, arrayUnion, increment, where, setDoc, Timestamp } from "firebase/firestore";
 import { debugLog, errorLog } from "@/utils/debugUtils";
@@ -80,12 +81,11 @@ export async function updateReferrerInfo(
     const userData = userDoc.data() as UserData;
     
     // Önce kontrol et - bu kullanıcıya daha önce bu referans için ödül verilmiş mi?
-    const transactionsRef = collection(db, "transactions");
+    const transactionsRef = collection(db, "referralTransactions");
     const q = query(
       transactionsRef, 
-      where("userId", "==", referrerId), 
-      where("referredUserId", "==", newUserId), 
-      where("isReferralBonus", "==", true)
+      where("referrerId", "==", referrerId), 
+      where("referredId", "==", newUserId)
     );
     const existingBonuses = await getDocs(q);
     
@@ -137,17 +137,17 @@ export async function updateReferrerInfo(
       newRate: newMiningRate
     });
     
-    // Ödülü kaydet (transactions tablosuna)
+    // Ödülü kaydet (referralTransactions tablosuna - istek üzerine değiştirildi)
     const transactionId = `refbonus_${referrerId}_${newUserId}_${Date.now()}`;
-    await setDoc(doc(db, "transactions", transactionId), {
-      userId: referrerId,
-      referredUserId: newUserId,
-      type: "referral_bonus",
-      isReferralBonus: true,
-      bonusLevel: "direct",
-      bonusRate: 1,
-      miningRateIncrease: 0.5, // Sabit artış miktarı
+    await setDoc(doc(db, "referralTransactions", transactionId), {
+      referrerId: referrerId,
+      referredId: newUserId,
+      bonus: 0.5,
       timestamp: Timestamp.now(),
+      type: "referral_bonus",
+      bonusLevel: "direct",
+      bonusRate: rewardRate,
+      miningRateIncrease: 0.5,
       description: "Doğrudan referans ödülü"
     });
     
