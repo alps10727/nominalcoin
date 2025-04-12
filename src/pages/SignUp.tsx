@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useLocation, useNavigate } from "react-router-dom";
 import { registerUser } from "@/services/authService";
 import { findUsersByReferralCode } from "@/services/referralService";
-import { rewardMultiLevelReferrers } from "@/services/multiLevelReferralService";
+import { rewardDirectReferrer } from "@/services/multiLevelReferralService";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { toast } from "sonner";
 
@@ -44,12 +44,12 @@ const SignUp = () => {
         referredBy: referrerId,
       });
 
-      // Referans varsa, hem doğrudan hem de üst seviye referanslara ödül ver
+      // Referans varsa, sadece doğrudan referans veren kişiye ödül ver
       if (referrerId && userCredential?.uid) {
         try {
-          // Yeni çok seviyeli referans sistemini kullan
-          await rewardMultiLevelReferrers(userCredential.uid, referrerId);
-          debugLog("SignUp", "Çok seviyeli referans ödülleri verildi");
+          // Artık sadece doğrudan referans veren kişiye ödül veriyoruz
+          await rewardDirectReferrer(userCredential.uid);
+          debugLog("SignUp", "Doğrudan referans ödülü verildi");
         } catch (refError) {
           errorLog("SignUp", "Referans ödüllerinde hata:", refError);
         }

@@ -16,7 +16,7 @@ export interface UserData {
   referralCount?: number; // Count of successful referrals
   referrals?: string[]; // Array of user IDs referred by this user
   referredBy?: string | null; // User ID who referred this user, if any
-  // Removed indirectReferrals property - no longer needed as we only track direct referrals
+  indirectReferrals?: string[]; // Added back for backward compatibility with existing code
   name?: string; // User's name
   emailAddress?: string; // User's email address
   isAdmin?: boolean; // Added isAdmin property for admin panel access
