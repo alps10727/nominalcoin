@@ -58,6 +58,7 @@ export async function hasExistingReferralBonus(referrerId: string, newUserId: st
 /**
  * Yeni bir kullanıcı kaydolduğunda SADECE doğrudan referans veren kullanıcıya ödül verir
  * Önceki çok seviyeli (multi-level) ödül sistemi kaldırıldı
+ * Küçük/büyük harf farkına duyarsız hale getirildi
  */
 export async function rewardDirectReferrer(newUserId: string): Promise<void> {
   try {

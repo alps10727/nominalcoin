@@ -9,6 +9,7 @@ import { prepareReferralCodeForStorage } from "@/utils/referralUtils";
 
 /**
  * Referans kodu ile kullanıcı bul - Toleranslı hale getirildi
+ * Büyük/küçük harf farkına duyarlı değil
  */
 export async function findUsersByReferralCode(referralCode: string): Promise<string[]> {
   try {
@@ -143,12 +144,14 @@ export async function updateReferrerInfo(
       referrerId: referrerId,
       referredId: newUserId,
       bonus: 0.5,
+      bonusAmount: 0.5, // Yeni alan - geriye dönük uyumluluk için
       timestamp: Timestamp.now(),
       type: "referral_bonus",
       bonusLevel: "direct",
       bonusRate: rewardRate,
       miningRateIncrease: 0.5,
-      description: "Doğrudan referans ödülü"
+      description: "Doğrudan referans ödülü",
+      status: "completed" // Yeni alan - işlem durumu
     });
     
     debugLog("referralService", "Referral bonus işlemi kaydedildi", { transactionId });

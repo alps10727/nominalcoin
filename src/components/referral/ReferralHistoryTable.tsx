@@ -15,9 +15,11 @@ interface ReferralTransaction {
   bonusLevel: string;
   bonusRate: number;
   bonus: number; // Eklendi: bonus değeri
+  bonusAmount?: number; // Yeni alan eklendi - geriye dönük uyumluluk için
   miningRateIncrease?: number; // Opsiyonel yapıldı
   timestamp: { toDate: () => Date };
   description: string;
+  status: string; // Yeni alan eklendi - işlem durumu
 }
 
 export const ReferralHistoryTable = () => {
@@ -112,7 +114,7 @@ export const ReferralHistoryTable = () => {
                   </span>
                 </TableCell>
                 <TableCell className="py-2 text-right font-mono text-green-400">
-                  +{(tx.miningRateIncrease || tx.bonus).toFixed(3)}
+                  +{(tx.miningRateIncrease || tx.bonus || tx.bonusAmount || 0).toFixed(3)}
                 </TableCell>
                 <TableCell className="py-2 text-right text-gray-400 text-xs">
                   {formatDistanceToNow(tx.timestamp.toDate(), { addSuffix: true, locale: tr })}

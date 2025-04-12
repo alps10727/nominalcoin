@@ -21,10 +21,12 @@ const SignUp = () => {
       setError(null);
       
       // Referans kodunu kontrol et (varsa)
+      // Küçük/büyük harf farkına duyarlı olmayan işleme
       let referrerId: string | null = null;
       
       if (referralCode) {
         try {
+          // Büyük/küçük harf farkı olmadan standartlaştırılmış kod ile ara
           const referrerIds = await findUsersByReferralCode(referralCode);
           if (referrerIds.length > 0) {
             referrerId = referrerIds[0];

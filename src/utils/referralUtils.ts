@@ -64,6 +64,7 @@ export function createReferralLink(referralCode: string): string {
 /**
  * Referans kodunu standartlaştır (büyük harfe çevir ve boşlukları temizle)
  * Bu fonksiyon, kullanıcı girdisini temizlemek için kullanılır
+ * Küçük harfleri de kabul eder ve büyük harfe dönüştürür
  */
 export function standardizeReferralCode(code: string): string {
   if (!code) return '';
@@ -77,6 +78,7 @@ export function standardizeReferralCode(code: string): string {
 
 /**
  * Firestore'da saklama için referans kodunu hazırla (tireleri kaldır)
+ * Küçük harfleri de kabul eder ve büyük harfe dönüştürür
  */
 export function prepareReferralCodeForStorage(code: string): string {
   return standardizeReferralCode(code).replace(/-/g, '');
