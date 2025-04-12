@@ -75,6 +75,8 @@ export async function rewardDirectReferrer(newUserId: string): Promise<void> {
       return;
     }
     
+    debugLog("referralService", `Doğrudan referans veren kullanıcı bulundu: ${directReferrerId}`);
+    
     // Önce doğrudan referans veren kullanıcıya ödül verip vermemeyi kontrol et
     const hasBonus = await hasExistingReferralBonus(directReferrerId, newUserId);
     if (hasBonus) {

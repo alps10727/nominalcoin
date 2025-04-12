@@ -62,34 +62,15 @@ export async function registerUser(email: string, password: string, userData: Us
     // Eğer bir referans kodu ile kaydolunduysa, referans veren kullanıcının bilgilerini güncelle
     if (userData.referredBy) {
       try {
-        // Referans kodunu standartlaştır ve referans veren kullanıcıyı bul
-        const standardizedReferralCode = prepareReferralCodeForStorage(userData.referredBy);
-        debugLog("authService", "Looking for referrer with code:", standardizedReferralCode);
+        debugLog("authService", "Referral reward process starting for:", userData.referredBy);
         
-        // Referral kodu ile kullanıcıyı bul
-        const referrerIds = await findUsersByReferralCode(standardizedReferralCode);
+        // Referans veren kullanıcının bilgilerini güncelle ve ödül ver
+        await updateReferrerInfo(userData.referredBy, user.uid);
         
-        if (referrerIds.length > 0) {
-          const referrerId = referrerIds[0]; // İlk bulunan kullanıcıyı al
-          
-          // Referans veren kullanıcının bilgilerini güncelle
-          await updateReferrerInfo(referrerId, user.uid);
-          
-          // Kullanıcının kendi verisine de referredBy bilgisini ekle
-          await setDoc(doc(db, "users", user.uid), {
-            referredBy: referrerId
-          }, { merge: true });
-          
-          debugLog("authService", "Referrer updated successfully", { 
-            referrerId, 
-            newUserId: user.uid 
-          });
-        } else {
-          debugLog("authService", "No referrer found with the given code", { 
-            code: standardizedReferralCode 
-          });
-          toast.warning("Girdiğiniz referans kodu geçersiz veya bulunamadı.");
-        }
+        debugLog("authService", "Referrer updated successfully", { 
+          referrerId: userData.referredBy, 
+          newUserId: user.uid 
+        });
       } catch (referralError) {
         errorLog("authService", "Error updating referrer:", referralError);
         // Referral güncellemesi başarısız olsa bile kullanıcı kaydı tamamlandı

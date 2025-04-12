@@ -8,6 +8,7 @@ import { findUsersByReferralCode } from "@/services/referralService";
 import { rewardDirectReferrer } from "@/services/multiLevelReferralService";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { toast } from "sonner";
+import { prepareReferralCodeForStorage } from "@/utils/referralUtils";
 
 const SignUp = () => {
   const [loading, setLoading] = useState(false);
@@ -24,18 +25,29 @@ const SignUp = () => {
       // Küçük/büyük harf farkına duyarlı olmayan işleme
       let referrerId: string | null = null;
       
-      if (referralCode) {
+      if (referralCode && referralCode.trim() !== '') {
         try {
+          // Referral kodu standardize et (boşlukları temizle, büyük harfe çevir, tireleri sil)
+          const storageCode = prepareReferralCodeForStorage(referralCode);
+          
+          debugLog("SignUp", "Referans kodu standardize edildi:", { 
+            original: referralCode,
+            standardized: storageCode
+          });
+          
           // Büyük/küçük harf farkı olmadan standartlaştırılmış kod ile ara
-          const referrerIds = await findUsersByReferralCode(referralCode);
+          const referrerIds = await findUsersByReferralCode(storageCode);
+          
           if (referrerIds.length > 0) {
             referrerId = referrerIds[0];
             debugLog("SignUp", "Referans kodu ile kullanıcı bulundu:", referrerId);
           } else {
             toast.error("Geçersiz referans kodu. Kayıt işlemi referans olmadan devam edecek.");
+            debugLog("SignUp", "Geçersiz referans kodu. Eşleşme bulunamadı:", storageCode);
           }
         } catch (err) {
           errorLog("SignUp", "Referans kodu kontrolünde hata:", err);
+          toast.error("Referans kodu kontrolünde bir hata oluştu.");
         }
       }
 

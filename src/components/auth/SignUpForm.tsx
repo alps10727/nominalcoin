@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { standardizeReferralCode } from "@/utils/referralUtils";
 import EmailInput from "./inputs/EmailInput";
@@ -10,6 +11,7 @@ import SignUpButton from "./buttons/SignUpButton";
 import ErrorAlert from "./alerts/ErrorAlert";
 import OfflineAlert from "./alerts/OfflineAlert";
 import { validateSignUpForm, FormValues } from "@/utils/formValidation";
+import { debugLog } from "@/utils/debugUtils";
 
 interface SignUpFormProps {
   onSubmit: (name: string, email: string, password: string, referralCode: string) => Promise<void>;
@@ -31,7 +33,12 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
     const urlParams = new URLSearchParams(window.location.search);
     const refCode = urlParams.get('ref');
     if (refCode) {
-      setReferralCode(standardizeReferralCode(refCode));
+      const standardizedCode = standardizeReferralCode(refCode);
+      setReferralCode(standardizedCode);
+      debugLog("SignUpForm", "URL'den referans kodu alındı:", { 
+        original: refCode, 
+        standardized: standardizedCode 
+      });
     }
     
     const handleOnline = () => setIsOffline(false);
@@ -70,6 +77,7 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
 
     try {
       const processedReferralCode = standardizeReferralCode(referralCode);
+      debugLog("SignUpForm", "Form gönderiliyor, referans kodu:", processedReferralCode);
       await onSubmit(name, email, password, processedReferralCode);
     } catch (error) {
       console.error("Form gönderme hatası:", error);

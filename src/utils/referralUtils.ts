@@ -81,6 +81,7 @@ export function standardizeReferralCode(code: string): string {
  * Küçük harfleri de kabul eder ve büyük harfe dönüştürür
  */
 export function prepareReferralCodeForStorage(code: string): string {
+  if (!code) return '';
   return standardizeReferralCode(code).replace(/-/g, '');
 }
 

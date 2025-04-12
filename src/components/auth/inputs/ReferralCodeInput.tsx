@@ -2,6 +2,8 @@
 import { Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { formatReferralCodeForDisplay, standardizeReferralCode } from "@/utils/referralUtils";
+import { useState, useEffect } from "react";
 
 interface ReferralCodeInputProps {
   value: string;
@@ -10,6 +12,23 @@ interface ReferralCodeInputProps {
 }
 
 const ReferralCodeInput = ({ value, onChange, disabled = false }: ReferralCodeInputProps) => {
+  const [displayValue, setDisplayValue] = useState(value);
+  
+  // Format input value for display
+  useEffect(() => {
+    // Sadece gösterim için formatla, altta tire olmayan ham bir string saklanıyor
+    setDisplayValue(value ? formatReferralCodeForDisplay(value) : '');
+  }, [value]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value;
+    setDisplayValue(input);
+    
+    // Standartlaştırılmış değeri yukarıya gönder
+    const standardized = standardizeReferralCode(input);
+    onChange(standardized);
+  };
+
   return (
     <div className="space-y-2">
       <Label htmlFor="referralCode">Referans Kodu (Opsiyonel)</Label>
@@ -20,8 +39,8 @@ const ReferralCodeInput = ({ value, onChange, disabled = false }: ReferralCodeIn
           type="text"
           placeholder="Referans kodunuz varsa girin"
           className="pl-10"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
+          value={displayValue}
+          onChange={handleChange}
           disabled={disabled}
         />
       </div>
