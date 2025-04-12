@@ -4,6 +4,7 @@ import { debugLog, errorLog } from "@/utils/debugUtils";
 import { UserData } from "@/utils/storage";
 import { toast } from "sonner";
 import { calculateMiningRate } from "@/utils/miningCalculator";
+import { prepareReferralCodeForStorage } from "@/utils/referralUtils";
 
 /**
  * Referans kodu ile kullanıcı bul - Toleranslı hale getirildi
@@ -16,14 +17,14 @@ export async function findUsersByReferralCode(referralCode: string): Promise<str
       return [];
     }
     
-    // Kodu standartlaştır (boşlukları temizle ve büyük harfe çevir)
-    const standardizedCode = referralCode.trim().toUpperCase();
+    // Kodu standartlaştır (boşlukları temizle, büyük harfe çevir ve tireleri kaldır)
+    const storageCode = prepareReferralCodeForStorage(referralCode);
     
-    debugLog("referralService", "Referans kodu ile kullanıcı aranıyor:", standardizedCode);
+    debugLog("referralService", "Referans kodu ile kullanıcı aranıyor:", storageCode);
     
     // Firestore'da referralCode alanı ile eşleşen kullanıcıları ara
     const usersRef = collection(db, "users");
-    const q = query(usersRef, where("referralCode", "==", standardizedCode));
+    const q = query(usersRef, where("referralCode", "==", storageCode));
     
     const querySnapshot = await getDocs(q);
     
@@ -33,11 +34,11 @@ export async function findUsersByReferralCode(referralCode: string): Promise<str
         userIds.push(doc.id);
       });
       
-      debugLog("referralService", `${userIds.length} kullanıcı bulundu referral kodu ile:`, standardizedCode);
+      debugLog("referralService", `${userIds.length} kullanıcı bulundu referral kodu ile:`, storageCode);
       return userIds;
     }
     
-    debugLog("referralService", "Referans kodu ile kullanıcı bulunamadı:", standardizedCode);
+    debugLog("referralService", "Referans kodu ile kullanıcı bulunamadı:", storageCode);
     return [];
   } catch (error) {
     errorLog("referralService", "Referans kodu ile kullanıcı arama hatası:", error);
@@ -104,10 +105,12 @@ export async function updateReferrerInfo(
     if (!currentReferrals.includes(newUserId)) {
       await updateDoc(userRef, {
         referrals: arrayUnion(newUserId),
-        referralCount: updatedReferralCount
+        referralCount: updatedReferralCount,
+        // Her başarılı referans için sabit bir değer ekle (0.5)
+        miningRate: increment(0.5)
       });
       
-      debugLog("referralService", `Referral sayısı güncellendi: ${updatedReferralCount}`, { referrerId });
+      debugLog("referralService", `Referral sayısı güncellendi: ${updatedReferralCount}, Mining rate +0.5 artırıldı`, { referrerId });
     } else {
       debugLog("referralService", "Bu kullanıcı zaten referral listesinde var, güncelleme yapılmadı", { 
         referrerId, 
@@ -143,7 +146,7 @@ export async function updateReferrerInfo(
       isReferralBonus: true,
       bonusLevel: "direct",
       bonusRate: 1,
-      miningRateIncrease: newMiningRate - (userData.miningRate || 0),
+      miningRateIncrease: 0.5, // Sabit artış miktarı
       timestamp: Timestamp.now(),
       description: "Doğrudan referans ödülü"
     });

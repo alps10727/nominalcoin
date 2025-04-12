@@ -5,62 +5,18 @@
  * Güvenli bir şekilde benzersiz kodlar üretir
  */
 export function generateReferralCode(userId?: string): string {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  // Karmaşıklığı azaltmak için sadece kolayca okunabilen karakterleri kullan
+  // 0, O, 1, I gibi karıştırılabilecek karakterleri çıkar
+  const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   
-  // Seed (tohum) oluştur, güvenli ve tahmin edilemez bir değer kullan
-  const timestamp = Date.now();
-  const randomPrefix = Math.floor(Math.random() * 1000000);
-  let seed = timestamp ^ randomPrefix; // XOR ile karıştır
-  
-  if (userId) {
-    // Kullanıcı ID'sini tahmin edilemez bir şekilde tohuma dahil et
-    const userSeed = userId.split('').reduce((acc, char, index) => {
-      // Karakterlerin sırasını da hesaba katan karmaşık bir dönüşüm
-      const prime = 31;
-      const offset = index % 7; // Ek karışıklık için mod 7
-      return (acc * prime + char.charCodeAt(0) + offset) % 2147483647;
-    }, seed);
-    
-    // Ek güvenlik karıştırması
-    seed = (userSeed * 48271) % 2147483647;
-  } else {
-    // Rastgele tohum oluştur - ekstra güvenlik için crypto API kullan (tarayıcılar için)
-    try {
-      // Tarayıcı ortamında crypto kullan
-      if (typeof window !== 'undefined' && window.crypto) {
-        const array = new Uint32Array(1);
-        window.crypto.getRandomValues(array);
-        seed = array[0] % 2147483647;
-      } else {
-        // Node.js veya başka ortamlar için fallback
-        seed = (Date.now() ^ (Math.random() * 1000000)) % 2147483647;
-      }
-    } catch (e) {
-      // Herhangi bir ortam hatası durumunda fallback
-      seed = (timestamp * randomPrefix) % 2147483647;
-    }
+  let result = '';
+  for (let i = 0; i < 9; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    result += characters.charAt(randomIndex);
   }
   
-  // Güvenli karmaşık bir PRNG (Pseudo-Random Number Generator) algoritması
-  const getNextRandom = () => {
-    // Bu katsayılar güvenli rastgele sayı üreticisi için incelikle seçilmiş değerler
-    const a = 48271; // Optimum katsayı (Mersenne prime için)
-    const m = 2147483647; // 2^31 - 1 (Mersenne prime)
-    
-    seed = (a * seed) % m;
-    return seed / m; // 0-1 arası değer
-  };
-  
-  const getRandomIndex = () => {
-    return Math.floor(getNextRandom() * characters.length);
-  };
-  
-  // 3-3-3 formatında tahmin edilemez bir referans kodu oluştur
-  const firstPart = Array(3).fill(0).map(() => characters.charAt(getRandomIndex())).join('');
-  const secondPart = Array(3).fill(0).map(() => characters.charAt(getRandomIndex())).join('');
-  const thirdPart = Array(3).fill(0).map(() => characters.charAt(getRandomIndex())).join('');
-  
-  return `${firstPart}-${secondPart}-${thirdPart}`;
+  // XXX-XXX-XXX formatına dönüştür (gösterim için)
+  return `${result.slice(0, 3)}-${result.slice(3, 6)}-${result.slice(6, 9)}`;
 }
 
 /**
@@ -89,7 +45,7 @@ export function validateReferralCode(code: string): boolean {
   const standardizedCode = code.trim().toUpperCase();
   
   // XXX-XXX-XXX formatını kontrol et (X: alfanümerik karakter)
-  const pattern = /^[A-Z0-9]{3}-[A-Z0-9]{3}-[A-Z0-9]{3}$/;
+  const pattern = /^[A-Z0-9]{3}-?[A-Z0-9]{3}-?[A-Z0-9]{3}$/;
   return pattern.test(standardizedCode);
 }
 
@@ -114,5 +70,29 @@ export function standardizeReferralCode(code: string): string {
   // Güvenli temizleme - XSS ve diğer güvenlik açıklarından kaçınmak için
   // Sadece izin verilen karakterleri (alfanumerik ve tire) tut
   const sanitizedCode = code.replace(/[^A-Za-z0-9\-]/g, '');
+  // Frontend'de tire ile göster, ama veritabanında tiresiz kaydet
   return sanitizedCode.trim().toUpperCase();
+}
+
+/**
+ * Firestore'da saklama için referans kodunu hazırla (tireleri kaldır)
+ */
+export function prepareReferralCodeForStorage(code: string): string {
+  return standardizeReferralCode(code).replace(/-/g, '');
+}
+
+/**
+ * Gösterim için referans kodunu formatla (XXX-XXX-XXX)
+ */
+export function formatReferralCodeForDisplay(code: string): string {
+  if (!code) return '';
+  
+  // Önce tüm tireleri kaldır ve temizle
+  const cleanCode = code.replace(/-/g, '').trim().toUpperCase();
+  
+  // Eğer 9 karakterden az ise, tamamlama yapma
+  if (cleanCode.length < 9) return cleanCode;
+  
+  // XXX-XXX-XXX formatına dönüştür
+  return `${cleanCode.slice(0, 3)}-${cleanCode.slice(3, 6)}-${cleanCode.slice(6, 9)}`;
 }

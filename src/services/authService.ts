@@ -11,7 +11,7 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 import { toast } from "sonner";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { findUsersByReferralCode, updateReferrerInfo } from "./referralService";
-import { standardizeReferralCode } from "@/utils/referralUtils";
+import { generateReferralCode, standardizeReferralCode, prepareReferralCodeForStorage } from "@/utils/referralUtils";
 
 export interface UserRegistrationData {
   name?: string;
@@ -30,6 +30,15 @@ export async function registerUser(email: string, password: string, userData: Us
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
     
+    // Yeni bir referans kodu oluştur (tiresiz formatta saklanacak)
+    const displayReferralCode = generateReferralCode(user.uid);
+    const storageReferralCode = prepareReferralCodeForStorage(displayReferralCode);
+    
+    debugLog("authService", "Generated referral code:", { 
+      display: displayReferralCode, 
+      storage: storageReferralCode 
+    });
+    
     // Kullanıcı verileri için varsayılan değerler
     const defaultUserData = {
       name: userData.name || "",
@@ -38,7 +47,7 @@ export async function registerUser(email: string, password: string, userData: Us
       miningRate: 0.003, // Temel madencilik hızı
       lastSaved: Date.now(),
       miningActive: false,
-      referralCode: userData.referralCode || "", // Benzersiz referans kodu
+      referralCode: storageReferralCode, // Tiresiz formatta sakla
       referredBy: userData.referredBy || null, // Bu kullanıcıyı kim davet etti?
       referrals: userData.referrals || [], // Bu kullanıcının davet ettiği kişiler
       referralCount: userData.referralCount || 0, // Davet edilen kişi sayısı
@@ -54,7 +63,7 @@ export async function registerUser(email: string, password: string, userData: Us
     if (userData.referredBy) {
       try {
         // Referans kodunu standartlaştır ve referans veren kullanıcıyı bul
-        const standardizedReferralCode = standardizeReferralCode(userData.referredBy);
+        const standardizedReferralCode = prepareReferralCodeForStorage(userData.referredBy);
         debugLog("authService", "Looking for referrer with code:", standardizedReferralCode);
         
         // Referral kodu ile kullanıcıyı bul
