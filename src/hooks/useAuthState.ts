@@ -9,7 +9,7 @@ export interface AuthState {
   userData: UserData | null;
   loading: boolean;
   isOffline: boolean;
-  dataSource: 'firebase' | 'local' | null;
+  dataSource: 'firebase' | 'cache' | 'local' | null;
 }
 
 /**

@@ -116,6 +116,13 @@ export class QueryCacheManager {
       this.cache.delete(entries[i][0]);
     }
   }
+  
+  /**
+   * Önbellek boyutunu döndür (sağlık kontrolü için)
+   */
+  static getCacheSize(): number {
+    return this.cache.size;
+  }
 }
 
 /**
@@ -131,8 +138,7 @@ export class DatabaseScaler {
     const numericValue = userId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     
     // 10 shard grubuna böl (0-9)
-    const shardIndex = numericValue % 10;
-    
+    const shardIndex = numericValue % 10; // 10 shard
     return `${collectionBase}_shard${shardIndex}`;
   }
   
@@ -182,7 +188,7 @@ export class DatabaseScaler {
         status,
         metrics: {
           latency,
-          cacheSize: QueryCacheManager.cache.size,
+          cacheSize: QueryCacheManager.getCacheSize(),
           readCount: queryStats.readCount,
           writeCount: queryStats.writeCount,
           avgQueryTime: queryStats.queryTimes.reduce((sum, t) => sum + t, 0) / 
