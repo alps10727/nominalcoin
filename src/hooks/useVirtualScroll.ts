@@ -1,6 +1,9 @@
 
 import { useRef, useState, useEffect, useCallback } from 'react';
 
+// NOT: Bu hook artık OptimizedList tarafından doğrudan kullanılmamaktadır.
+// React-window kütüphanesi ile değiştirilmiştir, ancak geriye dönük uyumluluk için korunmaktadır.
+
 export interface VirtualScrollOptions {
   itemCount: number;
   itemHeight: number;
@@ -28,6 +31,8 @@ export interface VirtualScrollResult {
 /**
  * Çok büyük listeler için yüksek performanslı sanal kaydırma kancası
  * Bu hook ile binlerce öğeyi performans sorunu olmadan görüntüleyebilirsiniz
+ * 
+ * @deprecated Bu hook react-window ile değiştirilmiştir. Doğrudan react-window kullanın.
  */
 export function useVirtualScroll({
   itemCount,
