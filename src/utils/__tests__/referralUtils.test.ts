@@ -1,13 +1,12 @@
-
 import { 
   standardizeReferralCode, 
-  validateReferralCode,
+  validateReferralCode, 
   formatReferralCodeForDisplay,
   prepareReferralCodeForStorage 
 } from '../referralUtils';
 
-// Add these imports for Jest testing
-import { describe, test, expect } from '@jest/globals';
+// Use standard Jest global imports
+import { describe, test, expect } from 'jest-globals';
 
 describe('Referral Utils', () => {
   // standardizeReferralCode test
@@ -62,4 +61,3 @@ describe('Referral Utils', () => {
     expect(validateReferralCode('Abc-123-dEf')).toBe(true);
   });
 });
-
