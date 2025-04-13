@@ -39,16 +39,26 @@ export function useMiningActions(
       
       // Kullanıcı oturum açmışsa, Firebase'e kaydet
       if (currentUser && updateUserData) {
-        const updates: Partial<UserData> = {
-          miningActive: true,
-          miningTime: miningPeriod,
-          miningPeriod: miningPeriod,
-          miningSession: 0,
-          miningEndTime: miningEndTime
-        };
-        
-        await updateUserData(updates);
-        debugLog("useMiningActions", "Mining durumu Firebase'e kaydedildi");
+        try {
+          const updates: Partial<UserData> = {
+            miningActive: true,
+            miningTime: miningPeriod,
+            miningPeriod: miningPeriod,
+            miningSession: 0,
+            miningEndTime: miningEndTime
+          };
+          
+          await updateUserData(updates);
+          debugLog("useMiningActions", "Mining durumu Firebase'e kaydedildi");
+        } catch (error) {
+          // İnternet bağlantısı yoksa çevrimdışı modda devam et
+          // updateUserData içindeki mantık bu hatayı zaten ele alacağı için 
+          // burada sadece loglama yapıyoruz ve kullanıcı akışını bozmuyoruz
+          errorLog("useMiningActions", "Firebase'e kaydetme başarısız, yerel modda devam ediliyor:", error);
+          
+          // Toast mesajı updateUserData içinde gösterilecek, burada tekrarlamıyoruz
+          // Mining devam etmeli, hata kullanıcıya bildirildi ama işlemi kesmiyor
+        }
       }
     } catch (error) {
       errorLog("useMiningActions", "Mining başlatılırken hata:", error);
@@ -88,15 +98,21 @@ export function useMiningActions(
       
       // Kullanıcı oturum açmışsa, Firebase'e kaydet
       if (currentUser && updateUserData) {
-        const updates: Partial<UserData> = {
-          miningActive: false,
-          miningTime: 0,
-          balance: currentBalance,
-          miningEndTime: undefined
-        };
-        
-        await updateUserData(updates);
-        debugLog("useMiningActions", "Mining durumu Firebase'e kaydedildi");
+        try {
+          const updates: Partial<UserData> = {
+            miningActive: false,
+            miningTime: 0,
+            balance: currentBalance,
+            miningEndTime: undefined
+          };
+          
+          await updateUserData(updates);
+          debugLog("useMiningActions", "Mining durumu Firebase'e kaydedildi");
+        } catch (error) {
+          // İnternet bağlantısı yoksa çevrimdışı modda devam et
+          errorLog("useMiningActions", "Firebase'e kaydetme başarısız, yerel modda devam ediliyor:", error);
+          // Mining durdurma işlemi yine de başarılı sayılmalı, kullanıcı akışını bozmuyoruz
+        }
       }
     } catch (error) {
       errorLog("useMiningActions", "Mining durdurulurken hata:", error);

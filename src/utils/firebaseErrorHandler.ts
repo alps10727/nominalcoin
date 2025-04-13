@@ -9,16 +9,34 @@ export function handleFirebaseConnectionError(error: any, context: string = "Fir
   // Log the error with context
   errorLog(context, "Firebase connection error:", error);
 
-  // Check for offline or timeout errors
-  if ((error?.code === 'unavailable' || error?.message?.includes('zaman aşımı'))) {
+  // Check for offline or timeout errors - daha fazla hata durumu kontrolü eklendi
+  if ((error?.code === 'unavailable' || 
+      error?.message?.includes('zaman aşımı') ||
+      error?.message?.includes('network error') || 
+      error?.message?.includes('timeout') || 
+      error?.message?.includes('disconnected') ||
+      navigator.onLine === false)) {
+    
     toast.warning("Sunucuya bağlanılamadı, yerel veriler kullanılıyor", {
       id: "offline-mode-warning",
+      duration: 5000
+    });
+  } else if (error?.code === 'permission-denied') {
+    // Yetki hatası
+    toast.error("Veri erişim izniniz yok veya oturum süreniz dolmuş", {
+      description: "Lütfen yeniden giriş yapmayı deneyin.",
+      duration: 5000
+    });
+  } else if (error?.code?.startsWith('quota-exceeded')) {
+    // Kota hatası
+    toast.error("Firebase kota sınırına ulaşıldı", {
+      description: "Lütfen daha sonra tekrar deneyin.",
       duration: 5000
     });
   } else {
     // Generic error for other cases
     toast.error("Firebase veri yükleme hatası", {
-      description: error?.message,
+      description: error?.message || 'Bilinmeyen hata',
       duration: 5000
     });
   }
