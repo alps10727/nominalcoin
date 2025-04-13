@@ -1,3 +1,4 @@
+
 import { 
   standardizeReferralCode, 
   validateReferralCode, 
@@ -5,8 +6,8 @@ import {
   prepareReferralCodeForStorage 
 } from '../referralUtils';
 
-// Use standard Jest global imports
-import { describe, test, expect } from 'jest-globals';
+// Directly import from jest, which is already installed
+import { describe, test, expect } from 'jest';
 
 describe('Referral Utils', () => {
   // standardizeReferralCode test
