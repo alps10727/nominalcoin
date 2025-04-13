@@ -14,11 +14,44 @@ const config: CapacitorConfig = {
   ios: {
     contentInset: 'always',
     scheme: 'futurecoin',
-    limitsNavigationsToAppBoundDomains: true
+    limitsNavigationsToAppBoundDomains: true,
+    // iOS izinleri için Info.plist eklemeleri
+    infoPlist: {
+      NSCameraUsageDescription: "QR kodları taramak ve profil resmi çekmek için kamera erişimi gereklidir.",
+      NSPhotoLibraryUsageDescription: "Profil resmi seçmek için fotoğraf kütüphanesi erişimi gereklidir.",
+      NSLocationWhenInUseUsageDescription: "Size yakın etkinlikleri ve fırsatları göstermek için konum erişimi gereklidir.",
+      NSFaceIDUsageDescription: "Güvenli giriş için FaceID kullanımına izin verin.",
+      CFBundleLocalizations: ["tr", "en"],
+      CFBundleDevelopmentRegion: "tr"
+    }
   },
   android: {
     captureInput: true,
-    webViewUserAgentTemplate: 'FutureCoin Android App'
+    webViewUserAgentTemplate: 'FutureCoin Android App',
+    // Android izinleri için AndroidManifest eklemeleri
+    androidXEnabled: true,
+    backgroundColor: "#073042",
+    allowMixedContent: true,
+    // Android için otomatik izin talepleri
+    permissions: [
+      "android.permission.CAMERA",
+      "android.permission.READ_EXTERNAL_STORAGE",
+      "android.permission.WRITE_EXTERNAL_STORAGE",
+      "android.permission.ACCESS_FINE_LOCATION"
+    ]
+  },
+  // Capacitor plugin'leri için yapılandırmalar
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 2000,
+      backgroundColor: "#073042",
+      spinnerStyle: "large",
+      spinnerColor: "#ffffff"
+    },
+    LocalNotifications: {
+      smallIcon: "ic_stat_notification",
+      iconColor: "#488AFF"
+    }
   }
 };
 
