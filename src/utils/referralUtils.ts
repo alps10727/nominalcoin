@@ -23,7 +23,7 @@ export function standardizeReferralCode(code: string): string {
 export function validateReferralCode(code: string): boolean {
   if (!code) return false;
   
-  // Standardize the code first
+  // Standardize the code first (which will convert to uppercase)
   const standardizedCode = standardizeReferralCode(code);
   
   // Ensure the code is exactly 9 characters long after sanitization
@@ -37,7 +37,7 @@ export function validateReferralCode(code: string): boolean {
 export function formatReferralCodeForDisplay(code: string): string {
   if (!code) return '';
   
-  // Sanitize and standardize first
+  // Sanitize and standardize first (which will convert to uppercase)
   const cleanCode = standardizeReferralCode(code);
   
   // If less than 9 characters, return as is

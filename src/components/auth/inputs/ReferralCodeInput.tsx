@@ -16,7 +16,7 @@ const ReferralCodeInput = ({ value, onChange, disabled = false }: ReferralCodeIn
   
   // Format input value for display
   useEffect(() => {
-    // Sadece gösterim için formatla, altta tire olmayan ham bir string saklanıyor
+    // Only format for display, raw string without dashes is stored underneath
     setDisplayValue(value ? formatReferralCodeForDisplay(value) : '');
   }, [value]);
 
@@ -24,7 +24,7 @@ const ReferralCodeInput = ({ value, onChange, disabled = false }: ReferralCodeIn
     const input = e.target.value;
     setDisplayValue(input);
     
-    // Standartlaştırılmış değeri yukarıya gönder
+    // Send the standardized value upward (uppercase, no dashes)
     const standardized = standardizeReferralCode(input);
     onChange(standardized);
   };
