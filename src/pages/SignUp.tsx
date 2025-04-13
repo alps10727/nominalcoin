@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SignUpForm from "../components/auth/SignUpForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -9,12 +9,29 @@ import { rewardDirectReferrer } from "@/services/multiLevelReferralService";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { toast } from "sonner";
 import { prepareReferralCodeForStorage, standardizeReferralCode } from "@/utils/referralUtils";
+import { App } from '@capacitor/app';
 
 const SignUp = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Android geri tuşunu yönet
+  useEffect(() => {
+    const handleBackButton = () => {
+      // Kayıt sayfasında geri tuşunu engelle
+      return false;
+    };
+
+    // Capacitor App plugin ile geri tuşu olayını dinle
+    App.addListener('backButton', handleBackButton);
+
+    // Bileşen temizlendiğinde dinleyiciyi kaldır
+    return () => {
+      App.removeAllListeners();
+    };
+  }, []);
 
   const handleSignUp = async (name: string, email: string, password: string, referralCode: string) => {
     try {

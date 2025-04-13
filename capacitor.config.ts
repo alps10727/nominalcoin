@@ -15,6 +15,10 @@ const config: CapacitorConfig = {
     contentInset: 'always',
     scheme: 'futurecoin',
     limitsNavigationsToAppBoundDomains: true,
+    // iOS splash screen'in ortalanması için ek yapılandırma
+    backgroundColor: "#073042",
+    preferredContentMode: "mobile",
+    splashScreenDelay: 3000, // Splash ekranının gösterilme süresi (ms)
     // iOS izinleri için Info.plist eklemeleri
     infoPlist: {
       NSCameraUsageDescription: "QR kodları taramak ve profil resmi çekmek için kamera erişimi gereklidir.",
@@ -46,7 +50,13 @@ const config: CapacitorConfig = {
       launchShowDuration: 2000,
       backgroundColor: "#073042",
       spinnerStyle: "large",
-      spinnerColor: "#ffffff"
+      spinnerColor: "#ffffff",
+      // Splash screen görüntüsünün ortalanması için
+      iosSpinnerStyle: "large",
+      androidSpinnerStyle: "large",
+      showSpinner: true,
+      layoutName: "launch_screen",
+      useDialog: false
     },
     LocalNotifications: {
       smallIcon: "ic_stat_notification",
