@@ -119,13 +119,37 @@ export async function saveDocument(collection: string, id: string, data: any, op
   const MAX_RETRIES = 3;
   const startTime = Date.now();
   
+  // Clean the data to remove undefined values that Firebase can't handle
+  const cleanData = (inputData: any): any => {
+    if (inputData === null || inputData === undefined) {
+      return null;
+    }
+    
+    if (Array.isArray(inputData)) {
+      return inputData.map(item => cleanData(item)).filter(item => item !== undefined);
+    }
+    
+    if (typeof inputData === 'object' && inputData !== null) {
+      return Object.entries(inputData).reduce((acc, [key, value]) => {
+        const cleanedValue = cleanData(value);
+        if (cleanedValue !== undefined) {
+          acc[key] = cleanedValue;
+        }
+        return acc;
+      }, {} as Record<string, any>);
+    }
+    
+    return inputData;
+  };
+  
   const saveWithRetry = async (): Promise<void> => {
     try {
       debugLog("dbService", `${collection}/${id} belgesi kaydediliyor... (Deneme: ${retryCount + 1}/${MAX_RETRIES})`);
       
-      // Son güncelleme zamanını ekle
+      // Clean data and add timestamp
+      const cleanedData = cleanData(data);
       const dataWithTimestamp = {
-        ...data,
+        ...cleanedData,
         lastSaved: serverTimestamp(),
       };
       

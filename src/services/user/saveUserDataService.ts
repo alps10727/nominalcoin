@@ -14,9 +14,18 @@ export async function saveUserDataToFirebase(userId: string, userData: UserData)
   try {
     debugLog("saveUserDataService", "Kullanıcı verileri kaydediliyor...", userId);
     
-    // Boş veya null değerleri temizle
-    const sanitizedData = {
-      ...userData,
+    // Sanitize the data - remove undefined values that Firebase doesn't allow
+    const sanitizedData = Object.entries(userData).reduce((acc, [key, value]) => {
+      // Only include defined values
+      if (value !== undefined) {
+        acc[key] = value;
+      }
+      return acc;
+    }, {} as Record<string, any>);
+    
+    // Ensure required fields are present
+    const cleanedData = {
+      ...sanitizedData,
       userId: userId, // Her zaman userId ekle
       balance: userData.balance || 0,
       miningRate: calculateMiningRate(userData), // Referans sayısına göre hesapla
@@ -25,7 +34,7 @@ export async function saveUserDataToFirebase(userId: string, userData: UserData)
     
     try {
       // Her zaman önce yerel depoya kaydet (daha hızlı erişim için)
-      saveToLocalStorage(sanitizedData);
+      saveToLocalStorage(cleanedData);
       debugLog("saveUserDataService", "Veriler yerel depoya kaydedildi");
     } catch (storageErr) {
       errorLog("saveUserDataService", "Yerel depoya kaydetme hatası:", storageErr);
@@ -34,7 +43,7 @@ export async function saveUserDataToFirebase(userId: string, userData: UserData)
     
     try {
       // Verileri Firebase'e kaydet (arkaplanda ve otomatik yeniden deneme ile)
-      await saveDocument("users", userId, sanitizedData);
+      await saveDocument("users", userId, cleanedData);
       debugLog("saveUserDataService", "Kullanıcı verileri başarıyla kaydedildi:", userId);
     } catch (firebaseErr) {
       // Handle Firebase specific errors
