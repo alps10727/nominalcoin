@@ -46,6 +46,12 @@ const ReferralCodeInput = ({ value, onChange, disabled = false }: ReferralCodeIn
           onChange={handleChange}
           disabled={disabled}
           required
+          onInvalid={(e: React.FormEvent<HTMLInputElement>) => {
+            (e.target as HTMLInputElement).setCustomValidity('Referans kodu gereklidir!');
+          }}
+          onInput={(e: React.FormEvent<HTMLInputElement>) => {
+            (e.target as HTMLInputElement).setCustomValidity('');
+          }}
         />
       </div>
     </div>

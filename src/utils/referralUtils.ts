@@ -31,6 +31,20 @@ export function validateReferralCode(code: string): boolean {
 }
 
 /**
+ * Validates if an input referral code matches a stored code (case-insensitive)
+ */
+export function validateReferralMatch(inputCode: string, storedCode: string): boolean {
+  if (!inputCode || !storedCode) return false;
+  
+  // Standardize both codes to ensure case-insensitive comparison
+  const standardizedInput = standardizeReferralCode(inputCode);
+  const standardizedStored = standardizeReferralCode(storedCode);
+  
+  // Compare the standardized codes
+  return standardizedInput === standardizedStored;
+}
+
+/**
  * Formats a referral code for display with dashes
  * Example: ABC123DEF becomes ABC-123-DEF
  */
