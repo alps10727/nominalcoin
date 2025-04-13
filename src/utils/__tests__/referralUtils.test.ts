@@ -6,8 +6,8 @@ import {
   prepareReferralCodeForStorage 
 } from '../referralUtils';
 
-// Directly import from jest, which is already installed
-import { describe, test, expect } from 'jest';
+// Remove the import of Jest globals, as they are already globally available
+// Remove the line: import { describe, test, expect } from 'jest';
 
 describe('Referral Utils', () => {
   // standardizeReferralCode test
