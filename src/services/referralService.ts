@@ -34,6 +34,28 @@ export async function findUsersByReferralCode(referralCode: string): Promise<str
 }
 
 /**
+ * Checks if a referral code is valid
+ */
+export async function validateReferralCode(referralCode: string): Promise<boolean> {
+  try {
+    if (!referralCode || referralCode.trim() === '') {
+      return false;
+    }
+    
+    const standardizedCode = standardizeReferralCode(referralCode);
+    if (standardizedCode.length !== 9) {
+      return false;
+    }
+    
+    const users = await findUsersByReferralCode(standardizedCode);
+    return users.length > 0;
+  } catch (error) {
+    errorLog("referralService", "Error validating referral code:", error);
+    return false;
+  }
+}
+
+/**
  * Updates the referrer's information after a successful referral
  */
 export async function updateReferrerInfo(referrerId: string, newUserId: string): Promise<boolean> {

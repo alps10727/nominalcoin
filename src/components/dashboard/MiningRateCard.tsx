@@ -17,12 +17,12 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
   
   // Referans sayısı
   const referralCount = userData?.referralCount || 0;
-  const referralBonus = referralCount * REFERRAL_BONUS_RATE;
+  const referralBonus = parseFloat((referralCount * REFERRAL_BONUS_RATE).toFixed(4));
   
-  // Hesaplamalar: 3 dakikada bir kazanılacak NC miktarı
-  const cycleReward = miningRate.toFixed(3); // Bir döngüde kazanılan NC
-  const hourlyRate = (miningRate * 20).toFixed(3); // Saatlik: 20 döngü/saat (3dk * 20 = 60dk)
-  const dailyRate = (miningRate * 20 * 24).toFixed(3); // Günlük: 24 saat * 20 döngü/saat
+  // Hesaplamalar: 3 dakikada bir kazanılacak NC miktarı - Fix precision issues
+  const cycleReward = parseFloat(miningRate.toFixed(3)); // Bir döngüde kazanılan NC
+  const hourlyRate = parseFloat((miningRate * 20).toFixed(3)); // Saatlik: 20 döngü/saat (3dk * 20 = 60dk)
+  const dailyRate = parseFloat((miningRate * 20 * 24).toFixed(3)); // Günlük: 24 saat * 20 döngü/saat
   
   return (
     <Card className="mb-4 overflow-hidden relative border-none shadow-md bg-gradient-to-r from-purple-900/90 to-indigo-900/90">
@@ -52,7 +52,7 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
           <div className="flex flex-col gap-1 mt-1">
             <div className="flex justify-between text-xs">
               <span className="text-purple-200">Base Rate</span>
-              <span className="text-white font-medium">{BASE_MINING_RATE} NC/cycle</span>
+              <span className="text-white font-medium">{BASE_MINING_RATE.toFixed(3)} NC/cycle</span>
             </div>
             
             {referralCount > 0 && (
@@ -84,7 +84,7 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
           
           <div className="flex justify-between items-end mt-1">
             <span className="text-xs text-purple-200">NC/cycle</span>
-            <span className="text-xl font-bold text-white">{cycleReward}</span>
+            <span className="text-xl font-bold text-white">{cycleReward.toFixed(3)}</span>
           </div>
         </div>
         
@@ -97,7 +97,7 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
           </div>
           <div className="flex justify-between items-center">
             <span className="text-xs text-purple-200">NC/h</span>
-            <span className="text-xl font-bold text-white">{hourlyRate}</span>
+            <span className="text-xl font-bold text-white">{hourlyRate.toFixed(3)}</span>
           </div>
         </div>
         
@@ -110,7 +110,7 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
           </div>
           <div className="flex justify-between items-center">
             <span className="text-xs text-purple-200">NC/day</span>
-            <span className="text-xl font-bold text-white">{dailyRate}</span>
+            <span className="text-xl font-bold text-white">{dailyRate.toFixed(3)}</span>
           </div>
         </div>
       </CardContent>

@@ -34,10 +34,10 @@ export function addMiningReward(
     currentBalance = localData.balance;
   }
   
-  // Per 3-minute reward calculation - FIX: Adding exactly 0.003 per cycle (3 minutes)
-  const rewardAmount = 0.003;
-  const newBalance = currentBalance + rewardAmount;
-  const newSession = prevState.miningSession + rewardAmount;
+  // Per 3-minute reward calculation - Fixed precision issue
+  const rewardAmount = 0.003; // Exactly 0.003 per cycle
+  const newBalance = parseFloat((currentBalance + rewardAmount).toFixed(6));
+  const newSession = parseFloat((prevState.miningSession + rewardAmount).toFixed(6));
   
   debugLog("useMiningRewards", `Balance update: oldBalance=${currentBalance}, reward=${rewardAmount}, newBalance=${newBalance}`);
   
@@ -82,6 +82,9 @@ export function handleMiningCompletion(prevState: MiningState): Partial<MiningSt
     debugLog("useMiningRewards", `Using higher balance from localStorage for completion: ${localData.balance}`);
     finalBalance = localData.balance;
   }
+  
+  // Fix precision for final balance
+  finalBalance = parseFloat(finalBalance.toFixed(6));
   
   // CRITICAL: Save final state to storage immediately
   saveUserData({

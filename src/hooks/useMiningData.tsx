@@ -40,6 +40,30 @@ export function useMiningData(): MiningData {
     }
   }, [state, persistentBalance]);
   
+  // Real-time mining simulation - Update every second
+  useEffect(() => {
+    let timer: number | undefined;
+    
+    if (state.miningActive && !state.isLoading) {
+      timer = window.setInterval(() => {
+        // Calculate earnings per second based on current mining rate
+        const earningsPerSecond = parseFloat((state.miningRate / 180).toFixed(6));
+        
+        // Update balance in real-time for UI feedback (optimistic update)
+        setState(prev => ({
+          ...prev,
+          balance: parseFloat((prev.balance + earningsPerSecond).toFixed(6))
+        }));
+      }, 1000); // Update every second
+    }
+    
+    return () => {
+      if (timer) {
+        window.clearInterval(timer);
+      }
+    };
+  }, [state.miningActive, state.miningRate, state.isLoading, setState]);
+  
   // Firebase verisi geldiğinde bakiyeyi kontrol et
   useEffect(() => {
     if (userData && userData.balance > persistentBalance) {
@@ -95,7 +119,7 @@ export function useMiningData(): MiningData {
   // Birleştirilmiş mining verilerini ve aksiyonlarını döndür
   return {
     ...state,
-    balance: Math.max(persistentBalance, state.balance || 0), // Her zaman en yüksek güvenilir bakiyeyi kullan
+    balance: parseFloat(Math.max(persistentBalance, state.balance || 0).toFixed(6)), // Her zaman en yüksek güvenilir bakiyeyi kullan ve hassasiyeti düzelt
     handleStartMining: memoizedStartMining,
     handleStopMining: memoizedStopMining,
     isOffline: isOffline // Çevrimdışı durumunu ekledik

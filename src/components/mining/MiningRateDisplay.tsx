@@ -10,8 +10,8 @@ export function MiningRateDisplay() {
   
   const baseRate = 0.003; // Temel madencilik hızı
   const referralCount = userData?.referralCount || 0;
-  const referralBonus = referralCount * REFERRAL_BONUS_RATE;
-  const totalRate = calculateMiningRate(userData);
+  const referralBonus = parseFloat((referralCount * REFERRAL_BONUS_RATE).toFixed(4));
+  const totalRate = parseFloat(calculateMiningRate(userData).toFixed(3));
   
   return (
     <Card className="bg-gradient-to-br from-indigo-900/60 to-purple-900/60 border-none shadow-xl">
@@ -45,7 +45,7 @@ export function MiningRateDisplay() {
           </div>
           
           <div className="flex flex-col items-center mt-3 text-xs text-gray-300 text-center">
-            <span>Her referans: +{REFERRAL_BONUS_RATE} NC/dk bonus</span>
+            <span>Her referans: +{REFERRAL_BONUS_RATE.toFixed(4)} NC/dk bonus</span>
             <span className="mt-1">3 seviyeye kadar zincirleme bonus</span>
           </div>
         </div>

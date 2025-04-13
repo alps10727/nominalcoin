@@ -54,6 +54,9 @@ const ReferralCodeInput = ({ value, onChange, disabled = false }: ReferralCodeIn
           }}
         />
       </div>
+      <p className="text-xs text-muted-foreground">
+        Geçerli bir referans kodu girin. Büyük-küçük harf fark etmez.
+      </p>
     </div>
   );
 };
