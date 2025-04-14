@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from "react";
-import { standardizeReferralCode } from "@/utils/referralUtils";
 import EmailInput from "./inputs/EmailInput";
 import NameInput from "./inputs/NameInput";
 import TermsAgreement from "./terms/TermsAgreement";
@@ -8,11 +7,10 @@ import SignUpButton from "./buttons/SignUpButton";
 import { validateSignUpForm, FormValues } from "@/utils/formValidation";
 import { debugLog } from "@/utils/debugUtils";
 import FormErrorDisplay from "./form-sections/FormErrorDisplay";
-import ReferralCodeSection from "./form-sections/ReferralCodeSection";
 import PasswordInputGroup from "./form-sections/PasswordInputGroup";
 
 interface SignUpFormProps {
-  onSubmit: (name: string, email: string, password: string, referralCode: string) => Promise<void>;
+  onSubmit: (name: string, email: string, password: string) => Promise<void>;
   loading: boolean;
   error: string | null;
 }
@@ -24,21 +22,9 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-  const [referralCode, setReferralCode] = useState("");
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const refCode = urlParams.get('ref');
-    if (refCode) {
-      const standardizedCode = standardizeReferralCode(refCode);
-      setReferralCode(standardizedCode);
-      debugLog("SignUpForm", "URL'den referans kodu alındı:", { 
-        original: refCode, 
-        standardized: standardizedCode 
-      });
-    }
-    
     const handleOnline = () => setIsOffline(false);
     const handleOffline = () => setIsOffline(true);
     
@@ -63,7 +49,6 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
       email,
       password,
       confirmPassword,
-      referralCode,
       agreeTerms
     };
     
@@ -74,10 +59,7 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
     }
 
     try {
-      // Convert to storage format before submitting
-      const processedReferralCode = standardizeReferralCode(referralCode);
-      debugLog("SignUpForm", "Form gönderiliyor, referans kodu:", processedReferralCode);
-      await onSubmit(name, email, password, processedReferralCode);
+      await onSubmit(name, email, password);
     } catch (error) {
       console.error("Form gönderme hatası:", error);
     }
@@ -100,12 +82,6 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
       <EmailInput 
         value={email} 
         onChange={setEmail}
-        disabled={loading || isOffline}
-      />
-      
-      <ReferralCodeSection
-        referralCode={referralCode}
-        onChange={setReferralCode}
         disabled={loading || isOffline}
       />
       

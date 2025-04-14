@@ -4,11 +4,8 @@ import SignUpForm from "../components/auth/SignUpForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLocation, useNavigate } from "react-router-dom";
 import { registerUser } from "@/services/authService";
-import { findUsersByReferralCode } from "@/services/referralService";
-import { rewardDirectReferrer } from "@/services/multiLevelReferralService";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { toast } from "sonner";
-import { prepareReferralCodeForStorage, validateReferralCode } from "@/utils/referralUtils";
 import { App } from '@capacitor/app';
 
 const SignUp = () => {
@@ -33,64 +30,16 @@ const SignUp = () => {
     };
   }, []);
 
-  const handleSignUp = async (name: string, email: string, password: string, referralCode: string) => {
+  const handleSignUp = async (name: string, email: string, password: string) => {
     try {
       setLoading(true);
       setError(null);
       
-      let referrerId: string | null = null;
-      
-      // Validate referral code if provided (completely optional)
-      if (referralCode && referralCode.trim() !== '') {
-        try {
-          // Standardize the referral code
-          const storageCode = prepareReferralCodeForStorage(referralCode);
-          
-          debugLog("SignUp", "Checking referral code:", { 
-            original: referralCode,
-            standardized: storageCode
-          });
-          
-          // Check referral code format (3 letters + 3 digits)
-          if (!validateReferralCode(storageCode)) {
-            toast.warning("Geçersiz referans kodu formatı. Doğru format: ABC123 (3 harf + 3 rakam)");
-            setLoading(false);
-            return; // Prevent registration with invalid code format
-          }
-          
-          // Search for the referrer
-          const referrerIds = await findUsersByReferralCode(storageCode);
-          
-          if (referrerIds.length > 0) {
-            referrerId = referrerIds[0];
-            debugLog("SignUp", "Found user with referral code:", referrerId);
-          } else {
-            // Code not found, show warning but continue with registration
-            toast.warning("Girdiğiniz referans kodu bulunamadı. Kayıt işlemi referans kodunsuz devam ediyor.");
-          }
-        } catch (err) {
-          // Error checking referral code, continue with registration
-          errorLog("SignUp", "Error checking referral code:", err);
-          toast.warning("Referans kodu kontrolünde bir hata oluştu. Kayıt işlemi referans kodunsuz devam ediyor.");
-        }
-      }
-
-      // Register the user - referral code is optional
+      // Register the user without referral code
       const userCredential = await registerUser(email, password, {
         name,
-        emailAddress: email,
-        referredBy: referrerId,
+        emailAddress: email
       });
-
-      // Reward the direct referrer if there is one
-      if (referrerId && userCredential?.uid) {
-        try {
-          await rewardDirectReferrer(userCredential.uid);
-          debugLog("SignUp", "Direct referral reward given");
-        } catch (refError) {
-          errorLog("SignUp", "Error with referral rewards:", refError);
-        }
-      }
 
       // Registration successful, redirect to home page
       toast.success("Hesabınız başarıyla oluşturuldu!");
