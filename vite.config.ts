@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === 'development' &&
     componentTagger(),
-    // Yalnızca üretim modunda console.log ifadelerini kaldır
+    // Only remove console.log statements in production mode
     mode === 'production' && removeConsole()
   ].filter(Boolean),
   resolve: {
@@ -23,7 +23,7 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  // Capacitor'le uyumluluk için ek yapılandırmalar
+  // Additional configurations for Capacitor compatibility
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
