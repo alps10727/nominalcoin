@@ -82,7 +82,8 @@ export async function getReferralTransactions(limitCount = 20, startAfterDoc: Qu
       const data = doc.data();
       return {
         id: doc.id,
-        ...data
+        // Fix: Ensure data is an object before spreading
+        ...(data as object)
       };
     });
   } catch (error) {
