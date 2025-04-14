@@ -25,4 +25,5 @@ export interface UserData {
   };
   miningEndTime?: number; // Added absolute end time for reliable timing
   progress?: number; // Added progress property for mining state tracking
+  miningStartTime?: number; // Added start time for better tracking and calculations
 }
