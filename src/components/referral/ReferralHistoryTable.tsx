@@ -11,15 +11,15 @@ import { tr } from "date-fns/locale";
 
 interface ReferralTransaction {
   id: string;
-  referredId: string; // Değiştirildi: referredUserId -> referredId
+  referredId: string; 
   bonusLevel: string;
   bonusRate: number;
-  bonus: number; // Eklendi: bonus değeri
-  bonusAmount?: number; // Yeni alan eklendi - geriye dönük uyumluluk için
-  miningRateIncrease?: number; // Opsiyonel yapıldı
+  bonus: number;
+  bonusAmount?: number;
+  miningRateIncrease?: number;
   timestamp: { toDate: () => Date };
   description: string;
-  status: string; // Yeni alan eklendi - işlem durumu
+  status: string;
 }
 
 export const ReferralHistoryTable = () => {
@@ -27,16 +27,19 @@ export const ReferralHistoryTable = () => {
   const { currentUser } = useAuth();
   const [transactions, setTransactions] = useState<ReferralTransaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadTransactions = async () => {
       if (currentUser?.uid) {
         try {
           setLoading(true);
+          setError(null);
           const data = await getUserReferralTransactions(currentUser.uid);
           setTransactions(data as ReferralTransaction[]);
         } catch (error) {
           console.error("Referans işlemleri yüklenirken hata:", error);
+          setError("Referans işlemleri yüklenirken bir hata oluştu");
         } finally {
           setLoading(false);
         }
@@ -53,6 +56,22 @@ export const ReferralHistoryTable = () => {
           <div className="flex justify-center items-center h-20">
             <div className="animate-pulse text-gray-400">Yükleniyor...</div>
           </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="border-none shadow-md bg-gradient-to-br from-darkPurple-900/80 to-navy-950/90 text-gray-100 mt-6">
+        <CardContent className="p-6 text-center">
+          <div className="mb-4 flex justify-center">
+            <HistoryIcon className="h-12 w-12 text-red-400" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-200">Veri yüklenirken bir sorun oluştu</h3>
+          <p className="mt-2 text-gray-400 text-sm">
+            Lütfen daha sonra tekrar deneyin
+          </p>
         </CardContent>
       </Card>
     );
@@ -98,7 +117,7 @@ export const ReferralHistoryTable = () => {
                 <TableCell className="py-2">
                   <div className="flex items-center">
                     <MessageCirclePlus className="h-4 w-4 mr-2 text-blue-400" />
-                    <span className="text-gray-200 text-sm">{tx.referredId.substring(0, 6)}...</span>
+                    <span className="text-gray-200 text-sm">{tx.referredId?.substring(0, 6) || "Bilinmiyor"}...</span>
                   </div>
                 </TableCell>
                 <TableCell className="py-2 text-sm">
@@ -117,7 +136,10 @@ export const ReferralHistoryTable = () => {
                   +{(tx.miningRateIncrease || tx.bonus || tx.bonusAmount || 0).toFixed(3)}
                 </TableCell>
                 <TableCell className="py-2 text-right text-gray-400 text-xs">
-                  {formatDistanceToNow(tx.timestamp.toDate(), { addSuffix: true, locale: tr })}
+                  {tx.timestamp && tx.timestamp.toDate ? 
+                    formatDistanceToNow(tx.timestamp.toDate(), { addSuffix: true, locale: tr }) : 
+                    "Bilinmiyor"
+                  }
                 </TableCell>
               </TableRow>
             ))}

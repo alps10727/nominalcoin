@@ -1,8 +1,11 @@
 
 import { Zap } from "lucide-react";
 import { REFERRAL_BONUS_RATE } from "@/utils/miningCalculator";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const ReferralBonus = () => {
+  const { t } = useLanguage();
+  
   return (
     <div className="text-center mt-6 text-gray-300">
       <p className="flex items-center justify-center mb-2">

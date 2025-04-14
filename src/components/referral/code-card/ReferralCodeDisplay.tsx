@@ -1,42 +1,42 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Copy, CheckCircle } from "lucide-react";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { Copy, CheckCircle, Edit } from "lucide-react";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ReferralCodeDisplayProps {
   displayReferralCode: string;
   onEdit: () => void;
 }
 
-export const ReferralCodeDisplay = ({ 
-  displayReferralCode,
-  onEdit
-}: ReferralCodeDisplayProps) => {
+export const ReferralCodeDisplay = ({ displayReferralCode, onEdit }: ReferralCodeDisplayProps) => {
   const { t } = useLanguage();
   const [showCopied, setShowCopied] = useState<boolean>(false);
-  
+
+  // Copy the referral code to clipboard
   const copyToClipboard = (text: string) => {
+    if (!text) return;
+    
     navigator.clipboard.writeText(text)
       .then(() => {
         setShowCopied(true);
         setTimeout(() => setShowCopied(false), 2000);
-        toast.success(t('referral.copied'), {
+        toast.success(t('referral.copied', 'Kod kopyalandı'), {
           description: text,
         });
       })
       .catch(err => {
-        console.error('Failed to copy: ', err);
+        console.error('Kopyalama başarısız: ', err);
         toast.error(t('referral.copyFailed', 'Kopyalama başarısız oldu'));
       });
   };
-
+  
   return (
     <div className="bg-navy-800/50 rounded-lg p-4 border border-purple-500/30 shadow-inner">
       <div className="flex items-center justify-between mb-2">
         <label className="block text-sm font-medium text-gray-300">
-          {t('referral.code')}
+          {t('referral.code', 'Referans Kodunuz')}
         </label>
         <Button
           variant="ghost"
@@ -81,5 +81,3 @@ export const ReferralCodeDisplay = ({
     </div>
   );
 };
-
-import { Edit } from "lucide-react";
