@@ -38,50 +38,46 @@ const SignUp = () => {
       setLoading(true);
       setError(null);
       
-      // Check referral code (now required)
-      if (!referralCode || referralCode.trim() === '') {
-        setError("Referans kodu gereklidir.");
-        setLoading(false);
-        return;
-      }
-      
       let referrerId: string | null = null;
       
-      try {
-        // Standardize the referral code (remove spaces, convert to uppercase, remove dashes)
-        const storageCode = prepareReferralCodeForStorage(referralCode);
-        
-        debugLog("SignUp", "Standardized referral code:", { 
-          original: referralCode,
-          standardized: storageCode
-        });
-        
-        // Search with standardized code regardless of upper/lower case
-        const referrerIds = await findUsersByReferralCode(storageCode);
-        
-        if (referrerIds.length > 0) {
-          referrerId = referrerIds[0];
-          debugLog("SignUp", "Found user with referral code:", referrerId);
-        } else {
-          setError("Geçersiz referans kodu. Lütfen geçerli bir referans kodu girin.");
+      // Eğer referans kodu varsa doğrula
+      if (referralCode && referralCode.trim() !== '') {
+        try {
+          // Standardize the referral code (remove spaces, convert to uppercase, remove dashes)
+          const storageCode = prepareReferralCodeForStorage(referralCode);
+          
+          debugLog("SignUp", "Standardized referral code:", { 
+            original: referralCode,
+            standardized: storageCode
+          });
+          
+          // Search with standardized code regardless of upper/lower case
+          const referrerIds = await findUsersByReferralCode(storageCode);
+          
+          if (referrerIds.length > 0) {
+            referrerId = referrerIds[0];
+            debugLog("SignUp", "Found user with referral code:", referrerId);
+          } else {
+            setError("Geçersiz referans kodu. Bu kod mevcut değil.");
+            setLoading(false);
+            return;
+          }
+        } catch (err) {
+          errorLog("SignUp", "Error checking referral code:", err);
+          setError("Referans kodu kontrolünde bir hata oluştu. Lütfen tekrar deneyin.");
           setLoading(false);
           return;
         }
-      } catch (err) {
-        errorLog("SignUp", "Error checking referral code:", err);
-        setError("Referans kodu kontrolünde bir hata oluştu. Lütfen tekrar deneyin.");
-        setLoading(false);
-        return;
       }
 
-      // Register user only if referral code is valid
+      // Kullanıcıyı kaydet - referans kodu opsiyonel
       const userCredential = await registerUser(email, password, {
         name,
         emailAddress: email,
         referredBy: referrerId,
       });
 
-      // If there's a referral, reward the direct referrer
+      // Eğer referans varsa, direk referansı ödüllendir
       if (referrerId && userCredential?.uid) {
         try {
           await rewardDirectReferrer(userCredential.uid);
@@ -91,7 +87,7 @@ const SignUp = () => {
         }
       }
 
-      // Registration successful, redirect to home page
+      // Kayıt başarılı, ana sayfaya yönlendir
       toast.success("Hesabınız başarıyla oluşturuldu!");
       navigate("/");
     } catch (error: any) {

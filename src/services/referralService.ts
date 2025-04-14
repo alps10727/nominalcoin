@@ -53,6 +53,16 @@ export async function findUsersByReferralCode(referralCode: string): Promise<str
       return userIds;
     }
     
+    // Ayrıca özel (custom) koda göre de arama yap
+    const customCodeQuery = query(usersRef, where("customReferralCode", "==", storageCode));
+    const customCodeSnapshot = await getDocs(customCodeQuery);
+    
+    if (!customCodeSnapshot.empty) {
+      const userIds = customCodeSnapshot.docs.map(doc => doc.id);
+      debugLog("referralService", `Found ${userIds.length} users with custom referral code:`, storageCode);
+      return userIds;
+    }
+    
     debugLog("referralService", "No users found with referral code:", storageCode);
     return [];
   } catch (error) {
@@ -66,8 +76,9 @@ export async function findUsersByReferralCode(referralCode: string): Promise<str
  */
 export async function validateReferralCode(referralCode: string): Promise<boolean> {
   try {
+    // Eğer kod boşsa artık geçerlidir (opsiyonel)
     if (!referralCode || referralCode.trim() === '') {
-      return false;
+      return true;
     }
     
     const standardizedCode = standardizeReferralCode(referralCode);
@@ -187,5 +198,46 @@ export async function getReferralTransactions(userId: string) {
   } catch (error) {
     errorLog("referralService", "Error fetching referral transactions:", error);
     return [];
+  }
+}
+
+/**
+ * Özel referans kodu oluşturma (kullanıcının kendisi belirler)
+ */
+export async function createCustomReferralCode(userId: string, customCode: string): Promise<boolean> {
+  try {
+    if (!userId || !customCode) return false;
+    
+    // Kodu standartlaştır
+    const standardizedCode = standardizeReferralCode(customCode);
+    
+    // Kod uzunluğu kontrolü
+    if (standardizedCode.length < 4 || standardizedCode.length > 12) {
+      toast.error("Referans kodu 4-12 karakter arasında olmalıdır");
+      return false;
+    }
+    
+    // Kodun daha önce kullanılıp kullanılmadığını kontrol et
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("customReferralCode", "==", standardizedCode));
+    const querySnapshot = await getDocs(q);
+    
+    if (!querySnapshot.empty) {
+      toast.error("Bu referans kodu zaten kullanımda");
+      return false;
+    }
+    
+    // Kodu kaydet
+    const userRef = doc(db, "users", userId);
+    await updateDoc(userRef, {
+      customReferralCode: standardizedCode
+    });
+    
+    toast.success("Özel referans kodunuz başarıyla oluşturuldu");
+    return true;
+  } catch (error) {
+    errorLog("referralService", "Error creating custom referral code:", error);
+    toast.error("Referans kodu oluşturulurken bir hata oluştu");
+    return false;
   }
 }

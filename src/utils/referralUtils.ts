@@ -21,10 +21,13 @@ export function standardizeReferralCode(code: string): string {
  * Valid codes are 9 characters long and contain only uppercase letters and numbers
  */
 export function validateReferralCode(code: string): boolean {
-  if (!code) return false;
+  if (!code) return true; // Boş kod artık geçerli
   
   // Standardize the code first (which will convert to uppercase)
   const standardizedCode = standardizeReferralCode(code);
+  
+  // Eğer boşsa geçerli
+  if (standardizedCode === '') return true;
   
   // Ensure the code is exactly 9 characters long after sanitization
   return standardizedCode.length === 9 && /^[A-Z0-9]{9}$/.test(standardizedCode);

@@ -1,3 +1,4 @@
+
 import { 
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -20,6 +21,7 @@ export interface UserRegistrationData {
   referredBy?: string | null;
   referrals?: string[];
   referralCount?: number;
+  customReferralCode?: string;
 }
 
 export async function registerUser(email: string, password: string, userData: UserRegistrationData = {}): Promise<User> {

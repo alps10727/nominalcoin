@@ -12,7 +12,7 @@ export interface UserData {
   miningSession?: number;
   upgrades?: any[];
   miningPeriod?: number; // Total mining period in seconds
-  referralCode?: string; // User's unique referral code
+  referralCode?: string; // Artık opsiyonel - kullanıcının benzersiz referans kodu
   referralCount?: number; // Count of successful referrals
   referrals?: string[]; // Array of user IDs referred by this user
   referredBy?: string | null; // User ID who referred this user, if any
@@ -26,4 +26,5 @@ export interface UserData {
   miningEndTime?: number; // Added absolute end time for reliable timing
   progress?: number; // Added progress property for mining state tracking
   miningStartTime?: number; // Added start time for better tracking and calculations
+  customReferralCode?: string; // Kullanıcının kendi belirlediği referans kodu (opsiyonel)
 }

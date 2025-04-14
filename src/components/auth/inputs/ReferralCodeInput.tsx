@@ -9,9 +9,15 @@ interface ReferralCodeInputProps {
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
+  required?: boolean; // Yeni: zorunlu olup olmadığını belirler
 }
 
-const ReferralCodeInput = ({ value, onChange, disabled = false }: ReferralCodeInputProps) => {
+const ReferralCodeInput = ({ 
+  value, 
+  onChange, 
+  disabled = false, 
+  required = false 
+}: ReferralCodeInputProps) => {
   const [displayValue, setDisplayValue] = useState(value);
   
   // Format input value for display
@@ -32,22 +38,28 @@ const ReferralCodeInput = ({ value, onChange, disabled = false }: ReferralCodeIn
   return (
     <div className="space-y-2">
       <Label htmlFor="referralCode" className="flex items-center">
-        Referans Kodu <span className="text-red-500 ml-1">*</span>
-        <span className="text-xs text-muted-foreground ml-2">(Zorunlu)</span>
+        Referans Kodu {required && <span className="text-red-500 ml-1">*</span>}
+        {required ? (
+          <span className="text-xs text-muted-foreground ml-2">(Zorunlu)</span>
+        ) : (
+          <span className="text-xs text-muted-foreground ml-2">(Opsiyonel)</span>
+        )}
       </Label>
       <div className="relative">
         <Users className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
         <Input
           id="referralCode"
           type="text"
-          placeholder="Referans kodunuzu girin (XXX-XXX-XXX)"
+          placeholder="Referans kodunuzu girin (Opsiyonel)"
           className="pl-10"
           value={displayValue}
           onChange={handleChange}
           disabled={disabled}
-          required
+          required={required}
           onInvalid={(e: React.FormEvent<HTMLInputElement>) => {
-            (e.target as HTMLInputElement).setCustomValidity('Referans kodu gereklidir!');
+            if (required) {
+              (e.target as HTMLInputElement).setCustomValidity('Referans kodu gereklidir!');
+            }
           }}
           onInput={(e: React.FormEvent<HTMLInputElement>) => {
             (e.target as HTMLInputElement).setCustomValidity('');
@@ -55,7 +67,7 @@ const ReferralCodeInput = ({ value, onChange, disabled = false }: ReferralCodeIn
         />
       </div>
       <p className="text-xs text-muted-foreground">
-        Geçerli bir referans kodu girin. Büyük-küçük harf fark etmez.
+        Referans kodu girebilir veya boş bırakabilirsiniz. Büyük-küçük harf fark etmez.
       </p>
     </div>
   );

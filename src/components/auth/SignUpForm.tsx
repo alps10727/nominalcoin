@@ -109,6 +109,7 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
         value={referralCode} 
         onChange={setReferralCode}
         disabled={loading || isOffline}
+        required={false} // Artık zorunlu değil
       />
       
       <PasswordInput 
