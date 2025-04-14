@@ -3,7 +3,7 @@ import { UserData } from "@/utils/storage";
 import { loadUserDataFromFirebase } from "@/services/userDataLoader";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { handleFirebaseConnectionError } from "@/utils/firebaseErrorHandler";
-import { QueryCacheManager } from "@/services/optimizationService";
+import { QueryCacheManager } from "@/services/db";
 
 /**
  * Firebase'den veri yükleme için geliştirilmiş kanca

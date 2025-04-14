@@ -1,14 +1,14 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { User } from "firebase/auth";
-import { UserData, saveUserData, clearUserData } from "@/utils/storage";
-import { debugLog, errorLog } from "@/utils/debugUtils";
 import { toast } from "sonner";
+import { debugLog, errorLog } from "@/utils/debugUtils";
+import { handleFirebaseConnectionError } from "@/utils/firebaseErrorHandler";
+import { QueryCacheManager } from "@/services/db";
+import { UserData, saveUserData, clearUserData } from "@/utils/storage";
 import { useLocalDataLoader } from "@/hooks/user/useLocalDataLoader";
 import { useFirebaseDataLoader } from "@/hooks/user/useFirebaseDataLoader";
 import { useUserDataValidator } from "@/hooks/user/useUserDataValidator";
-import { handleFirebaseConnectionError } from "@/utils/firebaseErrorHandler";
-import { QueryCacheManager } from "@/services/optimizationService";
 
 export interface UserDataState {
   userData: UserData | null;
@@ -197,11 +197,6 @@ export function useUserDataLoader(
       clearInterval(refreshInterval);
     };
   }, [loadUserData, currentUser]);
-
-  // Yeniden yükleme fonksiyonu (dışa açılabilir)
-  const reloadUserData = () => {
-    setLoadAttempt(prev => prev + 1);
-  };
 
   return { userData, loading, dataSource };
 }
