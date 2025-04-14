@@ -19,7 +19,10 @@ export function useMiningActions(
     
     try {
       const miningPeriod = 6 * 60 * 60; // 6 saat = 21600 saniye
-      const miningEndTime = Date.now() + miningPeriod * 1000; // Bitiş zamanını mutlak olarak ayarla
+      const now = Date.now();
+      const miningEndTime = now + miningPeriod * 1000; // Bitiş zamanını mutlak olarak ayarla
+      
+      debugLog("useMiningActions", `Mining başlatılıyor: ${now}, bitiş: ${miningEndTime}, fark: ${miningPeriod}s`);
       
       // State'i güncelle
       setState(prev => ({
@@ -29,13 +32,9 @@ export function useMiningActions(
         miningPeriod: miningPeriod,
         progress: 0,
         miningSession: 0,
-        miningEndTime: miningEndTime
+        miningEndTime: miningEndTime, // Always store absolute end time for recovery
+        miningStartTime: now // Add start time for better tracking
       }));
-      
-      debugLog("useMiningActions", "Mining başlatıldı", { 
-        miningPeriod, 
-        endTime: new Date(miningEndTime).toLocaleString() 
-      });
       
       // Kullanıcı oturum açmışsa, Firebase'e kaydet
       if (currentUser && updateUserData) {
@@ -45,21 +44,24 @@ export function useMiningActions(
             miningTime: miningPeriod,
             miningPeriod: miningPeriod,
             miningSession: 0,
-            miningEndTime: miningEndTime
+            miningEndTime: miningEndTime, // Ensure this is stored in Firebase too
+            miningStartTime: now, // Store start time as well
+            lastSaved: now
           };
           
           await updateUserData(updates);
           debugLog("useMiningActions", "Mining durumu Firebase'e kaydedildi");
         } catch (error) {
           // İnternet bağlantısı yoksa çevrimdışı modda devam et
-          // updateUserData içindeki mantık bu hatayı zaten ele alacağı için 
-          // burada sadece loglama yapıyoruz ve kullanıcı akışını bozmuyoruz
           errorLog("useMiningActions", "Firebase'e kaydetme başarısız, yerel modda devam ediliyor:", error);
-          
-          // Toast mesajı updateUserData içinde gösterilecek, burada tekrarlamıyoruz
-          // Mining devam etmeli, hata kullanıcıya bildirildi ama işlemi kesmiyor
         }
       }
+      
+      // Success notification
+      toast.success("Madencilik başlatıldı", {
+        description: "6 saatlik madencilik süreci başladı",
+        duration: 3000
+      });
     } catch (error) {
       errorLog("useMiningActions", "Mining başlatılırken hata:", error);
       toast.error("Mining başlatılırken bir hata oluştu");
@@ -81,14 +83,17 @@ export function useMiningActions(
       setState(prev => ({
         ...prev,
         miningActive: false,
-        miningTime: 0,
-        progress: 1,
-        miningEndTime: undefined // End time'ı kaldır
+        miningTime: prev.miningPeriod, // Reset to full time
+        progress: 0,
+        miningEndTime: undefined, // Clear end time
+        miningStartTime: undefined // Clear start time
       }));
       
       // Kazanılan miktar görünümü
       if (miningSession > 0) {
-        toast.success(`+${miningSession.toFixed(3)} coin kazandınız!`);
+        toast.success(`+${miningSession.toFixed(3)} coin kazandınız!`, {
+          duration: 4000
+        });
       }
       
       debugLog("useMiningActions", "Mining durduruldu", { 
@@ -101,9 +106,11 @@ export function useMiningActions(
         try {
           const updates: Partial<UserData> = {
             miningActive: false,
-            miningTime: 0,
+            miningTime: state.miningPeriod, // Reset to full time
             balance: currentBalance,
-            miningEndTime: undefined
+            miningEndTime: undefined, // Clear end time in Firebase too
+            miningStartTime: undefined, // Clear start time
+            lastSaved: Date.now()
           };
           
           await updateUserData(updates);
@@ -111,7 +118,6 @@ export function useMiningActions(
         } catch (error) {
           // İnternet bağlantısı yoksa çevrimdışı modda devam et
           errorLog("useMiningActions", "Firebase'e kaydetme başarısız, yerel modda devam ediliyor:", error);
-          // Mining durdurma işlemi yine de başarılı sayılmalı, kullanıcı akışını bozmuyoruz
         }
       }
     } catch (error) {

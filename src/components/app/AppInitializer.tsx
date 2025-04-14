@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import LoadingScreen from "../dashboard/LoadingScreen";
 import { debugLog } from "@/utils/debugUtils";
 import OfflineIndicator from "../dashboard/OfflineIndicator";
+import { loadUserData } from "@/utils/storage";
 
 interface AppInitializerProps {
   children: React.ReactNode;
@@ -16,6 +17,43 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
   const [initialLoadAttempted, setInitialLoadAttempted] = useState(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [loadingError, setLoadingError] = useState<Error | null>(null);
+  
+  // Mining timer recovery check
+  useEffect(() => {
+    if (ready) {
+      try {
+        const localData = loadUserData();
+        
+        // Check for active mining with end time in the future
+        if (localData && localData.miningActive && localData.miningEndTime) {
+          const now = Date.now();
+          
+          if (localData.miningEndTime > now) {
+            // Mining is still active
+            const remainingTimeMinutes = Math.floor((localData.miningEndTime - now) / 60000);
+            
+            // Notify only if significant time remains (more than 1 minute)
+            if (remainingTimeMinutes > 1) {
+              toast.info(`Madencilik devam ediyor`, {
+                description: `Kalan süre: ${remainingTimeMinutes} dakika`,
+                duration: 4000
+              });
+              debugLog("AppInitializer", `Recovered active mining: ${remainingTimeMinutes} minutes remaining`);
+            }
+          } else if (localData.miningActive) {
+            // Mining period completed during downtime
+            toast.success(`Madencilik tamamlandı`, {
+              description: "Uygulama kapalıyken madencilik süresi doldu",
+              duration: 4000
+            });
+            debugLog("AppInitializer", "Mining period completed while app was closed");
+          }
+        }
+      } catch (error) {
+        console.error("Mining recovery check error:", error);
+      }
+    }
+  }, [ready]);
   
   // Global hata yakalayıcı
   useEffect(() => {
@@ -79,8 +117,8 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
     initializeApp();
     
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      window.addEventListener('online', handleOnline);
+      window.addEventListener('offline', handleOffline);
     };
   }, [reconnecting, initialLoadAttempted, loadAttempt, isOffline]);
   
