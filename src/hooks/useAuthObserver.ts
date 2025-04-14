@@ -10,6 +10,10 @@ export interface AuthObserverState {
   authInitialized: boolean;
 }
 
+/**
+ * Hook that observes Firebase authentication state changes
+ * Provides authentication initialization status and user information
+ */
 export function useAuthObserver(): AuthObserverState {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -19,33 +23,38 @@ export function useAuthObserver(): AuthObserverState {
     debugLog("useAuthObserver", "Authentication observer initializing...");
     let authTimeoutId: NodeJS.Timeout;
     
-    // Firebase auth için daha uzun bir zaman aşımı süresi (30 saniye)
+    // Set timeout for Firebase auth initialization (30 seconds)
     authTimeoutId = setTimeout(() => {
       if (loading && !authInitialized) {
         debugLog("useAuthObserver", "Firebase Auth timed out, falling back to offline mode");
         setLoading(false);
         setCurrentUser(null);
         setAuthInitialized(true);
-        console.warn("Firebase Authentication zaman aşımına uğradı, çevrimdışı mod etkinleştirildi.");
+        console.warn("Firebase Authentication timed out, offline mode activated");
       }
-    }, 30000); // 30 saniyeye çıkarıldı
+    }, 30000);
 
-    // Auth durumu değişikliklerini dinle
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      debugLog("useAuthObserver", "Auth state changed:", user ? user.email : 'No user');
-      clearTimeout(authTimeoutId);
-      setCurrentUser(user);
-      setAuthInitialized(true);
-      setLoading(false);
-    }, (error) => {
-      // Hata durumunda
-      errorLog("useAuthObserver", "Auth observer error:", error);
-      clearTimeout(authTimeoutId);
-      setAuthInitialized(true);
-      setLoading(false);
-      console.error("Authentication observer hatası:", error);
-    });
+    // Listen for auth state changes
+    const unsubscribe = onAuthStateChanged(auth, 
+      // Success handler
+      (user) => {
+        debugLog("useAuthObserver", "Auth state changed:", user ? user.email : 'No user');
+        clearTimeout(authTimeoutId);
+        setCurrentUser(user);
+        setAuthInitialized(true);
+        setLoading(false);
+      }, 
+      // Error handler
+      (error) => {
+        errorLog("useAuthObserver", "Auth observer error:", error);
+        clearTimeout(authTimeoutId);
+        setAuthInitialized(true);
+        setLoading(false);
+        console.error("Authentication observer error:", error);
+      }
+    );
 
+    // Cleanup function
     return () => {
       clearTimeout(authTimeoutId);
       unsubscribe();

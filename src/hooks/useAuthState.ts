@@ -1,7 +1,7 @@
 
 import { useAuthObserver } from "./useAuthObserver";
 import { useUserDataLoader } from "./useUserDataLoader";
-import { UserData } from "@/utils/storage";
+import { UserData } from "@/types/storage";
 import { useEffect, useState } from "react";
 
 export interface AuthState {
@@ -13,12 +13,13 @@ export interface AuthState {
 }
 
 /**
- * Firebase ve yerel depolama entegrasyonuyla yetkilendirme durumu kancası
+ * Authentication state hook with Firebase and local storage integration
  */
 export function useAuthState(): AuthState {
-  // Uygulama çevrimdışı mı kontrolü
+  // Network availability monitor
   const [isNetworkAvailable, setIsNetworkAvailable] = useState(navigator.onLine);
   
+  // Setup online/offline event listeners
   useEffect(() => {
     const handleOnline = () => setIsNetworkAvailable(true);
     const handleOffline = () => setIsNetworkAvailable(false);
@@ -32,16 +33,16 @@ export function useAuthState(): AuthState {
     };
   }, []);
   
-  // Yetkilendirme gözlemcisi kancasını kullan
+  // Use auth observer hook
   const { currentUser, loading: authLoading, authInitialized } = useAuthObserver();
   
-  // Kullanıcı veri yükleyici kancasını kullan (Firebase öncelikli)
+  // Use user data loader hook (Firebase prioritized)
   const { userData, loading: dataLoading, dataSource } = useUserDataLoader(currentUser, authInitialized);
   
-  // Firebase ve yerel veri yükleme durumlarını birleştir
+  // Combine Firebase and local data loading states
   const loading = authLoading || dataLoading;
   
-  // Çevrimdışı durumu izle (kullanıcı verisi yerel depodan geldiyse veya ağ bağlantısı yoksa)
+  // Track offline state (user data from local storage or no network connection)
   const isOffline = dataSource === 'local' || !isNetworkAvailable;
 
   return { 
@@ -53,5 +54,5 @@ export function useAuthState(): AuthState {
   };
 }
 
-// Firebase User tipini içe aktar
+// Import Firebase User type
 import { User } from "firebase/auth";
