@@ -1,6 +1,6 @@
 
 import { MiningState } from '@/types/mining';
-import { UserData } from '@/utils/storage';
+import { UserData } from '@/types/storage'; // Changed from @/utils/storage to @/types/storage
 import { useAuth } from '@/contexts/AuthContext';
 import { debugLog, errorLog } from '@/utils/debugUtils';
 import { toast } from 'sonner';

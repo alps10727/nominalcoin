@@ -1,11 +1,10 @@
-
 // Re-export everything from the refactored modules
 // This maintains backward compatibility with existing code
 
 import { QueryCacheManager } from "@/services/db";
 export { loadUserData, saveUserData, clearUserData } from './storageOperations';
 export { getNextUserId } from './userIdGenerator';
-export type { UserData } from '../types/storage';
+export type { UserData } from '../types/storage'; // Make sure we're exporting the same UserData
 
 // Add optimized storage helpers
 export const clearStorageCache = () => {
