@@ -18,19 +18,19 @@ export function standardizeReferralCode(code: string): string {
 
 /**
  * Validates if a referral code is in the correct format
- * Valid codes are 9 characters long and contain only uppercase letters and numbers
+ * New format: 3 letters followed by 3 numbers (e.g., ABC123)
  */
 export function validateReferralCode(code: string): boolean {
-  if (!code) return true; // Boş kod artık geçerli
+  if (!code) return true; // Empty code is valid (optional)
   
   // Standardize the code first (which will convert to uppercase)
   const standardizedCode = standardizeReferralCode(code);
   
-  // Eğer boşsa geçerli
+  // If empty, it's valid
   if (standardizedCode === '') return true;
   
-  // Ensure the code is exactly 9 characters long after sanitization
-  return standardizedCode.length === 9 && /^[A-Z0-9]{9}$/.test(standardizedCode);
+  // Validate the new format: 3 letters followed by 3 numbers
+  return /^[A-Z]{3}\d{3}$/.test(standardizedCode);
 }
 
 /**
@@ -49,63 +49,44 @@ export function validateReferralMatch(inputCode: string, storedCode: string): bo
 
 /**
  * Formats a referral code for display with dashes
- * Example: ABC123DEF becomes ABC-123-DEF
+ * Example: ABC123 remains as ABC123 (no dashes in new format)
  */
 export function formatReferralCodeForDisplay(code: string): string {
   if (!code) return '';
   
   // Sanitize and standardize first (which will convert to uppercase)
-  const cleanCode = standardizeReferralCode(code);
-  
-  // If less than 9 characters, return as is
-  if (cleanCode.length < 9) return cleanCode;
-  
-  // Format with dashes
-  return `${cleanCode.slice(0, 3)}-${cleanCode.slice(3, 6)}-${cleanCode.slice(6, 9)}`;
+  return standardizeReferralCode(code);
 }
 
 /**
  * Prepares a referral code for storage by standardizing it
- * This removes dashes, spaces, and converts to uppercase
+ * This removes spaces and converts to uppercase
  */
 export function prepareReferralCodeForStorage(code: string): string {
   return standardizeReferralCode(code);
 }
 
 /**
- * Generates a referral code with improved uniqueness
- * @returns A standardized code that's 9 characters long
+ * Generates a random referral code in the format 3 letters + 3 digits
+ * @returns A standardized code that follows the format AAA000
  */
-export function generateReferralCode(userId: string | undefined): string {
-  if (!userId) return '';
-  
-  // Generate a random code consisting of uppercase letters and numbers
-  // Avoid confusing characters like I, O, 1, 0
-  const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  
-  // Use the first 5 chars of userId + 4 random chars
-  const userPart = userId.slice(0, 5).toUpperCase();
-  
-  // Generate 4 random characters
-  let randomChars = '';
-  for (let i = 0; i < 4; i++) {
-    randomChars += charset.charAt(Math.floor(Math.random() * charset.length));
+export function generateReferralCode(): string {
+  // Generate 3 random letters
+  const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // Excluding I and O for readability
+  let lettersPart = '';
+  for (let i = 0; i < 3; i++) {
+    lettersPart += letters.charAt(Math.floor(Math.random() * letters.length));
   }
   
-  // Ensure we have exactly 9 characters
-  const combined = (userPart + randomChars).slice(0, 9);
-  
-  // Pad with random characters if needed
-  const paddingNeeded = 9 - combined.length;
-  let padding = '';
-  if (paddingNeeded > 0) {
-    for (let i = 0; i < paddingNeeded; i++) {
-      padding += charset.charAt(Math.floor(Math.random() * charset.length));
-    }
+  // Generate 3 random digits
+  const digits = '0123456789';
+  let digitsPart = '';
+  for (let i = 0; i < 3; i++) {
+    digitsPart += digits.charAt(Math.floor(Math.random() * digits.length));
   }
-    
-  // Return storage format (no dashes)
-  return (combined + padding).slice(0, 9);
+  
+  // Combine letters and digits
+  return lettersPart + digitsPart;
 }
 
 /**

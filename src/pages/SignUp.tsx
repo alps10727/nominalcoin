@@ -17,17 +17,17 @@ const SignUp = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Android geri tuşunu yönet
+  // Android back button handler
   useEffect(() => {
     const handleBackButton = () => {
-      // Kayıt sayfasında geri tuşunu engelle
+      // Prevent back button on registration page
       return false;
     };
 
-    // Capacitor App plugin ile geri tuşu olayını dinle
+    // Listen for back button events with Capacitor App plugin
     App.addListener('backButton', handleBackButton);
 
-    // Bileşen temizlendiğinde dinleyiciyi kaldır
+    // Remove listeners when component unmounts
     return () => {
       App.removeAllListeners();
     };
@@ -40,10 +40,10 @@ const SignUp = () => {
       
       let referrerId: string | null = null;
       
-      // Referans kodu varsa doğrula (artık tamamen opsiyonel)
+      // Validate referral code if provided (completely optional)
       if (referralCode && referralCode.trim() !== '') {
         try {
-          // Standardize the referral code (remove spaces, convert to uppercase, remove dashes)
+          // Standardize the referral code
           const storageCode = prepareReferralCodeForStorage(referralCode);
           
           debugLog("SignUp", "Checking referral code:", { 
@@ -51,31 +51,38 @@ const SignUp = () => {
             standardized: storageCode
           });
           
-          // Search with standardized code regardless of upper/lower case
+          // Check referral code format (3 letters + 3 digits)
+          if (!/^[A-Z]{3}\d{3}$/.test(storageCode)) {
+            toast.warning("Geçersiz referans kodu formatı. Doğru format: ABC123 (3 harf + 3 rakam)");
+            setLoading(false);
+            return; // Prevent registration with invalid code format
+          }
+          
+          // Search for the referrer
           const referrerIds = await findUsersByReferralCode(storageCode);
           
           if (referrerIds.length > 0) {
             referrerId = referrerIds[0];
             debugLog("SignUp", "Found user with referral code:", referrerId);
           } else {
-            // Referans kodu bulunamazsa ARTIK hata vermiyoruz, sadece uyarı gösteriyoruz
+            // Code not found, show warning but continue with registration
             toast.warning("Girdiğiniz referans kodu bulunamadı. Kayıt işlemi referans kodunsuz devam ediyor.");
           }
         } catch (err) {
-          // Referans kodu kontrolünde hata olsa bile kayıt işlemine devam ediyoruz
+          // Error checking referral code, continue with registration
           errorLog("SignUp", "Error checking referral code:", err);
           toast.warning("Referans kodu kontrolünde bir hata oluştu. Kayıt işlemi referans kodunsuz devam ediyor.");
         }
       }
 
-      // Kullanıcıyı kaydet - referans kodu opsiyonel
+      // Register the user - referral code is optional
       const userCredential = await registerUser(email, password, {
         name,
         emailAddress: email,
         referredBy: referrerId,
       });
 
-      // Eğer referans varsa, direk referansı ödüllendir
+      // Reward the direct referrer if there is one
       if (referrerId && userCredential?.uid) {
         try {
           await rewardDirectReferrer(userCredential.uid);
@@ -85,7 +92,7 @@ const SignUp = () => {
         }
       }
 
-      // Kayıt başarılı, ana sayfaya yönlendir
+      // Registration successful, redirect to home page
       toast.success("Hesabınız başarıyla oluşturuldu!");
       navigate("/");
     } catch (error: any) {

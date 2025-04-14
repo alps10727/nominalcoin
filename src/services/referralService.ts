@@ -1,8 +1,7 @@
-
 import { collection, query, where, getDocs, doc, getDoc, updateDoc, increment, setDoc } from "firebase/firestore";
 import { db } from "@/config/firebase";
 import { debugLog, errorLog } from "@/utils/debugUtils";
-import { standardizeReferralCode, prepareReferralCodeForStorage } from "@/utils/referralUtils";
+import { standardizeReferralCode, prepareReferralCodeForStorage, validateReferralCode } from "@/utils/referralUtils";
 import { runAtomicTransaction, runReferralTransaction } from "@/services/db/transactionService";
 import { REFERRAL_BONUS_RATE } from "@/utils/miningCalculator";
 import { toast } from "sonner";
@@ -15,7 +14,7 @@ const logReferralTransaction = async (
 ) => {
   try {
     const transactionLogRef = collection(db, "referralTransactions");
-    await updateDoc(doc(transactionLogRef), {
+    await setDoc(doc(transactionLogRef), {
       referrerId,
       newUserId,
       bonusAmount,
@@ -53,7 +52,7 @@ export async function findUsersByReferralCode(referralCode: string): Promise<str
       return userIds;
     }
     
-    // Ayrıca özel (custom) koda göre de arama yap
+    // Also search by custom referral code
     const customCodeQuery = query(usersRef, where("customReferralCode", "==", storageCode));
     const customCodeSnapshot = await getDocs(customCodeQuery);
     
@@ -76,20 +75,54 @@ export async function findUsersByReferralCode(referralCode: string): Promise<str
  */
 export async function validateReferralCode(referralCode: string): Promise<boolean> {
   try {
-    // Eğer kod boşsa artık geçerlidir (opsiyonel)
+    // If code is empty, it's valid now (optional)
     if (!referralCode || referralCode.trim() === '') {
       return true;
     }
     
     const standardizedCode = standardizeReferralCode(referralCode);
-    if (standardizedCode.length !== 9) {
+    
+    // Check the format using the updated validation (3 letters + 3 numbers)
+    if (!(/^[A-Z]{3}\d{3}$/.test(standardizedCode))) {
       return false;
     }
     
+    // Code is in correct format, now check if it's already used
     const users = await findUsersByReferralCode(standardizedCode);
     return users.length > 0;
   } catch (error) {
     errorLog("referralService", "Error validating referral code:", error);
+    return false;
+  }
+}
+
+/**
+ * Checks if a code is unique (not already used by another user)
+ */
+export async function isCodeUnique(code: string): Promise<boolean> {
+  try {
+    if (!code) return true;
+    
+    const standardizedCode = standardizeReferralCode(code);
+    
+    // Check both referralCode and customReferralCode fields
+    const usersRef = collection(db, "users");
+    
+    // Check referralCode
+    const refCodeQuery = query(usersRef, where("referralCode", "==", standardizedCode));
+    const refCodeSnapshot = await getDocs(refCodeQuery);
+    
+    if (!refCodeSnapshot.empty) {
+      return false; // Code is already in use
+    }
+    
+    // Check customReferralCode
+    const customCodeQuery = query(usersRef, where("customReferralCode", "==", standardizedCode));
+    const customCodeSnapshot = await getDocs(customCodeQuery);
+    
+    return customCodeSnapshot.empty; // True if empty (unique), False if found
+  } catch (error) {
+    errorLog("referralService", "Error checking code uniqueness:", error);
     return false;
   }
 }
@@ -202,43 +235,34 @@ export async function getReferralTransactions(userId: string) {
 }
 
 /**
- * Özel referans kodu oluşturma (kullanıcının kendisi belirler)
+ * Creates a custom referral code for a user
+ * Updated with new format validation and improved error handling
  */
 export async function createCustomReferralCode(userId: string, customCode: string): Promise<boolean> {
   try {
-    if (!userId || !customCode) return false;
+    if (!userId || !customCode) {
+      toast.error("Referans kodu gereklidir");
+      return false;
+    }
     
-    // Kodu standartlaştır
+    // Standardize the code
     const standardizedCode = standardizeReferralCode(customCode);
     debugLog("referralService", "Creating custom code:", standardizedCode);
     
-    // Kod uzunluğu kontrolü
-    if (standardizedCode.length < 4 || standardizedCode.length > 12) {
-      toast.error("Referans kodu 4-12 karakter arasında olmalıdır");
+    // Validate the format (3 letters + 3 numbers)
+    if (!(/^[A-Z]{3}\d{3}$/.test(standardizedCode))) {
+      toast.error("Geçersiz kod formatı. Kod 3 harf ve 3 rakam içermelidir (örn: ABC123)");
       return false;
     }
     
-    // Kodun daha önce kullanılıp kullanılmadığını kontrol et
-    const usersRef = collection(db, "users");
-    
-    // Hem standart hem özel kodlarda arama yap
-    const customCodeQuery = query(usersRef, where("customReferralCode", "==", standardizedCode));
-    const customCodeSnapshot = await getDocs(customCodeQuery);
-    
-    if (!customCodeSnapshot.empty) {
+    // Check if the code is unique
+    const isUnique = await isCodeUnique(standardizedCode);
+    if (!isUnique) {
       toast.error("Bu referans kodu zaten kullanımda");
       return false;
     }
     
-    const stdCodeQuery = query(usersRef, where("referralCode", "==", standardizedCode));
-    const stdCodeSnapshot = await getDocs(stdCodeQuery);
-    
-    if (!stdCodeSnapshot.empty) {
-      toast.error("Bu referans kodu zaten kullanımda");
-      return false;
-    }
-    
-    // Kodu kaydet - burada setDoc kullanıyoruz, çünkü updateDoc izin hatası verebilir
+    // Save the code
     const userRef = doc(db, "users", userId);
     await updateDoc(userRef, {
       customReferralCode: standardizedCode
@@ -251,4 +275,26 @@ export async function createCustomReferralCode(userId: string, customCode: strin
     toast.error("Referans kodu oluşturulurken bir hata oluştu");
     return false;
   }
+}
+
+/**
+ * Generate a suggested referral code for the user
+ */
+export function generateSuggestedCode(): string {
+  // Generate a code in the format 3 letters + 3 numbers
+  const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // Excluding I and O for readability
+  let lettersPart = '';
+  for (let i = 0; i < 3; i++) {
+    lettersPart += letters.charAt(Math.floor(Math.random() * letters.length));
+  }
+  
+  // Generate 3 random digits
+  const digits = '0123456789';
+  let digitsPart = '';
+  for (let i = 0; i < 3; i++) {
+    digitsPart += digits.charAt(Math.floor(Math.random() * digits.length));
+  }
+  
+  // Combine letters and digits
+  return lettersPart + digitsPart;
 }

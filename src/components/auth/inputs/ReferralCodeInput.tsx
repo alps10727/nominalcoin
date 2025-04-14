@@ -9,7 +9,7 @@ interface ReferralCodeInputProps {
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
-  required?: boolean; // Yeni: zorunlu olup olmadığını belirler
+  required?: boolean; // Whether the input is required
 }
 
 const ReferralCodeInput = ({ 
@@ -22,15 +22,14 @@ const ReferralCodeInput = ({
   
   // Format input value for display
   useEffect(() => {
-    // Only format for display, raw string without dashes is stored underneath
-    setDisplayValue(value ? formatReferralCodeForDisplay(value) : '');
+    setDisplayValue(value || '');
   }, [value]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value;
     setDisplayValue(input);
     
-    // Send the standardized value upward (uppercase, no dashes)
+    // Send the standardized value upward (uppercase, no spaces)
     const standardized = standardizeReferralCode(input);
     onChange(standardized);
   };
@@ -50,12 +49,13 @@ const ReferralCodeInput = ({
         <Input
           id="referralCode"
           type="text"
-          placeholder="Referans kodunuzu girin (Opsiyonel)"
+          placeholder="Referans kodu girin (örn: ABC123)"
           className="pl-10"
           value={displayValue}
           onChange={handleChange}
           disabled={disabled}
           required={required}
+          maxLength={6} // New format is exactly 6 characters
           onInvalid={(e: React.FormEvent<HTMLInputElement>) => {
             if (required) {
               (e.target as HTMLInputElement).setCustomValidity('Referans kodu gereklidir!');
@@ -67,7 +67,8 @@ const ReferralCodeInput = ({
         />
       </div>
       <p className="text-xs text-muted-foreground">
-        Referans kodu girebilir veya boş bırakabilirsiniz. Büyük-küçük harf fark etmez.
+        Referans kodu girebilir veya boş bırakabilirsiniz.
+        Geçerli format: 3 harf + 3 rakam (örn: ABC123)
       </p>
     </div>
   );

@@ -2,13 +2,12 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, CheckCircle, UserPlus, Zap, Edit } from "lucide-react";
+import { Copy, CheckCircle, UserPlus, Zap, Edit, RefreshCw } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 import { REFERRAL_BONUS_RATE } from "@/utils/miningCalculator";
-import { formatReferralCodeForDisplay } from "@/utils/referralUtils";
 import { Input } from "@/components/ui/input";
-import { createCustomReferralCode } from "@/services/referralService";
+import { createCustomReferralCode, generateSuggestedCode } from "@/services/referralService";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface ReferralCodeCardProps {
@@ -29,12 +28,9 @@ export const ReferralCodeCard = ({
   const [newCustomCode, setNewCustomCode] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Format the code for display (with dashes)
-  const displayCode = formatReferralCodeForDisplay(referralCode);
   
-  // Özel referans kodu veya normal referans kodunu göster
-  const displayReferralCode = customReferralCode || displayCode;
+  // Display the custom code if available, otherwise display the auto-generated code
+  const displayReferralCode = customReferralCode || referralCode;
 
   const copyToClipboard = (text: string, type: 'code' | 'link') => {
     navigator.clipboard.writeText(text)
@@ -58,24 +54,11 @@ export const ReferralCodeCard = ({
     setError(null);
     
     try {
-      // Kodu doğrula
-      if (newCustomCode.length < 4 || newCustomCode.length > 12) {
-        setError("Referans kodu 4-12 karakter arasında olmalıdır");
-        setIsCreating(false);
-        return;
-      }
-      
-      // Sadece harf ve rakam içermelidir
-      if (!/^[A-Za-z0-9]+$/.test(newCustomCode)) {
-        setError("Referans kodu sadece harf ve rakamlardan oluşmalıdır");
-        setIsCreating(false);
-        return;
-      }
-      
+      // Create the custom code
       const success = await createCustomReferralCode(currentUser.uid, newCustomCode);
       if (success) {
         setIsEditing(false);
-        // Sayfayı yenile - değişikliği görmek için
+        // Refresh the page to see the changes
         window.location.reload();
       }
     } catch (err) {
@@ -84,6 +67,12 @@ export const ReferralCodeCard = ({
     } finally {
       setIsCreating(false);
     }
+  };
+  
+  const handleGenerateCode = () => {
+    // Generate a suggested code in the format 3 letters + 3 digits
+    const suggestedCode = generateSuggestedCode();
+    setNewCustomCode(suggestedCode);
   };
 
   return (
@@ -106,19 +95,32 @@ export const ReferralCodeCard = ({
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Özel referans kodunuzu oluşturun
               </label>
-              <div className="flex items-center gap-2">
-                <Input
-                  value={newCustomCode}
-                  onChange={(e) => setNewCustomCode(e.target.value.toUpperCase())}
-                  placeholder="Örn: FRIENDBONUS"
-                  className="bg-navy-900/70 border-purple-500/30 text-white"
-                  maxLength={12}
-                />
+              <div className="flex gap-2 flex-col">
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={newCustomCode}
+                    onChange={(e) => setNewCustomCode(e.target.value.toUpperCase())}
+                    placeholder="Örn: ABC123"
+                    className="bg-navy-900/70 border-purple-500/30 text-white"
+                    maxLength={6}
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleGenerateCode}
+                    className="border border-purple-500/30"
+                    type="button"
+                    title="Rastgele kod öner"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+                </div>
+                
                 <Button
                   variant="outline"
-                  disabled={isCreating || !newCustomCode}
+                  disabled={isCreating || !newCustomCode || !/^[A-Z]{3}\d{3}$/.test(newCustomCode)}
                   onClick={handleCreateCustomCode}
-                  className="whitespace-nowrap border border-purple-500/30"
+                  className="w-full border border-purple-500/30"
                 >
                   {isCreating ? "Oluşturuluyor..." : "Kaydet"}
                 </Button>
@@ -129,7 +131,7 @@ export const ReferralCodeCard = ({
                 </p>
               )}
               <p className="text-xs text-gray-400 mt-2">
-                4-12 karakter arasında, sadece harf ve rakam içerebilir. Hepsi büyük harfe dönüştürülecektir.
+                Format: 3 harf + 3 rakam (örn: ABC123). Kod benzersiz olmalıdır.
               </p>
               <Button
                 variant="ghost"

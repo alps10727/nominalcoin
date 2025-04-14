@@ -34,7 +34,7 @@ export async function registerUser(email: string, password: string, userData: Us
     
     debugLog("authService", "User created in Firebase Auth");
     
-    // Default user data - artık referral kodu otomatik oluşturulmayacak
+    // Default user data - no automatic referral code
     const defaultUserData = {
       name: userData.name || "",
       emailAddress: email,
@@ -46,6 +46,7 @@ export async function registerUser(email: string, password: string, userData: Us
       referrals: userData.referrals || [],
       referralCount: userData.referralCount || 0,
       isAdmin: false
+      // No referralCode here - user must create their own
     };
     
     // Save user information to Firestore

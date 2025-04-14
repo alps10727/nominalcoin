@@ -12,6 +12,9 @@ import ErrorAlert from "./alerts/ErrorAlert";
 import OfflineAlert from "./alerts/OfflineAlert";
 import { validateSignUpForm, FormValues } from "@/utils/formValidation";
 import { debugLog } from "@/utils/debugUtils";
+import { generateSuggestedCode } from "@/services/referralService";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
 
 interface SignUpFormProps {
   onSubmit: (name: string, email: string, password: string, referralCode: string) => Promise<void>;
@@ -28,6 +31,7 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
   const [formError, setFormError] = useState<string | null>(null);
   const [referralCode, setReferralCode] = useState("");
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [generatingCode, setGeneratingCode] = useState(false);
   
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -76,12 +80,24 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
     }
 
     try {
-      // Convert to storage format before submitting (standardized with no dashes)
+      // Convert to storage format before submitting
       const processedReferralCode = standardizeReferralCode(referralCode);
       debugLog("SignUpForm", "Form gönderiliyor, referans kodu:", processedReferralCode);
       await onSubmit(name, email, password, processedReferralCode);
     } catch (error) {
       console.error("Form gönderme hatası:", error);
+    }
+  };
+
+  const handleGenerateCode = () => {
+    setGeneratingCode(true);
+    try {
+      const suggestedCode = generateSuggestedCode();
+      setReferralCode(suggestedCode);
+    } catch (error) {
+      console.error("Kod üretme hatası:", error);
+    } finally {
+      setGeneratingCode(false);
     }
   };
 
@@ -105,12 +121,37 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
         disabled={loading || isOffline}
       />
       
-      <ReferralCodeInput 
-        value={referralCode} 
-        onChange={setReferralCode}
-        disabled={loading || isOffline}
-        required={false} // Artık zorunlu değil
-      />
+      <div className="space-y-1">
+        <ReferralCodeInput 
+          value={referralCode} 
+          onChange={setReferralCode}
+          disabled={loading || isOffline}
+          required={false}
+        />
+        
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleGenerateCode}
+            disabled={loading || isOffline || generatingCode}
+            className="mt-1 text-xs flex items-center"
+          >
+            {generatingCode ? (
+              <>
+                <div className="animate-spin mr-1 h-3 w-3 border-2 border-current border-t-transparent rounded-full" />
+                Oluşturuluyor...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="h-3 w-3 mr-1" />
+                Kod Öner
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
       
       <PasswordInput 
         value={password} 
