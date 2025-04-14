@@ -1,31 +1,55 @@
 
-import { useEffect } from "react";
-import { errorLog } from "@/utils/debugUtils";
+import { useEffect } from 'react';
+import { debugLog } from '@/utils/debugUtils';
 
+/**
+ * Reduces perceived loading time by preloading pages in the background
+ */
 export function usePagePreloading() {
   useEffect(() => {
-    const prefetchPages = async () => {
-      try {
-        // Tüm sayfaları önceden yükle
-        const importPromises = [
-          // Index is now directly imported, so don't prefetch
-          import("@/pages/Profile"),
-          import("@/pages/History"),
-          import("@/pages/Tasks"),
-          import("@/pages/MiningUpgrades"),
-          import("@/components/MobileNavigation")
-          // Removed SignIn and SignUp from preloading since we're importing them directly
-        ];
-        
-        // Sayfaları paralel olarak yükle
-        await Promise.all(importPromises);
-        console.log("Sayfalar daha hızlı gezinme için önceden yüklendi");
-      } catch (error) {
-        errorLog("usePagePreloading", "Sayfaları önceden yükleme başarısız oldu:", error);
-      }
+    let isMounted = true;
+
+    const preloadPages = async () => {
+      // Delay preloading to prioritize initial render
+      setTimeout(async () => {
+        if (!isMounted) return;
+
+        try {
+          // Preload pages in the background with minimal priority
+          const pagesToPreload = [
+            () => import('@/pages/Profile'),
+            () => import('@/pages/MiningUpgrades'),
+            () => import('@/pages/Tasks'),
+            () => import('@/pages/Statistics'),
+            () => import('@/pages/History'),
+          ];
+
+          // Use Promise.all to load in parallel with low priority
+          await Promise.all(
+            pagesToPreload.map(importFunc => {
+              // Add a small delay between each import to prevent resource contention
+              return new Promise(resolve => {
+                setTimeout(() => {
+                  importFunc().then(resolve);
+                }, Math.random() * 1000); // Randomize delay up to 1 second
+              });
+            })
+          );
+
+          if (isMounted) {
+            debugLog('usePagePreloading', 'Sayfalar daha hızlı gezinme için önceden yüklendi');
+          }
+        } catch (error) {
+          // Silent fail for preloading - non-critical operation
+          console.error('Page preloading error:', error);
+        }
+      }, 2000); // Wait 2 seconds after initial render
     };
-    
-    // Hızlı erişim için ilk yükleme
-    prefetchPages();
+
+    preloadPages();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 }
