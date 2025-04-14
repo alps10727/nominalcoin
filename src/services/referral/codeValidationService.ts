@@ -1,7 +1,7 @@
 
 import { db } from "@/config/firebase";
 import { debugLog, errorLog } from "@/utils/debugUtils";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs, query, where, doc, getDoc } from "firebase/firestore";
 import { standardizeReferralCode } from "@/utils/referralUtils";
 
 /**
@@ -11,34 +11,27 @@ export async function findUsersByReferralCode(referralCode: string): Promise<str
   try {
     if (!referralCode) return [];
     
-    // Use standardized code for searching - ensure NO DASHES for storage format
-    const storageCode = referralCode;
-    
+    const storageCode = standardizeReferralCode(referralCode);
     debugLog("referralService", "Searching for referral code:", storageCode);
     
+    // First check users collection
     const usersRef = collection(db, "users");
     const q = query(usersRef, where("referralCode", "==", storageCode));
-    
     const querySnapshot = await getDocs(q);
     
     if (!querySnapshot.empty) {
-      const userIds = querySnapshot.docs.map(doc => doc.id);
-      
-      debugLog("referralService", `Found ${userIds.length} users with referral code:`, storageCode);
-      return userIds;
+      return querySnapshot.docs.map(doc => doc.id);
     }
     
-    // Also search by custom referral code
-    const customCodeQuery = query(usersRef, where("customReferralCode", "==", storageCode));
-    const customCodeSnapshot = await getDocs(customCodeQuery);
+    // Then check referralCodes collection
+    const referralCodeRef = doc(db, "referralCodes", storageCode);
+    const codeDoc = await getDoc(referralCodeRef);
     
-    if (!customCodeSnapshot.empty) {
-      const userIds = customCodeSnapshot.docs.map(doc => doc.id);
-      debugLog("referralService", `Found ${userIds.length} users with custom referral code:`, storageCode);
-      return userIds;
+    if (codeDoc.exists()) {
+      const data = codeDoc.data();
+      return data.userId ? [data.userId] : [];
     }
     
-    debugLog("referralService", "No users found with referral code:", storageCode);
     return [];
   } catch (error) {
     errorLog("referralService", "Error finding users by referral code:", error);
@@ -47,33 +40,48 @@ export async function findUsersByReferralCode(referralCode: string): Promise<str
 }
 
 /**
- * Checks if a referral code is valid with enhanced validation
+ * Checks if a referral code is valid and available
  */
-export async function checkReferralCodeValidity(referralCode: string): Promise<boolean> {
+export async function checkReferralCodeValidity(code: string): Promise<{
+  isValid: boolean;
+  message?: string;
+}> {
   try {
-    // If code is empty, it's valid now (optional)
-    if (!referralCode || referralCode.trim() === '') {
-      return true;
+    if (!code || code.trim() === '') {
+      return { isValid: true };
     }
     
-    const standardizedCode = standardizeReferralCode(referralCode);
+    const standardizedCode = standardizeReferralCode(code);
     
-    // Check the format using the updated validation (3 letters + 3 numbers)
+    // Check format (3 letters + 3 numbers)
     if (!(/^[A-Z]{3}\d{3}$/.test(standardizedCode))) {
-      return false;
+      return { 
+        isValid: false,
+        message: "Geçersiz format! Örnek: ABC123 (3 harf + 3 rakam)"
+      };
     }
     
-    // Code is in correct format, now check if it's already used
+    // Check if code is already in use
     const users = await findUsersByReferralCode(standardizedCode);
-    return users.length > 0;
+    if (users.length > 0) {
+      return { 
+        isValid: false,
+        message: "Bu referans kodu zaten kullanımda"
+      };
+    }
+    
+    return { isValid: true };
   } catch (error) {
     errorLog("referralService", "Error validating referral code:", error);
-    return false;
+    return { 
+      isValid: false,
+      message: "Referans kodu kontrolü sırasında bir hata oluştu"
+    };
   }
 }
 
 /**
- * Checks if a code is unique (not already used by another user)
+ * Checks if a code is unique across all collections
  */
 export async function isCodeUnique(code: string): Promise<boolean> {
   try {
@@ -81,22 +89,13 @@ export async function isCodeUnique(code: string): Promise<boolean> {
     
     const standardizedCode = standardizeReferralCode(code);
     
-    // Check both referralCode and customReferralCode fields
-    const usersRef = collection(db, "users");
+    // Check both collections
+    const [usersWithCode, referralCodeDoc] = await Promise.all([
+      findUsersByReferralCode(standardizedCode),
+      getDoc(doc(db, "referralCodes", standardizedCode))
+    ]);
     
-    // Check referralCode
-    const refCodeQuery = query(usersRef, where("referralCode", "==", standardizedCode));
-    const refCodeSnapshot = await getDocs(refCodeQuery);
-    
-    if (!refCodeSnapshot.empty) {
-      return false; // Code is already in use
-    }
-    
-    // Check customReferralCode
-    const customCodeQuery = query(usersRef, where("customReferralCode", "==", standardizedCode));
-    const customCodeSnapshot = await getDocs(customCodeQuery);
-    
-    return customCodeSnapshot.empty; // True if empty (unique), False if found
+    return usersWithCode.length === 0 && !referralCodeDoc.exists();
   } catch (error) {
     errorLog("referralService", "Error checking code uniqueness:", error);
     return false;
