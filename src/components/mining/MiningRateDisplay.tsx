@@ -8,7 +8,7 @@ import { REFERRAL_BONUS_RATE } from "@/utils/miningCalculator";
 export function MiningRateDisplay() {
   const { userData } = useAuth();
   
-  const baseRate = 0.003; // Temel madencilik hızı
+  const baseRate = 0.001; // Mining rate per minute
   const referralCount = userData?.referralCount || 0;
   const referralBonus = parseFloat((referralCount * REFERRAL_BONUS_RATE).toFixed(4));
   const totalRate = parseFloat(calculateMiningRate(userData).toFixed(3));

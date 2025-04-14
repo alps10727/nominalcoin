@@ -1,4 +1,3 @@
-
 import React, { useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -40,7 +39,7 @@ const MiningCard = React.memo<MiningCardProps>(({
   }, [miningActive, onStartMining, onStopMining]);
 
   // Quick stats for display
-  const hourlyRate = (miningRate * 20).toFixed(1); // 20 cycles per hour (3 mins each)
+  const hourlyRate = (miningRate * 60).toFixed(1); // 60 minutes per hour
 
   return (
     <Card className="border-0 overflow-hidden shadow-lg transition-all duration-300 relative rounded-xl backdrop-blur-sm group

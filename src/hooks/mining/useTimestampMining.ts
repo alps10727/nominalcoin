@@ -1,4 +1,3 @@
-
 import { MiningState } from "@/types/mining";
 import { calculateProgress } from '@/utils/miningUtils';
 import { addMiningReward, handleMiningCompletion } from './useMiningRewards';
@@ -64,8 +63,8 @@ export function processTimestampBasedMining(
     if (secondsPassed >= 180) {
       // Calculate complete 3-minute cycles
       const completeCycles = Math.floor(secondsPassed / 180);
-      // Use the mining rate for reward calculation
-      const rewardAmount = completeCycles * state.miningRate;
+      // Use the mining rate for reward calculation (3x per cycle since rate is per minute)
+      const rewardAmount = completeCycles * (state.miningRate * 3);
       
       // Update state with rewards
       const updatedState = {

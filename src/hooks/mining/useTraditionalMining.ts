@@ -1,4 +1,3 @@
-
 import { MiningState } from "@/types/mining";
 import { calculateUpdatedTimeValues, savePeriodicState } from '@/hooks/mining/useTimerManagement';
 import { addMiningReward, handleMiningCompletion } from '@/hooks/mining/useMiningRewards';
@@ -43,8 +42,8 @@ export function processTraditionalMining(
   if (elapsedSeconds >= 180) {
     // Calculate complete 3-minute cycles
     const completeCycles = Math.floor(elapsedSeconds / 180);
-    // Use the mining rate for reward calculation
-    const rewardAmount = completeCycles * prev.miningRate;
+    // Use the mining rate for reward calculation (3x per cycle since rate is per minute)
+    const rewardAmount = completeCycles * (prev.miningRate * 3);
     
     rewardUpdates = {
       balance: prev.balance + rewardAmount,

@@ -1,4 +1,3 @@
-
 import { MiningState, MiningData } from "@/types/mining";
 import { useMiningProcess } from "./mining/useMiningProcess";
 import { useMiningInitialization } from "./mining/useMiningInitialization";
@@ -47,7 +46,7 @@ export function useMiningData(): MiningData {
     if (state.miningActive && !state.isLoading) {
       timer = window.setInterval(() => {
         // Calculate earnings per second based on current mining rate
-        const earningsPerSecond = parseFloat((state.miningRate / 180).toFixed(6));
+        const earningsPerSecond = parseFloat((state.miningRate / 60).toFixed(6)); // Divide by 60 as rate is per minute
         
         // Update balance in real-time for UI feedback (optimistic update)
         setState(prev => ({
