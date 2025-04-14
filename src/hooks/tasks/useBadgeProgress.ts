@@ -32,11 +32,11 @@ export function useBadgeProgress(
       progress: Math.min(Math.floor((userData.balance / 50) * 100), 100)
     };
     
-    // Sosyal ağ uzmanı: Referans sayısına göre
+    // Sosyal ağ uzmanı: Artık kullanılmıyor
     updatedBadges[2] = {
       ...updatedBadges[2],
-      earned: (userData.referralCount || 0) >= 5,
-      progress: Math.min(Math.floor(((userData.referralCount || 0) / 5) * 100), 100)
+      earned: false,
+      progress: 0
     };
     
     // Yükseltme uzmanı: Yükseltme sayısına göre

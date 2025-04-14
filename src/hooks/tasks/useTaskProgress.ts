@@ -47,14 +47,13 @@ export function useTaskProgress(
       };
     }
     
-    // Davet görevi: Referans sayısına göre güncelle
+    // Davet görevi: Artık kullanılmıyor
     const inviteTaskIndex = updatedTasks.findIndex(task => task.id === 3);
     if (inviteTaskIndex !== -1) {
-      const referralCount = userData.referralCount || 0;
       updatedTasks[inviteTaskIndex] = {
         ...updatedTasks[inviteTaskIndex],
-        progress: Math.min(referralCount, updatedTasks[inviteTaskIndex].totalRequired),
-        completed: userData.tasks?.completed?.includes(3) || false
+        progress: 0,
+        completed: false
       };
     }
     

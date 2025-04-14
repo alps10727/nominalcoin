@@ -11,7 +11,6 @@ export function usePagePreloading() {
           // Index is now directly imported, so don't prefetch
           import("@/pages/Profile"),
           import("@/pages/History"),
-          import("@/pages/Referral"),
           import("@/pages/Tasks"),
           import("@/pages/MiningUpgrades"),
           import("@/components/MobileNavigation")

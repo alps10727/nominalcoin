@@ -18,6 +18,10 @@ export interface UserData {
   name?: string; // User's name
   emailAddress?: string; // User's email address
   isAdmin?: boolean; // Added isAdmin property for admin panel access
+  referralCode?: string; // Keeping for backward compatibility
+  referralCount?: number; // Keeping for backward compatibility
+  referrals?: string[]; // Keeping for backward compatibility
+  indirectReferrals?: any; // Keeping for backward compatibility
   tasks?: {
     completed?: number[]  // Tamamlanan görev ID'leri
   };

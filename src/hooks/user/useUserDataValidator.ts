@@ -1,6 +1,5 @@
 
 import { UserData, loadUserData } from "@/utils/storage";
-import { generateReferralCode } from "@/utils/referralUtils";
 
 export function useUserDataValidator() {
   /**
@@ -33,10 +32,7 @@ export function useUserDataValidator() {
       miningRate: typeof data?.miningRate === 'number' ? data.miningRate : (localData?.miningRate || 0.1),
       lastSaved: typeof data?.lastSaved === 'number' ? data.lastSaved : Date.now(),
       miningActive: !!data?.miningActive,
-      userId: userId || data?.userId || localData?.userId,
-      referralCode: data?.referralCode || localData?.referralCode || generateReferralCode(),
-      referralCount: data?.referralCount || 0,
-      referrals: data?.referrals || []
+      userId: userId || data?.userId || localData?.userId
     };
   };
 

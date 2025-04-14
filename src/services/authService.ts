@@ -10,18 +10,10 @@ import { auth, db } from "@/config/firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { toast } from "sonner";
 import { debugLog, errorLog } from "@/utils/debugUtils";
-import { findUsersByReferralCode } from "./referralService";
-import { updateReferrerInfo } from "./multiLevelReferralService";
-import { standardizeReferralCode } from "@/utils/referralUtils";
 
 export interface UserRegistrationData {
   name?: string;
   emailAddress?: string;
-  referralCode?: string;
-  referredBy?: string | null;
-  referrals?: string[];
-  referralCount?: number;
-  customReferralCode?: string;
 }
 
 export async function registerUser(email: string, password: string, userData: UserRegistrationData = {}): Promise<User> {
@@ -34,7 +26,7 @@ export async function registerUser(email: string, password: string, userData: Us
     
     debugLog("authService", "User created in Firebase Auth");
     
-    // Default user data - no automatic referral code
+    // Default user data
     const defaultUserData = {
       name: userData.name || "",
       emailAddress: email,
@@ -42,35 +34,13 @@ export async function registerUser(email: string, password: string, userData: Us
       miningRate: 0.003,
       lastSaved: Date.now(),
       miningActive: false,
-      referredBy: userData.referredBy || null,
-      referrals: userData.referrals || [],
-      referralCount: userData.referralCount || 0,
       isAdmin: false
-      // No referralCode here - user must create their own
     };
     
     // Save user information to Firestore
     await setDoc(doc(db, "users", user.uid), defaultUserData);
     
     debugLog("authService", "User registered and data saved to Firestore", { userId: user.uid });
-    
-    // Process referral if provided
-    if (userData.referredBy) {
-      try {
-        debugLog("authService", "Referral reward process starting for:", userData.referredBy);
-        
-        // Update referrer information and give reward
-        await updateReferrerInfo(userData.referredBy, user.uid);
-        
-        debugLog("authService", "Referrer updated successfully", { 
-          referrerId: userData.referredBy, 
-          newUserId: user.uid 
-        });
-      } catch (referralError) {
-        errorLog("authService", "Error updating referrer:", referralError);
-        toast.warning("Referans işlemi sırasında bir hata oluştu.");
-      }
-    }
     
     return user;
   } catch (error) {

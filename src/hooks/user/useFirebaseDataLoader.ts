@@ -63,13 +63,12 @@ export function useFirebaseDataLoader() {
 
   /**
    * Yerel ve Firebase verilerini güvenli bir şekilde birleştirir
-   * Manipüle edilmiş verileri tespit etmek için gelişmiş kontroller içerir
    */
   const mergeUserData = (localData: UserData | null, firebaseData: UserData | null): UserData => {
     if (!firebaseData) return localData || { balance: 0, miningRate: 0.003, lastSaved: Date.now() };
     if (!localData) return firebaseData;
 
-    // Şüpheli manipülasyon tespiti - daha gelişmiş hile tespiti
+    // Şüpheli manipülasyon tespiti
     const isLocalBalanceSuspicious = localData && firebaseData && (
       localData.balance > firebaseData.balance * 1.5 && // %50'den fazla yüksekse şüpheli
       localData.balance > firebaseData.balance + 10 || // En az 10 coin farkı varsa
@@ -99,11 +98,6 @@ export function useFirebaseDataLoader() {
     const result: UserData = {
       ...firebaseData,
       balance: finalBalance,
-      // Firebase'deki referral bilgilerini her zaman kullan (sunucu tarafında doğrulanıyor)
-      referralCode: firebaseData.referralCode || localData.referralCode,
-      referralCount: firebaseData.referralCount || localData.referralCount || 0,
-      referrals: firebaseData.referrals || localData.referrals || [],
-      indirectReferrals: firebaseData.indirectReferrals || localData.indirectReferrals,
       // Firebase'deki mining rate'i kullan (güvenlik için)
       miningRate: firebaseData.miningRate || localData.miningRate || 0.003,
       // En son kayıt zamanını kullan

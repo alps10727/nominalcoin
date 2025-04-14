@@ -17,14 +17,6 @@ export function calculateMiningRate(userData: UserData | null): number {
   // Start with base rate (per minute)
   let rate = BASE_MINING_RATE;
   
-  // Add bonus for referrals (0.0001 per referral per minute)
-  const referralCount = userData.referralCount || 0;
-  if (referralCount > 0) {
-    // Fixed precision with toFixed(4) to avoid JavaScript floating point errors
-    const referralBonus = parseFloat((Math.min(referralCount * REFERRAL_BONUS_RATE, 0.001)).toFixed(4));
-    rate += referralBonus; // Cap at 0.001 (10 referrals)
-  }
-  
   // Add bonus for upgrades if any
   const upgradeBonus = userData.upgrades?.reduce((total, upgrade) => {
     // Fix precision for each upgrade bonus

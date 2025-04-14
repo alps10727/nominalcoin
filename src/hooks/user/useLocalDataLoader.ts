@@ -1,6 +1,5 @@
 
 import { UserData, loadUserData, saveUserData } from "@/utils/storage";
-import { generateReferralCode } from "@/utils/referralUtils";
 import { debugLog } from "@/utils/debugUtils";
 
 /**
@@ -16,7 +15,7 @@ export function useLocalDataLoader() {
   };
 
   /**
-   * Ensures user data has valid referral information
+   * Ensures user data has valid information
    */
   const ensureReferralData = (userData: UserData | null, userId?: string): UserData | null => {
     if (!userData) return null;
@@ -26,15 +25,6 @@ export function useLocalDataLoader() {
       debugLog("useLocalDataLoader", "Farklı kullanıcı verisi tespit edildi, veriler temizleniyor", 
         { storedId: userData.userId, currentId: userId });
       return null;
-    }
-    
-    // If no referral code exists, generate one
-    if (!userData.referralCode && userId) {
-      userData.referralCode = generateReferralCode();
-      userData.referralCount = userData.referralCount || 0;
-      userData.referrals = userData.referrals || [];
-      saveUserData(userData);
-      debugLog("useLocalDataLoader", "Created referral code for user", userData.referralCode);
     }
     
     // Update userId if needed
@@ -51,18 +41,14 @@ export function useLocalDataLoader() {
    * Creates default user data when no data exists
    */
   const createDefaultUserData = (userId?: string): UserData => {
-    const newReferralCode = userId ? generateReferralCode() : '';
-    debugLog("useLocalDataLoader", "Creating default user data with referral code:", newReferralCode);
+    debugLog("useLocalDataLoader", "Creating default user data");
     
     return {
       balance: 0,
       miningRate: 0.003,
       lastSaved: Date.now(),
       miningActive: false,
-      userId: userId,
-      referralCode: newReferralCode,
-      referralCount: 0,
-      referrals: []
+      userId: userId
     };
   };
 

@@ -1,3 +1,4 @@
+
 import { Suspense, lazy } from "react";
 import { Routes, Route } from "react-router-dom";
 import LoadingScreen from "../dashboard/LoadingScreen";
@@ -13,7 +14,6 @@ import SignUp from "@/pages/SignUp"; // Direct import instead of lazy loading
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const Profile = lazy(() => import("@/pages/Profile"));
 const History = lazy(() => import("@/pages/History"));
-const Referral = lazy(() => import("@/pages/Referral"));
 const Tasks = lazy(() => import("@/pages/Tasks"));
 const MiningUpgrades = lazy(() => import("@/pages/MiningUpgrades"));
 const Statistics = lazy(() => import("@/pages/Statistics"));
@@ -49,16 +49,6 @@ const AppRoutes = () => {
             <Suspense fallback={<LoadingScreen message="Geçmiş yükleniyor..." />}>
               <PageTransition>
                 <History />
-              </PageTransition>
-            </Suspense>
-          </PrivateRoute>
-        } />
-        
-        <Route path="/referral" element={
-          <PrivateRoute>
-            <Suspense fallback={<LoadingScreen message="Referans sistemi yükleniyor..." />}>
-              <PageTransition>
-                <Referral />
               </PageTransition>
             </Suspense>
           </PrivateRoute>

@@ -1,6 +1,5 @@
 
 import { UserData } from "@/utils/storage";
-import { generateReferralCode } from "@/utils/referralUtils";
 import { BASE_MINING_RATE, calculateMiningRate } from "@/utils/miningCalculator";
 import { debugLog } from "@/utils/debugUtils";
 
@@ -14,10 +13,7 @@ export function createDefaultUserData(userId: string): UserData {
     miningRate: BASE_MINING_RATE,
     lastSaved: Date.now(),
     miningActive: false,
-    userId: userId,
-    referralCode: generateReferralCode(),
-    referralCount: 0,
-    referrals: []
+    userId: userId
   };
 }
 
@@ -34,14 +30,10 @@ export function validateUserData(userData: any, userId: string): UserData {
     lastSaved: typeof userData.lastSaved === 'number' ? userData.lastSaved : Date.now(),
     miningActive: !!userData.miningActive,
     userId: userId,
-    // Referans kodunu Firebase'den al - bu kod artık sabit kalacak
-    referralCode: userData.referralCode || generateReferralCode(),
-    referralCount: userData.referralCount || 0,
-    referrals: userData.referrals || [],
     ...(userData as any) // Include any additional fields, properly typed now
   };
 
-  // Referans sayısına göre mining rate hesapla
+  // Mining rate hesapla
   validatedData.miningRate = calculateMiningRate(validatedData);
   
   return validatedData;

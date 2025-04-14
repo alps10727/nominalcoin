@@ -1,10 +1,10 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Clock, Zap, Users } from "lucide-react";
+import { Activity, Clock, Zap } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
-import { BASE_MINING_RATE, REFERRAL_BONUS_RATE } from "@/utils/miningCalculator";
+import { BASE_MINING_RATE } from "@/utils/miningCalculator";
 
 interface MiningRateCardProps {
   miningRate: number;
@@ -14,10 +14,6 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
   const { t } = useLanguage();
   const isMobile = useIsMobile();
   const { userData } = useAuth();
-  
-  // Referans sayısı
-  const referralCount = userData?.referralCount || 0;
-  const referralBonus = parseFloat((referralCount * REFERRAL_BONUS_RATE).toFixed(4));
   
   // Hesaplamalar: dakikada kazanılacak NC miktarı
   const minuteRate = parseFloat(miningRate.toFixed(3)); // Dakikada kazanılan NC
@@ -55,16 +51,6 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
               <span className="text-purple-200">Base Rate</span>
               <span className="text-white font-medium">{BASE_MINING_RATE.toFixed(3)} NC/min</span>
             </div>
-            
-            {referralCount > 0 && (
-              <div className="flex justify-between text-xs">
-                <span className="text-green-300 flex items-center">
-                  <Users className="h-3 w-3 mr-1" />
-                  Referral Bonus
-                </span>
-                <span className="text-green-300 font-medium">+{referralBonus.toFixed(3)} NC/min</span>
-              </div>
-            )}
             
             <div className="h-2 bg-purple-950 rounded-full overflow-hidden mt-1">
               <div 
