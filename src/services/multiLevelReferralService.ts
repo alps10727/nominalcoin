@@ -1,7 +1,7 @@
 
 import { db } from "@/config/firebase";
 import { debugLog, errorLog } from "@/utils/debugUtils";
-import { collection, doc, getDoc, getDocs, query, where, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, where, addDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 
 /**
  * Gets the direct referrer of a user
@@ -186,12 +186,11 @@ export async function updateReferrerInfo(referrerId: string, newUserId: string):
       timestamp: new Date().toISOString()
     });
     
-    // Update the user document
-    await userRef.set({
-      ...userData,
+    // Update the user document - use updateDoc instead of set
+    await updateDoc(userRef, {
       referralCount: updatedCount,
       referralHistory: referralHistory
-    }, { merge: true });
+    });
     
     debugLog("referralService", `Updated referrer ${referrerId} with new user ${newUserId}`);
     return true;
