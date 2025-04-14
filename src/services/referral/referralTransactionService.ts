@@ -78,10 +78,13 @@ export async function getReferralTransactions(limitCount = 20, startAfterDoc: Qu
     
     const querySnapshot = await getDocs(q);
     
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    return querySnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data
+      };
+    });
   } catch (error) {
     errorLog("referralService", "Error getting all referral transactions:", error);
     return [];
