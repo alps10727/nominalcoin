@@ -28,3 +28,24 @@ export async function getUserReferralTransactions(userId: string): Promise<any[]
     return [];
   }
 }
+
+/**
+ * Get all referral transactions for a specific user
+ */
+export async function getReferralTransactions(userId: string) {
+  try {
+    if (!userId) return [];
+    
+    const transactionsRef = collection(db, "referralTransactions");
+    const q = query(transactionsRef, where("referrerId", "==", userId));
+    
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    errorLog("referralService", "Error fetching referral transactions:", error);
+    return [];
+  }
+}

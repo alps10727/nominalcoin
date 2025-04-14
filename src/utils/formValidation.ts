@@ -1,6 +1,6 @@
 
 import { toast } from "sonner";
-import { standardizeReferralCode, validateReferralCode } from "@/utils/referralUtils";
+import { standardizeReferralCode } from "@/utils/referralUtils";
 
 export interface FormValues {
   name: string;
@@ -32,7 +32,7 @@ export const validateSignUpForm = (values: FormValues): string | null => {
   
   // If a referral code is provided, validate its format (3 letters + 3 digits)
   if (processedReferralCode) {
-    if (!validateReferralCode(processedReferralCode)) {
+    if (!(/^[A-Z]{3}\d{3}$/.test(processedReferralCode))) {
       toast.error("Geçersiz referans kodu formatı. Doğru format: AAA000 (3 harf + 3 rakam)");
       return "Geçersiz referans kodu formatı. Doğru format: AAA000 (3 harf + 3 rakam)";
     }
