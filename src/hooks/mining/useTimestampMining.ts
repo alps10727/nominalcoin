@@ -1,3 +1,4 @@
+
 import { MiningState } from "@/types/mining";
 import { calculateProgress } from '@/utils/miningUtils';
 import { addMiningReward, handleMiningCompletion } from './useMiningRewards';
@@ -6,6 +7,7 @@ import { debugLog } from "@/utils/debugUtils";
 
 /**
  * Process mining based on absolute timestamps (most reliable method)
+ * Enhanced with precise timing calculations
  */
 export function processTimestampBasedMining(
   state: MiningState,
@@ -36,7 +38,7 @@ export function processTimestampBasedMining(
   
   // If mining completed
   if (remainingMs <= 0) {
-    debugLog("useTimestampMining", "Mining tamamlandı (timestamp tabanlı kontrol)");
+    debugLog("useTimestampMining", "Mining completed (timestamp-based check)");
     // Always save when mining completes
     saveUserData({
       ...state,
@@ -55,26 +57,26 @@ export function processTimestampBasedMining(
   
   // If significant time has passed since last visit (3+ seconds)
   if (timeSinceLastVisitMs >= 3000) {
-    // Time passed in seconds
+    // Time passed in seconds (precise calculation)
     const secondsPassed = Math.floor(timeSinceLastVisitMs / 1000);
     
     // Calculate potential rewards
     // Add reward if at least one 3-minute cycle completed
     if (secondsPassed >= 180) {
-      // Calculate complete 3-minute cycles
+      // Calculate complete 3-minute cycles with precise math
       const completeCycles = Math.floor(secondsPassed / 180);
-      // Use the mining rate for reward calculation (3x per cycle since rate is per minute)
-      const rewardAmount = completeCycles * (state.miningRate * 3);
+      // Mining rate is per minute, so multiply by 3 for each 3-minute cycle
+      const rewardAmount = parseFloat((completeCycles * (state.miningRate * 3)).toFixed(6));
       
-      // Update state with rewards
+      // Update state with rewards (fixed precision)
       const updatedState = {
         miningTime: remainingSeconds,
         progress: progress,
-        balance: state.balance + rewardAmount,
-        miningSession: state.miningSession + rewardAmount
+        balance: parseFloat((state.balance + rewardAmount).toFixed(6)),
+        miningSession: parseFloat((state.miningSession + rewardAmount).toFixed(6))
       };
       
-      // Periodic save
+      // Periodic save with fixed values
       if (now - lastSaveTimeRef.current > 10000) {
         saveUserData({
           ...state,

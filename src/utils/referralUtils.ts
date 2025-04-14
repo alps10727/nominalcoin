@@ -70,7 +70,7 @@ export function prepareReferralCodeForStorage(code: string): string {
 }
 
 /**
- * Generates a referral code
+ * Generates a referral code with improved uniqueness
  * @returns A standardized code that's 9 characters long
  */
 export function generateReferralCode(userId: string | undefined): string {
@@ -117,4 +117,20 @@ export function createReferralLink(code: string): string {
   const standardCode = standardizeReferralCode(code);
   
   return `${baseUrl}?ref=${standardCode}`;
+}
+
+/**
+ * Calculate referral mining bonus for testing
+ * @param referralCount Number of referrals
+ * @param baseRate Base mining rate
+ * @param bonusPerReferral Bonus rate per referral
+ * @returns Total mining rate
+ */
+export function calculateReferralBonus(
+  referralCount: number,
+  baseRate: number = 0.001,
+  bonusPerReferral: number = 0.0001
+): number {
+  // Calculate total mining rate with fixed precision
+  return parseFloat((baseRate + Math.min(referralCount, 10) * bonusPerReferral).toFixed(4));
 }

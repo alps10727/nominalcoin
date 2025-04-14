@@ -7,6 +7,7 @@ import { debugLog } from "@/utils/debugUtils";
 
 /**
  * Add mining reward when a 3-minute cycle is completed
+ * Fixed precision for accurate reward calculation
  */
 export function addMiningReward(
   prevState: MiningState, 
@@ -24,18 +25,19 @@ export function addMiningReward(
   
   debugLog("useMiningRewards", "Adding mining reward");
   
-  // Önce güncel localStorage verilerini kontrol et
+  // Check current localStorage data for consistency
   const localData = loadUserData();
   let currentBalance = prevState.balance;
   
-  // Eğer localStorage'daki bakiye, state'teki bakiyeden yüksekse, localStorage'daki değeri kullan
+  // If localStorage balance is higher, use that value to prevent data loss
   if (localData && localData.balance > currentBalance) {
     debugLog("useMiningRewards", `Using higher balance from localStorage: ${localData.balance}, State balance: ${currentBalance}`);
     currentBalance = localData.balance;
   }
   
-  // Per 3-minute reward calculation - Fixed precision issue
-  const rewardAmount = 0.003; // 0.001 per minute * 3 minutes = 0.003 per cycle
+  // Per 3-minute reward calculation - Fixed to 6 decimal places for precision
+  // Mining rate is per minute, so multiply by 3 for a complete cycle (3 minutes)
+  const rewardAmount = parseFloat((prevState.miningRate * 3).toFixed(6));
   const newBalance = parseFloat((currentBalance + rewardAmount).toFixed(6));
   const newSession = parseFloat((prevState.miningSession + rewardAmount).toFixed(6));
   
@@ -44,7 +46,7 @@ export function addMiningReward(
   // CRITICAL: Save balance to storage IMMEDIATELY after earning reward
   saveUserData({
     balance: newBalance,
-    miningRate: 0.001, // Per minute mining rate
+    miningRate: prevState.miningRate,
     lastSaved: getCurrentTime(),
     miningActive: true, // Keep mining active
     miningTime: prevState.miningTime,
@@ -73,11 +75,11 @@ export function addMiningReward(
 export function handleMiningCompletion(prevState: MiningState): Partial<MiningState> {
   debugLog("useMiningRewards", "Mining cycle completed");
   
-  // Önce güncel localStorage verilerini kontrol et
+  // Check current localStorage data for consistency
   const localData = loadUserData();
   let finalBalance = prevState.balance;
   
-  // Eğer localStorage'daki bakiye, state'teki bakiyeden yüksekse, localStorage'daki değeri kullan
+  // If localStorage balance is higher, use that value
   if (localData && localData.balance > finalBalance) {
     debugLog("useMiningRewards", `Using higher balance from localStorage for completion: ${localData.balance}`);
     finalBalance = localData.balance;
@@ -89,7 +91,7 @@ export function handleMiningCompletion(prevState: MiningState): Partial<MiningSt
   // CRITICAL: Save final state to storage immediately
   saveUserData({
     balance: finalBalance,
-    miningRate: 0.001, // Updated to per minute rate
+    miningRate: prevState.miningRate,
     lastSaved: getCurrentTime(),
     miningActive: false,
     miningTime: prevState.miningPeriod,
@@ -110,6 +112,6 @@ export function handleMiningCompletion(prevState: MiningState): Partial<MiningSt
     miningActive: false,
     progress: 0,
     miningSession: 0, // Reset session
-    balance: finalBalance // Güncellenmiş bakiyeyi döndür
+    balance: finalBalance // Return updated balance
   };
 }

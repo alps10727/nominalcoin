@@ -5,7 +5,7 @@ import { saveUserData } from "@/utils/storage";
 import { debugLog } from "@/utils/debugUtils";
 
 /**
- * Calculate the updated time and progress values
+ * Calculate the updated time and progress values with precision handling
  */
 export function calculateUpdatedTimeValues(
   prevState: MiningState, 
@@ -28,11 +28,14 @@ export function calculateUpdatedTimeValues(
     };
   }
   
-  // Calculate new remaining time, prevent negative values
+  // Calculate new remaining time with precision, prevent negative values
   const newTime = Math.max(prevState.miningTime - elapsedSeconds, 0);
   
   // Calculate total elapsed time for reward timing (modulo 180 seconds = 3 minutes)
   const totalElapsed = prevState.miningPeriod - newTime;
+  
+  // Calculate cycle positions for reward checks
+  // Using precise modulo operations for cycle tracking
   const currentCyclePosition = totalElapsed % 180; 
   const previousCyclePosition = (totalElapsed - elapsedSeconds) % 180;
   
@@ -49,7 +52,7 @@ export function calculateUpdatedTimeValues(
 }
 
 /**
- * Save current state to storage periodically
+ * Save current state to storage periodically with enhanced precision
  */
 export function savePeriodicState(
   prevState: MiningState, 
@@ -62,17 +65,20 @@ export function savePeriodicState(
   if (now - lastSaveTimeRef.current > 10000) {
     debugLog("useTimerManagement", "Performing periodic state save");
     
+    // Calculate exact end time for reliable timing
+    const exactEndTime = now + (newTime * 1000);
+    
     saveUserData({
-      balance: prevState.balance,
-      miningRate: 0.003, // Sabit mining rate: 0.003
+      balance: parseFloat(prevState.balance.toFixed(6)),
+      miningRate: prevState.miningRate,
       lastSaved: now,
       miningActive: true,
       miningTime: newTime,
       miningPeriod: prevState.miningPeriod,
-      miningSession: prevState.miningSession,
+      miningSession: parseFloat(prevState.miningSession.toFixed(6)),
       userId: prevState.userId,
-      // Absolute timestamp-based mining end time
-      miningEndTime: prevState.miningEndTime || (now + newTime * 1000)
+      // Absolute timestamp-based mining end time for reliable timing
+      miningEndTime: exactEndTime
     });
     
     return true;

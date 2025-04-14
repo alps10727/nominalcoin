@@ -10,8 +10,10 @@ export function MiningRateDisplay() {
   
   const baseRate = 0.001; // Mining rate per minute
   const referralCount = userData?.referralCount || 0;
+  // Use precision handling for referral bonus calculation
   const referralBonus = parseFloat((referralCount * REFERRAL_BONUS_RATE).toFixed(4));
-  const totalRate = parseFloat(calculateMiningRate(userData).toFixed(3));
+  // Calculate total rate with precision
+  const totalRate = parseFloat(calculateMiningRate(userData).toFixed(4));
   
   return (
     <Card className="bg-gradient-to-br from-indigo-900/60 to-purple-900/60 border-none shadow-xl">
@@ -30,7 +32,7 @@ export function MiningRateDisplay() {
                 <CircleUser className="h-4 w-4 mr-1.5 text-blue-300" />
                 <span className="text-blue-300">Referans Bonusu:</span>
               </div>
-              <span className="font-mono text-blue-300">+{referralBonus.toFixed(3)} NC/dk</span>
+              <span className="font-mono text-blue-300">+{referralBonus.toFixed(4)} NC/dk</span>
             </div>
           )}
           
@@ -41,7 +43,7 @@ export function MiningRateDisplay() {
               <ChevronsUp className="h-5 w-5 mr-1.5 text-green-300" />
               <span className="font-medium text-green-300">Toplam:</span>
             </div>
-            <span className="font-mono font-bold text-lg text-green-300">{totalRate.toFixed(3)} NC/dk</span>
+            <span className="font-mono font-bold text-lg text-green-300">{totalRate.toFixed(4)} NC/dk</span>
           </div>
           
           <div className="flex flex-col items-center mt-3 text-xs text-gray-300 text-center">

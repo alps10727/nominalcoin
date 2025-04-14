@@ -1,3 +1,4 @@
+
 import { MiningState, MiningData } from "@/types/mining";
 import { useMiningProcess } from "./mining/useMiningProcess";
 import { useMiningInitialization } from "./mining/useMiningInitialization";
@@ -9,18 +10,20 @@ import { debugLog } from "@/utils/debugUtils";
 import { useAuth } from "@/contexts/AuthContext";
 
 /**
- * Madencilik verileri için geliştirilmiş kanca
- * Firebase ve yerel depo senkronizasyonu ile güvenilir bakiye yönetimi
+ * Enhanced mining data hook with precise calculations and reliable balance management
  */
 export function useMiningData(): MiningData {
-  // Mining verisini başlat
+  // Initialize mining state
   const { state, setState } = useMiningInitialization();
   const latestStateRef = useRef(state);
   const { userData, isOffline } = useAuth();
   
-  // Kalıcı bakiye durumu - her zaman en güvenilir kaynaktan alınır
+  // Get current time for interval calculations
+  const lastUpdateTimeRef = useRef<number>(Date.now());
+  
+  // Persistent balance state - always uses most reliable source
   const [persistentBalance, setPersistentBalance] = useState<number>(() => {
-    // Önce yerel depodan başlatılır
+    // Initialize from local storage
     const storedData = loadUserData();
     const initialBalance = storedData?.balance || 0;
     debugLog("useMiningData", "Initial balance from localStorage:", initialBalance);
@@ -31,51 +34,68 @@ export function useMiningData(): MiningData {
   useEffect(() => {
     latestStateRef.current = state;
     
-    // Bakiye değiştiğinde persistentBalance'ı güncelle
-    // State bakiyesi daha yüksekse ve yükleme durumunda değilse
+    // Update persistentBalance when state balance increases
+    // Only if state is not loading and balance actually increases
     if (state.balance > persistentBalance && !state.isLoading) {
       debugLog("useMiningData", "Updating persistent balance:", state.balance);
-      setPersistentBalance(state.balance);
+      setPersistentBalance(parseFloat(state.balance.toFixed(6)));
     }
   }, [state, persistentBalance]);
   
-  // Real-time mining simulation - Update every second
+  // Real-time mining simulation with precise timing
   useEffect(() => {
     let timer: number | undefined;
     
     if (state.miningActive && !state.isLoading) {
-      timer = window.setInterval(() => {
-        // Calculate earnings per second based on current mining rate
-        const earningsPerSecond = parseFloat((state.miningRate / 60).toFixed(6)); // Divide by 60 as rate is per minute
+      const updateMiningSimulation = () => {
+        const now = Date.now();
+        // Calculate exact elapsed time in milliseconds
+        const elapsedMs = now - lastUpdateTimeRef.current;
         
-        // Update balance in real-time for UI feedback (optimistic update)
+        // Calculate earnings for the exact elapsed time (converting rate from per minute to per millisecond)
+        const minuteFraction = elapsedMs / 60000; // Convert ms to minutes
+        const earnings = parseFloat((state.miningRate * minuteFraction).toFixed(6));
+        
+        // Update balance with precise calculation
         setState(prev => ({
           ...prev,
-          balance: parseFloat((prev.balance + earningsPerSecond).toFixed(6))
+          balance: parseFloat((prev.balance + earnings).toFixed(6))
         }));
-      }, 1000); // Update every second
+        
+        // Update last update time for next calculation
+        lastUpdateTimeRef.current = now;
+        
+        // Schedule next update exactly 1 second later
+        timer = window.setTimeout(updateMiningSimulation, 1000);
+      };
+      
+      // Initial update time
+      lastUpdateTimeRef.current = Date.now();
+      // Start the update cycle
+      timer = window.setTimeout(updateMiningSimulation, 1000);
     }
     
+    // Cleanup timer on unmount or when mining stops
     return () => {
       if (timer) {
-        window.clearInterval(timer);
+        window.clearTimeout(timer);
       }
     };
   }, [state.miningActive, state.miningRate, state.isLoading, setState]);
   
-  // Firebase verisi geldiğinde bakiyeyi kontrol et
+  // Check Firebase data for higher balance
   useEffect(() => {
     if (userData && userData.balance > persistentBalance) {
-      debugLog("useMiningData", "Firebase'den daha yüksek bakiye alındı:", userData.balance);
-      setPersistentBalance(userData.balance);
+      debugLog("useMiningData", "Got higher balance from Firebase:", userData.balance);
+      setPersistentBalance(parseFloat(userData.balance.toFixed(6)));
     }
     
-    // Mutlak bitiş zamanı kontrolü - sunucu tabanlı güvenilir zamanlama
+    // Absolute end time check - server-based reliable timing
     if (userData && userData.miningActive && userData.miningEndTime) {
       const now = Date.now();
       if (now >= userData.miningEndTime) {
-        debugLog("useMiningData", "Mining süresi sunucu zamanına göre doldu, durduruluyor");
-        // Mining'i durdur ve gerekli işlemleri yap
+        debugLog("useMiningData", "Mining period ended according to server time, stopping");
+        // Stop mining and handle necessary processes
         setState(prev => ({
           ...prev,
           miningActive: false,
@@ -85,43 +105,43 @@ export function useMiningData(): MiningData {
     }
   }, [userData, persistentBalance, setState]);
   
-  // Mining işlemlerini yönet
+  // Manage mining process
   useMiningProcess(state, setState);
   
-  // Veri kalıcılığını sağla
+  // Ensure data persistence
   useMiningPersistence(state);
   
-  // Mining kontrol aksiyonları
+  // Mining control actions
   const { handleStartMining, handleStopMining } = useMiningActions(state, setState);
 
-  // Güvenli handler fonksiyonları
+  // Memoized handler functions
   const memoizedStartMining = useCallback(() => {
-    console.log("Mining süreci başlatılıyor");
-    // Zaten aktifse başlatmayı önle
+    console.log("Starting mining process");
+    // Prevent starting if already active
     if (!latestStateRef.current.miningActive) {
       handleStartMining();
     } else {
-      console.log("Mining zaten aktif, başlatma isteği görmezden geliniyor");
+      console.log("Mining already active, ignoring start request");
     }
   }, [handleStartMining]);
 
   const memoizedStopMining = useCallback(() => {
-    console.log("Mining süreci durduruluyor");
-    // Aktif değilse durdurma işlemi yapma
+    console.log("Stopping mining process");
+    // Don't stop if not active
     if (latestStateRef.current.miningActive) {
       handleStopMining();
     } else {
-      console.log("Mining aktif değil, durdurma isteği görmezden geliniyor");
+      console.log("Mining not active, ignoring stop request");
     }
   }, [handleStopMining]);
 
-  // Birleştirilmiş mining verilerini ve aksiyonlarını döndür
+  // Return combined mining data and actions
   return {
     ...state,
-    balance: parseFloat(Math.max(persistentBalance, state.balance || 0).toFixed(6)), // Her zaman en yüksek güvenilir bakiyeyi kullan ve hassasiyeti düzelt
+    balance: parseFloat(Math.max(persistentBalance, state.balance || 0).toFixed(6)), // Always use highest reliable balance with fixed precision
     handleStartMining: memoizedStartMining,
     handleStopMining: memoizedStopMining,
-    isOffline: isOffline // Çevrimdışı durumunu ekledik
+    isOffline: isOffline // Added offline status
   };
 }
 

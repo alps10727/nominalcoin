@@ -1,9 +1,37 @@
 
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, getDoc, updateDoc, increment } from "firebase/firestore";
 import { db } from "@/config/firebase";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { standardizeReferralCode, prepareReferralCodeForStorage } from "@/utils/referralUtils";
+import { runAtomicTransaction, runReferralTransaction } from "@/services/db/transactionService";
+import { REFERRAL_BONUS_RATE } from "@/utils/miningCalculator";
+import { toast } from "sonner";
 
+// Log transactions for debugging and audit
+const logReferralTransaction = async (
+  referrerId: string, 
+  newUserId: string, 
+  bonusAmount: number
+) => {
+  try {
+    const transactionLogRef = collection(db, "referralTransactions");
+    await updateDoc(doc(transactionLogRef), {
+      referrerId,
+      newUserId,
+      bonusAmount,
+      timestamp: new Date(),
+      // Include transaction type for filtering
+      type: "referral_bonus"
+    });
+  } catch (logErr) {
+    errorLog("referralService", "Failed to log transaction:", logErr);
+    // Non-critical operation - don't throw
+  }
+};
+
+/**
+ * Find users by referral code with enhanced validation
+ */
 export async function findUsersByReferralCode(referralCode: string): Promise<string[]> {
   try {
     if (!referralCode) return [];
@@ -34,7 +62,7 @@ export async function findUsersByReferralCode(referralCode: string): Promise<str
 }
 
 /**
- * Checks if a referral code is valid
+ * Checks if a referral code is valid with enhanced validation
  */
 export async function validateReferralCode(referralCode: string): Promise<boolean> {
   try {
@@ -57,6 +85,7 @@ export async function validateReferralCode(referralCode: string): Promise<boolea
 
 /**
  * Updates the referrer's information after a successful referral
+ * Enhanced with atomic transaction support and rate limiting
  */
 export async function updateReferrerInfo(referrerId: string, newUserId: string): Promise<boolean> {
   try {
@@ -65,13 +94,98 @@ export async function updateReferrerInfo(referrerId: string, newUserId: string):
       return false;
     }
     
-    // Implementation would update the referrer's data in Firestore
-    // For example, incrementing referral count, adding to referrals array, etc.
+    // Use transaction for atomic updates with rate limiting
+    await runReferralTransaction(referrerId, async (transaction) => {
+      // Get referrer document
+      const referrerRef = doc(db, "users", referrerId);
+      const referrerSnapshot = await transaction.get(referrerRef);
+      
+      if (!referrerSnapshot.exists()) {
+        throw new Error("Referrer not found");
+      }
+      
+      const referrerData = referrerSnapshot.data();
+      const currentReferrals = referrerData.referrals || [];
+      
+      // Prevent duplicate referrals
+      if (currentReferrals.includes(newUserId)) {
+        throw new Error("User already referred");
+      }
+      
+      // Update referrer with new referral and increment count
+      transaction.update(referrerRef, {
+        referralCount: increment(1),
+        referrals: [...currentReferrals, newUserId],
+        // Update mining rate with precision
+        miningRate: parseFloat((
+          (referrerData.miningRate || 0.001) + REFERRAL_BONUS_RATE
+        ).toFixed(4))
+      });
+      
+      // Get new user document for welcome bonus
+      const newUserRef = doc(db, "users", newUserId);
+      const newUserSnapshot = await transaction.get(newUserRef);
+      
+      if (newUserSnapshot.exists()) {
+        const newUserData = newUserSnapshot.data();
+        
+        // Add welcome bonus to new user
+        transaction.update(newUserRef, {
+          referredBy: referrerId,
+          // Add small welcome bonus (0.001 NC)
+          balance: parseFloat((
+            (newUserData.balance || 0) + 0.001
+          ).toFixed(6))
+        });
+      }
+      
+      // Log the transaction (non-critical)
+      await logReferralTransaction(referrerId, newUserId, REFERRAL_BONUS_RATE);
+    });
+    
+    // Show success toast
+    toast.success("Referral bonus awarded!", {
+      description: `+${REFERRAL_BONUS_RATE.toFixed(4)} NC/minute mining bonus`,
+      duration: 5000
+    });
     
     debugLog("referralService", `Updated referrer ${referrerId} with new user ${newUserId}`);
     return true;
   } catch (error) {
-    errorLog("referralService", "Error updating referrer info:", error);
+    // Check if it's a rate limit error
+    if (error.message?.includes("Rate limit exceeded")) {
+      toast.error("Too many referrals", {
+        description: "Please try again later (limit: 100/hour)",
+        duration: 5000
+      });
+    } else {
+      errorLog("referralService", "Error updating referrer info:", error);
+      toast.error("Failed to process referral", {
+        description: "Please try again later",
+        duration: 5000
+      });
+    }
     return false;
+  }
+}
+
+/**
+ * Get all referral transactions for a specific user
+ */
+export async function getReferralTransactions(userId: string) {
+  try {
+    if (!userId) return [];
+    
+    const transactionsRef = collection(db, "referralTransactions");
+    const q = query(transactionsRef, where("referrerId", "==", userId));
+    
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    errorLog("referralService", "Error fetching referral transactions:", error);
+    return [];
   }
 }
