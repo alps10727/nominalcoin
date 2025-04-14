@@ -8,7 +8,7 @@ import { findUsersByReferralCode } from "@/services/referralService";
 import { rewardDirectReferrer } from "@/services/multiLevelReferralService";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { toast } from "sonner";
-import { prepareReferralCodeForStorage, standardizeReferralCode } from "@/utils/referralUtils";
+import { prepareReferralCodeForStorage } from "@/utils/referralUtils";
 import { App } from '@capacitor/app';
 
 const SignUp = () => {
@@ -40,13 +40,13 @@ const SignUp = () => {
       
       let referrerId: string | null = null;
       
-      // Eğer referans kodu varsa doğrula
+      // Referans kodu varsa doğrula (artık tamamen opsiyonel)
       if (referralCode && referralCode.trim() !== '') {
         try {
           // Standardize the referral code (remove spaces, convert to uppercase, remove dashes)
           const storageCode = prepareReferralCodeForStorage(referralCode);
           
-          debugLog("SignUp", "Standardized referral code:", { 
+          debugLog("SignUp", "Checking referral code:", { 
             original: referralCode,
             standardized: storageCode
           });
@@ -58,15 +58,13 @@ const SignUp = () => {
             referrerId = referrerIds[0];
             debugLog("SignUp", "Found user with referral code:", referrerId);
           } else {
-            setError("Geçersiz referans kodu. Bu kod mevcut değil.");
-            setLoading(false);
-            return;
+            // Referans kodu bulunamazsa ARTIK hata vermiyoruz, sadece uyarı gösteriyoruz
+            toast.warning("Girdiğiniz referans kodu bulunamadı. Kayıt işlemi referans kodunsuz devam ediyor.");
           }
         } catch (err) {
+          // Referans kodu kontrolünde hata olsa bile kayıt işlemine devam ediyoruz
           errorLog("SignUp", "Error checking referral code:", err);
-          setError("Referans kodu kontrolünde bir hata oluştu. Lütfen tekrar deneyin.");
-          setLoading(false);
-          return;
+          toast.warning("Referans kodu kontrolünde bir hata oluştu. Kayıt işlemi referans kodunsuz devam ediyor.");
         }
       }
 

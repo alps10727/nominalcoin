@@ -28,6 +28,7 @@ export const ReferralCodeCard = ({
   const [isEditing, setIsEditing] = useState(false);
   const [newCustomCode, setNewCustomCode] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Format the code for display (with dashes)
   const displayCode = formatReferralCodeForDisplay(referralCode);
@@ -54,11 +55,32 @@ export const ReferralCodeCard = ({
     if (!newCustomCode || !currentUser) return;
     
     setIsCreating(true);
+    setError(null);
+    
     try {
+      // Kodu doğrula
+      if (newCustomCode.length < 4 || newCustomCode.length > 12) {
+        setError("Referans kodu 4-12 karakter arasında olmalıdır");
+        setIsCreating(false);
+        return;
+      }
+      
+      // Sadece harf ve rakam içermelidir
+      if (!/^[A-Za-z0-9]+$/.test(newCustomCode)) {
+        setError("Referans kodu sadece harf ve rakamlardan oluşmalıdır");
+        setIsCreating(false);
+        return;
+      }
+      
       const success = await createCustomReferralCode(currentUser.uid, newCustomCode);
       if (success) {
         setIsEditing(false);
+        // Sayfayı yenile - değişikliği görmek için
+        window.location.reload();
       }
+    } catch (err) {
+      console.error("Özel kod oluşturma hatası:", err);
+      setError("Özel kod oluşturulurken bir hata oluştu. Lütfen daha sonra tekrar deneyin.");
     } finally {
       setIsCreating(false);
     }
@@ -101,13 +123,21 @@ export const ReferralCodeCard = ({
                   {isCreating ? "Oluşturuluyor..." : "Kaydet"}
                 </Button>
               </div>
+              {error && (
+                <p className="text-xs text-red-400 mt-2">
+                  {error}
+                </p>
+              )}
               <p className="text-xs text-gray-400 mt-2">
                 4-12 karakter arasında, sadece harf ve rakam içerebilir. Hepsi büyük harfe dönüştürülecektir.
               </p>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setIsEditing(false)}
+                onClick={() => {
+                  setIsEditing(false);
+                  setError(null);
+                }}
                 className="mt-2 text-gray-400 hover:text-white text-xs"
               >
                 İptal
@@ -132,14 +162,15 @@ export const ReferralCodeCard = ({
               <div className="flex items-center justify-between">
                 <div className="text-center flex-grow">
                   <div className="font-mono text-2xl md:text-2xl tracking-widest font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-blue-300 to-indigo-300 py-2">
-                    {displayReferralCode}
+                    {displayReferralCode || "KOD OLUŞTUR"}
                   </div>
                 </div>
                 <Button 
                   variant="outline" 
                   size="icon" 
                   className="ml-3 h-10 w-10 text-gray-300 hover:text-white hover:bg-purple-700/20 border border-purple-500/30"
-                  onClick={() => copyToClipboard(displayReferralCode, 'code')}
+                  onClick={() => displayReferralCode && copyToClipboard(displayReferralCode, 'code')}
+                  disabled={!displayReferralCode}
                 >
                   {showCopied === 'code' ? 
                     <CheckCircle className="h-4 w-4 text-green-400" /> : 
@@ -149,10 +180,13 @@ export const ReferralCodeCard = ({
               </div>
               <div className="animate-pulse mt-2 flex justify-center">
                 <div className="text-xs text-purple-300/80">
-                  {showCopied === 'code' ? 
-                    t('referral.codeCopied', 'Kod kopyalandı!') : 
+                  {!displayReferralCode ? (
+                    "Henüz referans kodunuz yok, özel kod oluşturabilirsiniz" 
+                  ) : showCopied === 'code' ? (
+                    t('referral.codeCopied', 'Kod kopyalandı!') 
+                  ) : (
                     t('referral.tapToCopy', 'Kopyalamak için tıklayın')
-                  }
+                  )}
                 </div>
               </div>
             </div>

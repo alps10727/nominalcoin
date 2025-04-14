@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { findUsersByReferralCode } from "./referralService";
 import { updateReferrerInfo } from "./multiLevelReferralService";
-import { generateReferralCode, standardizeReferralCode, prepareReferralCodeForStorage } from "@/utils/referralUtils";
+import { standardizeReferralCode } from "@/utils/referralUtils";
 
 export interface UserRegistrationData {
   name?: string;
@@ -32,14 +32,9 @@ export async function registerUser(email: string, password: string, userData: Us
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
     
-    // Generate a storage referral code (no dashes)
-    const storageReferralCode = generateReferralCode(user.uid);
+    debugLog("authService", "User created in Firebase Auth");
     
-    debugLog("authService", "Generated referral code:", { 
-      storage: storageReferralCode 
-    });
-    
-    // Default user data
+    // Default user data - artık referral kodu otomatik oluşturulmayacak
     const defaultUserData = {
       name: userData.name || "",
       emailAddress: email,
@@ -47,7 +42,6 @@ export async function registerUser(email: string, password: string, userData: Us
       miningRate: 0.003,
       lastSaved: Date.now(),
       miningActive: false,
-      referralCode: storageReferralCode, // Store the code without dashes
       referredBy: userData.referredBy || null,
       referrals: userData.referrals || [],
       referralCount: userData.referralCount || 0,

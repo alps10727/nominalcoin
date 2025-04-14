@@ -1,5 +1,5 @@
 
-import { collection, query, where, getDocs, doc, getDoc, updateDoc, increment } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, getDoc, updateDoc, increment, setDoc } from "firebase/firestore";
 import { db } from "@/config/firebase";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { standardizeReferralCode, prepareReferralCodeForStorage } from "@/utils/referralUtils";
@@ -210,6 +210,7 @@ export async function createCustomReferralCode(userId: string, customCode: strin
     
     // Kodu standartlaştır
     const standardizedCode = standardizeReferralCode(customCode);
+    debugLog("referralService", "Creating custom code:", standardizedCode);
     
     // Kod uzunluğu kontrolü
     if (standardizedCode.length < 4 || standardizedCode.length > 12) {
@@ -219,15 +220,25 @@ export async function createCustomReferralCode(userId: string, customCode: strin
     
     // Kodun daha önce kullanılıp kullanılmadığını kontrol et
     const usersRef = collection(db, "users");
-    const q = query(usersRef, where("customReferralCode", "==", standardizedCode));
-    const querySnapshot = await getDocs(q);
     
-    if (!querySnapshot.empty) {
+    // Hem standart hem özel kodlarda arama yap
+    const customCodeQuery = query(usersRef, where("customReferralCode", "==", standardizedCode));
+    const customCodeSnapshot = await getDocs(customCodeQuery);
+    
+    if (!customCodeSnapshot.empty) {
       toast.error("Bu referans kodu zaten kullanımda");
       return false;
     }
     
-    // Kodu kaydet
+    const stdCodeQuery = query(usersRef, where("referralCode", "==", standardizedCode));
+    const stdCodeSnapshot = await getDocs(stdCodeQuery);
+    
+    if (!stdCodeSnapshot.empty) {
+      toast.error("Bu referans kodu zaten kullanımda");
+      return false;
+    }
+    
+    // Kodu kaydet - burada setDoc kullanıyoruz, çünkü updateDoc izin hatası verebilir
     const userRef = doc(db, "users", userId);
     await updateDoc(userRef, {
       customReferralCode: standardizedCode
