@@ -3,7 +3,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CircleUser, ChevronsUp } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { calculateMiningRate } from "@/utils/miningCalculator";
-import { REFERRAL_BONUS_RATE } from "@/utils/miningCalculator";
 
 export function MiningRateDisplay() {
   const { userData } = useAuth();

@@ -1,5 +1,5 @@
 
-import { UserData } from "@/utils/storage";
+import { UserData } from "@/types/storage";
 import { BASE_MINING_RATE, calculateMiningRate } from "@/utils/miningCalculator";
 import { debugLog } from "@/utils/debugUtils";
 
