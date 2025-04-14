@@ -1,6 +1,6 @@
 
 import { db } from "@/config/firebase";
-import { collection, getDocs, query, where, orderBy, limit } from "firebase/firestore";
+import { collection, getDocs, query, where, orderBy, limit, startAfter, DocumentData, QueryDocumentSnapshot } from "firebase/firestore";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 
 // Maximum number of transactions to fetch
@@ -52,27 +52,27 @@ export async function getUserReferralTransactions(userId: string) {
 
 /**
  * Gets all referral transactions with pagination support
- * @param limit Maximum number of transactions to return
- * @param startAfter Document to start after (for pagination)
+ * @param limitCount Maximum number of transactions to return
+ * @param startAfterDoc Document to start after (for pagination)
  * @returns Array of transaction objects
  */
-export async function getReferralTransactions(limit = 20, startAfter = null) {
+export async function getReferralTransactions(limitCount = 20, startAfterDoc: QueryDocumentSnapshot<DocumentData> | null = null) {
   try {
     const transactionsRef = collection(db, "referralTransactions");
     
     let q;
-    if (startAfter) {
+    if (startAfterDoc) {
       q = query(
         transactionsRef,
         orderBy("timestamp", "desc"),
-        startAfter(startAfter),
-        limit(limit)
+        startAfter(startAfterDoc),
+        limit(limitCount)
       );
     } else {
       q = query(
         transactionsRef,
         orderBy("timestamp", "desc"),
-        limit(limit)
+        limit(limitCount)
       );
     }
     
