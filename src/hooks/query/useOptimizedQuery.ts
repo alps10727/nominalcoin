@@ -104,7 +104,8 @@ export function useOptimizedQuery<T>({
       
       // Handle retry logic
       if (retries > 0) {
-        handleRetry(key, () => { fetchData(); });
+        // Call handleRetry without checking its return value
+        handleRetry(key, () => fetchData());
       }
       
       return null;

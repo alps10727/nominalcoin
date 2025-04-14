@@ -21,7 +21,7 @@ export function useQueryExecution() {
     } catch (error) {
       // Still track performance on error for monitoring
       const executionTime = Date.now() - startTime;
-      trackQueryPerformance('read', executionTime, false);
+      trackQueryPerformance('read', executionTime);
       
       throw error;
     }
