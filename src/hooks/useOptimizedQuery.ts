@@ -1,6 +1,6 @@
 
 import { useEffect, useState, useRef } from 'react';
-import { QueryCacheManager, trackQueryPerformance } from '@/services/optimizationService';
+import { QueryCacheManager, trackQueryPerformance } from '@/services/db';
 import { debugLog } from '@/utils/debugUtils';
 
 interface QueryOptions<T> {
