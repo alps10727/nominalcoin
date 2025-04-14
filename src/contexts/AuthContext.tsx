@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { User } from "firebase/auth";
 import { useAuthState } from "@/hooks/useAuthState";
 import { useAuthActions } from "@/hooks/useAuthActions";
-import { useUserDataManager } from "@/hooks/useUserDataManager";
+import { useUserDataManager } from "@/hooks/userData";
 import { debugLog } from "@/utils/debugUtils";
 import { UserData } from "@/utils/storage";
 
