@@ -8,7 +8,7 @@ import { findUsersByReferralCode } from "@/services/referralService";
 import { rewardDirectReferrer } from "@/services/multiLevelReferralService";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { toast } from "sonner";
-import { prepareReferralCodeForStorage } from "@/utils/referralUtils";
+import { prepareReferralCodeForStorage, validateReferralCode } from "@/utils/referralUtils";
 import { App } from '@capacitor/app';
 
 const SignUp = () => {
@@ -52,7 +52,7 @@ const SignUp = () => {
           });
           
           // Check referral code format (3 letters + 3 digits)
-          if (!/^[A-Z]{3}\d{3}$/.test(storageCode)) {
+          if (!validateReferralCode(storageCode)) {
             toast.warning("Geçersiz referans kodu formatı. Doğru format: ABC123 (3 harf + 3 rakam)");
             setLoading(false);
             return; // Prevent registration with invalid code format

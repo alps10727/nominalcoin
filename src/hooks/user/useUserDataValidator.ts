@@ -34,7 +34,7 @@ export function useUserDataValidator() {
       lastSaved: typeof data?.lastSaved === 'number' ? data.lastSaved : Date.now(),
       miningActive: !!data?.miningActive,
       userId: userId || data?.userId || localData?.userId,
-      referralCode: data?.referralCode || localData?.referralCode || generateReferralCode(userId),
+      referralCode: data?.referralCode || localData?.referralCode || generateReferralCode(),
       referralCount: data?.referralCount || 0,
       referrals: data?.referrals || []
     };

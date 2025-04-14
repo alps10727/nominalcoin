@@ -30,7 +30,7 @@ export function useLocalDataLoader() {
     
     // If no referral code exists, generate one
     if (!userData.referralCode && userId) {
-      userData.referralCode = generateReferralCode(userId);
+      userData.referralCode = generateReferralCode();
       userData.referralCount = userData.referralCount || 0;
       userData.referrals = userData.referrals || [];
       saveUserData(userData);
@@ -51,7 +51,7 @@ export function useLocalDataLoader() {
    * Creates default user data when no data exists
    */
   const createDefaultUserData = (userId?: string): UserData => {
-    const newReferralCode = userId ? generateReferralCode(userId) : '';
+    const newReferralCode = userId ? generateReferralCode() : '';
     debugLog("useLocalDataLoader", "Creating default user data with referral code:", newReferralCode);
     
     return {

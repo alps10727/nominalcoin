@@ -15,7 +15,7 @@ export function createDefaultUserData(userId: string): UserData {
     lastSaved: Date.now(),
     miningActive: false,
     userId: userId,
-    referralCode: generateReferralCode(userId),
+    referralCode: generateReferralCode(),
     referralCount: 0,
     referrals: []
   };
@@ -35,7 +35,7 @@ export function validateUserData(userData: any, userId: string): UserData {
     miningActive: !!userData.miningActive,
     userId: userId,
     // Referans kodunu Firebase'den al - bu kod artık sabit kalacak
-    referralCode: userData.referralCode || generateReferralCode(userId),
+    referralCode: userData.referralCode || generateReferralCode(),
     referralCount: userData.referralCount || 0,
     referrals: userData.referrals || [],
     ...(userData as any) // Include any additional fields, properly typed now

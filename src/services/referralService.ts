@@ -1,7 +1,8 @@
+
 import { collection, query, where, getDocs, doc, getDoc, updateDoc, increment, setDoc } from "firebase/firestore";
 import { db } from "@/config/firebase";
 import { debugLog, errorLog } from "@/utils/debugUtils";
-import { standardizeReferralCode, prepareReferralCodeForStorage, validateReferralCode } from "@/utils/referralUtils";
+import { standardizeReferralCode, prepareReferralCodeForStorage } from "@/utils/referralUtils";
 import { runAtomicTransaction, runReferralTransaction } from "@/services/db/transactionService";
 import { REFERRAL_BONUS_RATE } from "@/utils/miningCalculator";
 import { toast } from "sonner";
@@ -73,7 +74,7 @@ export async function findUsersByReferralCode(referralCode: string): Promise<str
 /**
  * Checks if a referral code is valid with enhanced validation
  */
-export async function validateReferralCode(referralCode: string): Promise<boolean> {
+export async function checkReferralCodeValidity(referralCode: string): Promise<boolean> {
   try {
     // If code is empty, it's valid now (optional)
     if (!referralCode || referralCode.trim() === '') {
