@@ -15,7 +15,7 @@ const TermsAgreement = ({ checked, onCheckedChange, disabled = false }: TermsAgr
         id="terms"
         checked={checked}
         onCheckedChange={(checked) => {
-          onCheckedChange(checked as boolean);
+          onCheckedChange(checked === true);
         }}
         disabled={disabled}
       />

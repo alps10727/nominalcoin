@@ -57,7 +57,8 @@ export default function SignUpForm({ onSubmit, loading, error, initialReferralCo
       password: "",
       confirmPassword: "",
       referralCode: initialReferralCode || "",
-      agreedToTerms: false,
+      // Set as undefined instead of false, so form validation will handle it
+      agreedToTerms: undefined as any, // Cast to any to bypass TypeScript check since undefined isn't assignable to literal true
     },
   });
   
@@ -122,8 +123,11 @@ export default function SignUpForm({ onSubmit, loading, error, initialReferralCo
         
         <div className="space-y-2">
           <TermsAgreement 
-            checked={form.watch("agreedToTerms")} 
-            onCheckedChange={(checked) => form.setValue("agreedToTerms", checked)}
+            checked={form.watch("agreedToTerms") === true} 
+            onCheckedChange={(checked) => {
+              // Only set the value to true when checked, otherwise set to undefined
+              form.setValue("agreedToTerms", checked ? true : undefined)
+            }}
             disabled={loading}
           />
           {form.formState.errors.agreedToTerms && (
