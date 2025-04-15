@@ -8,7 +8,7 @@ import { validateSignUpForm, FormValues } from "@/utils/formValidation";
 import { debugLog } from "@/utils/debugUtils";
 import FormErrorDisplay from "./form-sections/FormErrorDisplay";
 import PasswordInputGroup from "./form-sections/PasswordInputGroup";
-import { checkReferralCode } from "@/utils/referralUtils";
+import { checkReferralCode } from "@/utils/referral"; // Updated import path
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CheckCircle2, XCircle } from "lucide-react";

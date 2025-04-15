@@ -1,8 +1,7 @@
-
 import { UserData } from "@/types/storage";
 import { BASE_MINING_RATE, calculateMiningRate } from "@/utils/miningCalculator";
 import { debugLog } from "@/utils/debugUtils";
-import { generateReferralCode } from "@/utils/referralUtils";
+import { generateReferralCode } from "@/utils/referral";
 
 /**
  * Varsayılan kullanıcı verisi oluştur

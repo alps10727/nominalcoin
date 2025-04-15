@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Share2, Copy, Users, Award, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { debugLog } from "@/utils/debugUtils";
-import { REFERRAL_BONUS_RATE } from "@/utils/referralUtils";
+import { REFERRAL_BONUS_RATE } from "@/utils/referral";
 
 const Referral = () => {
   const { userData } = useAuth();
@@ -16,10 +15,8 @@ const Referral = () => {
   const referralCount = userData?.referralCount || 0;
   const referrals = userData?.referrals || [];
   
-  // Create shareable link with referral code
   const referralLink = `https://app.nominalcoin.com/signup?ref=${referralCode}`;
   
-  // Handle copy to clipboard
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(referralLink);
@@ -33,7 +30,6 @@ const Referral = () => {
     }
   };
   
-  // Share via native share API if available
   const handleShare = async () => {
     if (navigator.share) {
       try {
@@ -54,14 +50,12 @@ const Referral = () => {
     }
   };
   
-  // Calculate rewards
   const totalBonus = (referralCount * REFERRAL_BONUS_RATE).toFixed(3);
   
   return (
     <div className="container max-w-md px-4 py-8 mx-auto space-y-6">
       <h1 className="text-2xl font-bold text-center">Arkadaşlarını Davet Et</h1>
       
-      {/* Referral Stats Card */}
       <Card className="bg-gradient-to-br from-indigo-900/80 to-purple-900/80 border-none shadow-md">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-white">
@@ -86,7 +80,6 @@ const Referral = () => {
         </CardContent>
       </Card>
       
-      {/* Referral Code Card */}
       <Card className="bg-gradient-to-br from-blue-900/80 to-indigo-900/80 border-none shadow-md">
         <CardHeader className="pb-2">
           <CardTitle className="text-white">Referans Kodun</CardTitle>
@@ -118,7 +111,6 @@ const Referral = () => {
         </CardFooter>
       </Card>
       
-      {/* Rewards Explanation */}
       <Card className="bg-gradient-to-br from-violet-900/80 to-indigo-900/80 border-none shadow-md">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-white">
@@ -140,7 +132,6 @@ const Referral = () => {
         </CardContent>
       </Card>
       
-      {/* Referral List */}
       {referralCount > 0 && (
         <Card className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 border-none shadow-md">
           <CardHeader className="pb-2">
