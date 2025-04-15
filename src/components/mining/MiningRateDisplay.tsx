@@ -1,8 +1,9 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Activity, ChevronsUp, Users } from "lucide-react";
+import { Users } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { calculateMiningRate, BASE_MINING_RATE, REFERRAL_BONUS_RATE } from "@/utils/miningCalculator";
+import { calculateMiningRate, BASE_MINING_RATE } from "@/utils/miningCalculator";
+import { REFERRAL_BONUS_RATE } from "@/utils/referralUtils";
 
 export function MiningRateDisplay() {
   const { userData } = useAuth();
@@ -40,7 +41,6 @@ export function MiningRateDisplay() {
           
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <ChevronsUp className="h-5 w-5 mr-1.5 text-green-300" />
               <span className="font-medium text-green-300">Toplam:</span>
             </div>
             <span className="font-mono font-bold text-lg text-green-300">{totalRate.toFixed(4)} NC/dk</span>

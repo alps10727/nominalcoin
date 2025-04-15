@@ -10,9 +10,13 @@ import { auth, db } from "@/config/firebase";
 import { doc, setDoc, getDoc, collection, addDoc, query, where, getDocs, limit, updateDoc } from "firebase/firestore";
 import { toast } from "sonner";
 import { debugLog, errorLog } from "@/utils/debugUtils";
-import { checkReferralCode, generateReferralCode, REFERRAL_BONUS_RATE } from "./referralService";
-import { processReferralReward } from "./multiLevelReferralService";
-import { createReferralCodeForUser } from "@/utils/referralUtils";
+import { 
+  checkReferralCode, 
+  generateReferralCode, 
+  REFERRAL_BONUS_RATE, 
+  createReferralCodeForUser,
+  processReferralCode
+} from "@/utils/referralUtils";
 
 export interface UserRegistrationData {
   name?: string;
@@ -72,7 +76,7 @@ export async function registerUser(email: string, password: string, userData: Us
     if (referralValid && referrerUserId) {
       try {
         // Process the referral reward
-        await processReferralRewards(referrerUserId, user.uid);
+        await processReferralCode(userData.referralCode || "", user.uid);
         debugLog("authService", "Referral reward processed", { 
           referrer: referrerUserId,
           newUser: user.uid 
@@ -87,78 +91,6 @@ export async function registerUser(email: string, password: string, userData: Us
   } catch (error) {
     errorLog("authService", "Registration error:", error);
     throw error;
-  }
-}
-
-/**
- * Process referral rewards when a new user signs up with a referral code
- */
-async function processReferralRewards(referrerId: string, newUserId: string): Promise<void> {
-  try {
-    // Get referrer's user document
-    const referrerDoc = await getDoc(doc(db, "users", referrerId));
-    
-    if (!referrerDoc.exists()) {
-      errorLog("authService", "Referrer not found:", referrerId);
-      return;
-    }
-    
-    const referrerData = referrerDoc.data();
-    
-    // Update referrer's stats
-    const updatedReferralCount = (referrerData.referralCount || 0) + 1;
-    const updatedReferrals = [...(referrerData.referrals || []), newUserId];
-    
-    // Calculate new mining rate with referral bonus
-    const baseRate = 0.003; // Base rate
-    const upgradeBonus = referrerData.upgrades?.reduce((total: number, upgrade: any) => {
-      return total + (upgrade.rateBonus || 0);
-    }, 0) || 0;
-    
-    // Calculate referral bonus
-    const referralBonus = updatedReferralCount * REFERRAL_BONUS_RATE;
-    
-    // New mining rate with precision
-    const newMiningRate = parseFloat((baseRate + upgradeBonus + referralBonus).toFixed(4));
-    
-    // Update referrer's document
-    await updateDoc(doc(db, "users", referrerId), {
-      referralCount: updatedReferralCount,
-      referrals: updatedReferrals,
-      miningRate: newMiningRate
-    });
-    
-    // Mark referral code as used
-    const codesRef = collection(db, "referralCodes");
-    const q = query(codesRef, 
-      where("owner", "==", referrerId),
-      where("used", "==", false),
-      limit(1)
-    );
-    
-    const codeSnapshot = await getDocs(q);
-    
-    if (!codeSnapshot.empty) {
-      const codeDoc = codeSnapshot.docs[0];
-      await updateDoc(doc(db, "referralCodes", codeDoc.id), {
-        used: true,
-        usedBy: newUserId,
-        usedAt: new Date()
-      });
-    }
-    
-    // Process multi-level referral rewards if needed
-    await processReferralReward(referrerId, newUserId);
-    
-    debugLog("authService", "Referral rewards processed successfully", {
-      referrer: referrerId,
-      newUser: newUserId,
-      newMiningRate
-    });
-    
-  } catch (error) {
-    errorLog("authService", "Error processing referral rewards:", error);
-    // Don't rethrow - we don't want to block registration
   }
 }
 

@@ -1,11 +1,12 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { Share2, Copy, Users, Award, ChevronRight, CheckCircle2 } from "lucide-react";
+import { Share2, Copy, Users, Award, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { debugLog } from "@/utils/debugUtils";
+import { REFERRAL_BONUS_RATE } from "@/utils/referralUtils";
 
 const Referral = () => {
   const { userData } = useAuth();
@@ -54,8 +55,7 @@ const Referral = () => {
   };
   
   // Calculate rewards
-  const baseBonus = 0.003; // Mining rate bonus per referral
-  const totalBonus = (referralCount * baseBonus).toFixed(3);
+  const totalBonus = (referralCount * REFERRAL_BONUS_RATE).toFixed(3);
   
   return (
     <div className="container max-w-md px-4 py-8 mx-auto space-y-6">
@@ -130,7 +130,7 @@ const Referral = () => {
           <div className="space-y-3">
             <div className="flex items-center justify-between p-2 bg-violet-900/30 rounded border border-violet-700/30">
               <div className="text-sm">Her referans için</div>
-              <div className="font-bold">+0.003 NC/dk</div>
+              <div className="font-bold">+{REFERRAL_BONUS_RATE} NC/dk</div>
             </div>
             <p className="text-sm text-gray-300 mt-2">
               Her başarılı davet için madencilik hızın kalıcı olarak artar.
@@ -156,7 +156,7 @@ const Referral = () => {
                     </div>
                     <div className="text-sm">Kullanıcı {userId.substring(0, 6)}...</div>
                   </div>
-                  <div className="text-sm text-green-400">+0.003 NC/dk</div>
+                  <div className="text-sm text-green-400">+{REFERRAL_BONUS_RATE} NC/dk</div>
                 </div>
               ))}
             </div>

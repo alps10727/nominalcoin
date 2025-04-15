@@ -13,6 +13,12 @@ const SignUp = () => {
   const [error, setError] = useState<string | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
+  
+  // Check URL for referral code
+  const [initialReferralCode, setInitialReferralCode] = useState<string>(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get('ref') || '';
+  });
 
   // Android back button handler
   useEffect(() => {
@@ -44,6 +50,12 @@ const SignUp = () => {
 
       // Registration successful, redirect to home page
       toast.success("Hesabınız başarıyla oluşturuldu!");
+      
+      // Show special message for referral code
+      if (referralCode) {
+        toast.success("Referans kodu başarıyla uygulandı!");
+      }
+      
       navigate("/");
     } catch (error: any) {
       setError(error.message);
@@ -61,9 +73,14 @@ const SignUp = () => {
           <CardDescription className="text-gray-300">
             Yeni bir hesap oluşturarak Coin kazanmaya başlayın
           </CardDescription>
+          {initialReferralCode && (
+            <div className="mt-2 bg-blue-900/30 text-blue-200 text-sm py-1 px-2 rounded-md">
+              Referans kodu ile kaydoluyorsunuz: {initialReferralCode}
+            </div>
+          )}
         </CardHeader>
         <CardContent>
-          <SignUpForm onSubmit={handleSignUp} loading={loading} error={error} />
+          <SignUpForm onSubmit={handleSignUp} loading={loading} error={error} initialReferralCode={initialReferralCode} />
         </CardContent>
       </Card>
     </div>

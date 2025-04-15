@@ -17,19 +17,27 @@ interface SignUpFormProps {
   onSubmit: (name: string, email: string, password: string, referralCode?: string) => Promise<void>;
   loading: boolean;
   error: string | null;
+  initialReferralCode?: string;
 }
 
-const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
+const SignUpForm = ({ onSubmit, loading, error, initialReferralCode = "" }: SignUpFormProps) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
-  const [referralCode, setReferralCode] = useState("");
+  const [referralCode, setReferralCode] = useState(initialReferralCode);
   const [referralValid, setReferralValid] = useState<boolean | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [checkingCode, setCheckingCode] = useState(false);
+  
+  // Set initial referral code when prop changes
+  useEffect(() => {
+    if (initialReferralCode) {
+      setReferralCode(initialReferralCode);
+    }
+  }, [initialReferralCode]);
   
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
