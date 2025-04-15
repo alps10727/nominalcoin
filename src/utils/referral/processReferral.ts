@@ -1,90 +1,9 @@
 
 import { db } from "@/config/firebase";
-import { collection, query, where, getDocs, limit, updateDoc, doc, DocumentData } from "firebase/firestore";
-import { debugLog, errorLog } from "./debugUtils";
-
-/**
- * Generates a random 6-character alphanumeric referral code
- * Format: 3 letters + 3 numbers (e.g., ABC123)
- */
-export function generateReferralCode(): string {
-  const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // Removed confusing I and O
-  const numbers = '123456789'; // Removed confusing 0
-  
-  let code = '';
-  
-  // Generate 3 random letters
-  for (let i = 0; i < 3; i++) {
-    code += letters.charAt(Math.floor(Math.random() * letters.length));
-  }
-  
-  // Generate 3 random numbers
-  for (let i = 0; i < 3; i++) {
-    code += numbers.charAt(Math.floor(Math.random() * numbers.length));
-  }
-  
-  return code;
-}
-
-/**
- * Check if a referral code is valid
- * @param code The referral code to check
- * @param currentUserId Current user's ID to prevent self-referral
- */
-export async function checkReferralCode(code: string, currentUserId?: string): Promise<{valid: boolean, ownerId?: string}> {
-  if (!code || code.length !== 6) {
-    return { valid: false };
-  }
-  
-  try {
-    // Convert to uppercase for case-insensitive comparison
-    const normalizedCode = code.toUpperCase();
-    
-    // Check if code exists in referralCodes collection
-    const codesRef = collection(db, "referralCodes");
-    const q = query(codesRef, 
-      where("code", "==", normalizedCode),
-      where("used", "==", false),
-      limit(1)
-    );
-    
-    const snapshot = await getDocs(q);
-    
-    if (snapshot.empty) {
-      debugLog("referralUtils", "Referral code not found or already used:", normalizedCode);
-      return { valid: false };
-    }
-    
-    const codeData = snapshot.docs[0].data();
-    const ownerId = codeData.owner;
-    
-    // Prevent self-referral
-    if (currentUserId && ownerId === currentUserId) {
-      debugLog("referralUtils", "Self-referral attempt prevented:", currentUserId);
-      return { valid: false };
-    }
-    
-    debugLog("referralUtils", "Valid referral code:", normalizedCode, "Owner:", ownerId);
-    return { valid: true, ownerId };
-    
-  } catch (error) {
-    errorLog("referralUtils", "Error checking referral code:", error);
-    // In case of error, allow registration to proceed without referral
-    return { valid: false };
-  }
-}
-
-/**
- * Bonus mining rate per successful referral
- */
-export const REFERRAL_BONUS_RATE = 0.003; // per referral
-
-/**
- * Calculate mining rate bonus from referrals
- */
-export function calculateReferralBonus(referralCount: number = 0): number {
-  return referralCount * REFERRAL_BONUS_RATE;
-}
+import { collection, query, where, getDocs, limit, updateDoc, doc, DocumentData, addDoc } from "firebase/firestore";
+import { debugLog, errorLog } from "../debugUtils";
+import { checkReferralCode } from "./validateReferralCode";
+import { generateReferralCode } from "./generateReferralCode";
 
 /**
  * Mark a referral code as used and update referrer's stats
@@ -156,7 +75,7 @@ function calculateNewMiningRate(userData: DocumentData): number {
     return total + (upgrade.rateBonus || 0);
   }, 0) || 0;
   
-  const referralBonus = calculateReferralBonus(referralCount);
+  const referralBonus = referralCount * 0.003;
   
   // Return with fixed precision
   return parseFloat((baseRate + upgradeBonus + referralBonus).toFixed(4));
@@ -201,6 +120,3 @@ export async function createReferralCodeForUser(userId: string): Promise<string>
     return "";
   }
 }
-
-// Import addDoc separately to avoid circular dependency
-import { addDoc } from "firebase/firestore";
