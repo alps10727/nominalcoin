@@ -18,7 +18,7 @@ export async function checkReferralCode(code: string, currentUserId?: string): P
     // Check if code exists in referralCodes collection
     const codesRef = collection(db, "referralCodes");
     const q = query(
-      codesRef, 
+      codesRef,
       where("code", "==", normalizedCode),
       where("used", "==", false),
       limit(1)
@@ -36,11 +36,10 @@ export async function checkReferralCode(code: string, currentUserId?: string): P
     
     // Prevent self-referral
     if (currentUserId && ownerId === currentUserId) {
-      debugLog("referralUtils", "Self-referral attempt prevented:", currentUserId);
+      debugLog("referralUtils", "Self-referral prevented");
       return { valid: false };
     }
     
-    debugLog("referralUtils", "Valid referral code:", normalizedCode, "Owner:", ownerId);
     return { valid: true, ownerId };
     
   } catch (error) {

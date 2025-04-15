@@ -41,8 +41,8 @@ export async function processReferralCode(code: string, newUserId: string): Prom
     // Get current user data to calculate new values
     const userSnapshot = await getDocs(
       query(
-        collection(db, "users"), 
-        where("userId", "==", ownerId), 
+        collection(db, "users"),
+        where("userId", "==", ownerId),
         limit(1)
       )
     );
@@ -102,8 +102,8 @@ export async function createReferralCodeForUser(userId: string): Promise<string>
     while (!isUnique && attempts < 5) {
       const codesRef = collection(db, "referralCodes");
       const q = query(
-        codesRef, 
-        where("code", "==", code), 
+        codesRef,
+        where("code", "==", code),
         limit(1)
       );
       const snapshot = await getDocs(q);
