@@ -1,6 +1,6 @@
 
 import { UserData } from "@/types/storage";
-import { REFERRAL_BONUS_RATE } from "@/utils/referralUtils";
+import { REFERRAL_BONUS_RATE } from "@/utils/referral";
 
 // Base mining rate (0.003 coins per minute)
 export const BASE_MINING_RATE = 0.003; // per minute

@@ -4,7 +4,8 @@ import { Activity, Clock, Zap, Users } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
-import { BASE_MINING_RATE, REFERRAL_BONUS_RATE } from "@/utils/miningCalculator";
+import { BASE_MINING_RATE } from "@/utils/miningCalculator";
+import { REFERRAL_BONUS_RATE } from "@/utils/referral";
 
 interface MiningRateCardProps {
   miningRate: number;
