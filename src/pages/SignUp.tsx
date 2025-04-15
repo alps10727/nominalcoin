@@ -41,6 +41,8 @@ const SignUp = () => {
       setLoading(true);
       setError(null);
       
+      debugLog("SignUp", "Starting registration", { name, email, referralCode });
+      
       // Register the user with referral code
       const userCredential = await registerUser(email, password, {
         name,

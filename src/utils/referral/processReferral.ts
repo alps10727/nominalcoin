@@ -1,5 +1,5 @@
 
-import { collection, query, where, getDocs, limit } from "firebase/firestore";
+import { collection, query, where, getDocs, limit, doc, getDoc } from "firebase/firestore";
 import { db } from "@/config/firebase";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { checkReferralCode } from "./validateReferralCode";
@@ -10,31 +10,48 @@ export async function processReferralCode(code: string, newUserId: string): Prom
   if (!code) return false;
   
   try {
+    debugLog("processReferral", "Processing referral code", { code, newUserId });
+    
+    // Check if the referral code is valid
     const { valid, ownerId } = await checkReferralCode(code, newUserId);
     
-    if (!valid || !ownerId) return false;
+    if (!valid || !ownerId) {
+      errorLog("processReferral", "Invalid referral code or owner ID", { valid, ownerId });
+      return false;
+    }
     
     // Mark referral code as used
     const codeMarked = await markReferralCodeAsUsed(code, newUserId);
-    if (!codeMarked) return false;
-    
-    // Get referrer's current data
-    const userSnapshot = await getDocs(
-      query(
-        collection(db, "users"),
-        where("userId", "==", ownerId),
-        limit(1)
-      )
-    );
-    
-    if (!userSnapshot.empty) {
-      const userData = userSnapshot.docs[0].data();
-      return await updateReferrerStats(ownerId, newUserId, userData);
+    if (!codeMarked) {
+      errorLog("processReferral", "Failed to mark referral code as used");
+      return false;
     }
     
-    return false;
+    debugLog("processReferral", "Referral code marked as used, getting referrer data");
+    
+    // Get the referrer's complete document
+    const userDoc = await getDoc(doc(db, "users", ownerId));
+    
+    if (!userDoc.exists()) {
+      errorLog("processReferral", "Referrer document doesn't exist");
+      return false;
+    }
+    
+    const userData = userDoc.data();
+    
+    // Update the referrer's stats with the referral information
+    debugLog("processReferral", "Updating referrer stats", { referrerId: ownerId, newUserId });
+    const updated = await updateReferrerStats(ownerId, newUserId, userData);
+    
+    if (updated) {
+      debugLog("processReferral", "Successfully processed referral", { code, referrer: ownerId, newUser: newUserId });
+    } else {
+      errorLog("processReferral", "Failed to update referrer stats");
+    }
+    
+    return updated;
   } catch (error) {
-    errorLog("referralUtils", "Error processing referral code:", error);
+    errorLog("processReferral", "Error processing referral code:", error);
     return false;
   }
 }

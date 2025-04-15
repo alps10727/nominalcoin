@@ -1,23 +1,66 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { Share2, Copy, Users, Award, CheckCircle2 } from "lucide-react";
+import { Share2, Copy, Users, Award, CheckCircle2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { debugLog } from "@/utils/debugUtils";
 import { REFERRAL_BONUS_RATE } from "@/utils/referral/bonusCalculator";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/config/firebase";
 
 const Referral = () => {
-  const { userData } = useAuth();
+  const { userData, currentUser, updateUserData } = useAuth();
   const [copied, setCopied] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
-  // Eğer referralCode yoksa boş bir string göster
+  // Referral kod kontrolü
   const referralCode = userData?.referralCode || '';
   const referralCount = userData?.referralCount || 0;
   const referrals = userData?.referrals || [];
   
   const referralLink = `https://app.nominalcoin.com/signup?ref=${referralCode}`;
+  
+  // Refresh user data function to get the latest referral stats
+  const refreshUserData = async () => {
+    if (!currentUser) return;
+    
+    try {
+      setIsRefreshing(true);
+      
+      const userDocRef = doc(db, "users", currentUser.uid);
+      const userDocSnap = await getDoc(userDocRef);
+      
+      if (userDocSnap.exists()) {
+        const freshUserData = userDocSnap.data();
+        
+        // Update the user data in context with fresh data
+        if (updateUserData) {
+          await updateUserData({
+            referralCode: freshUserData.referralCode || referralCode,
+            referralCount: freshUserData.referralCount || 0,
+            referrals: freshUserData.referrals || [],
+            miningRate: freshUserData.miningRate || userData?.miningRate || 0.003
+          });
+          
+          toast.success("Referans bilgileri güncellendi");
+        }
+      }
+    } catch (error) {
+      toast.error("Verileri güncellerken bir hata oluştu");
+      debugLog("Referral", "Error refreshing data:", error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+  
+  // Effect to refresh data on initial load
+  useEffect(() => {
+    if (currentUser && currentUser.uid) {
+      refreshUserData();
+    }
+  }, [currentUser]);
   
   const handleCopy = async () => {
     try {
@@ -56,7 +99,18 @@ const Referral = () => {
   
   return (
     <div className="container max-w-md px-4 py-8 mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-center">Arkadaşlarını Davet Et</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Arkadaşlarını Davet Et</h1>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={refreshUserData} 
+          disabled={isRefreshing}
+          className="h-8 w-8"
+        >
+          <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+        </Button>
+      </div>
       
       <Card className="bg-gradient-to-br from-indigo-900/80 to-purple-900/80 border-none shadow-md">
         <CardHeader className="pb-2">

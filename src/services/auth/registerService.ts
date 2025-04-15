@@ -1,10 +1,12 @@
 
 import { createUserWithEmailAndPassword, User } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/config/firebase";
 import { UserRegistrationData, AuthResponse } from "./types";
 import { debugLog, errorLog } from "@/utils/debugUtils";
-import { createReferralCodeForUser, checkReferralCode, processReferralCode } from "@/utils/referral";
+import { createReferralCodeForUser } from "@/utils/referral";
+import { checkReferralCode, processReferralCode } from "@/utils/referral";
+import { toast } from "sonner";
 
 export async function registerUser(
   email: string, 
@@ -18,11 +20,13 @@ export async function registerUser(
     let referralValid = false;
     let referrerUserId = null;
     
-    if (userData.referralCode && userData.referralCode.length === 6) {
+    if (userData.referralCode && userData.referralCode.length > 0) {
       try {
+        debugLog("authService", "Checking referral code", { code: userData.referralCode });
         const { valid, ownerId } = await checkReferralCode(userData.referralCode);
         referralValid = valid;
         referrerUserId = ownerId;
+        debugLog("authService", "Referral code check result", { valid, ownerId });
       } catch (err) {
         errorLog("authService", "Error checking referral code:", err);
       }
@@ -32,7 +36,7 @@ export async function registerUser(
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
     
-    debugLog("authService", "User created in Firebase Auth");
+    debugLog("authService", "User created in Firebase Auth", { userId: user.uid });
     
     // Generate referral code for new user
     const userReferralCode = await createReferralCodeForUser(user.uid);
@@ -50,16 +54,31 @@ export async function registerUser(
       referralCode: userReferralCode,
       referralCount: 0,
       referrals: [],
-      invitedBy: referralValid ? referrerUserId : null
+      invitedBy: referralValid && referrerUserId ? referrerUserId : null
     };
     
     // Save user data to Firestore
     await setDoc(doc(db, "users", user.uid), defaultUserData);
+    debugLog("authService", "User data saved to Firestore");
     
-    // Process referral if valid
+    // Process referral reward if valid
     if (referralValid && referrerUserId) {
       try {
-        await processReferralCode(userData.referralCode || "", user.uid);
+        debugLog("authService", "Processing referral reward", { code: userData.referralCode, referrerId: referrerUserId });
+        const success = await processReferralCode(userData.referralCode || "", user.uid);
+        
+        if (success) {
+          debugLog("authService", "Referral successfully processed");
+        } else {
+          errorLog("authService", "Failed to process referral reward");
+          // Try direct update as fallback
+          const referrerRef = doc(db, "users", referrerUserId);
+          const referrerDoc = await getDoc(referrerRef);
+          
+          if (referrerDoc.exists()) {
+            await processReferralCode(userData.referralCode || "", user.uid);
+          }
+        }
       } catch (rewardErr) {
         errorLog("authService", "Error processing referral reward:", rewardErr);
       }
