@@ -8,12 +8,12 @@ import { registerUser } from "@/services/authService";
 import { UserRegistrationData } from "@/services/auth/types";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { NameInput } from "./inputs/NameInput";
-import { EmailInput } from "./inputs/EmailInput";
-import { PasswordInputGroup } from "./form-sections/PasswordInputGroup";
-import { FormErrorDisplay } from "./form-sections/FormErrorDisplay";
-import { SignUpButton } from "./buttons/SignUpButton";
-import { TermsAgreement } from "./terms/TermsAgreement";
+import NameInput from "./inputs/NameInput";
+import EmailInput from "./inputs/EmailInput";
+import PasswordInputGroup from "./form-sections/PasswordInputGroup";
+import FormErrorDisplay from "./form-sections/FormErrorDisplay";
+import SignUpButton from "./buttons/SignUpButton";
+import TermsAgreement from "./terms/TermsAgreement";
 
 // SignUp Schema
 const signUpSchema = z.object({
@@ -38,10 +38,16 @@ const signUpSchema = z.object({
 
 type SignUpFormValues = z.infer<typeof signUpSchema>;
 
-export default function SignUpForm() {
+interface SignUpFormProps {
+  onSubmit: (name: string, email: string, password: string, referralCode?: string) => Promise<void>;
+  loading: boolean;
+  error: string | null;
+  initialReferralCode?: string;
+}
+
+export default function SignUpForm({ onSubmit, loading, error, initialReferralCode = '' }: SignUpFormProps) {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [generalError, setGeneralError] = useState("");
+  const [isOffline, setIsOffline] = useState(false);
   
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
@@ -50,53 +56,53 @@ export default function SignUpForm() {
       email: "",
       password: "",
       confirmPassword: "",
-      referralCode: "",
+      referralCode: initialReferralCode || "",
       agreedToTerms: false,
     },
   });
   
-  const onSubmit = async (values: SignUpFormValues) => {
+  const handleSubmit = async (values: SignUpFormValues) => {
     try {
-      setLoading(true);
-      setGeneralError("");
-      
-      const userData: UserRegistrationData = {
-        name: values.name,
-        referralCode: values.referralCode || undefined,
-      };
-      
-      await registerUser(values.email, values.password, userData);
-      toast.success("Hesabınız başarıyla oluşturuldu!");
-      
-      // Navigate to dashboard after successful registration
-      navigate("/");
+      await onSubmit(
+        values.name, 
+        values.email, 
+        values.password, 
+        values.referralCode || undefined
+      );
     } catch (error: any) {
-      console.error("Registration error:", error);
-      
-      // Handle Firebase error messages
-      if (error.code === "auth/email-already-in-use") {
-        setGeneralError("Bu e-posta adresi zaten kullanımda.");
-      } else if (error.code === "auth/invalid-email") {
-        setGeneralError("Geçersiz e-posta adresi.");
-      } else if (error.code === "auth/weak-password") {
-        setGeneralError("Şifre çok zayıf.");
-      } else {
-        setGeneralError("Kayıt sırasında bir hata oluştu. Lütfen tekrar deneyin.");
-      }
-    } finally {
-      setLoading(false);
+      console.error("Form submission error:", error);
     }
   };
   
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <NameInput control={form.control} />
-        <EmailInput control={form.control} />
-        <PasswordInputGroup control={form.control} />
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        <div className="space-y-2">
+          <NameInput 
+            value={form.watch("name")} 
+            onChange={(value) => form.setValue("name", value)} 
+            disabled={loading}
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <EmailInput 
+            value={form.watch("email")} 
+            onChange={(value) => form.setValue("email", value)}
+            disabled={loading}
+          />
+        </div>
+        
+        <PasswordInputGroup 
+          password={form.watch("password")}
+          confirmPassword={form.watch("confirmPassword")}
+          setPassword={(value) => form.setValue("password", value)}
+          setConfirmPassword={(value) => form.setValue("confirmPassword", value)}
+          disabled={loading}
+        />
         
         {/* Referral Code Input */}
-        <div className="space-y-1">
+        <div className="space-y-2">
           <label htmlFor="referralCode" className="text-sm font-medium">
             Referans Kodu (İsteğe Bağlı)
           </label>
@@ -105,13 +111,36 @@ export default function SignUpForm() {
             type="text"
             className="w-full p-2 border rounded-md bg-background"
             placeholder="Referans kodu girin"
-            {...form.register("referralCode")}
+            value={form.watch("referralCode")}
+            onChange={(e) => form.setValue("referralCode", e.target.value)}
+            disabled={loading || !!initialReferralCode}
           />
+          {initialReferralCode && (
+            <p className="text-xs text-blue-500">Referans kodu ile kaydoluyorsunuz</p>
+          )}
         </div>
         
-        <TermsAgreement control={form.control} />
-        <FormErrorDisplay error={generalError} />
-        <SignUpButton loading={loading} />
+        <div className="space-y-2">
+          <TermsAgreement 
+            checked={form.watch("agreedToTerms")} 
+            onCheckedChange={(checked) => form.setValue("agreedToTerms", checked)}
+            disabled={loading}
+          />
+          {form.formState.errors.agreedToTerms && (
+            <p className="text-sm text-destructive">{form.formState.errors.agreedToTerms.message}</p>
+          )}
+        </div>
+        
+        <FormErrorDisplay 
+          error={error} 
+          formError={Object.values(form.formState.errors)[0]?.message?.toString() || null}
+          isOffline={isOffline} 
+        />
+        
+        <SignUpButton 
+          loading={loading} 
+          isOffline={isOffline} 
+        />
       </form>
     </Form>
   );

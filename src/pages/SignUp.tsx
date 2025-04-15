@@ -80,7 +80,12 @@ const SignUp = () => {
           )}
         </CardHeader>
         <CardContent>
-          <SignUpForm onSubmit={handleSignUp} loading={loading} error={error} initialReferralCode={initialReferralCode} />
+          <SignUpForm 
+            onSubmit={handleSignUp} 
+            loading={loading} 
+            error={error}
+            initialReferralCode={initialReferralCode} 
+          />
         </CardContent>
       </Card>
     </div>
