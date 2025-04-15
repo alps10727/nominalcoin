@@ -93,7 +93,7 @@ export async function processReferralCode(code: string, newUserId: string): Prom
   if (!code) return false;
   
   try {
-    const { valid, ownerId } = await checkReferralCode(code);
+    const { valid, ownerId } = await checkReferralCode(code, newUserId);
     
     if (!valid || !ownerId) return false;
     
