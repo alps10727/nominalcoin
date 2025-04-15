@@ -93,4 +93,4 @@ export function useUserDataValidator() {
     ensureValidUserData,
     createDefaultUserData
   };
-}, []);
+}
