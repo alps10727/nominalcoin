@@ -1,4 +1,3 @@
-
 import { db } from "@/config/firebase";
 import { collection, query, where, getDocs, limit, updateDoc, doc, DocumentData, addDoc } from "firebase/firestore";
 import { debugLog, errorLog } from "./debugUtils";
@@ -52,7 +51,8 @@ export async function checkReferralCode(code: string, currentUserId?: string): P
     
     // Check if code exists in referralCodes collection
     const codesRef = collection(db, "referralCodes");
-    const q = query(codesRef, 
+    const q = query(
+      codesRef,
       where("code", "==", normalizedCode),
       where("used", "==", false),
       limit(1)
