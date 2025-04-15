@@ -18,7 +18,8 @@ export async function processReferralCode(code: string, newUserId: string): Prom
     
     // Update referral code status
     const codesRef = collection(db, "referralCodes");
-    const q = query(codesRef, 
+    const q = query(
+      codesRef,
       where("code", "==", code.toUpperCase()),
       limit(1)
     );
@@ -38,7 +39,13 @@ export async function processReferralCode(code: string, newUserId: string): Prom
     const userRef = doc(db, "users", ownerId);
     
     // Get current user data to calculate new values
-    const userSnapshot = await getDocs(query(collection(db, "users"), where("userId", "==", ownerId), limit(1)));
+    const userSnapshot = await getDocs(
+      query(
+        collection(db, "users"), 
+        where("userId", "==", ownerId), 
+        limit(1)
+      )
+    );
     
     if (!userSnapshot.empty) {
       const userData = userSnapshot.docs[0].data() as DocumentData;
@@ -94,7 +101,11 @@ export async function createReferralCodeForUser(userId: string): Promise<string>
     // Try up to 5 times to generate a unique code
     while (!isUnique && attempts < 5) {
       const codesRef = collection(db, "referralCodes");
-      const q = query(codesRef, where("code", "==", code), limit(1));
+      const q = query(
+        codesRef, 
+        where("code", "==", code), 
+        limit(1)
+      );
       const snapshot = await getDocs(q);
       
       if (snapshot.empty) {
