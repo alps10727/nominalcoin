@@ -2,9 +2,7 @@
 import { db } from "@/config/firebase";
 import { collection, query, where, getDocs, limit, addDoc } from "firebase/firestore";
 import { debugLog, errorLog } from "@/utils/debugUtils";
-
-// Mining rate bonus per referral
-export const REFERRAL_BONUS_RATE = 0.0001; // per referral
+import { REFERRAL_BONUS_RATE } from "@/utils/referral/bonusCalculator";
 
 /**
  * Generates a unique 6-character alphanumeric code

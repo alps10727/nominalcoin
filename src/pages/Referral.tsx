@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Share2, Copy, Users, Award, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { debugLog } from "@/utils/debugUtils";
-import { REFERRAL_BONUS_RATE } from "@/utils/referral";
+import { REFERRAL_BONUS_RATE } from "@/utils/referral/bonusCalculator";
 
 const Referral = () => {
   const { userData } = useAuth();

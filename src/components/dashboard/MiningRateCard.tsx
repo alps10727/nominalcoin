@@ -5,7 +5,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { BASE_MINING_RATE } from "@/utils/miningCalculator";
-import { REFERRAL_BONUS_RATE } from "@/utils/referral";
+import { REFERRAL_BONUS_RATE } from "@/utils/referral/bonusCalculator";
 
 interface MiningRateCardProps {
   miningRate: number;
