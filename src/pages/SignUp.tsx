@@ -30,15 +30,16 @@ const SignUp = () => {
     };
   }, []);
 
-  const handleSignUp = async (name: string, email: string, password: string) => {
+  const handleSignUp = async (name: string, email: string, password: string, referralCode?: string) => {
     try {
       setLoading(true);
       setError(null);
       
-      // Register the user without referral code
+      // Register the user with referral code
       const userCredential = await registerUser(email, password, {
         name,
-        emailAddress: email
+        emailAddress: email,
+        referralCode: referralCode // Pass referral code to registration function
       });
 
       // Registration successful, redirect to home page

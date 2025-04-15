@@ -1,15 +1,19 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import { CircleUser, ChevronsUp } from "lucide-react";
+import { Activity, ChevronsUp, Users } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { calculateMiningRate } from "@/utils/miningCalculator";
+import { calculateMiningRate, BASE_MINING_RATE, REFERRAL_BONUS_RATE } from "@/utils/miningCalculator";
 
 export function MiningRateDisplay() {
   const { userData } = useAuth();
   
-  const baseRate = 0.001; // Mining rate per minute
-  // Calculate total rate with precision
-  const totalRate = parseFloat(calculateMiningRate(userData).toFixed(4));
+  // Calculate various rates
+  const baseRate = BASE_MINING_RATE; // Base mining rate per minute
+  const totalRate = parseFloat(calculateMiningRate(userData).toFixed(4)); // Total rate with precision
+  
+  // Calculate referral bonus
+  const referralCount = userData?.referralCount || 0;
+  const referralBonus = parseFloat((referralCount * REFERRAL_BONUS_RATE).toFixed(4));
   
   return (
     <Card className="bg-gradient-to-br from-indigo-900/60 to-purple-900/60 border-none shadow-xl">
@@ -21,6 +25,16 @@ export function MiningRateDisplay() {
             <span className="text-gray-300">Temel Hız:</span>
             <span className="font-mono">{baseRate.toFixed(3)} NC/dk</span>
           </div>
+          
+          {referralCount > 0 && (
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center">
+                <Users className="h-4 w-4 mr-1 text-blue-300" />
+                <span className="text-blue-300">Referans Bonusu ({referralCount}):</span>
+              </div>
+              <span className="font-mono text-blue-300">+{referralBonus.toFixed(4)} NC/dk</span>
+            </div>
+          )}
           
           <div className="h-[1px] bg-white/20 my-2"></div>
           
@@ -34,6 +48,9 @@ export function MiningRateDisplay() {
           
           <div className="flex flex-col items-center mt-3 text-xs text-gray-300 text-center">
             <span className="mt-1">Madencilik hızını artırmak için yükseltme satın alın</span>
+            {referralCount === 0 && (
+              <span className="mt-1">veya arkadaşlarınızı davet edin</span>
+            )}
           </div>
         </div>
       </CardContent>

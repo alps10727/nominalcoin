@@ -5,6 +5,7 @@ export interface FormValues {
   password?: string;
   confirmPassword?: string;
   agreeTerms?: boolean;
+  referralCode?: string;
 }
 
 export const validateSignUpForm = (values: FormValues): string | null => {
@@ -30,6 +31,18 @@ export const validateSignUpForm = (values: FormValues): string | null => {
   
   if (!values.agreeTerms) {
     return "Kullanım şartlarını kabul etmelisiniz";
+  }
+  
+  // Referral code validation (if provided)
+  if (values.referralCode && values.referralCode.length > 0) {
+    if (values.referralCode.length !== 6) {
+      return "Referans kodu 6 karakter olmalıdır";
+    }
+    
+    // Check if referral code is alphanumeric
+    if (!/^[A-Z0-9]+$/.test(values.referralCode)) {
+      return "Referans kodu sadece büyük harf ve rakam içerebilir";
+    }
   }
   
   return null;

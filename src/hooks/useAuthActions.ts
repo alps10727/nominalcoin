@@ -1,3 +1,4 @@
+
 import { toast } from "sonner";
 import { User } from "firebase/auth";
 import { loginUser, logoutUser, registerUser, UserRegistrationData } from "@/services/authService";
@@ -56,7 +57,14 @@ export function useAuthActions(): AuthActions {
       
       if (user) {
         debugLog("useAuthActions", "Registration successful:", user.uid);
-        toast.success("Your account was created successfully!");
+        
+        // Show different toast message based on referral status
+        if (userData.referralCode) {
+          toast.success("Hesabınız oluşturuldu ve referans kodu kabul edildi!");
+        } else {
+          toast.success("Hesabınız başarıyla oluşturuldu!");
+        }
+        
         return true;
       }
       
@@ -74,6 +82,8 @@ export function useAuthActions(): AuthActions {
         toast.error("Invalid email address.");
       } else if (errorMessage.includes("network-request-failed") || errorMessage.includes("timeout")) {
         toast.error("Please check your internet connection.");
+      } else if (errorMessage.includes("invalid-referral")) {
+        toast.error("Invalid referral code. Registration proceeding without referral.");
       } else {
         toast.error("Registration failed: " + errorMessage);
       }

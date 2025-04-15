@@ -21,4 +21,9 @@ export interface UserData {
   tasks?: {
     completed?: number[]  // Tamamlanan görev ID'leri
   };
+  referralCode?: string; // User's unique referral code
+  invitedBy?: string; // UserID of the inviter
+  referralCount?: number; // Number of successful referrals
+  referrals?: string[]; // Array of user IDs referred by this user
+  indirectReferrals?: number; // Count of indirect referrals (level 2)
 }

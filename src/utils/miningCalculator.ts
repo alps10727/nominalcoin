@@ -4,6 +4,9 @@ import { UserData } from "@/types/storage";
 // Base mining rate (0.001 coins per minute)
 export const BASE_MINING_RATE = 0.001; // per minute
 
+// Bonus rate per referral (0.0001 coins per minute per referral)
+export const REFERRAL_BONUS_RATE = 0.0001; // per minute
+
 /**
  * Calculate mining rate based on user data
  * Fixed decimal precision using toFixed(4) to avoid JavaScript float issues
@@ -21,6 +24,10 @@ export function calculateMiningRate(userData: UserData | null): number {
   }, 0) || 0;
   
   rate += upgradeBonus;
+  
+  // Add referral bonus
+  const referralBonus = (userData.referralCount || 0) * REFERRAL_BONUS_RATE;
+  rate += referralBonus;
   
   // Return with fixed precision (4 decimal places)
   return parseFloat(rate.toFixed(4));
