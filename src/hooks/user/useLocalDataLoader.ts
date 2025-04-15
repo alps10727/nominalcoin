@@ -1,60 +1,73 @@
 
-import { UserData, loadUserData, saveUserData } from "@/utils/storage";
+import { UserData } from "@/types/storage";
 import { debugLog } from "@/utils/debugUtils";
+import { loadUserData, saveUserData } from "@/utils/storage";
+import { createReferralCodeForUser } from "@/utils/referral";
+import { generateReferralCode } from "@/utils/referral/generateReferralCode";
 
 /**
- * Hook to load and validate user data from local storage
+ * Hook for loading user data from local storage
  */
 export function useLocalDataLoader() {
   /**
-   * Loads user data from local storage
+   * Load user data from local storage
    */
   const loadLocalUserData = (): UserData | null => {
-    const localData = loadUserData();
-    return localData;
+    return loadUserData();
   };
 
   /**
-   * Ensures user data has valid information
+   * Create default user data
    */
-  const ensureReferralData = (userData: UserData | null, userId?: string): UserData | null => {
-    if (!userData) return null;
-    
-    // Eğer userId farklıysa, bu farklı bir kullanıcı demektir - veriyi NULL olarak döndür
-    if (userId && userData.userId && userData.userId !== userId) {
-      debugLog("useLocalDataLoader", "Farklı kullanıcı verisi tespit edildi, veriler temizleniyor", 
-        { storedId: userData.userId, currentId: userId });
-      return null;
-    }
-    
-    // Update userId if needed
-    if (userId && (!userData.userId || userData.userId !== userId)) {
-      userData.userId = userId;
-      saveUserData(userData);
-      debugLog("useLocalDataLoader", "Updated userId in local data:", userId);
-    }
-    
-    return userData;
-  };
-
-  /**
-   * Creates default user data when no data exists
-   */
-  const createDefaultUserData = (userId?: string): UserData => {
-    debugLog("useLocalDataLoader", "Creating default user data");
+  const createDefaultUserData = (userId: string): UserData => {
+    const defaultReferralCode = generateReferralCode();
     
     return {
+      userId,
       balance: 0,
       miningRate: 0.003,
       lastSaved: Date.now(),
       miningActive: false,
-      userId: userId
+      referralCode: defaultReferralCode,
+      referralCount: 0,
+      referrals: []
     };
+  };
+
+  /**
+   * Ensure user data has referral data
+   */
+  const ensureReferralData = (userData: UserData | null, userId: string): UserData => {
+    if (!userData) {
+      return createDefaultUserData(userId);
+    }
+    
+    // If user data exists but doesn't have a referral code, generate one
+    if (!userData.referralCode) {
+      // Generate temporary code for display
+      userData.referralCode = generateReferralCode();
+      
+      // Create official referral code in Firebase asynchronously
+      createReferralCodeForUser(userId).then(code => {
+        if (code) {
+          userData.referralCode = code;
+          saveUserData(userData, userId);
+        }
+      }).catch(err => {
+        debugLog("useLocalDataLoader", "Error creating referral code:", err);
+      });
+    }
+    
+    // Ensure other referral fields exist
+    if (userData.referralCount === undefined) userData.referralCount = 0;
+    if (!userData.referrals) userData.referrals = [];
+    
+    return userData;
   };
 
   return {
     loadLocalUserData,
-    ensureReferralData,
-    createDefaultUserData
+    createDefaultUserData,
+    ensureReferralData
   };
 }

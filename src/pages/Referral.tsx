@@ -12,6 +12,7 @@ const Referral = () => {
   const { userData } = useAuth();
   const [copied, setCopied] = useState(false);
   
+  // Eğer referralCode yoksa boş bir string göster
   const referralCode = userData?.referralCode || '';
   const referralCount = userData?.referralCount || 0;
   const referrals = userData?.referrals || [];
@@ -20,7 +21,7 @@ const Referral = () => {
   
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(referralLink);
+      await navigator.clipboard.writeText(referralCode);
       setCopied(true);
       toast.success("Referans kodu kopyalandı!");
       
@@ -71,11 +72,11 @@ const Referral = () => {
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-indigo-900/30 rounded-lg p-3 border border-indigo-700/30">
               <div className="text-sm text-indigo-300">Toplam Davet</div>
-              <div className="text-2xl font-bold mt-1">{referralCount}</div>
+              <div className="text-2xl font-bold mt-1 text-white">{referralCount}</div>
             </div>
             <div className="bg-purple-900/30 rounded-lg p-3 border border-purple-700/30">
               <div className="text-sm text-purple-300">Toplam Bonus</div>
-              <div className="text-2xl font-bold mt-1">+{totalBonus} NC/dk</div>
+              <div className="text-2xl font-bold mt-1 text-white">+{totalBonus} NC/dk</div>
             </div>
           </div>
         </CardContent>
@@ -90,12 +91,15 @@ const Referral = () => {
         </CardHeader>
         <CardContent className="pb-2">
           <div className="flex items-center justify-between p-3 bg-blue-950/50 rounded-lg border border-blue-800/30">
-            <div className="font-mono text-xl font-bold tracking-wider text-white">{referralCode}</div>
+            <div className="font-mono text-xl font-bold tracking-wider text-white">
+              {referralCode || "Yükleniyor..."}
+            </div>
             <Button 
               size="icon" 
               variant="ghost" 
               className="h-8 w-8 bg-blue-800/30 hover:bg-blue-700/50"
               onClick={handleCopy}
+              disabled={!referralCode}
             >
               {copied ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
             </Button>
@@ -105,6 +109,7 @@ const Referral = () => {
           <Button 
             className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
             onClick={handleShare}
+            disabled={!referralCode}
           >
             <Share2 className="mr-2 h-4 w-4" />
             Arkadaşlarını Davet Et
@@ -122,8 +127,8 @@ const Referral = () => {
         <CardContent>
           <div className="space-y-3">
             <div className="flex items-center justify-between p-2 bg-violet-900/30 rounded border border-violet-700/30">
-              <div className="text-sm">Her referans için</div>
-              <div className="font-bold">+{REFERRAL_BONUS_RATE} NC/dk</div>
+              <div className="text-sm text-white">Her referans için</div>
+              <div className="font-bold text-green-300">+{REFERRAL_BONUS_RATE} NC/dk</div>
             </div>
             <p className="text-sm text-gray-300 mt-2">
               Her başarılı davet için madencilik hızın kalıcı olarak artar.
@@ -146,7 +151,7 @@ const Referral = () => {
                     <div className="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mr-2">
                       {index + 1}
                     </div>
-                    <div className="text-sm">Kullanıcı {userId.substring(0, 6)}...</div>
+                    <div className="text-sm text-white">Kullanıcı {userId.substring(0, 6)}...</div>
                   </div>
                   <div className="text-sm text-green-400">+{REFERRAL_BONUS_RATE} NC/dk</div>
                 </div>

@@ -1,87 +1,40 @@
 
-import { useLanguage } from "@/contexts/LanguageContext";
-import { Zap, Users, Award, ArrowUpRight, Shield } from "lucide-react";
-import { useLocation } from "react-router-dom";
-import { Link } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { Link, useLocation } from "react-router-dom";
+import { Home, Award, ChevronUp, Settings, BarChart2, Users } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-const MobileNavigation = () => {
-  const { t } = useLanguage();
+export default function MobileNavigation() {
   const location = useLocation();
-  const { currentUser } = useAuth();
+  const path = location.pathname;
+
+  // Navigation items with icons and paths
+  const navItems = [
+    { name: "Home", icon: <Home size={22} />, path: "/" },
+    { name: "Upgrades", icon: <ChevronUp size={22} />, path: "/upgrades" },
+    { name: "Referral", icon: <Users size={22} />, path: "/referral" },
+    { name: "Stats", icon: <BarChart2 size={22} />, path: "/statistics" },
+    { name: "Profile", icon: <Settings size={22} />, path: "/profile" },
+  ];
 
   return (
-    <nav className="bg-gradient-to-t from-darkPurple-950/95 to-darkPurple-900/95 backdrop-blur-xl border-t border-purple-700/20 fixed bottom-0 left-0 right-0 flex justify-around py-3 px-2 z-50 shadow-[0_-8px_32px_rgba(30,0,60,0.3)] pb-safe">
-      <NavItem 
-        to="/" 
-        icon={Zap} 
-        label={t('nav.mining')} 
-        isActive={location.pathname === '/'} 
-      />
-      
-      <NavItem 
-        to="/referral" 
-        icon={Users} 
-        label={t('nav.team')} 
-        isActive={location.pathname === '/referral'} 
-      />
-      
-      <NavItem 
-        to="/tasks" 
-        icon={Award} 
-        label={t('nav.tasks')} 
-        isActive={location.pathname === '/tasks'} 
-      />
-      
-      <NavItem 
-        to="/history" 
-        icon={ArrowUpRight} 
-        label={t('nav.transfer')} 
-        isActive={location.pathname === '/history'} 
-      />
-      
-      <NavItem 
-        to={currentUser ? "/profile" : "/sign-in"} 
-        icon={Shield} 
-        label={t('nav.security')} 
-        isActive={location.pathname === '/profile' || location.pathname === '/sign-in'} 
-      />
-    </nav>
-  );
-};
-
-// Extracted NavItem component with enhanced styling
-const NavItem = ({ to, icon: Icon, label, isActive }: { 
-  to: string; 
-  icon: React.ElementType; 
-  label: string; 
-  isActive: boolean;
-}) => {
-  return (
-    <Link to={to} className="flex flex-col items-center transition-all duration-300 relative group">
-      <div className="relative">
-        {/* Base container */}
-        <div className={`p-2 rounded-full transition-all duration-300 ${isActive 
-          ? 'bg-gradient-to-br from-purple-600 to-indigo-700 text-white shadow-lg' 
-          : 'text-purple-400 hover:text-purple-300 group-hover:bg-darkPurple-800/60'}`}>
-          <Icon className="h-5 w-5" />
-        </div>
-        
-        {/* Glow effect for active state */}
-        {isActive && (
-          <div className="absolute inset-0 -z-10 bg-purple-500/20 rounded-full blur-md"></div>
-        )}
+    <div className="fixed bottom-0 left-0 right-0 h-16 bg-background/95 backdrop-blur-md border-t z-50 sm:hidden">
+      <div className="grid grid-cols-5 h-full">
+        {navItems.map((item) => (
+          <Link
+            key={item.name}
+            to={item.path}
+            className={cn(
+              "flex flex-col items-center justify-center space-y-1 transition-colors",
+              path === item.path
+                ? "text-primary"
+                : "text-muted-foreground hover:text-primary"
+            )}
+          >
+            <div>{item.icon}</div>
+            <span className="text-[10px]">{item.name}</span>
+          </Link>
+        ))}
       </div>
-      
-      <span className={`text-xs mt-1 transition-all duration-300 ${
-        isActive 
-          ? 'font-medium text-purple-300' 
-          : 'text-purple-400/60 group-hover:text-purple-400'
-      }`}>
-        {label}
-      </span>
-    </Link>
+    </div>
   );
-};
-
-export default MobileNavigation;
+}

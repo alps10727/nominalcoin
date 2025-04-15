@@ -41,6 +41,7 @@ export async function registerUser(
     const defaultUserData = {
       name: userData.name || "",
       emailAddress: email,
+      userId: user.uid,
       balance: 0,
       miningRate: 0.003,
       lastSaved: Date.now(),

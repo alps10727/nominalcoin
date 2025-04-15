@@ -1,190 +1,118 @@
 
-import { useState, useEffect } from "react";
-import EmailInput from "./inputs/EmailInput";
-import NameInput from "./inputs/NameInput";
-import TermsAgreement from "./terms/TermsAgreement";
-import SignUpButton from "./buttons/SignUpButton";
-import { validateSignUpForm, FormValues } from "@/utils/formValidation";
-import { debugLog } from "@/utils/debugUtils";
-import FormErrorDisplay from "./form-sections/FormErrorDisplay";
-import PasswordInputGroup from "./form-sections/PasswordInputGroup";
-import { checkReferralCode } from "@/utils/referral"; // Updated import path
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { CheckCircle2, XCircle } from "lucide-react";
+import { useState } from "react";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form } from "@/components/ui/form";
+import { registerUser } from "@/services/authService";
+import { UserRegistrationData } from "@/services/auth/types";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { NameInput } from "./inputs/NameInput";
+import { EmailInput } from "./inputs/EmailInput";
+import { PasswordInputGroup } from "./form-sections/PasswordInputGroup";
+import { FormErrorDisplay } from "./form-sections/FormErrorDisplay";
+import { SignUpButton } from "./buttons/SignUpButton";
+import { TermsAgreement } from "./terms/TermsAgreement";
 
-interface SignUpFormProps {
-  onSubmit: (name: string, email: string, password: string, referralCode?: string) => Promise<void>;
-  loading: boolean;
-  error: string | null;
-  initialReferralCode?: string;
-}
+// SignUp Schema
+const signUpSchema = z.object({
+  name: z.string().min(2, {
+    message: "Ad alanı en az 2 karakter olmalıdır.",
+  }),
+  email: z.string().email({
+    message: "Geçerli bir e-posta adresi giriniz.",
+  }),
+  password: z.string().min(6, {
+    message: "Şifre en az 6 karakter olmalıdır.",
+  }),
+  confirmPassword: z.string(),
+  referralCode: z.string().optional(),
+  agreedToTerms: z.literal(true, {
+    errorMap: () => ({ message: "Kullanım koşullarını kabul etmelisiniz." }),
+  }),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Şifreler eşleşmiyor.",
+  path: ["confirmPassword"],
+});
 
-const SignUpForm = ({ onSubmit, loading, error, initialReferralCode = "" }: SignUpFormProps) => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [agreeTerms, setAgreeTerms] = useState(false);
-  const [referralCode, setReferralCode] = useState(initialReferralCode);
-  const [referralValid, setReferralValid] = useState<boolean | null>(null);
-  const [formError, setFormError] = useState<string | null>(null);
-  const [isOffline, setIsOffline] = useState(!navigator.onLine);
-  const [checkingCode, setCheckingCode] = useState(false);
+type SignUpFormValues = z.infer<typeof signUpSchema>;
+
+export default function SignUpForm() {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [generalError, setGeneralError] = useState("");
   
-  // Set initial referral code when prop changes
-  useEffect(() => {
-    if (initialReferralCode) {
-      setReferralCode(initialReferralCode);
-    }
-  }, [initialReferralCode]);
+  const form = useForm<SignUpFormValues>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      referralCode: "",
+      agreedToTerms: false,
+    },
+  });
   
-  useEffect(() => {
-    const handleOnline = () => setIsOffline(false);
-    const handleOffline = () => setIsOffline(true);
-    
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-    
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
-
-  // Validate referral code when input changes
-  useEffect(() => {
-    // Skip validation if code is empty or too short
-    if (!referralCode || referralCode.length < 6) {
-      setReferralValid(null);
-      return;
-    }
-
-    const validateReferralCode = async () => {
-      setCheckingCode(true);
-      try {
-        const { valid } = await checkReferralCode(referralCode);
-        setReferralValid(valid);
-      } catch (err) {
-        debugLog("SignUpForm", "Error validating referral code:", err);
-        setReferralValid(false);
-      } finally {
-        setCheckingCode(false);
-      }
-    };
-
-    // Debounce validation to avoid too many requests
-    const timer = setTimeout(() => {
-      validateReferralCode();
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [referralCode]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (isOffline) return;
-    
-    setFormError(null);
-    
-    const formValues: FormValues = {
-      name,
-      email,
-      password,
-      confirmPassword,
-      agreeTerms
-    };
-    
-    const validationError = validateSignUpForm(formValues);
-    if (validationError) {
-      setFormError(validationError);
-      return;
-    }
-
+  const onSubmit = async (values: SignUpFormValues) => {
     try {
-      // Only pass valid referral codes
-      const finalReferralCode = referralValid === true ? referralCode : undefined;
-      await onSubmit(name, email, password, finalReferralCode);
-    } catch (error) {
-      console.error("Form gönderme hatası:", error);
+      setLoading(true);
+      setGeneralError("");
+      
+      const userData: UserRegistrationData = {
+        name: values.name,
+        referralCode: values.referralCode || undefined,
+      };
+      
+      await registerUser(values.email, values.password, userData);
+      toast.success("Hesabınız başarıyla oluşturuldu!");
+      
+      // Navigate to dashboard after successful registration
+      navigate("/");
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      
+      // Handle Firebase error messages
+      if (error.code === "auth/email-already-in-use") {
+        setGeneralError("Bu e-posta adresi zaten kullanımda.");
+      } else if (error.code === "auth/invalid-email") {
+        setGeneralError("Geçersiz e-posta adresi.");
+      } else if (error.code === "auth/weak-password") {
+        setGeneralError("Şifre çok zayıf.");
+      } else {
+        setGeneralError("Kayıt sırasında bir hata oluştu. Lütfen tekrar deneyin.");
+      }
+    } finally {
+      setLoading(false);
     }
   };
-
+  
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <FormErrorDisplay 
-        error={error}
-        formError={formError}
-        isOffline={isOffline}
-      />
-      
-      <NameInput 
-        value={name} 
-        onChange={setName}
-        disabled={loading || isOffline}
-      />
-      
-      <EmailInput 
-        value={email} 
-        onChange={setEmail}
-        disabled={loading || isOffline}
-      />
-      
-      <PasswordInputGroup
-        password={password}
-        confirmPassword={confirmPassword}
-        setPassword={setPassword}
-        setConfirmPassword={setConfirmPassword}
-        disabled={loading || isOffline}
-      />
-      
-      {/* Referral Code Input */}
-      <div className="space-y-1">
-        <Label htmlFor="referralCode" className="text-sm font-medium">
-          Referans Kodu (Opsiyonel)
-        </Label>
-        <div className="relative">
-          <Input
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <NameInput control={form.control} />
+        <EmailInput control={form.control} />
+        <PasswordInputGroup control={form.control} />
+        
+        {/* Referral Code Input */}
+        <div className="space-y-1">
+          <label htmlFor="referralCode" className="text-sm font-medium">
+            Referans Kodu (İsteğe Bağlı)
+          </label>
+          <input
             id="referralCode"
             type="text"
-            value={referralCode}
-            onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-            className="pr-10"
-            placeholder="Örn: ABC123"
-            maxLength={6}
-            disabled={loading || isOffline}
+            className="w-full p-2 border rounded-md bg-background"
+            placeholder="Referans kodu girin"
+            {...form.register("referralCode")}
           />
-          {referralCode && referralCode.length >= 6 && !checkingCode && (
-            <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-              {referralValid ? (
-                <CheckCircle2 className="h-5 w-5 text-green-500" />
-              ) : (
-                <XCircle className="h-5 w-5 text-red-500" />
-              )}
-            </div>
-          )}
         </div>
-        {referralValid === true && (
-          <p className="text-xs text-green-500 mt-1">Geçerli referans kodu</p>
-        )}
-        {referralValid === false && referralCode.length >= 6 && (
-          <p className="text-xs text-red-500 mt-1">Geçersiz veya kullanılmış referans kodu</p>
-        )}
-      </div>
-      
-      <TermsAgreement 
-        checked={agreeTerms}
-        onCheckedChange={setAgreeTerms}
-        disabled={loading || isOffline}
-      />
-      
-      <SignUpButton 
-        loading={loading || checkingCode} 
-        isOffline={isOffline} 
-      />
-    </form>
+        
+        <TermsAgreement control={form.control} />
+        <FormErrorDisplay error={generalError} />
+        <SignUpButton loading={loading} />
+      </form>
+    </Form>
   );
-};
-
-export default SignUpForm;
+}
