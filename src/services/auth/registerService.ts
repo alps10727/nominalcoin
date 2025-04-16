@@ -1,48 +1,78 @@
 
 import { createUserWithEmailAndPassword, User } from "firebase/auth";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, runTransaction } from "firebase/firestore";
 import { auth, db } from "@/config/firebase";
-import { UserRegistrationData, AuthResponse } from "./types";
+import { UserRegistrationData } from "./types";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { createReferralCodeForUser } from "@/utils/referral";
-import { checkReferralCode, processReferralCode } from "@/utils/referral";
+import { checkReferralCode } from "@/utils/referral";
+import { processReferralCode } from "@/utils/referral";
 import { toast } from "sonner";
 
+/**
+ * Kullanıcı kaydı yapan fonksiyon
+ * @param email Kullanıcı email adresi
+ * @param password Kullanıcı şifresi
+ * @param userData Ek kullanıcı verileri
+ * @returns Firebase User nesnesi
+ */
 export async function registerUser(
   email: string, 
   password: string, 
   userData: UserRegistrationData = {}
 ): Promise<User> {
   try {
-    debugLog("authService", "Registering user...", { email });
+    debugLog("authService", "Kullanıcı kaydı başlıyor...", { email });
     
-    // Validate referral code if provided - always normalize to uppercase
+    // Referans kodunu doğrula (varsa) - her zaman büyük harfe dönüştür
     let referralValid = false;
     let referrerUserId = null;
-    let referralCode = userData.referralCode ? userData.referralCode.toUpperCase() : "";
+    let normalizedReferralCode = "";
     
-    if (referralCode && referralCode.length > 0) {
+    if (userData.referralCode && userData.referralCode.trim().length > 0) {
+      normalizedReferralCode = userData.referralCode.toUpperCase();
+      
       try {
-        debugLog("authService", "Checking referral code", { code: referralCode });
-        const { valid, ownerId } = await checkReferralCode(referralCode);
+        debugLog("authService", "Referans kodu kontrol ediliyor", { code: normalizedReferralCode });
+        const { valid, ownerId, reason } = await checkReferralCode(normalizedReferralCode);
         referralValid = valid;
         referrerUserId = ownerId;
-        debugLog("authService", "Referral code check result", { valid, ownerId });
+        
+        debugLog("authService", "Referans kodu kontrolü sonucu", { 
+          valid, 
+          ownerId,
+          reason
+        });
+        
+        // Kullanıcıya geçersiz kod hakkında geribildirim ver
+        if (!valid && reason) {
+          switch(reason) {
+            case "not_found":
+              toast.error("Geçersiz referans kodu.");
+              break;
+            case "already_used":
+              toast.error("Bu referans kodu zaten kullanılmış.");
+              break;
+            default:
+              // Sessiz kal
+              break;
+          }
+        }
       } catch (err) {
-        errorLog("authService", "Error checking referral code:", err);
+        errorLog("authService", "Referans kodu kontrol hatası:", err);
       }
     }
     
-    // Create user in Firebase
+    // Firebase'de kullanıcı oluştur
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
     
-    debugLog("authService", "User created in Firebase Auth", { userId: user.uid });
+    debugLog("authService", "Kullanıcı Firebase Auth'da oluşturuldu", { userId: user.uid });
     
-    // Generate referral code for new user
+    // Yeni kullanıcı için referans kodu oluştur
     const userReferralCode = await createReferralCodeForUser(user.uid);
     
-    // Default user data
+    // Varsayılan kullanıcı verileri
     const defaultUserData = {
       name: userData.name || "",
       emailAddress: email,
@@ -52,66 +82,67 @@ export async function registerUser(
       lastSaved: Date.now(),
       miningActive: false,
       isAdmin: false,
-      referralCode: userReferralCode,
+      referralCode: userReferralCode || "",
       referralCount: 0,
       referrals: [],
-      invitedBy: referralValid && referrerUserId ? referrerUserId : null
+      invitedBy: referralValid && referrerUserId ? referrerUserId : null,
+      registrationDate: new Date()
     };
     
-    // Save user data to Firestore
+    // Kullanıcı verilerini Firestore'a kaydet
     await setDoc(doc(db, "users", user.uid), defaultUserData);
-    debugLog("authService", "User data saved to Firestore");
+    debugLog("authService", "Kullanıcı verileri Firestore'a kaydedildi");
     
-    // Process referral reward if valid
-    if (referralValid && referrerUserId) {
+    // Referans ödülünü işle (geçerliyse)
+    if (referralValid && referrerUserId && normalizedReferralCode) {
       try {
-        // Process referral with multiple retries to ensure reliability
-        debugLog("authService", "Processing referral reward", { code: referralCode, referrerId: referrerUserId });
+        // Güvenilirlik için birden fazla deneme ile referansı işle
+        debugLog("authService", "Referans ödülü işleniyor", { 
+          code: normalizedReferralCode, 
+          referrerId: referrerUserId 
+        });
         
-        // First attempt with delay
-        let success = false;
-        
-        // First attempt after a short delay (allows Firestore to complete user creation)
+        // İlk deneme için kısa bir gecikme (Firestore'un kullanıcı oluşturmayı tamamlamasına izin verir)
         setTimeout(async () => {
           try {
-            success = await processReferralCode(referralCode, user.uid);
+            const success = await processReferralCode(normalizedReferralCode, user.uid);
             
             if (success) {
-              debugLog("authService", "Referral successfully processed on first attempt");
+              debugLog("authService", "Referans ilk denemede başarıyla işlendi");
             } else {
-              errorLog("authService", "Failed to process referral reward on first attempt");
+              errorLog("authService", "İlk denemede referans ödülü işlenemedi");
               
-              // Second attempt with longer delay
+              // Daha uzun gecikme ile ikinci deneme
               setTimeout(async () => {
                 try {
-                  const retrySuccess = await processReferralCode(referralCode, user.uid);
-                  debugLog("authService", "Referral retry result:", retrySuccess);
+                  const retrySuccess = await processReferralCode(normalizedReferralCode, user.uid);
+                  debugLog("authService", "Referans yeniden deneme sonucu:", retrySuccess);
                   
-                  // Final attempt if still failed
+                  // Hala başarısızsa son bir deneme
                   if (!retrySuccess) {
                     setTimeout(async () => {
-                      const finalAttempt = await processReferralCode(referralCode, user.uid);
-                      debugLog("authService", "Final referral attempt result:", finalAttempt);
+                      const finalAttempt = await processReferralCode(normalizedReferralCode, user.uid);
+                      debugLog("authService", "Son referans deneme sonucu:", finalAttempt);
                     }, 5000);
                   }
                 } catch (retryErr) {
-                  errorLog("authService", "Error in retry attempt for referral:", retryErr);
+                  errorLog("authService", "Referans için yeniden deneme hatası:", retryErr);
                 }
               }, 3000);
             }
           } catch (err) {
-            errorLog("authService", "Error in initial referral processing:", err);
+            errorLog("authService", "İlk referans işleme hatası:", err);
           }
         }, 1000);
         
       } catch (rewardErr) {
-        errorLog("authService", "Error processing referral reward:", rewardErr);
+        errorLog("authService", "Referans ödülü işleme hatası:", rewardErr);
       }
     }
     
     return user;
   } catch (error) {
-    errorLog("authService", "Registration error:", error);
+    errorLog("authService", "Kayıt hatası:", error);
     throw error;
   }
 }

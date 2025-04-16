@@ -1,23 +1,48 @@
 
+import { debugLog } from "@/utils/debugUtils";
+
 /**
- * Basic validation checks for referral code format
+ * Referans kodu formatının temel doğrulaması
  */
 export function validateReferralCodeFormat(code: string): boolean {
-  if (!code || code.length !== 6) {
+  if (!code || code.trim() === '') {
+    debugLog("referralValidator", "Boş referans kodu kontrol edildi");
     return false;
   }
   
-  // Check if code is alphanumeric (uppercase letters and numbers only)
-  return /^[A-Z0-9]+$/.test(code);
+  if (code.length !== 6) {
+    debugLog("referralValidator", "Geçersiz referans kodu uzunluğu", { length: code.length });
+    return false;
+  }
+  
+  // Kodun sadece büyük harf ve rakamlardan oluşup oluşmadığını kontrol et
+  const isAlphanumeric = /^[A-Z0-9]+$/.test(code);
+  if (!isAlphanumeric) {
+    debugLog("referralValidator", "Geçersiz referans kodu formatı", { code });
+    return false;
+  }
+  
+  return true;
 }
 
 /**
- * Check if owner can use their own referral code
+ * Kullanıcının kendi referans kodunu kullanıp kullanamayacağını kontrol et
  */
 export function validateSelfReferral(ownerId: string | undefined, currentUserId: string | undefined): boolean {
   if (!currentUserId || !ownerId) {
+    debugLog("referralValidator", "Kullanıcı ID'si eksik, self-referral kontrolü başarısız");
     return false;
   }
   
-  return ownerId !== currentUserId;
+  const isSelfReferral = ownerId === currentUserId;
+  
+  if (isSelfReferral) {
+    debugLog("referralValidator", "Kendine referans tespit edildi", { 
+      ownerId, 
+      currentUserId 
+    });
+    return false;
+  }
+  
+  return true;
 }

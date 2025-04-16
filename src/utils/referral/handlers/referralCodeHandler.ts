@@ -1,59 +1,87 @@
 
-import { collection, query, where, getDocs, limit, updateDoc, doc } from "firebase/firestore";
+import { collection, query, where, getDocs, limit, updateDoc, doc, getDoc, runTransaction } from "firebase/firestore";
 import { db } from "@/config/firebase";
 import { debugLog, errorLog } from "@/utils/debugUtils";
+import { getReferralCodeDocId } from "../queries/referralCodeQueries";
 
+/**
+ * Referans kodunu kullanılmış olarak işaretler ve kullanıcı bilgisini ekler
+ * @param code Referans kodu
+ * @param newUserId Kodu kullanan yeni kullanıcının ID'si
+ * @returns İşlem başarılı oldu mu?
+ */
 export async function markReferralCodeAsUsed(
   code: string,
   newUserId: string
 ): Promise<boolean> {
   try {
-    // Always normalize code to uppercase
+    if (!code || !newUserId) {
+      errorLog("referralCodeHandler", "Geçersiz parametreler", { code, newUserId });
+      return false;
+    }
+    
+    // Her zaman büyük harfe dönüştür
     const normalizedCode = code.toUpperCase();
     
-    debugLog("referralCodeHandler", "Marking referral code as used", { 
+    debugLog("referralCodeHandler", "Referans kodu kullanılmış olarak işaretleniyor", { 
       code: normalizedCode, 
       newUserId 
     });
     
-    const codesRef = collection(db, "referralCodes");
-    // Use normalized (uppercase) code for consistent querying
-    const q = query(
-      codesRef,
-      where("code", "==", normalizedCode),
-      limit(1)
-    );
+    // Önce belge ID'sini bul
+    const docId = await getReferralCodeDocId(normalizedCode);
     
-    const snapshot = await getDocs(q);
+    if (!docId) {
+      errorLog("referralCodeHandler", "Referans kodu belgesi bulunamadı", { code: normalizedCode });
+      return false;
+    }
     
-    if (!snapshot.empty) {
-      const codeDoc = snapshot.docs[0];
-      
-      debugLog("referralCodeHandler", "Found referral code document", { 
-        docId: codeDoc.id, 
-        code: normalizedCode
+    // Belge referansı oluştur
+    const codeDocRef = doc(db, "referralCodes", docId);
+    
+    // Belgenin mevcut durumunu kontrol et
+    const codeDoc = await getDoc(codeDocRef);
+    if (!codeDoc.exists()) {
+      errorLog("referralCodeHandler", "Referans kodu belgesi bulunamadı", { docId });
+      return false;
+    }
+    
+    const codeData = codeDoc.data();
+    
+    // Kod zaten kullanılmışsa
+    if (codeData.used === true) {
+      errorLog("referralCodeHandler", "Referans kodu zaten kullanılmış", { 
+        code: normalizedCode,
+        usedBy: codeData.usedBy,
+        usedAt: codeData.usedAt
       });
+      return false;
+    }
+    
+    // Transaction kullanarak tutarlı güncelleme yap
+    await runTransaction(db, async (transaction) => {
+      // Son durumu tekrar kontrol et
+      const latestDoc = await transaction.get(codeDocRef);
+      if (latestDoc.data()?.used === true) {
+        throw new Error("Referans kodu başka biri tarafından kullanılmış");
+      }
       
-      await updateDoc(doc(db, "referralCodes", codeDoc.id), {
+      // Değişiklikleri uygula
+      transaction.update(codeDocRef, {
         used: true,
         usedBy: newUserId,
         usedAt: new Date()
       });
-      
-      debugLog("referralCodeHandler", "Successfully marked code as used", { 
-        code: normalizedCode
-      });
-      
-      return true;
-    }
-    
-    errorLog("referralCodeHandler", "Referral code document not found", { 
-      code: normalizedCode
     });
     
-    return false;
+    debugLog("referralCodeHandler", "Referans kodu başarıyla kullanıldı olarak işaretlendi", { 
+      code: normalizedCode,
+      newUserId
+    });
+    
+    return true;
   } catch (error) {
-    errorLog("referralCodeHandler", "Error marking referral code as used:", error);
+    errorLog("referralCodeHandler", "Referans kodu işaretleme hatası:", error);
     return false;
   }
 }
