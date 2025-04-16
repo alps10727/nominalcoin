@@ -1,5 +1,5 @@
 
-import { collection, query, where, getDocs, limit, doc, getDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/config/firebase";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { checkReferralCode } from "./validateReferralCode";
@@ -10,11 +10,14 @@ import { toast } from "sonner";
 export async function processReferralCode(code: string, newUserId: string): Promise<boolean> {
   if (!code) return false;
   
+  // Always normalize code to uppercase
+  const normalizedCode = code.toUpperCase();
+  
   try {
-    debugLog("processReferral", "Processing referral code", { code, newUserId });
+    debugLog("processReferral", "Processing referral code", { code: normalizedCode, newUserId });
     
     // Check if the referral code is valid
-    const { valid, ownerId } = await checkReferralCode(code, newUserId);
+    const { valid, ownerId } = await checkReferralCode(normalizedCode, newUserId);
     
     if (!valid || !ownerId) {
       errorLog("processReferral", "Invalid referral code or owner ID", { valid, ownerId });
@@ -22,7 +25,7 @@ export async function processReferralCode(code: string, newUserId: string): Prom
     }
     
     // Mark referral code as used
-    const codeMarked = await markReferralCodeAsUsed(code, newUserId);
+    const codeMarked = await markReferralCodeAsUsed(normalizedCode, newUserId);
     if (!codeMarked) {
       errorLog("processReferral", "Failed to mark referral code as used");
       return false;
@@ -45,14 +48,25 @@ export async function processReferralCode(code: string, newUserId: string): Prom
     const updated = await updateReferrerStats(ownerId, newUserId, userData);
     
     if (updated) {
-      debugLog("processReferral", "Successfully processed referral", { code, referrer: ownerId, newUser: newUserId });
+      debugLog("processReferral", "Successfully processed referral", { code: normalizedCode, referrer: ownerId, newUser: newUserId });
       toast.success("Referans kodu başarıyla uygulandı!");
+      return true;
     } else {
       errorLog("processReferral", "Failed to update referrer stats");
-      toast.error("Referans kodu işlenirken bir hata oluştu");
+      
+      // Retry once after delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      const retryUpdate = await updateReferrerStats(ownerId, newUserId, userData);
+      
+      if (retryUpdate) {
+        debugLog("processReferral", "Successfully processed referral on retry");
+        toast.success("Referans kodu başarıyla uygulandı!");
+        return true;
+      } else {
+        toast.error("Referans kodu işlenirken bir hata oluştu");
+        return false;
+      }
     }
-    
-    return updated;
   } catch (error) {
     errorLog("processReferral", "Error processing referral code:", error);
     toast.error("Referans kodu işlenirken bir hata oluştu");

@@ -7,14 +7,15 @@ import { findReferralCode } from "./queries/referralCodeQueries";
  * Check if a referral code is valid
  */
 export async function checkReferralCode(code: string, currentUserId?: string): Promise<{valid: boolean, ownerId?: string}> {
-  if (!validateReferralCodeFormat(code)) {
-    debugLog("referralUtils", "Invalid referral code format", { code });
+  // Normalize the code to uppercase before validation
+  const normalizedCode = code.toUpperCase();
+  
+  if (!validateReferralCodeFormat(normalizedCode)) {
+    debugLog("referralUtils", "Invalid referral code format", { code: normalizedCode });
     return { valid: false };
   }
   
   try {
-    // Referans kodunu büyük harfe çeviriyoruz
-    const normalizedCode = code.toUpperCase();
     const { exists, ownerId } = await findReferralCode(normalizedCode);
     
     if (!exists) {

@@ -8,7 +8,7 @@ export async function findReferralCode(code: string): Promise<{
   ownerId?: string;
 }> {
   try {
-    // Normalize code to uppercase
+    // Always normalize code to uppercase for consistency
     const normalizedCode = code.toUpperCase();
     
     debugLog("referralQueries", "Finding referral code", { code: normalizedCode });
@@ -30,7 +30,7 @@ export async function findReferralCode(code: string): Promise<{
     
     const codeData = snapshot.docs[0].data();
     
-    // Detaylı debug bilgisi ekliyoruz
+    // Detailed debug info
     debugLog("referralQueries", "Referral code found", {
       code: normalizedCode,
       ownerId: codeData.owner,

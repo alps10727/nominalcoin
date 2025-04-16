@@ -16,7 +16,7 @@ export async function registerUser(
   try {
     debugLog("authService", "Registering user...", { email });
     
-    // Validate referral code if provided
+    // Validate referral code if provided - always normalize to uppercase
     let referralValid = false;
     let referrerUserId = null;
     let referralCode = userData.referralCode ? userData.referralCode.toUpperCase() : "";
@@ -65,22 +65,42 @@ export async function registerUser(
     // Process referral reward if valid
     if (referralValid && referrerUserId) {
       try {
-        // Önce kullanıcı kaydını tamamla, sonra referansı işle
+        // Process referral with multiple retries to ensure reliability
         debugLog("authService", "Processing referral reward", { code: referralCode, referrerId: referrerUserId });
         
-        // Kısa bir gecikme ekleyerek veritabanı işlemlerinin sıralanmasını sağlıyoruz
+        // First attempt with delay
+        let success = false;
+        
+        // First attempt after a short delay (allows Firestore to complete user creation)
         setTimeout(async () => {
-          const success = await processReferralCode(referralCode, user.uid);
-          
-          if (success) {
-            debugLog("authService", "Referral successfully processed");
-          } else {
-            errorLog("authService", "Failed to process referral reward");
-            // Yeniden deneme ekleyerek daha güvenilir hale getirelim
-            setTimeout(async () => {
-              const retrySuccess = await processReferralCode(referralCode, user.uid);
-              debugLog("authService", "Referral retry result:", retrySuccess);
-            }, 2000);
+          try {
+            success = await processReferralCode(referralCode, user.uid);
+            
+            if (success) {
+              debugLog("authService", "Referral successfully processed on first attempt");
+            } else {
+              errorLog("authService", "Failed to process referral reward on first attempt");
+              
+              // Second attempt with longer delay
+              setTimeout(async () => {
+                try {
+                  const retrySuccess = await processReferralCode(referralCode, user.uid);
+                  debugLog("authService", "Referral retry result:", retrySuccess);
+                  
+                  // Final attempt if still failed
+                  if (!retrySuccess) {
+                    setTimeout(async () => {
+                      const finalAttempt = await processReferralCode(referralCode, user.uid);
+                      debugLog("authService", "Final referral attempt result:", finalAttempt);
+                    }, 5000);
+                  }
+                } catch (retryErr) {
+                  errorLog("authService", "Error in retry attempt for referral:", retryErr);
+                }
+              }, 3000);
+            }
+          } catch (err) {
+            errorLog("authService", "Error in initial referral processing:", err);
           }
         }, 1000);
         

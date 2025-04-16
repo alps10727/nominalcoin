@@ -20,7 +20,7 @@ export async function updateReferrerStats(
     const currentUserDoc = await getDoc(userRef);
     
     if (!currentUserDoc.exists()) {
-      errorLog("referralRewardHandler", "Referrer document doesn't exist");
+      errorLog("referralRewardHandler", "Referrer document doesn't exist", { ownerId });
       return false;
     }
     
@@ -46,13 +46,40 @@ export async function updateReferrerStats(
     });
     
     // Update the referrer's user document using Firebase's atomic operations
-    await updateDoc(userRef, {
-      referralCount: increment(1),
-      referrals: arrayUnion(newUserId),
-      miningRate: newMiningRate
-    });
-    
-    return true;
+    try {
+      await updateDoc(userRef, {
+        referralCount: increment(1),
+        referrals: arrayUnion(newUserId),
+        miningRate: newMiningRate,
+        lastReferral: new Date() // Add timestamp of last referral
+      });
+      
+      debugLog("referralRewardHandler", "Successfully updated referrer stats", { 
+        ownerId, 
+        newMiningRate, 
+        referralCount: (currentData.referralCount || 0) + 1 
+      });
+      
+      return true;
+    } catch (updateError) {
+      errorLog("referralRewardHandler", "Failed to update referrer document", updateError);
+      
+      // Retry once with a delay
+      try {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        await updateDoc(userRef, {
+          referralCount: increment(1),
+          referrals: arrayUnion(newUserId),
+          miningRate: newMiningRate
+        });
+        
+        debugLog("referralRewardHandler", "Retry successful for referrer update");
+        return true;
+      } catch (retryError) {
+        errorLog("referralRewardHandler", "Retry failed for referrer update", retryError);
+        return false;
+      }
+    }
   } catch (error) {
     errorLog("referralRewardHandler", "Error updating referrer stats:", error);
     return false;

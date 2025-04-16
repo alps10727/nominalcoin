@@ -8,7 +8,7 @@ export async function markReferralCodeAsUsed(
   newUserId: string
 ): Promise<boolean> {
   try {
-    // Normalize code to uppercase
+    // Always normalize code to uppercase
     const normalizedCode = code.toUpperCase();
     
     debugLog("referralCodeHandler", "Marking referral code as used", { 
@@ -17,6 +17,7 @@ export async function markReferralCodeAsUsed(
     });
     
     const codesRef = collection(db, "referralCodes");
+    // Use normalized (uppercase) code for consistent querying
     const q = query(
       codesRef,
       where("code", "==", normalizedCode),
