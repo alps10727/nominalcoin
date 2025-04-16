@@ -1,5 +1,5 @@
 
-import { doc, updateDoc, getDoc, increment, DocumentData } from "firebase/firestore";
+import { doc, updateDoc, getDoc, increment, DocumentData, arrayUnion } from "firebase/firestore";
 import { db } from "@/config/firebase";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { calculateNewMiningRate } from "../miningRateCalculator";
@@ -35,27 +35,20 @@ export async function updateReferrerStats(
       return true; // Already processed
     }
     
-    // Add the new user to referrals array
-    const updatedReferrals = [...currentReferrals, newUserId];
-    
-    // Calculate new referral count
-    const newReferralCount = (currentData.referralCount || 0) + 1;
-    
     // Calculate new mining rate with referral bonus
     const currentMiningRate = currentData.miningRate || 0.003;
     const newMiningRate = currentMiningRate + REFERRAL_BONUS_RATE;
     
     debugLog("referralRewardHandler", "Updating referrer document", {
-      referralCount: newReferralCount,
-      referralsCount: updatedReferrals.length,
+      referralCount: (currentData.referralCount || 0) + 1,
       oldMiningRate: currentMiningRate,
       newMiningRate: newMiningRate
     });
     
-    // Update the referrer's user document
+    // Update the referrer's user document using Firebase's atomic operations
     await updateDoc(userRef, {
-      referralCount: newReferralCount,
-      referrals: updatedReferrals,
+      referralCount: increment(1),
+      referrals: arrayUnion(newUserId),
       miningRate: newMiningRate
     });
     

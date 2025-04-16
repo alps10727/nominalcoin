@@ -19,11 +19,12 @@ export async function registerUser(
     // Validate referral code if provided
     let referralValid = false;
     let referrerUserId = null;
+    let referralCode = userData.referralCode ? userData.referralCode.toUpperCase() : "";
     
-    if (userData.referralCode && userData.referralCode.length > 0) {
+    if (referralCode && referralCode.length > 0) {
       try {
-        debugLog("authService", "Checking referral code", { code: userData.referralCode });
-        const { valid, ownerId } = await checkReferralCode(userData.referralCode);
+        debugLog("authService", "Checking referral code", { code: referralCode });
+        const { valid, ownerId } = await checkReferralCode(referralCode);
         referralValid = valid;
         referrerUserId = ownerId;
         debugLog("authService", "Referral code check result", { valid, ownerId });
@@ -64,20 +65,15 @@ export async function registerUser(
     // Process referral reward if valid
     if (referralValid && referrerUserId) {
       try {
-        debugLog("authService", "Processing referral reward", { code: userData.referralCode, referrerId: referrerUserId });
-        const success = await processReferralCode(userData.referralCode || "", user.uid);
+        debugLog("authService", "Processing referral reward", { code: referralCode, referrerId: referrerUserId });
+        const success = await processReferralCode(referralCode, user.uid);
         
         if (success) {
           debugLog("authService", "Referral successfully processed");
+          toast.success("Referans kodu başarıyla uygulandı!");
         } else {
           errorLog("authService", "Failed to process referral reward");
-          // Try direct update as fallback
-          const referrerRef = doc(db, "users", referrerUserId);
-          const referrerDoc = await getDoc(referrerRef);
-          
-          if (referrerDoc.exists()) {
-            await processReferralCode(userData.referralCode || "", user.uid);
-          }
+          // No fallback needed as processReferralCode already handles retries
         }
       } catch (rewardErr) {
         errorLog("authService", "Error processing referral reward:", rewardErr);
