@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import SignUpForm from "../components/auth/SignUpForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { registerUser } from "@/services/authService";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { toast } from "sonner";
@@ -11,14 +11,7 @@ import { App } from '@capacitor/app';
 const SignUp = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const location = useLocation();
   const navigate = useNavigate();
-  
-  // Check URL for referral code
-  const [initialReferralCode, setInitialReferralCode] = useState<string>(() => {
-    const params = new URLSearchParams(location.search);
-    return params.get('ref') || '';
-  });
 
   // Android back button handler
   useEffect(() => {
@@ -36,28 +29,21 @@ const SignUp = () => {
     };
   }, []);
 
-  const handleSignUp = async (name: string, email: string, password: string, referralCode?: string) => {
+  const handleSignUp = async (name: string, email: string, password: string) => {
     try {
       setLoading(true);
       setError(null);
       
-      debugLog("SignUp", "Starting registration", { name, email, referralCode });
+      debugLog("SignUp", "Starting registration", { name, email });
       
-      // Register the user with referral code
+      // Register the user
       const userCredential = await registerUser(email, password, {
         name,
-        emailAddress: email,
-        referralCode: referralCode // Pass referral code to registration function
+        emailAddress: email
       });
 
       // Registration successful, redirect to home page
       toast.success("Hesabınız başarıyla oluşturuldu!");
-      
-      // Show special message for referral code
-      if (referralCode) {
-        toast.success("Referans kodu başarıyla uygulandı!");
-      }
-      
       navigate("/");
     } catch (error: any) {
       setError(error.message);
@@ -75,18 +61,12 @@ const SignUp = () => {
           <CardDescription className="text-gray-300">
             Yeni bir hesap oluşturarak Coin kazanmaya başlayın
           </CardDescription>
-          {initialReferralCode && (
-            <div className="mt-2 bg-blue-900/30 text-blue-200 text-sm py-1 px-2 rounded-md">
-              Referans kodu ile kaydoluyorsunuz: {initialReferralCode}
-            </div>
-          )}
         </CardHeader>
         <CardContent>
           <SignUpForm 
             onSubmit={handleSignUp} 
             loading={loading} 
             error={error}
-            initialReferralCode={initialReferralCode} 
           />
         </CardContent>
       </Card>
