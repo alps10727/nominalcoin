@@ -2,6 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users } from "lucide-react";
 import { REFERRAL_BONUS_RATE } from "@/utils/referral/bonusCalculator";
+import StatItem from "./stats/StatItem";
 
 interface ReferralStatsProps {
   referralCount: number;
@@ -23,14 +24,18 @@ const ReferralStats = ({ referralCount }: ReferralStatsProps) => {
       </CardHeader>
       <CardContent className="pb-2">
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-indigo-900/30 rounded-lg p-3 border border-indigo-700/30">
-            <div className="text-sm text-indigo-300">Toplam Davet</div>
-            <div className="text-2xl font-bold mt-1 text-white">{referralCount}</div>
-          </div>
-          <div className="bg-purple-900/30 rounded-lg p-3 border border-purple-700/30">
-            <div className="text-sm text-purple-300">Toplam Bonus</div>
-            <div className="text-2xl font-bold mt-1 text-white">+{totalBonus} NC/dk</div>
-          </div>
+          <StatItem
+            label="Toplam Davet"
+            value={referralCount.toString()}
+            bgClass="bg-indigo-900/30 border-indigo-700/30"
+            textClass="text-indigo-300"
+          />
+          <StatItem
+            label="Toplam Bonus"
+            value={`+${totalBonus} NC/dk`}
+            bgClass="bg-purple-900/30 border-purple-700/30"
+            textClass="text-purple-300"
+          />
         </div>
       </CardContent>
     </Card>
