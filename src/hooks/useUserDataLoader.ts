@@ -31,7 +31,7 @@ export function useUserDataLoader(
   const [lastLoadedUserId, setLastLoadedUserId] = useState<string | null>(null);
   const [networkAvailable, setNetworkAvailable] = useState(navigator.onLine);
 
-  const { loadLocalUserData, ensureReferralData, createDefaultUserData } = useLocalDataLoader();
+  const { loadLocalUserData, createDefaultUserData, ensureUserData } = useLocalDataLoader();
   const { loadFirebaseUserData, mergeUserData } = useFirebaseDataLoader();
   const { ensureValidUserData } = useUserDataValidator();
 
@@ -84,8 +84,8 @@ export function useUserDataLoader(
         localData = null;
       }
       
-      // Referans kodunu kontrol et ve gerekirse oluştur
-      localData = ensureReferralData(localData, currentUser.uid);
+      // Gerekli alanları kontrol et ve eksik alanları doldur
+      localData = ensureUserData(localData, currentUser.uid);
       
       if (localData) {
         // Geçici olarak yerel veriyi kullan (hız için)

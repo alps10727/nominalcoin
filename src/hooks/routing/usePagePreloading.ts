@@ -19,7 +19,6 @@ export function usePagePreloading() {
           const pagesToPreload = [
             () => import('@/pages/Profile'),
             () => import('@/pages/MiningUpgrades'),
-            () => import('@/pages/Referral'),
             () => import('@/pages/Tasks'),
             () => import('@/pages/Statistics'),
             () => import('@/pages/History'),

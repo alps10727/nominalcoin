@@ -3,7 +3,6 @@ import { useState, useCallback } from "react";
 import { UserData } from "@/types/storage";
 import { debugLog } from "@/utils/debugUtils";
 import { calculateMiningRate } from "@/utils/miningCalculator";
-import { generateReferralCode } from "@/utils/referral";
 
 /**
  * Hook for validating user data
@@ -47,22 +46,6 @@ export function useUserDataValidator() {
       validData.lastSaved = Date.now();
       errors.push("Invalid last saved timestamp");
     }
-    
-    // Ensure referral data
-    if (!validData.referralCode) {
-      validData.referralCode = generateReferralCode();
-      errors.push("Missing referral code");
-    }
-    
-    if (typeof validData.referralCount !== 'number' || isNaN(validData.referralCount)) {
-      validData.referralCount = 0;
-      errors.push("Invalid referral count");
-    }
-    
-    if (!Array.isArray(validData.referrals)) {
-      validData.referrals = [];
-      errors.push("Invalid referrals array");
-    }
 
     // Update validation errors
     if (errors.length > 0) {
@@ -81,10 +64,7 @@ export function useUserDataValidator() {
       balance: 0,
       miningRate: 0.003,
       lastSaved: Date.now(),
-      miningActive: false,
-      referralCode: generateReferralCode(),
-      referralCount: 0,
-      referrals: []
+      miningActive: false
     };
   }, []);
 
