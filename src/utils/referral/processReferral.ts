@@ -65,41 +65,56 @@ export async function processReferralCode(code: string, newUserId: string): Prom
     debugLog("processReferral", "Referans kodu kullanıldı olarak işaretlendi, referans eden verisi alınıyor");
     
     // 3. Referans eden kullanıcının belgesini al
-    const userDoc = await getDoc(doc(db, "users", ownerId));
-    
-    if (!userDoc.exists()) {
-      errorLog("processReferral", "Referans eden kullanıcı belgesi bulunamadı");
-      toast.error("Referans eden kullanıcı bulunamadı");
-      return false;
-    }
-    
-    const userData = userDoc.data();
-    
-    // 4. Referans eden kullanıcının istatistiklerini güncelle
-    debugLog("processReferral", "Referans eden istatistikleri güncelleniyor", { 
-      referrerId: ownerId, 
-      newUserId 
-    });
-    
-    const updated = await updateReferrerStats(ownerId, newUserId, userData);
-    
-    if (updated) {
-      debugLog("processReferral", "Referans başarıyla işlendi", { 
-        code: normalizedCode, 
-        referrer: ownerId, 
-        newUser: newUserId 
+    try {
+      const userDoc = await getDoc(doc(db, "users", ownerId));
+      
+      if (!userDoc.exists()) {
+        errorLog("processReferral", "Referans eden kullanıcı belgesi bulunamadı");
+        toast.error("Referans eden kullanıcı bulunamadı");
+        return false;
+      }
+      
+      const userData = userDoc.data();
+      
+      // 4. Referans eden kullanıcının istatistiklerini güncelle
+      debugLog("processReferral", "Referans eden istatistikleri güncelleniyor", { 
+        referrerId: ownerId, 
+        newUserId 
       });
-      toast.success("Referans kodu başarıyla uygulandı!");
-      return true;
-    } else {
-      errorLog("processReferral", "Referans eden istatistikleri güncellenemedi");
       
-      // Yeniden deneme
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      const retryUpdate = await updateReferrerStats(ownerId, newUserId, userData);
+      const updated = await updateReferrerStats(ownerId, newUserId, userData);
       
-      if (retryUpdate) {
-        debugLog("processReferral", "Referans yeniden denemede başarıyla işlendi");
+      if (updated) {
+        debugLog("processReferral", "Referans başarıyla işlendi", { 
+          code: normalizedCode, 
+          referrer: ownerId, 
+          newUser: newUserId 
+        });
+        toast.success("Referans kodu başarıyla uygulandı!");
+        return true;
+      } else {
+        errorLog("processReferral", "Referans eden istatistikleri güncellenemedi");
+        
+        // Yeniden deneme
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        const retryUpdate = await updateReferrerStats(ownerId, newUserId, userData);
+        
+        if (retryUpdate) {
+          debugLog("processReferral", "Referans yeniden denemede başarıyla işlendi");
+          toast.success("Referans kodu başarıyla uygulandı!");
+          return true;
+        } else {
+          toast.error("Referans kodu işlenirken bir hata oluştu");
+          return false;
+        }
+      }
+    } catch (userError) {
+      errorLog("processReferral", "Kullanıcı verisi alınırken hata:", userError);
+      
+      // Alternatif yaklaşım - doğrudan referans güncelle
+      const directUpdate = await updateReferrerStats(ownerId, newUserId);
+      
+      if (directUpdate) {
         toast.success("Referans kodu başarıyla uygulandı!");
         return true;
       } else {

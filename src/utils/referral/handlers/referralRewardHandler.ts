@@ -29,53 +29,96 @@ export async function updateReferrerStats(
     const userRef = doc(db, "users", ownerId);
     
     // Transaction kullanarak tutarlı güncelleme yap
-    return await runTransaction(db, async (transaction) => {
-      // Güncel verileri al
-      const userDoc = await transaction.get(userRef);
+    try {
+      await runTransaction(db, async (transaction) => {
+        // Güncel verileri al
+        const userDoc = await transaction.get(userRef);
+        
+        if (!userDoc.exists()) {
+          errorLog("referralRewardHandler", "Referans eden kullanıcı belgesi bulunamadı", { ownerId });
+          throw new Error("Referans eden kullanıcı bulunamadı");
+        }
+        
+        const currentData = userDoc.data();
+        
+        // Geçerli değerleri al veya varsayılanları kullan
+        const currentReferrals = Array.isArray(currentData.referrals) ? currentData.referrals : [];
+        const currentMiningRate = typeof currentData.miningRate === 'number' ? currentData.miningRate : 0.003;
+        const currentReferralCount = typeof currentData.referralCount === 'number' ? currentData.referralCount : 0;
+        
+        // Kullanıcı zaten referanslar listesindeyse tekrar ekleme
+        if (currentReferrals.includes(newUserId)) {
+          debugLog("referralRewardHandler", "Kullanıcı zaten referanslar listesinde, atlanıyor", { newUserId });
+          return; // Zaten işlenmiş
+        }
+        
+        // Referans bonusu ile yeni madencilik oranı hesapla (4 ondalık basamağa yuvarla)
+        const newMiningRate = parseFloat((currentMiningRate + REFERRAL_BONUS_RATE).toFixed(4));
+        
+        debugLog("referralRewardHandler", "Referans eden kullanıcı belgesi güncelleniyor", {
+          referralCount: currentReferralCount + 1,
+          oldMiningRate: currentMiningRate,
+          newMiningRate: newMiningRate
+        });
+        
+        // Kullanıcı belgesini güncelle
+        transaction.update(userRef, {
+          referralCount: increment(1),
+          referrals: arrayUnion(newUserId),
+          miningRate: newMiningRate,
+          lastReferral: new Date() // Son referans zamanı ekle
+        });
+      });
+      
+      debugLog("referralRewardHandler", "Referans eden kullanıcı istatistikleri başarıyla güncellendi", { 
+        ownerId,
+        newUserId
+      });
+      
+      return true;
+    } catch (transactionError) {
+      errorLog("referralRewardHandler", "Transaction hatası:", transactionError);
+      
+      // Transaction başarısız olursa doğrudan belge güncellemeyi dene
+      debugLog("referralRewardHandler", "Doğrudan güncelleme deneniyor...");
+      
+      // Güncel belgeyi al
+      const userDoc = await getDoc(userRef);
       
       if (!userDoc.exists()) {
-        errorLog("referralRewardHandler", "Referans eden kullanıcı belgesi bulunamadı", { ownerId });
+        errorLog("referralRewardHandler", "Kullanıcı belgesi bulunamadı");
         return false;
       }
       
       const currentData = userDoc.data();
-      
-      // Geçerli değerleri al veya varsayılanları kullan
       const currentReferrals = Array.isArray(currentData.referrals) ? currentData.referrals : [];
-      const currentMiningRate = currentData.miningRate || 0.003;
-      const currentReferralCount = currentData.referralCount || 0;
+      const currentMiningRate = typeof currentData.miningRate === 'number' ? currentData.miningRate : 0.003;
+      const currentReferralCount = typeof currentData.referralCount === 'number' ? currentData.referralCount : 0;
       
       // Kullanıcı zaten referanslar listesindeyse tekrar ekleme
       if (currentReferrals.includes(newUserId)) {
-        debugLog("referralRewardHandler", "Kullanıcı zaten referanslar listesinde, atlanıyor", { newUserId });
-        return true; // Zaten işlenmiş
+        debugLog("referralRewardHandler", "Kullanıcı zaten referanslar listesinde");
+        return true;
       }
       
-      // Referans bonusu ile yeni madencilik oranı hesapla (4 ondalık basamağa yuvarla)
+      // Referans bonusu ile yeni madencilik oranı hesapla
       const newMiningRate = parseFloat((currentMiningRate + REFERRAL_BONUS_RATE).toFixed(4));
       
-      debugLog("referralRewardHandler", "Referans eden kullanıcı belgesi güncelleniyor", {
-        referralCount: currentReferralCount + 1,
-        oldMiningRate: currentMiningRate,
-        newMiningRate: newMiningRate
-      });
-      
-      // Kullanıcı belgesini güncelle
-      transaction.update(userRef, {
+      // Doğrudan güncelleme
+      await updateDoc(userRef, {
         referralCount: increment(1),
         referrals: arrayUnion(newUserId),
         miningRate: newMiningRate,
-        lastReferral: new Date() // Son referans zamanı ekle
+        lastReferral: new Date()
       });
       
-      debugLog("referralRewardHandler", "Referans eden kullanıcı istatistikleri başarıyla güncellendi", { 
-        ownerId, 
-        newMiningRate, 
-        referralCount: currentReferralCount + 1 
+      debugLog("referralRewardHandler", "Referans eden kullanıcı doğrudan güncellendi", {
+        ownerId,
+        newMiningRate
       });
       
       return true;
-    });
+    }
   } catch (error) {
     errorLog("referralRewardHandler", "Referans eden kullanıcı istatistikleri güncelleme hatası:", error);
     
@@ -100,7 +143,7 @@ export async function updateReferrerStats(
       }
       
       // Referans bonusu ile yeni madencilik oranı hesapla
-      const currentMiningRate = currentData.miningRate || 0.003;
+      const currentMiningRate = typeof currentData.miningRate === 'number' ? currentData.miningRate : 0.003;
       const newMiningRate = parseFloat((currentMiningRate + REFERRAL_BONUS_RATE).toFixed(4));
       
       // Kullanıcı belgesini güncelle

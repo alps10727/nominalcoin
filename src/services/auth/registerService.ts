@@ -96,15 +96,16 @@ export async function registerUser(
     // Referans ödülünü işle (geçerliyse)
     if (referralValid && referrerUserId && normalizedReferralCode) {
       try {
-        // Güvenilirlik için birden fazla deneme ile referansı işle
         debugLog("authService", "Referans ödülü işleniyor", { 
           code: normalizedReferralCode, 
           referrerId: referrerUserId 
         });
         
-        // İlk deneme için kısa bir gecikme (Firestore'un kullanıcı oluşturmayı tamamlamasına izin verir)
-        setTimeout(async () => {
+        // Fire and forget - yeni bir Promise içinde işlem
+        Promise.resolve().then(async () => {
           try {
+            // İlk deneme için kısa bir gecikme
+            await new Promise(resolve => setTimeout(resolve, 1000));
             const success = await processReferralCode(normalizedReferralCode, user.uid);
             
             if (success) {
@@ -112,29 +113,24 @@ export async function registerUser(
             } else {
               errorLog("authService", "İlk denemede referans ödülü işlenemedi");
               
-              // Daha uzun gecikme ile ikinci deneme
-              setTimeout(async () => {
-                try {
-                  const retrySuccess = await processReferralCode(normalizedReferralCode, user.uid);
-                  debugLog("authService", "Referans yeniden deneme sonucu:", retrySuccess);
-                  
-                  // Hala başarısızsa son bir deneme
-                  if (!retrySuccess) {
-                    setTimeout(async () => {
-                      const finalAttempt = await processReferralCode(normalizedReferralCode, user.uid);
-                      debugLog("authService", "Son referans deneme sonucu:", finalAttempt);
-                    }, 5000);
-                  }
-                } catch (retryErr) {
-                  errorLog("authService", "Referans için yeniden deneme hatası:", retryErr);
-                }
-              }, 3000);
+              // İkinci deneme
+              await new Promise(resolve => setTimeout(resolve, 3000));
+              const retrySuccess = await processReferralCode(normalizedReferralCode, user.uid);
+              
+              if (retrySuccess) {
+                debugLog("authService", "İkinci denemede referans işleme başarılı");
+              } else {
+                // Üçüncü ve son deneme
+                await new Promise(resolve => setTimeout(resolve, 5000));
+                await processReferralCode(normalizedReferralCode, user.uid);
+              }
             }
           } catch (err) {
-            errorLog("authService", "İlk referans işleme hatası:", err);
+            errorLog("authService", "Referans işleme hatası:", err);
           }
-        }, 1000);
-        
+        }).catch(err => {
+          errorLog("authService", "Promise içinde referans hatası:", err);
+        });
       } catch (rewardErr) {
         errorLog("authService", "Referans ödülü işleme hatası:", rewardErr);
       }

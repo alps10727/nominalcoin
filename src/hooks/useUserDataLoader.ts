@@ -18,13 +18,6 @@ export interface UserDataState {
 
 /**
  * Milyonlarca kullanıcı için optimize edilmiş veri yükleme kancası
- * 
- * Özellikleri:
- * - İleri düzey önbelleğe alma
- * - Otomatik yeniden deneme
- * - Hata izolasyonu
- * - Akıllı senkronizasyon
- * - Şüpheli veri algılama
  */
 export function useUserDataLoader(
   currentUser: User | null,
@@ -36,10 +29,25 @@ export function useUserDataLoader(
   const [errorOccurred, setErrorOccurred] = useState(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [lastLoadedUserId, setLastLoadedUserId] = useState<string | null>(null);
+  const [networkAvailable, setNetworkAvailable] = useState(navigator.onLine);
 
   const { loadLocalUserData, ensureReferralData, createDefaultUserData } = useLocalDataLoader();
   const { loadFirebaseUserData, mergeUserData } = useFirebaseDataLoader();
   const { ensureValidUserData } = useUserDataValidator();
+
+  // Ağ değişiklikleri izle
+  useEffect(() => {
+    const handleOnline = () => setNetworkAvailable(true);
+    const handleOffline = () => setNetworkAvailable(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   // Kullanıcı verilerini yükleyen ana fonksiyon
   const loadUserData = useCallback(async () => {
@@ -86,50 +94,54 @@ export function useUserDataLoader(
         debugLog("useUserDataLoader", "Yerel depodan veriler yüklendi:", localData);
       }
       
-      try {
-        // Firebase'den verileri yüklemeyi dene
-        const { data: firebaseData, source } = await loadFirebaseUserData(currentUser.uid);
-        
-        if (source === 'firebase' || source === 'cache') {
-          debugLog("useUserDataLoader", `Veriler ${source} kaynağından yüklendi:`, firebaseData);
+      // İnternet bağlantısı varsa Firebase'den veri yükleme dene
+      if (networkAvailable) {
+        try {
+          // Firebase'den verileri yüklemeyi dene
+          const { data: firebaseData, source } = await loadFirebaseUserData(currentUser.uid);
           
-          if (firebaseData) {
+          if ((source === 'firebase' || source === 'cache') && firebaseData) {
+            debugLog("useUserDataLoader", `Veriler ${source} kaynağından yüklendi:`, firebaseData);
+            
             // Yerel ve Firebase verilerini karşılaştır ve akıllı birleştirme yap
-            // Bu işlem, manipüle edilmiş localStorage verilerini tespit edecek
             const mergedData = mergeUserData(localData, firebaseData);
             const validatedData = ensureValidUserData(mergedData, currentUser.uid);
-            
-            // Firebase ve yerel depo arasında uyuşmazlık varsa bildirim göster
-            if (localData && Math.abs(localData.balance - firebaseData.balance) > 0.1) {
-              if (localData.balance > firebaseData.balance * 1.2) { // %20'den fazla fark varsa şüpheli
-                toast.warning("Hesap bakiyesinde tutarsızlık tespit edildi. Doğru değer kullanılıyor.");
-                debugLog("useUserDataLoader", "Şüpheli bakiye farkı tespit edildi", 
-                  { local: localData.balance, server: firebaseData.balance });
-              }
-            }
             
             setUserData(validatedData);
             setDataSource(source);
             saveUserData(validatedData, currentUser.uid);
+          } else if (source === 'timeout' && !localData) {
+            // Firebase'e erişilemedi ve yerel veri de yoksa, yeni veri oluştur
+            const emptyData = createDefaultUserData(currentUser.uid);
+            setUserData(emptyData);
+            saveUserData(emptyData, currentUser.uid);
+            setDataSource('local');
+            
+            toast.warning("Kullanıcı verileriniz bulunamadı. Yeni profil oluşturuldu.");
           }
-        } else if (source === 'timeout' && !localData) {
-          // Firebase'e erişilemedi ve yerel veri de yoksa, yeni veri oluştur
-          const emptyData = createDefaultUserData(currentUser.uid);
-          setUserData(emptyData);
-          saveUserData(emptyData, currentUser.uid);
-          setDataSource('local');
+        } catch (error) {
+          handleFirebaseConnectionError(error, "useUserDataLoader");
           
-          toast.warning("Kullanıcı verileriniz bulunamadı. Yeni profil oluşturuldu.");
+          if (!localData) {
+            const emptyData = createDefaultUserData(currentUser.uid);
+            setUserData(emptyData);
+            saveUserData(emptyData, currentUser.uid);
+            setDataSource('local');
+          } else {
+            // Yerel veriler kullanılıyor
+            setDataSource('local');
+          }
         }
-      } catch (error) {
-        handleFirebaseConnectionError(error, "useUserDataLoader");
+      } else {
+        // İnternet bağlantısı yoksa sadece yerel veriyi kullan
+        debugLog("useUserDataLoader", "İnternet bağlantısı yok, yerel veriler kullanılıyor");
         
         if (!localData) {
           const emptyData = createDefaultUserData(currentUser.uid);
           setUserData(emptyData);
           saveUserData(emptyData, currentUser.uid);
-          setDataSource('local');
         }
+        setDataSource('local');
       }
       
       setLoading(false);
@@ -144,8 +156,9 @@ export function useUserDataLoader(
       setLoading(false);
       
       toast.error("Veri yüklenirken bir hata oluştu. Lütfen tekrar deneyin.");
+      setErrorOccurred(true);
     }
-  }, [currentUser, authInitialized, errorOccurred, loadAttempt, lastLoadedUserId]);
+  }, [currentUser, authInitialized, errorOccurred, loadAttempt, lastLoadedUserId, networkAvailable]);
 
   // Yükleme işlemini başlat
   useEffect(() => {
@@ -158,11 +171,20 @@ export function useUserDataLoader(
     
     initializeData();
     
+    // Ağ durumu değiştiğinde veriyi yeniden yükle
+    const handleNetworkChange = () => {
+      if (networkAvailable && currentUser) {
+        debugLog("useUserDataLoader", "Ağ bağlantısı değişti, veriler yeniden yükleniyor");
+        loadUserData();
+      }
+    };
+    
+    window.addEventListener('online', handleNetworkChange);
+    
     // Periyodik yeniden doğrulama (5 dakikada bir)
     const refreshInterval = setInterval(() => {
-      if (currentUser) {
+      if (currentUser && networkAvailable) {
         // Sadece önbelleği güncelleyerek sunucu verilerini kontrol et
-        // Bu UI'ı dondurmadan arka planda gerçekleşir
         loadFirebaseUserData(currentUser.uid)
           .then(({ data, source }) => {
             if (data && (source === 'firebase' || source === 'cache')) {
@@ -195,8 +217,9 @@ export function useUserDataLoader(
     return () => {
       isActive = false;
       clearInterval(refreshInterval);
+      window.removeEventListener('online', handleNetworkChange);
     };
-  }, [loadUserData, currentUser]);
+  }, [loadUserData, currentUser, networkAvailable]);
 
   return { userData, loading, dataSource };
 }
