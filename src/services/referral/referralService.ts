@@ -1,3 +1,4 @@
+
 import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { db } from "@/config/firebase";
 import { debugLog, errorLog } from "@/utils/debugUtils";
@@ -113,14 +114,11 @@ export async function applyReferralCode(currentUserId: string, referralCode: str
       
       // Davetçi kullanıcı verisini al
       const inviterDoc = await transaction.get(inviterRef);
-      const currentUserDoc = await transaction.get(currentUserRef);
-      
-      if (!inviterDoc.exists() || !currentUserDoc.exists()) {
-        throw new Error("Kullanıcı bulunamadı.");
+      if (!inviterDoc.exists()) {
+        throw new Error("Davet eden kullanıcı bulunamadı.");
       }
       
       const inviterData = inviterDoc.data();
-      const currentUserData = currentUserDoc.data();
       
       // Madencilik hızını artır (0.003 artış)
       const updatedMiningRate = (inviterData.miningRate || 0.003) + 0.003;
@@ -199,3 +197,4 @@ export async function initializeReferralCode(userId: string): Promise<string | n
 
 // Import eksik fonksiyonları
 import { collection, query, getDocs, where } from "firebase/firestore";
+
