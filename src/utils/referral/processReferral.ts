@@ -5,6 +5,7 @@ import { debugLog, errorLog } from "@/utils/debugUtils";
 import { checkReferralCode } from "./validateReferralCode";
 import { markReferralCodeAsUsed } from "./handlers/referralCodeHandler";
 import { updateReferrerStats } from "./handlers/referralRewardHandler";
+import { toast } from "sonner";
 
 export async function processReferralCode(code: string, newUserId: string): Promise<boolean> {
   if (!code) return false;
@@ -45,13 +46,16 @@ export async function processReferralCode(code: string, newUserId: string): Prom
     
     if (updated) {
       debugLog("processReferral", "Successfully processed referral", { code, referrer: ownerId, newUser: newUserId });
+      toast.success("Referans kodu başarıyla uygulandı!");
     } else {
       errorLog("processReferral", "Failed to update referrer stats");
+      toast.error("Referans kodu işlenirken bir hata oluştu");
     }
     
     return updated;
   } catch (error) {
     errorLog("processReferral", "Error processing referral code:", error);
+    toast.error("Referans kodu işlenirken bir hata oluştu");
     return false;
   }
 }

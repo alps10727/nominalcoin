@@ -65,16 +65,25 @@ export async function registerUser(
     // Process referral reward if valid
     if (referralValid && referrerUserId) {
       try {
+        // Önce kullanıcı kaydını tamamla, sonra referansı işle
         debugLog("authService", "Processing referral reward", { code: referralCode, referrerId: referrerUserId });
-        const success = await processReferralCode(referralCode, user.uid);
         
-        if (success) {
-          debugLog("authService", "Referral successfully processed");
-          toast.success("Referans kodu başarıyla uygulandı!");
-        } else {
-          errorLog("authService", "Failed to process referral reward");
-          // No fallback needed as processReferralCode already handles retries
-        }
+        // Kısa bir gecikme ekleyerek veritabanı işlemlerinin sıralanmasını sağlıyoruz
+        setTimeout(async () => {
+          const success = await processReferralCode(referralCode, user.uid);
+          
+          if (success) {
+            debugLog("authService", "Referral successfully processed");
+          } else {
+            errorLog("authService", "Failed to process referral reward");
+            // Yeniden deneme ekleyerek daha güvenilir hale getirelim
+            setTimeout(async () => {
+              const retrySuccess = await processReferralCode(referralCode, user.uid);
+              debugLog("authService", "Referral retry result:", retrySuccess);
+            }, 2000);
+          }
+        }, 1000);
+        
       } catch (rewardErr) {
         errorLog("authService", "Error processing referral reward:", rewardErr);
       }

@@ -37,7 +37,7 @@ export async function updateReferrerStats(
     
     // Calculate new mining rate with referral bonus
     const currentMiningRate = currentData.miningRate || 0.003;
-    const newMiningRate = currentMiningRate + REFERRAL_BONUS_RATE;
+    const newMiningRate = parseFloat((currentMiningRate + REFERRAL_BONUS_RATE).toFixed(4));
     
     debugLog("referralRewardHandler", "Updating referrer document", {
       referralCount: (currentData.referralCount || 0) + 1,
