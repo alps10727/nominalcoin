@@ -72,13 +72,26 @@ export function useSupabaseDataManager(userId: string | undefined) {
     try {
       // First, update local storage for instant feedback
       const currentData = loadUserData();
+      
+      // Ensure currentData is valid, if not create a default object with required fields
+      const baseData: UserData = currentData || {
+        userId: userId,
+        balance: 0,
+        miningRate: 0.003,
+        lastSaved: Date.now(),
+        miningActive: false,
+        miningTime: 0,
+        miningPeriod: 21600,
+        miningSession: 0
+      };
+      
       const updatedData: UserData = { 
-        ...currentData as UserData, 
+        ...baseData, 
         ...data, 
         lastSaved: Date.now(),
-        userId: userId, // Ensure userId is set
-        balance: (data.balance !== undefined) ? data.balance : (currentData?.balance || 0) // Ensure balance is set
+        userId: userId // Ensure userId is set
       };
+      
       saveUserData(updatedData);
       
       // Prepare data for Supabase (snake_case)

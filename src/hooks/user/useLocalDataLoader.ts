@@ -42,7 +42,7 @@ export function useLocalDataLoader() {
     const ensuredData: UserData = {
       ...userData,
       userId: userId,
-      balance: userData.balance || 0,
+      balance: typeof userData.balance === 'number' ? userData.balance : 0,
       miningRate: userData.miningRate || 0.003,
       lastSaved: userData.lastSaved || Date.now(),
       miningActive: typeof userData.miningActive === 'boolean' ? userData.miningActive : false,

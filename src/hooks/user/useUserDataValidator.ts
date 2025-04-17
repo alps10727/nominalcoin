@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from "react";
-import { UserData } from "@/utils/storage";
+import { UserData } from "@/types/storage";
 import { debugLog } from "@/utils/debugUtils";
 import { calculateMiningRate } from "@/utils/miningCalculator";
 
@@ -45,6 +45,27 @@ export function useUserDataValidator() {
     if (!validData.lastSaved || typeof validData.lastSaved !== 'number') {
       validData.lastSaved = Date.now();
       errors.push("Invalid last saved timestamp");
+    }
+    
+    // Ensure required mining fields
+    if (typeof validData.miningActive !== 'boolean') {
+      validData.miningActive = false;
+      errors.push("Invalid mining active state");
+    }
+    
+    if (typeof validData.miningTime !== 'number' || isNaN(validData.miningTime)) {
+      validData.miningTime = 0;
+      errors.push("Invalid mining time");
+    }
+    
+    if (typeof validData.miningPeriod !== 'number' || isNaN(validData.miningPeriod)) {
+      validData.miningPeriod = 21600;
+      errors.push("Invalid mining period");
+    }
+    
+    if (typeof validData.miningSession !== 'number' || isNaN(validData.miningSession)) {
+      validData.miningSession = 0;
+      errors.push("Invalid mining session");
     }
 
     // Update validation errors

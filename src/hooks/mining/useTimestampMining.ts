@@ -39,15 +39,18 @@ export function processTimestampBasedMining(
   // If mining completed
   if (remainingMs <= 0) {
     debugLog("useTimestampMining", "Mining completed (timestamp-based check)");
-    // Always save when mining completes
+    // Always save when mining completes - ensure all required fields
     saveUserData({
-      ...state,
+      userId: state.userId || 'local-user',
+      balance: state.balance || 0,
+      miningRate: state.miningRate || 0.003,
+      lastSaved: now,
       miningActive: false,
       miningTime: 0,
       progress: 1,
+      miningPeriod: state.miningPeriod || 21600,
+      miningSession: 0, // Reset session on completion
       miningEndTime: undefined,
-      lastSaved: now,
-      userId: state.userId || 'local-user' // Ensure userId is always set
     });
     lastSaveTimeRef.current = now;
     return handleMiningCompletion(state);
@@ -80,10 +83,16 @@ export function processTimestampBasedMining(
       // Periodic save with fixed values
       if (now - lastSaveTimeRef.current > 10000) {
         saveUserData({
-          ...state,
-          ...updatedState,
+          userId: state.userId || 'local-user',
+          balance: updatedState.balance || 0,
+          miningRate: state.miningRate || 0.003,
           lastSaved: now,
-          userId: state.userId || 'local-user' // Ensure userId is always set
+          miningActive: true,
+          miningTime: remainingSeconds,
+          miningPeriod: state.miningPeriod || 21600,
+          miningSession: updatedState.miningSession || 0,
+          progress: progress,
+          miningEndTime: state.miningEndTime
         });
         lastSaveTimeRef.current = now;
       }
@@ -101,10 +110,16 @@ export function processTimestampBasedMining(
   // Periodic save (every 10 seconds)
   if (now - lastSaveTimeRef.current > 10000) {
     saveUserData({
-      ...state,
-      ...updatedState,
+      userId: state.userId || 'local-user',
+      balance: state.balance || 0,
+      miningRate: state.miningRate || 0.003,
       lastSaved: now,
-      userId: state.userId || 'local-user' // Ensure userId is always set
+      miningActive: true,
+      miningTime: remainingSeconds,
+      miningPeriod: state.miningPeriod || 21600,
+      miningSession: state.miningSession || 0,
+      progress: progress,
+      miningEndTime: state.miningEndTime
     });
     lastSaveTimeRef.current = now;
   }

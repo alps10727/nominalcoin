@@ -3,7 +3,7 @@
  * User data interface definition
  */
 export interface UserData {
-  userId: string; // Changed to required
+  userId: string; // Required field
   balance: number;
   miningRate: number;
   lastSaved: number;
@@ -11,7 +11,6 @@ export interface UserData {
   miningTime: number;
   miningPeriod: number; 
   miningSession: number;
-  upgrades?: Array<{id: number, level: number, rateBonus: number}>; // Added upgrades array
   miningEndTime?: number | null; 
   progress?: number;
   miningStartTime?: number | null;
@@ -21,5 +20,6 @@ export interface UserData {
   tasks?: {
     completed?: number[]
   };
+  upgrades?: Array<{id: number, level: number, rateBonus: number}>; 
   [x: string]: any; // Allow additional properties
 }

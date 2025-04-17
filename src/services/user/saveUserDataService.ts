@@ -24,12 +24,16 @@ export async function saveUserDataToFirebase(userId: string, userData: UserData)
     }, {} as Record<string, any>);
     
     // Ensure required fields are present
-    const cleanedData = {
+    const cleanedData: UserData = {
       ...sanitizedData,
       userId: userId, // Her zaman userId ekle
       balance: userData.balance || 0,
       miningRate: calculateMiningRate(userData), // Referans sayısına göre hesapla
-      lastSaved: Date.now() // Önce client timestamp kullan
+      lastSaved: Date.now(), // Önce client timestamp kullan
+      miningActive: userData.miningActive !== undefined ? userData.miningActive : false,
+      miningTime: userData.miningTime !== undefined ? userData.miningTime : 0,
+      miningPeriod: userData.miningPeriod || 21600,
+      miningSession: userData.miningSession || 0
     };
     
     try {
