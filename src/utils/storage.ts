@@ -3,13 +3,30 @@
 export interface UserData {
   balance: number;
   miningRate: number;
-  lastSaved?: number;
+  lastSaved: number;
   userId?: string;
   miningActive?: boolean;
   miningTime?: number;
   miningPeriod?: number;
+  miningSession?: number;
+  miningEndTime?: number;
+  progress?: number;
   poolMembership?: {
     currentPool?: string;
+    joinDate?: string | Date;
+    lastPoolChangeDate?: string | Date;
+  };
+  upgrades?: any[];
+  tasks?: {
+    completed?: number[];
+  };
+  name?: string;
+  emailAddress?: string;
+  isAdmin?: boolean;
+  miningStats?: {
+    totalDays?: number;
+    dailyAverage?: number;
+    rank?: string;
   };
 }
 

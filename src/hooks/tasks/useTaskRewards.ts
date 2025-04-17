@@ -49,13 +49,14 @@ export function useTaskRewards(
         };
         
         // Veriyi kaydet
-        saveUserData(updatedUserData, currentUserId);
+        saveUserData(updatedUserData);
         
         debugLog("useTaskRewards", `${task.reward} ödül kazanıldı, yeni bakiye: ${updatedUserData.balance}`);
         
         toast({
           title: t("tasks.rewardClaimed"),
-          description: t("tasks.rewardClaimedDesc", task.reward.toString(), task.title),
+          // Fix the number of arguments
+          description: t("tasks.rewardClaimedDesc", { reward: task.reward.toString(), title: task.title }),
         });
       } else if (task.completed) {
         toast({

@@ -1,120 +1,129 @@
 
 import { useState, useEffect } from "react";
-import { MiningPool } from "@/types/pools";
+import { toast } from "sonner";
+import { Timestamp } from "@/types/storage"; // Import our Timestamp mock
 
-export function usePoolSystem() {
-  const [loading, setLoading] = useState(false);
-  const [currentPool, setCurrentPool] = useState<MiningPool | null>(null);
-  const [availablePools, setAvailablePools] = useState<MiningPool[]>([]);
+// Add your pool system hook implementation here
+export function usePoolSystem(userData: any, updateUserData: any) {
+  const [availablePools, setAvailablePools] = useState([
+    { id: "beginners", name: "Beginners Pool", minRate: 0, maxRate: 0.005, members: 150 },
+    { id: "advanced", name: "Advanced Pool", minRate: 0.005, maxRate: 0.02, members: 75 },
+    { id: "pro", name: "Pro Miners", minRate: 0.02, maxRate: 0.05, members: 35 }
+  ]);
   
-  // Dummy functions to replace Firebase functionality
-  const loadAvailablePools = async () => {
-    setLoading(true);
-    try {
-      // Mock data
-      const mockPools: MiningPool[] = [
-        {
-          poolId: "community-pool-123456",
-          name: "Community Pool",
-          description: "A public mining pool for everyone",
-          level: 1,
-          owner: "system",
-          memberCount: 42,
-          createdAt: new Date(),
-          capacity: 100,
-          isPublic: true,
-          minRequirements: {
-            minBalance: 0,
-            miningDays: 0
-          }
-        }
-      ];
+  const [selectedPool, setSelectedPool] = useState<string | null>(null);
+  const [joinDate, setJoinDate] = useState<string | null>(null);
+  const [canChangePool, setCanChangePool] = useState(true);
+  const [lastChange, setLastChange] = useState<string | null>(null);
+  
+  // Initialize pool data from user data
+  useEffect(() => {
+    if (userData && userData.poolMembership) {
+      setSelectedPool(userData.poolMembership.currentPool);
+      setJoinDate(userData.poolMembership.joinDate);
+      setLastChange(userData.poolMembership.lastPoolChangeDate || null);
       
-      setTimeout(() => {
-        setAvailablePools(mockPools);
-        setLoading(false);
-      }, 500);
+      // Check if user can change pools (only once per 24 hours)
+      if (userData.poolMembership.lastPoolChangeDate) {
+        const lastChangeDate = new Date(userData.poolMembership.lastPoolChangeDate);
+        const now = new Date();
+        const hoursSinceLastChange = (now.getTime() - lastChangeDate.getTime()) / (1000 * 60 * 60);
+        
+        setCanChangePool(hoursSinceLastChange >= 24);
+      }
+    }
+  }, [userData]);
+  
+  // Join a mining pool
+  const joinPool = async (poolId: string) => {
+    if (!canChangePool && selectedPool) {
+      toast.error("Havuz değişikliği için 24 saat beklemelisiniz");
+      return false;
+    }
+    
+    // Check if user's mining rate is compatible with pool
+    const targetPool = availablePools.find(pool => pool.id === poolId);
+    if (!targetPool) {
+      toast.error("Seçilen havuz bulunamadı");
+      return false;
+    }
+    
+    if (userData && (userData.miningRate < targetPool.minRate || userData.miningRate > targetPool.maxRate)) {
+      toast.error(`Madencilik hızınız bu havuz için uygun değil (${targetPool.minRate} - ${targetPool.maxRate})`);
+      return false;
+    }
+    
+    try {
+      const now = new Date();
+      const timestamp = Timestamp.fromDate(now); // Use our mock Timestamp
+      
+      // Update user data with new pool membership
+      await updateUserData({
+        poolMembership: {
+          currentPool: poolId,
+          joinDate: now.toISOString(),
+          lastPoolChangeDate: now.toISOString()
+        }
+      });
+      
+      setSelectedPool(poolId);
+      setJoinDate(now.toISOString());
+      setLastChange(now.toISOString());
+      setCanChangePool(false);
+      
+      toast.success(`${targetPool.name} havuzuna başarıyla katıldınız!`);
+      return true;
     } catch (error) {
-      console.log("Error loading available pools:", error);
-      setLoading(false);
+      console.error("Havuza katılma hatası:", error);
+      toast.error("Havuza katılırken bir hata oluştu");
+      return false;
     }
   };
   
-  // Join a mining pool
-  const handleJoinPool = async (poolId: string) => {
-    setLoading(true);
-    
-    // Mock successful join
-    setTimeout(() => {
-      const pool = availablePools.find(p => p.poolId === poolId);
-      if (pool) {
-        setCurrentPool(pool);
-      }
-      setLoading(false);
-    }, 500);
-    
-    return true;
-  };
-  
   // Leave current pool
-  const handleLeavePool = async () => {
-    setLoading(true);
+  const leavePool = async () => {
+    if (!selectedPool) {
+      toast.error("Zaten bir havuzda değilsiniz");
+      return false;
+    }
     
-    // Mock successful leave
-    setTimeout(() => {
-      setCurrentPool(null);
-      setLoading(false);
-    }, 500);
+    if (!canChangePool) {
+      toast.error("Havuzdan ayrılmak için 24 saat beklemelisiniz");
+      return false;
+    }
     
-    return true;
+    try {
+      const now = new Date();
+      
+      // Update user data to leave pool
+      await updateUserData({
+        poolMembership: {
+          currentPool: null,
+          joinDate: null,
+          lastPoolChangeDate: now.toISOString()
+        }
+      });
+      
+      setSelectedPool(null);
+      setJoinDate(null);
+      setLastChange(now.toISOString());
+      setCanChangePool(false);
+      
+      toast.success("Madencilik havuzundan ayrıldınız");
+      return true;
+    } catch (error) {
+      console.error("Havuzdan ayrılma hatası:", error);
+      toast.error("Havuzdan ayrılırken bir hata oluştu");
+      return false;
+    }
   };
   
-  // Create a new pool
-  const handleCreatePool = async (poolData: any) => {
-    setLoading(true);
-    
-    // Generate a unique pool ID
-    const poolId = `${poolData.name?.toLowerCase().replace(/\s+/g, '-')}-${Date.now().toString().slice(-6)}`;
-    
-    // Create mock pool
-    const newPool: MiningPool = {
-      poolId,
-      name: poolData.name || "New Pool",
-      description: poolData.description || "",
-      level: poolData.level || 1,
-      owner: "current-user",
-      memberCount: 1,
-      createdAt: new Date(),
-      capacity: 100,
-      isPublic: poolData.isPublic !== undefined ? poolData.isPublic : true,
-      minRequirements: {
-        minBalance: poolData.requirements?.minBalance || 0,
-        miningDays: poolData.requirements?.minDays || 0
-      },
-      minRank: poolData.requirements?.minRank ? String(poolData.requirements.minRank) : undefined
-    };
-    
-    setTimeout(() => {
-      setCurrentPool(newPool);
-      setLoading(false);
-    }, 500);
-    
-    return poolId;
-  };
-  
-  // Check and update user rank
-  const checkRankUpdate = async () => {
-    return "Rookie";
-  };
-
   return {
-    loading,
-    currentPool,
     availablePools,
-    loadAvailablePools,
-    joinPool: handleJoinPool,
-    leavePool: handleLeavePool,
-    createPool: handleCreatePool,
-    checkRankUpdate
+    selectedPool,
+    joinDate,
+    canChangePool,
+    joinPool,
+    leavePool
   };
 }

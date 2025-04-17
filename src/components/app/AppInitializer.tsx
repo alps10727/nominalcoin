@@ -24,13 +24,14 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
       try {
         const localData = loadUserData();
         
-        // Check for active mining with end time in the future
-        if (localData && localData.miningActive && localData.miningEndTime) {
+        // Check for active mining with remaining time
+        if (localData && localData.miningActive && localData.miningTime) {
           const now = Date.now();
+          const miningTimeMs = (localData.miningTime || 0) * 1000;
           
-          if (localData.miningEndTime > now) {
+          if (miningTimeMs > 0) {
             // Mining is still active
-            const remainingTimeMinutes = Math.floor((localData.miningEndTime - now) / 60000);
+            const remainingTimeMinutes = Math.floor(miningTimeMs / 60000);
             
             // Notify only if significant time remains (more than 1 minute)
             if (remainingTimeMinutes > 1) {
@@ -117,8 +118,8 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
     initializeApp();
     
     return () => {
-      window.addEventListener('online', handleOnline);
-      window.addEventListener('offline', handleOffline);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
     };
   }, [reconnecting, initialLoadAttempted, loadAttempt, isOffline]);
   
