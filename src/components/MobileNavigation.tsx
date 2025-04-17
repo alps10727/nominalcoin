@@ -1,6 +1,6 @@
 
 import { Link, useLocation } from "react-router-dom";
-import { Home, Award, ChevronUp, Settings, BarChart2, Users } from "lucide-react";
+import { Home, Users, ChevronUp, Settings, BarChart2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function MobileNavigation() {
@@ -10,8 +10,8 @@ export default function MobileNavigation() {
   // Navigation items with icons and paths
   const navItems = [
     { name: "Home", icon: <Home size={22} />, path: "/" },
-    { name: "Upgrades", icon: <ChevronUp size={22} />, path: "/upgrades" },
-    { name: "Referral", icon: <Users size={22} />, path: "/referral" },
+    { name: "Team", icon: <Users size={22} />, path: "/team" },
+    { name: "Tasks", icon: <ChevronUp size={22} />, path: "/tasks" },
     { name: "Stats", icon: <BarChart2 size={22} />, path: "/statistics" },
     { name: "Profile", icon: <Settings size={22} />, path: "/profile" },
   ];
