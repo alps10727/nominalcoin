@@ -13,12 +13,18 @@ export async function checkReferralCode(code: string, currentUserId?: string): P
   }
   
   try {
-    // Referans kodunu büyük harfe çeviriyoruz
+    // Normalize code to uppercase
     const normalizedCode = code.toUpperCase();
-    const { exists, ownerId } = await findReferralCode(normalizedCode);
+    const { exists, ownerId, used } = await findReferralCode(normalizedCode);
     
     if (!exists) {
       debugLog("referralUtils", "Referral code does not exist", { code: normalizedCode });
+      return { valid: false };
+    }
+    
+    // Check if code is already used
+    if (used) {
+      debugLog("referralUtils", "Referral code already used", { code: normalizedCode });
       return { valid: false };
     }
     

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import SignUpForm from "../components/auth/SignUpForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +7,8 @@ import { registerUser } from "@/services/authService";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { toast } from "sonner";
 import { App } from '@capacitor/app';
+import { validateReferralCodeFormat } from "@/utils/referral/validation/referralCodeValidator";
+import { checkReferralCode } from "@/utils/referral/validateReferralCode";
 
 const SignUp = () => {
   const [loading, setLoading] = useState(false);
@@ -16,8 +19,31 @@ const SignUp = () => {
   // Check URL for referral code
   const [initialReferralCode, setInitialReferralCode] = useState<string>(() => {
     const params = new URLSearchParams(location.search);
-    return params.get('ref') || '';
+    const code = params.get('ref') || '';
+    return code.toUpperCase(); // Normalize to uppercase
   });
+  
+  const [isValidReferralCode, setIsValidReferralCode] = useState<boolean | null>(null);
+
+  // Validate referral code when component mounts
+  useEffect(() => {
+    const validateInitialCode = async () => {
+      if (initialReferralCode && validateReferralCodeFormat(initialReferralCode)) {
+        try {
+          const { valid } = await checkReferralCode(initialReferralCode);
+          setIsValidReferralCode(valid);
+          
+          if (!valid) {
+            toast.error("Geçersiz referans kodu");
+          }
+        } catch (err) {
+          setIsValidReferralCode(false);
+        }
+      }
+    };
+    
+    validateInitialCode();
+  }, [initialReferralCode]);
 
   // Android back button handler
   useEffect(() => {
@@ -40,20 +66,35 @@ const SignUp = () => {
       setLoading(true);
       setError(null);
       
-      debugLog("SignUp", "Starting registration", { name, email, referralCode });
+      // Normalize and validate referral code
+      let normalizedCode = referralCode ? referralCode.toUpperCase().trim() : null;
+      
+      // Validate referral code if provided
+      let validReferral = true;
+      if (normalizedCode) {
+        const { valid } = await checkReferralCode(normalizedCode);
+        validReferral = valid;
+        
+        if (!valid) {
+          toast.error("Geçersiz referans kodu. Kayıt işlemi referans kodu olmadan devam edecek.");
+          normalizedCode = null;
+        }
+      }
+      
+      debugLog("SignUp", "Starting registration", { name, email, referralCode: normalizedCode });
       
       // Register the user with referral code
       const userCredential = await registerUser(email, password, {
         name,
         emailAddress: email,
-        referralCode: referralCode // Pass referral code to registration function
+        referralCode: normalizedCode // Pass referral code to registration function
       });
 
       // Registration successful, redirect to home page
       toast.success("Hesabınız başarıyla oluşturuldu!");
       
       // Show special message for referral code
-      if (referralCode) {
+      if (normalizedCode && validReferral) {
         toast.success("Referans kodu başarıyla uygulandı!");
       }
       
@@ -75,8 +116,15 @@ const SignUp = () => {
             Yeni bir hesap oluşturarak Coin kazanmaya başlayın
           </CardDescription>
           {initialReferralCode && (
-            <div className="mt-2 bg-blue-900/30 text-blue-200 text-sm py-1 px-2 rounded-md">
-              Referans kodu ile kaydoluyorsunuz: {initialReferralCode}
+            <div className={`mt-2 text-sm py-1 px-2 rounded-md ${
+              isValidReferralCode === true ? 'bg-blue-900/30 text-blue-200' :
+              isValidReferralCode === false ? 'bg-red-900/30 text-red-200' :
+              'bg-gray-800/30 text-gray-300'
+            }`}>
+              {isValidReferralCode === true && 'Geçerli referans kodu: '}
+              {isValidReferralCode === false && 'Geçersiz referans kodu: '}
+              {isValidReferralCode === null && 'Referans kodu doğrulanıyor: '}
+              {initialReferralCode}
             </div>
           )}
         </CardHeader>
