@@ -4,7 +4,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useMiningData } from "@/hooks/useMiningData";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useAuth } from "@/contexts/AuthContext";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { useEffect, useState, useRef, useMemo } from "react";
 
 // Imported components
@@ -16,9 +16,7 @@ import MiningRateDisplay from "@/components/mining/MiningRateDisplay"; // Yeni e
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton"; 
 import { toast } from "sonner";
-import { loadUserData } from "@/utils/storage";
 import { debugLog } from "@/utils/debugUtils";
-import { QueryCacheManager } from "@/services/optimizationService";
 
 const Index = () => {
   const {
@@ -35,18 +33,22 @@ const Index = () => {
   } = useMiningData();
   
   // Optimistik UI güncelleme için bakiye durumu
-  const [balance, setBalance] = useState<number>(() => {
-    const localData = loadUserData();
-    const initialBalance = localData?.balance || 0;
-    debugLog("Index", `Initial balance from localStorage: ${initialBalance}`);
-    return initialBalance;
-  });
+  const [balance, setBalance] = useState<number>(0);
   
   const isFirstRender = useRef(true);
   const storedBalanceRef = useRef(balance);
   
-  const { userData, loading: authLoading, isOffline: authOffline } = useAuth();
-  const [isInitialized, setIsInitialized] = useState(!!loadUserData());
+  const { userData, isLoading: authLoading, isOffline: authOffline } = useSupabaseAuth();
+  const [isInitialized, setIsInitialized] = useState(false);
+  
+  // İlk yüklemede userData'dan balance değerini al
+  useEffect(() => {
+    if (userData?.balance !== undefined) {
+      setBalance(userData.balance);
+      storedBalanceRef.current = userData.balance;
+      setIsInitialized(true);
+    }
+  }, [userData]);
   
   // Optimistik veri güncelleme - UI'ı anında güncellemek için
   useEffect(() => {
@@ -65,12 +67,12 @@ const Index = () => {
     }
   }, [miningBalance, miningLoading]);
   
-  // Firebase'den gelen veri senkronizasyonu
+  // Supabase'den gelen veri senkronizasyonu
   useEffect(() => {
     if (!authLoading && userData?.balance !== undefined) {
       debugLog("Index", `Checking auth balance: ${userData.balance}, Current: ${storedBalanceRef.current}`);
       
-      // Firebase verisinde daha yüksek bakiye varsa güncelle
+      // Supabase verisinde daha yüksek bakiye varsa güncelle
       if (userData.balance > storedBalanceRef.current) {
         debugLog("Index", `Using higher balance from auth: ${userData.balance}`);
         setBalance(userData.balance);
@@ -78,23 +80,6 @@ const Index = () => {
       }
     }
   }, [userData, authLoading]);
-  
-  // Periyodik önbellek temizleme
-  useEffect(() => {
-    const cleanupInterval = setInterval(() => {
-      // Eskimiş önbellek girdilerini temizle
-      QueryCacheManager.manageSize(500);
-    }, 300000); // 5 dakikada bir
-    
-    return () => clearInterval(cleanupInterval);
-  }, []);
-  
-  // Yükleme durumunda gecikmeyi azalt
-  useEffect(() => {
-    if (!isInitialized) {
-      setIsInitialized(true);
-    }
-  }, [isInitialized]);
 
   const isMobile = useIsMobile();
   const { t } = useLanguage();

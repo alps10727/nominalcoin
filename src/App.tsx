@@ -1,50 +1,37 @@
 
+import { Toaster } from "sonner";
+import { SupabaseAuthProvider } from "./contexts/SupabaseAuthContext";
+import AppRoutes from "./components/routing/AppRoutes";
+import { ThemeProvider } from "./contexts/ThemeContext";
+import { LanguageProvider } from "./contexts/LanguageContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
-import { ThemeProvider } from "@/contexts/ThemeContext";
-import { LanguageProvider } from "@/contexts/LanguageContext";
-import { AuthProvider } from "@/contexts/AuthContext";
-import AppInitializer from "./components/app/AppInitializer";
-import AppLayout from "./components/layout/AppLayout";
-import AppRoutes from "./components/routing/AppRoutes";
-import { Suspense } from "react";
-import LoadingScreen from "./components/dashboard/LoadingScreen";
-import { Toaster } from "sonner";
 
-// Optimize edilmiş QueryClient yapılandırması
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 1,
-      retryDelay: 300,
       refetchOnWindowFocus: false,
-      staleTime: 20000,
-      gcTime: 300000,
-    }
-  }
+      retry: 1,
+      staleTime: 30000,
+    },
+  },
 });
 
-const App = () => {
+function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <LanguageProvider>
-          <BrowserRouter>
-            <AuthProvider>
-              <AppInitializer>
-                <Suspense fallback={<LoadingScreen message="Yükleniyor..." />}>
-                  <Toaster richColors position="top-center" />
-                  <AppLayout>
-                    <AppRoutes />
-                  </AppLayout>
-                </Suspense>
-              </AppInitializer>
-            </AuthProvider>
-          </BrowserRouter>
-        </LanguageProvider>
-      </ThemeProvider>
+      <BrowserRouter>
+        <SupabaseAuthProvider>
+          <ThemeProvider>
+            <LanguageProvider>
+              <Toaster closeButton richColors position="top-center" />
+              <AppRoutes />
+            </LanguageProvider>
+          </ThemeProvider>
+        </SupabaseAuthProvider>
+      </BrowserRouter>
     </QueryClientProvider>
   );
-};
+}
 
 export default App;

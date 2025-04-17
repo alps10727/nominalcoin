@@ -1,33 +1,17 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import SignUpForm from "../components/auth/SignUpForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { registerUser } from "@/services/authService";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { toast } from "sonner";
-import { App } from '@capacitor/app';
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 
 const SignUp = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-
-  // Android back button handler
-  useEffect(() => {
-    const handleBackButton = () => {
-      // Prevent back button on registration page
-      return false;
-    };
-
-    // Listen for back button events with Capacitor App plugin
-    App.addListener('backButton', handleBackButton);
-
-    // Remove listeners when component unmounts
-    return () => {
-      App.removeAllListeners();
-    };
-  }, []);
+  const { register } = useSupabaseAuth();
 
   const handleSignUp = async (name: string, email: string, password: string) => {
     try {
@@ -36,15 +20,19 @@ const SignUp = () => {
       
       debugLog("SignUp", "Starting registration", { name, email });
       
-      // Register the user
-      const userCredential = await registerUser(email, password, {
+      // Register the user with Supabase
+      const success = await register(email, password, {
         name,
         emailAddress: email
       });
 
-      // Registration successful, redirect to home page
-      toast.success("Hesabınız başarıyla oluşturuldu!");
-      navigate("/");
+      if (success) {
+        // Registration successful, redirect to home page
+        toast.success("Hesabınız başarıyla oluşturuldu!");
+        navigate("/");
+      } else {
+        setError("Kayıt işlemi başarısız oldu");
+      }
     } catch (error: any) {
       setError(error.message);
       errorLog("SignUp", "Registration error:", error);

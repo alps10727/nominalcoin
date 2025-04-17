@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { useAuth } from "@/contexts/AuthContext";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
 import { Button } from "@/components/ui/button";
 
@@ -11,7 +11,7 @@ const Profile = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { logout, currentUser } = useAuth();
+  const { user, userData, logout } = useSupabaseAuth();
 
   const handleLogout = async () => {
     setLoading(true);
@@ -36,9 +36,10 @@ const Profile = () => {
       <h1 className="text-2xl font-bold mb-6">Profil</h1>
       
       <div>
-        <p>Kullanıcı ID: {currentUser?.uid}</p>
-        <p>Email: {currentUser?.email}</p>
-        <Button onClick={handleLogout} disabled={loading}>
+        <p>Kullanıcı ID: {user?.id}</p>
+        <p>Email: {user?.email}</p>
+        <p>İsim: {userData?.name || "Belirtilmemiş"}</p>
+        <Button onClick={handleLogout} disabled={loading} className="mt-4">
           Çıkış Yap
         </Button>
       </div>

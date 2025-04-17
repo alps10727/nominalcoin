@@ -9,7 +9,108 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      completed_tasks: {
+        Row: {
+          completed_at: string | null
+          id: number
+          task_id: number
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          id?: number
+          task_id: number
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          id?: number
+          task_id?: number
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          balance: number | null
+          created_at: string | null
+          email: string
+          id: string
+          is_admin: boolean | null
+          last_saved: number | null
+          mining_active: boolean | null
+          mining_end_time: number | null
+          mining_period: number | null
+          mining_rate: number | null
+          mining_session: number | null
+          mining_start_time: number | null
+          mining_time: number | null
+          name: string | null
+          progress: number | null
+        }
+        Insert: {
+          balance?: number | null
+          created_at?: string | null
+          email: string
+          id: string
+          is_admin?: boolean | null
+          last_saved?: number | null
+          mining_active?: boolean | null
+          mining_end_time?: number | null
+          mining_period?: number | null
+          mining_rate?: number | null
+          mining_session?: number | null
+          mining_start_time?: number | null
+          mining_time?: number | null
+          name?: string | null
+          progress?: number | null
+        }
+        Update: {
+          balance?: number | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          is_admin?: boolean | null
+          last_saved?: number | null
+          mining_active?: boolean | null
+          mining_end_time?: number | null
+          mining_period?: number | null
+          mining_rate?: number | null
+          mining_session?: number | null
+          mining_start_time?: number | null
+          mining_time?: number | null
+          name?: string | null
+          progress?: number | null
+        }
+        Relationships: []
+      }
+      upgrades: {
+        Row: {
+          id: number
+          level: number | null
+          purchased_at: string | null
+          rate_bonus: number | null
+          upgrade_id: number
+          user_id: string | null
+        }
+        Insert: {
+          id?: number
+          level?: number | null
+          purchased_at?: string | null
+          rate_bonus?: number | null
+          upgrade_id: number
+          user_id?: string | null
+        }
+        Update: {
+          id?: number
+          level?: number | null
+          purchased_at?: string | null
+          rate_bonus?: number | null
+          upgrade_id?: number
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

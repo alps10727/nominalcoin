@@ -1,42 +1,41 @@
 
 import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import LoadingScreen from "../dashboard/LoadingScreen";
 
-// PrivateRoute - hızlandırıldı
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-  const { currentUser, loading } = useAuth();
+  const { user, isLoading } = useSupabaseAuth();
   const [waitingTooLong, setWaitingTooLong] = useState(false);
   
-  // Sadece yükleme durumunda zamanlayıcıyı başlat - süre kısaltıldı
+  // Sadece yükleme durumunda zamanlayıcıyı başlat
   useEffect(() => {
-    if (!loading) return;
+    if (!isLoading) return;
     
     const timer = setTimeout(() => {
       setWaitingTooLong(true);
-    }, 800); // 1500ms'den 800ms'ye düşürüldü
+    }, 800);
     
     return () => clearTimeout(timer);
-  }, [loading]);
+  }, [isLoading]);
   
-  // Yükleme durumu değiştiğinde otomatik yönlendirme - süre kısaltıldı
+  // Yükleme durumu değiştiğinde otomatik yönlendirme
   useEffect(() => {
-    if (!loading || !waitingTooLong) return;
+    if (!isLoading || !waitingTooLong) return;
     
     const redirectTimer = setTimeout(() => {
       window.location.href = "/sign-in";
-    }, 2000); // 4000ms'den 2000ms'ye düşürüldü
+    }, 2000);
     
     return () => clearTimeout(redirectTimer);
-  }, [loading, waitingTooLong]);
+  }, [isLoading, waitingTooLong]);
   
-  if (loading) {
+  if (isLoading) {
     return <LoadingScreen message={waitingTooLong ? "Kullanıcı bilgileri yüklenemiyor. Lütfen internet bağlantınızı kontrol edin..." : "Kullanıcı bilgileri yükleniyor..."} />;
   }
   
-  if (!currentUser) {
-    return <Navigate to="/sign-in" />;
+  if (!user) {
+    return <Navigate to="/sign-in" replace />;
   }
   
   return <>{children}</>;

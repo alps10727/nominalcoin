@@ -18,6 +18,7 @@ const Tasks = lazy(() => import("@/pages/Tasks"));
 const MiningUpgrades = lazy(() => import("@/pages/MiningUpgrades"));
 const Statistics = lazy(() => import("@/pages/Statistics"));
 const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 
 const AppRoutes = () => {
   // Sayfaları önceden yükle
@@ -100,6 +101,14 @@ const AppRoutes = () => {
           <Suspense fallback={<LoadingScreen message="Şifre sıfırlama sayfası yükleniyor..." />}>
             <PageTransition>
               <ForgotPassword />
+            </PageTransition>
+          </Suspense>
+        } />
+        
+        <Route path="/reset-password" element={
+          <Suspense fallback={<LoadingScreen message="Şifre sıfırlama sayfası yükleniyor..." />}>
+            <PageTransition>
+              <ResetPassword />
             </PageTransition>
           </Suspense>
         } />
