@@ -73,7 +73,8 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         progress: 0,
         totalRequired: 1,
         completed: false,
-        userId
+        userId,
+        attachmentUrl: null // Yeni alan: dosya eki URL'si
       };
 
       const docRef = await addDoc(collection(db, "tasks"), newTask);
@@ -93,6 +94,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         description: task.description,
         completed: task.completed,
         progress: task.progress,
+        attachmentUrl: task.attachmentUrl || null, // Dosya eki URL'sini güncelle
       });
 
       setTasks(tasks.map(t => t.id === task.id ? task : t));

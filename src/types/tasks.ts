@@ -7,6 +7,8 @@ export interface Task {
   progress: number;
   totalRequired: number;
   completed: boolean;
+  attachmentUrl?: string | null; // Yeni alan: dosya eki URL'si
+  userId?: string;
 }
 
 export interface Badge {
