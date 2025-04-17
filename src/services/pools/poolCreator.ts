@@ -8,20 +8,43 @@ import { debugLog, errorLog } from "@/utils/debugUtils";
 import { toast } from "sonner";
 
 /**
+ * Pool data structure used by the form
+ */
+interface PoolFormData {
+  name: string;
+  description: string;
+  level: number;
+  isPublic: boolean;
+  requirements: {
+    minBalance?: number;
+    minDays?: number;
+    minRank?: number;
+  };
+}
+
+/**
  * Create a new pool
  */
-export async function createPool(poolData: MiningPool, userId: string): Promise<string | null> {
+export async function createPool(poolData: PoolFormData, userId: string): Promise<string | null> {
   try {
     // Generate a unique pool ID
     const poolId = `${poolData.name.toLowerCase().replace(/\s+/g, '-')}-${Date.now().toString().slice(-6)}`;
     
-    const newPool = {
-      ...poolData,
+    const newPool: MiningPool = {
       poolId,
+      name: poolData.name,
+      description: poolData.description || "",
+      level: poolData.level,
       owner: userId,
       memberCount: 0,
       createdAt: serverTimestamp(),
-      capacity: POOL_CAPACITY[poolData.level as keyof typeof POOL_CAPACITY] || 100
+      capacity: POOL_CAPACITY[poolData.level as keyof typeof POOL_CAPACITY] || 100,
+      isPublic: poolData.isPublic,
+      minRequirements: {
+        minBalance: poolData.requirements.minBalance || 0,
+        miningDays: poolData.requirements.minDays || 0
+      },
+      minRank: poolData.requirements.minRank ? String(poolData.requirements.minRank) : undefined
     };
     
     await setDoc(doc(db, "pools", poolId), newPool);
