@@ -9,22 +9,28 @@ import { getInitialTasks, getInitialBadges } from '@/data/initialTasks';
 import { useTaskProgress } from '@/hooks/tasks/useTaskProgress';
 import { useBadgeProgress } from '@/hooks/tasks/useBadgeProgress';
 import { useTaskRewards } from '@/hooks/tasks/useTaskRewards';
+import { debugLog, errorLog } from '@/utils/debugUtils';
 
-// Simple task component
+// Task bileşeni
 const TasksData = () => {
-  const { tasks, addTask, updateTask, deleteTask } = useTasks();
+  const { tasks, addTask, updateTask, deleteTask, loading, error } = useTasks();
   const { currentUser } = useAuth();
   const [newTask, setNewTask] = useState('');
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (tasks) {
-      console.log('Tasks data loaded:', tasks);
+      debugLog('TasksData', 'Görevler yüklendi:', tasks.length);
     }
-  }, [tasks]);
+    
+    if (error) {
+      errorLog('TasksData', 'Görev yükleme hatası:', error);
+    }
+  }, [tasks, error]);
 
   const handleAddTask = () => {
     if (!currentUser) {
-      toast.error('Giriş yapmanız gerekiyor.');
+      toast.error(t('tasks.loginRequired'));
       return;
     }
 
@@ -43,31 +49,63 @@ const TasksData = () => {
     updateTask({ ...task, completed: !task.completed });
   };
 
+  if (loading) {
+    return <div>{t('common.loading')}...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="text-red-500">
+        <p>{error}</p>
+        <button onClick={() => window.location.reload()} className="underline">
+          {t('common.retry')}
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div>
       <input
         type="text"
         value={newTask}
         onChange={(e) => setNewTask(e.target.value)}
-        placeholder="Yeni görev ekle"
+        placeholder={t('tasks.addNew')}
+        className="border p-2 rounded mr-2"
       />
-      <button onClick={handleAddTask}>Ekle</button>
+      <button 
+        onClick={handleAddTask}
+        className="bg-blue-500 text-white px-4 py-2 rounded"
+      >
+        {t('common.add')}
+      </button>
+      
       {tasks && tasks.length > 0 ? (
-        <ul>
+        <ul className="mt-4 space-y-2">
           {tasks.map((task) => (
-            <li key={task.id}>
-              <input
-                type="checkbox"
-                checked={task.completed}
-                onChange={() => handleUpdateTask(task)}
-              />
-              {task.title}
-              <button onClick={() => handleDeleteTask(task)}>Sil</button>
+            <li key={task.id} className="flex items-center justify-between border p-3 rounded">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={task.completed}
+                  onChange={() => handleUpdateTask(task)}
+                  className="mr-3"
+                />
+                <span className={task.completed ? "line-through" : ""}>
+                  {task.title}
+                </span>
+              </div>
+              <button 
+                onClick={() => handleDeleteTask(task)}
+                className="text-red-500 hover:text-red-700"
+              >
+                {t('common.delete')}
+              </button>
             </li>
           ))}
         </ul>
       ) : (
-        <p>Henüz görev yok.</p>
+        <p className="mt-4 text-gray-500">{t('tasks.noTasks')}</p>
       )}
     </div>
   );
@@ -77,9 +115,23 @@ const TasksData = () => {
 export const useTasksData = () => {
   const { t } = useLanguage();
   const { userData, currentUser } = useAuth();
+  const { error: tasksError } = useTasks();
   
+  const [loading, setLoading] = useState(true);
   const [dailyTasks, setDailyTasks] = useState<Task[]>(getInitialTasks(t));
   const [badges, setBadges] = useState<Badge[]>(getInitialBadges(t));
+
+  useEffect(() => {
+    // Başlangıç verilerini yükleme 
+    try {
+      setDailyTasks(getInitialTasks(t));
+      setBadges(getInitialBadges(t));
+    } catch (error) {
+      errorLog('useTasksData', 'Görevler yüklenirken hata:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [t]);
 
   // Task ilerleme durumlarını kullanıcı verilerine göre güncelle
   useTaskProgress(dailyTasks, setDailyTasks, userData);
@@ -95,7 +147,13 @@ export const useTasksData = () => {
     currentUser?.id || null
   );
 
-  return { dailyTasks, badges, claimReward };
+  return { 
+    dailyTasks, 
+    badges, 
+    claimReward,
+    loading,
+    error: tasksError
+  };
 };
 
 export default TasksData;

@@ -2,9 +2,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Task } from '@/types/tasks';
 import { useAuth } from './AuthContext';
-import { doc, collection, addDoc, deleteDoc, updateDoc, getDocs, query, where } from 'firebase/firestore';
-import { db } from '@/config/firebase';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { debugLog, errorLog } from '@/utils/debugUtils';
 
 interface TasksContextProps {
   tasks: Task[];
@@ -12,6 +12,7 @@ interface TasksContextProps {
   updateTask: (task: Task) => Promise<void>;
   deleteTask: (task: Task) => Promise<void>;
   loading: boolean;
+  error: string | null;
 }
 
 const TasksContext = createContext<TasksContextProps | undefined>(undefined);
@@ -27,6 +28,7 @@ export const useTasks = () => {
 export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { currentUser } = useAuth();
 
   useEffect(() => {
@@ -34,28 +36,35 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (!currentUser) {
         setTasks([]);
         setLoading(false);
+        setError(null);
         return;
       }
 
       try {
         setLoading(true);
-        const tasksQuery = query(
-          collection(db, "tasks"),
-          where("userId", "==", currentUser.id)
-        );
+        setError(null);
+        debugLog("TasksContext", "Görevler yükleniyor...");
+        
+        // Supabase'den görevleri yükleme
+        const { data, error } = await supabase
+          .from('tasks')
+          .select('*')
+          .eq('userId', currentUser.id);
+          
+        if (error) {
+          throw error;
+        }
 
-        const querySnapshot = await getDocs(tasksQuery);
-        const loadedTasks: Task[] = [];
-
-        querySnapshot.forEach((doc) => {
-          const data = doc.data() as Omit<Task, 'id'>;
-          loadedTasks.push({ ...data, id: doc.id });
-        });
-
+        // Eğer veri yoksa boş bir dizi kullan
+        const loadedTasks = data || [];
+        debugLog("TasksContext", `${loadedTasks.length} görev yüklendi`);
         setTasks(loadedTasks);
       } catch (error) {
-        console.error("Error loading tasks:", error);
+        errorLog("TasksContext", "Görevler yüklenirken hata oluştu:", error);
+        setError("Görevler yüklenirken bir hata oluştu.");
         toast.error("Görevler yüklenirken bir hata oluştu.");
+        // Hata durumunda boş bir dizi göster, uygulama çalışmaya devam etsin
+        setTasks([]);
       } finally {
         setLoading(false);
       }
@@ -74,44 +83,68 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         totalRequired: 1,
         completed: false,
         userId,
-        attachmentUrl: null // Yeni alan: dosya eki URL'si
+        attachmentUrl: null
       };
 
-      const docRef = await addDoc(collection(db, "tasks"), newTask);
+      const { data, error } = await supabase
+        .from('tasks')
+        .insert([newTask])
+        .select();
+        
+      if (error) {
+        throw error;
+      }
       
-      setTasks([...tasks, { ...newTask, id: docRef.id }]);
-      toast.success("Görev başarıyla eklendi.");
+      if (data && data.length > 0) {
+        setTasks([...tasks, data[0]]);
+        toast.success("Görev başarıyla eklendi.");
+      }
     } catch (error) {
-      console.error("Error adding task:", error);
+      errorLog("TasksContext", "Görev eklenirken hata oluştu:", error);
       toast.error("Görev eklenirken bir hata oluştu.");
     }
   };
 
   const updateTask = async (task: Task) => {
     try {
-      await updateDoc(doc(db, "tasks", task.id.toString()), {
-        title: task.title,
-        description: task.description,
-        completed: task.completed,
-        progress: task.progress,
-        attachmentUrl: task.attachmentUrl || null, // Dosya eki URL'sini güncelle
-      });
+      const { error } = await supabase
+        .from('tasks')
+        .update({
+          title: task.title,
+          description: task.description,
+          completed: task.completed,
+          progress: task.progress,
+          attachmentUrl: task.attachmentUrl || null,
+        })
+        .eq('id', task.id.toString());
+
+      if (error) {
+        throw error;
+      }
 
       setTasks(tasks.map(t => t.id === task.id ? task : t));
       toast.success("Görev güncellendi.");
     } catch (error) {
-      console.error("Error updating task:", error);
+      errorLog("TasksContext", "Görev güncellenirken hata oluştu:", error);
       toast.error("Görev güncellenirken bir hata oluştu.");
     }
   };
 
   const deleteTask = async (task: Task) => {
     try {
-      await deleteDoc(doc(db, "tasks", task.id.toString()));
+      const { error } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', task.id.toString());
+
+      if (error) {
+        throw error;
+      }
+
       setTasks(tasks.filter(t => t.id !== task.id));
       toast.success("Görev silindi.");
     } catch (error) {
-      console.error("Error deleting task:", error);
+      errorLog("TasksContext", "Görev silinirken hata oluştu:", error);
       toast.error("Görev silinirken bir hata oluştu.");
     }
   };
@@ -121,7 +154,8 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     addTask,
     updateTask,
     deleteTask,
-    loading
+    loading,
+    error
   };
 
   return (
