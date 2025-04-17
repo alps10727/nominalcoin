@@ -11,7 +11,7 @@ export interface UserData {
   miningTime: number;
   miningPeriod: number; 
   miningSession: number;
-  upgrades?: any[]; // Added upgrades array
+  upgrades?: Array<{id: number, level: number, rateBonus: number}>; // Added upgrades array
   miningEndTime?: number | null; 
   progress?: number;
   miningStartTime?: number | null;

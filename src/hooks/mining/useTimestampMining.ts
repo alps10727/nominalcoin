@@ -46,7 +46,8 @@ export function processTimestampBasedMining(
       miningTime: 0,
       progress: 1,
       miningEndTime: undefined,
-      lastSaved: now
+      lastSaved: now,
+      userId: state.userId || 'local-user' // Ensure userId is always set
     });
     lastSaveTimeRef.current = now;
     return handleMiningCompletion(state);
@@ -81,7 +82,8 @@ export function processTimestampBasedMining(
         saveUserData({
           ...state,
           ...updatedState,
-          lastSaved: now
+          lastSaved: now,
+          userId: state.userId || 'local-user' // Ensure userId is always set
         });
         lastSaveTimeRef.current = now;
       }
@@ -101,7 +103,8 @@ export function processTimestampBasedMining(
     saveUserData({
       ...state,
       ...updatedState,
-      lastSaved: now
+      lastSaved: now,
+      userId: state.userId || 'local-user' // Ensure userId is always set
     });
     lastSaveTimeRef.current = now;
   }

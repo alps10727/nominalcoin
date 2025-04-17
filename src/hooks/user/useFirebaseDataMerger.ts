@@ -1,10 +1,22 @@
 
-import { UserData } from "@/types/storage";
+import { UserData } from "@/utils/storage";
 import { debugLog } from "@/utils/debugUtils";
 
 export function useFirebaseDataMerger() {
   const mergeUserData = (localData: UserData | null, firebaseData: UserData | null): UserData => {
-    if (!firebaseData) return localData || { balance: 0, miningRate: 0.003, lastSaved: Date.now() };
+    if (!firebaseData) {
+      return localData || {
+        userId: 'local-user',
+        balance: 0,
+        miningRate: 0.003,
+        lastSaved: Date.now(),
+        miningActive: false,
+        miningTime: 0,
+        miningPeriod: 21600,
+        miningSession: 0
+      };
+    }
+    
     if (!localData) return firebaseData;
 
     // Şüpheli manipülasyon tespiti

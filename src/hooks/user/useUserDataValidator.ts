@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from "react";
-import { UserData } from "@/types/storage";
+import { UserData } from "@/utils/storage";
 import { debugLog } from "@/utils/debugUtils";
 import { calculateMiningRate } from "@/utils/miningCalculator";
 
@@ -64,7 +64,10 @@ export function useUserDataValidator() {
       balance: 0,
       miningRate: 0.003,
       lastSaved: Date.now(),
-      miningActive: false
+      miningActive: false,
+      miningTime: 0,
+      miningPeriod: 21600,
+      miningSession: 0
     };
   }, []);
 
