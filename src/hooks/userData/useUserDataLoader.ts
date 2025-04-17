@@ -1,16 +1,14 @@
 
-import { useState, useEffect, useCallback } from "react";
 import { User } from "firebase/auth";
 import { toast } from "sonner";
 import { clearUserData } from "@/utils/storage";
 import { QueryCacheManager } from "@/services/db";
+import { useFirebaseDataLoader } from "@/hooks/user/useFirebaseDataLoader";
 import { debugLog } from "@/utils/debugUtils";
 import { useInitialUserData } from "./useInitialUserData";
 import { useOfflineManager } from "./useOfflineManager";
 import { usePeriodicSync } from "./usePeriodicSync";
 import { useCacheCleanup } from "./useCacheCleanup";
-import { UserData } from "@/types/storage";
-import { useFirebaseDataLoader } from "../user/useFirebaseDataLoader";
 
 export interface UserDataState {
   userData: UserData | null;

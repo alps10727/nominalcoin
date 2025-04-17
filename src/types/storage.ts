@@ -21,15 +21,4 @@ export interface UserData {
   tasks?: {
     completed?: number[]  // Tamamlanan görev ID'leri
   };
-  // New properties for pool system
-  miningStats?: {
-    totalDays: number;
-    dailyAverage: number;
-    rank?: string;
-  };
-  poolMembership?: {
-    currentPool: string | null;
-    joinDate: string | null;
-    lastPoolChangeDate?: string | null;
-  };
 }

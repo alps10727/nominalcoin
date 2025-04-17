@@ -5,8 +5,9 @@ import {
   Coins, 
   User,
   History,
+  UserPlus,
   Award,
-  Users
+  Zap
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { memo } from "react";
@@ -53,13 +54,14 @@ export const MainNavigation = memo(({ onNavigate }: MainNavigationProps) => {
     }
   };
   
-  // Navigation items configuration for easy maintenance
+  // Navigation items configuration for easy maintenance - removed statistics item
   const navigationItems = [
     { to: "/", icon: Coins, label: t('mining.title') },
     { to: "/profile", icon: User, label: t('profile.title') },
     { to: "/history", icon: History, label: t('history.title') },
-    { to: "/team", icon: Users, label: "Takım" },
+    { to: "/referral", icon: UserPlus, label: t('referral.title') },
     { to: "/tasks", icon: Award, label: t('tasks.title') },
+    { to: "/mining/upgrades", icon: Zap, label: t('mining.upgrades') },
   ];
   
   return (

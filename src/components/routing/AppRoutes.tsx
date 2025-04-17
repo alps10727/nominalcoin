@@ -15,7 +15,7 @@ const NotFound = lazy(() => import("@/pages/NotFound"));
 const Profile = lazy(() => import("@/pages/Profile"));
 const History = lazy(() => import("@/pages/History"));
 const Tasks = lazy(() => import("@/pages/Tasks"));
-const Team = lazy(() => import("@/pages/Team"));
+const MiningUpgrades = lazy(() => import("@/pages/MiningUpgrades"));
 const Statistics = lazy(() => import("@/pages/Statistics"));
 const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
 
@@ -64,11 +64,11 @@ const AppRoutes = () => {
           </PrivateRoute>
         } />
         
-        <Route path="/team" element={
+        <Route path="/mining/upgrades" element={
           <PrivateRoute>
-            <Suspense fallback={<LoadingScreen message="Takım bilgileri yükleniyor..." />}>
+            <Suspense fallback={<LoadingScreen message="Yükseltmeler yükleniyor..." />}>
               <PageTransition>
-                <Team />
+                <MiningUpgrades />
               </PageTransition>
             </Suspense>
           </PrivateRoute>
