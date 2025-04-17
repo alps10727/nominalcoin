@@ -12,9 +12,6 @@ import {
 import { MiningPool } from "@/types/pools";
 import { debugLog } from "@/utils/debugUtils";
 
-// Import PoolFormData type from poolCreator
-import { PoolFormData } from "@/services/pools/poolCreator";
-
 export function usePoolSystem() {
   const { currentUser, userData, updateUserData } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -92,7 +89,7 @@ export function usePoolSystem() {
   };
   
   // Create a new pool
-  const handleCreatePool = async (poolData: PoolFormData) => {
+  const handleCreatePool = async (poolData: MiningPool) => {
     if (!currentUser) return null;
     
     setLoading(true);
