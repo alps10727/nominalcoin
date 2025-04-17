@@ -34,7 +34,6 @@ export function useSupabaseDataManager(userId: string | undefined) {
       const userData: UserData = {
         userId: profile.id,
         name: profile.name || '',
-        email: profile.email || '',
         balance: profile.balance || 0,
         miningRate: profile.mining_rate || 0.003,
         miningActive: profile.mining_active || false,
@@ -45,7 +44,8 @@ export function useSupabaseDataManager(userId: string | undefined) {
         miningStartTime: profile.mining_start_time,
         progress: profile.progress || 0,
         lastSaved: profile.last_saved || Date.now(),
-        isAdmin: profile.is_admin || false
+        isAdmin: profile.is_admin || false,
+        upgrades: []  // Initialize with empty upgrades array
       };
       
       // Cache user data locally
@@ -72,7 +72,13 @@ export function useSupabaseDataManager(userId: string | undefined) {
     try {
       // First, update local storage for instant feedback
       const currentData = loadUserData();
-      const updatedData = { ...currentData, ...data, lastSaved: Date.now() };
+      const updatedData: UserData = { 
+        ...currentData as UserData, 
+        ...data, 
+        lastSaved: Date.now(),
+        userId: userId, // Ensure userId is set
+        balance: (data.balance !== undefined) ? data.balance : (currentData?.balance || 0) // Ensure balance is set
+      };
       saveUserData(updatedData);
       
       // Prepare data for Supabase (snake_case)
@@ -100,16 +106,17 @@ export function useSupabaseDataManager(userId: string | undefined) {
       
       debugLog('useSupabaseDataManager', 'Veri başarıyla güncellendi:', dbData);
       
-      // If update includes a purchased upgrade, record it
-      if (data.upgrade) {
-        await supabase
-          .from('upgrades')
-          .insert({
-            upgrade_id: Number(data.upgrade.id),
-            user_id: userId,
-            level: data.upgrade.level || 1,
-            rate_bonus: data.upgrade.rateBonus || 0
-          });
+      // If update includes upgrades, record them
+      if (data.upgrades && data.upgrades.length > 0) {
+        // Process each upgrade in the array
+        for (const upgrade of data.upgrades) {
+          await upgradeData(
+            userId, 
+            upgrade.id, 
+            upgrade.level || 1, 
+            upgrade.rateBonus || 0
+          );
+        }
       }
       
     } catch (error) {
