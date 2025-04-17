@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         userData: null,
         loading: true,
         isOffline: true,
-        dataSource: null as ('firebase' | 'local' | null)
+        dataSource: null as ('firebase' | 'local' | 'cache' | null)
       };
     }
   })();
@@ -83,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   })();
 
-  const value = {
+  const value: AuthContextProps = {
     currentUser,
     loading,
     login,
@@ -92,7 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     userData,
     updateUserData,
     isOffline,
-    dataSource
+    dataSource: dataSource as 'firebase' | 'cache' | 'local' | null
   };
 
   debugLog("AuthProvider", "AuthProvider yüklendi, kullanıcı:", currentUser?.email || "Yok");

@@ -1,166 +1,124 @@
 
-import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { UserData } from "@/types/storage";
-import { debugLog, errorLog } from "@/utils/debugUtils";
-import { toast } from "sonner";
+import { useCallback, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { UserData, saveUserData, loadUserData } from '@/utils/storage';
+import { useDataUpgrader } from './useDataUpgrader';
+import { debugLog, errorLog } from '@/utils/debugUtils';
+import { toast } from 'sonner';
 
-export function useSupabaseDataManager(userId?: string) {
-  const [isLoading, setIsLoading] = useState(false);
+export function useSupabaseDataManager(userId: string | undefined) {
   const [isUpdating, setIsUpdating] = useState(false);
+  const { upgradeData } = useDataUpgrader();
 
-  // Kullanıcı verilerini Supabase'den yükle
+  // Load user data from Supabase
   const loadUserData = async (): Promise<UserData | null> => {
     if (!userId) return null;
-    setIsLoading(true);
     
     try {
-      const { data, error } = await supabase
+      // Get user profile from Supabase
+      const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
       
-      if (error) throw error;
-      
-      if (!data) {
-        return createDefaultUserData();
+      if (error) {
+        throw error;
       }
       
-      // Veritabanından gelen dataları UserData formatına dönüştür
+      if (!profile) {
+        return null;
+      }
+      
+      // Convert profile to UserData format
       const userData: UserData = {
-        userId: data.id,
-        balance: data.balance || 0,
-        miningRate: data.mining_rate || 0.003,
-        lastSaved: data.last_saved || Date.now(),
-        miningActive: data.mining_active || false,
-        miningTime: data.mining_time || 0,
-        miningSession: data.mining_session || 0,
-        miningPeriod: data.mining_period || 21600,
-        miningEndTime: data.mining_end_time || undefined,
-        progress: data.progress || 0,
-        miningStartTime: data.mining_start_time || undefined,
-        name: data.name || "",
-        emailAddress: data.email || "",
-        isAdmin: data.is_admin || false
+        userId: profile.id,
+        name: profile.name || '',
+        email: profile.email || '',
+        balance: profile.balance || 0,
+        miningRate: profile.mining_rate || 0.003,
+        miningActive: profile.mining_active || false,
+        miningTime: profile.mining_time || 0,
+        miningPeriod: profile.mining_period || 21600,
+        miningSession: profile.mining_session || 0,
+        miningEndTime: profile.mining_end_time,
+        miningStartTime: profile.mining_start_time,
+        progress: profile.progress || 0,
+        lastSaved: profile.last_saved || Date.now(),
+        isAdmin: profile.is_admin || false
       };
       
-      debugLog("useSupabaseDataManager", "User data loaded:", userData);
+      // Cache user data locally
+      saveUserData(userData);
+      
       return userData;
     } catch (error) {
-      errorLog("useSupabaseDataManager", "Error loading user data:", error);
-      return createDefaultUserData();
-    } finally {
-      setIsLoading(false);
+      errorLog('useSupabaseDataManager', 'Kullanıcı verileri yüklenirken hata:', error);
+      
+      // Try to load from local cache as fallback
+      const localData = loadUserData();
+      return localData;
     }
   };
 
-  // Kullanıcı verilerini Supabase'e kaydet
-  const updateUserData = async (data: Partial<UserData>): Promise<void> => {
-    if (!userId) return;
+  // Update user data in Supabase
+  const updateUserData = useCallback(async (data: Partial<UserData>): Promise<void> => {
+    if (!userId) {
+      return;
+    }
+    
     setIsUpdating(true);
     
     try {
-      // Snake_case formatına dönüştür (Supabase konvansiyonu)
-      const updateData: Record<string, any> = {};
+      // First, update local storage for instant feedback
+      const currentData = loadUserData();
+      const updatedData = { ...currentData, ...data, lastSaved: Date.now() };
+      saveUserData(updatedData);
       
-      if (data.balance !== undefined) updateData.balance = data.balance;
-      if (data.miningRate !== undefined) updateData.mining_rate = data.miningRate;
-      if (data.miningActive !== undefined) updateData.mining_active = data.miningActive;
-      if (data.miningTime !== undefined) updateData.mining_time = data.miningTime;
-      if (data.miningSession !== undefined) updateData.mining_session = data.miningSession;
-      if (data.miningPeriod !== undefined) updateData.mining_period = data.miningPeriod;
-      if (data.miningEndTime !== undefined) updateData.mining_end_time = data.miningEndTime;
-      if (data.progress !== undefined) updateData.progress = data.progress;
-      if (data.miningStartTime !== undefined) updateData.mining_start_time = data.miningStartTime;
-      if (data.name !== undefined) updateData.name = data.name;
+      // Prepare data for Supabase (snake_case)
+      const dbData = {
+        ...(data.name !== undefined && { name: data.name }),
+        ...(data.balance !== undefined && { balance: data.balance }),
+        ...(data.miningRate !== undefined && { mining_rate: data.miningRate }),
+        ...(data.miningActive !== undefined && { mining_active: data.miningActive }),
+        ...(data.miningTime !== undefined && { mining_time: data.miningTime }),
+        ...(data.miningPeriod !== undefined && { mining_period: data.miningPeriod }),
+        ...(data.miningSession !== undefined && { mining_session: data.miningSession }),
+        ...(data.miningEndTime !== undefined && { mining_end_time: data.miningEndTime }),
+        ...(data.miningStartTime !== undefined && { mining_start_time: data.miningStartTime }),
+        ...(data.progress !== undefined && { progress: data.progress }),
+        last_saved: Date.now()
+      };
       
-      // Her zaman son güncelleme zamanını ekle
-      updateData.last_saved = Date.now();
-      
+      // Update Supabase
       const { error } = await supabase
         .from('profiles')
-        .update(updateData)
+        .update(dbData)
         .eq('id', userId);
       
       if (error) throw error;
       
-      debugLog("useSupabaseDataManager", "User data updated:", updateData);
+      debugLog('useSupabaseDataManager', 'Veri başarıyla güncellendi:', dbData);
+      
+      // If update includes a purchased upgrade, record it
+      if (data.upgrade) {
+        await supabase
+          .from('upgrades')
+          .insert({
+            upgrade_id: Number(data.upgrade.id),
+            user_id: userId,
+            level: data.upgrade.level || 1,
+            rate_bonus: data.upgrade.rateBonus || 0
+          });
+      }
+      
     } catch (error) {
-      errorLog("useSupabaseDataManager", "Error updating user data:", error);
-      toast.error("Veriler kaydedilirken bir hata oluştu");
-      throw error;
+      errorLog('useSupabaseDataManager', 'Veri güncellenirken hata:', error);
+      toast.error('Veri güncellenemedi, lütfen tekrar deneyin.');
     } finally {
       setIsUpdating(false);
     }
-  };
-
-  // Yükseltmeleri alma
-  const loadUpgrades = async () => {
-    if (!userId) return [];
-    
-    try {
-      const { data, error } = await supabase
-        .from('upgrades')
-        .select('*')
-        .eq('user_id', userId);
-      
-      if (error) throw error;
-      
-      return data || [];
-    } catch (error) {
-      errorLog("useSupabaseDataManager", "Error loading upgrades:", error);
-      return [];
-    }
-  };
-
-  // Yükseltme satın alma
-  const purchaseUpgrade = async (upgradeId: string, level: number, rateBonus: number) => {
-    if (!userId) return false;
-    
-    try {
-      const { error } = await supabase
-        .from('upgrades')
-        .upsert({
-          user_id: userId,
-          upgrade_id: upgradeId,
-          level,
-          rate_bonus: rateBonus
-        });
-      
-      if (error) throw error;
-      
-      return true;
-    } catch (error) {
-      errorLog("useSupabaseDataManager", "Error purchasing upgrade:", error);
-      return false;
-    }
-  };
-
-  // Varsayılan kullanıcı verisi oluştur
-  const createDefaultUserData = (): UserData => {
-    return {
-      userId: userId || undefined,
-      balance: 0,
-      miningRate: 0.003,
-      lastSaved: Date.now(),
-      miningActive: false,
-      miningTime: 0,
-      miningSession: 0,
-      miningPeriod: 21600,
-      progress: 0,
-      name: "",
-      emailAddress: "",
-      isAdmin: false
-    };
-  };
-
-  return {
-    loadUserData,
-    updateUserData,
-    loadUpgrades,
-    purchaseUpgrade,
-    isLoading,
-    isUpdating
-  };
+  }, [userId]);
+  
+  return { loadUserData, updateUserData, isUpdating, upgradeData };
 }

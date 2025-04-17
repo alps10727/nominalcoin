@@ -1,117 +1,71 @@
 
-import { useState } from 'react';
+import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { debugLog, errorLog } from '@/utils/debugUtils';
 import { toast } from 'sonner';
+import { UserData } from '@/utils/storage';
 
-export function useDataUpgrader(userId?: string) {
-  const [isLoading, setIsLoading] = useState(false);
-
-  /**
-   * Yükseltme satın alma işlemi
-   */
-  const purchaseUpgrade = async (
-    upgradeId: string, 
-    level: number, 
-    cost: number, 
-    rateBonus: number,
-    currentBalance: number
+export function useDataUpgrader() {
+  // Yükseltmeleri Supabase'e kaydetme
+  const upgradeData = useCallback(async (
+    userId: string, 
+    upgradeId: number, 
+    level: number = 1, 
+    rateBonus: number = 0.001
   ): Promise<boolean> => {
     if (!userId) {
-      toast.error("Bu işlem için oturum açmanız gerekmektedir");
+      errorLog('useDataUpgrader', 'Kullanıcı ID olmadan yükseltme yapılamaz');
       return false;
     }
 
-    if (currentBalance < cost) {
-      toast.error("Yetersiz bakiye");
-      return false;
-    }
-
-    setIsLoading(true);
-    
     try {
-      // Adım 1: Yükseltmeyi ekle/güncelle
-      const { error: upgradeError } = await supabase
+      debugLog('useDataUpgrader', 'Yükseltme kaydediliyor:', {
+        upgradeId,
+        level,
+        rateBonus
+      });
+
+      // Yükseltmenin daha önce satın alınıp alınmadığını kontrol et
+      const { data: existingUpgrade } = await supabase
         .from('upgrades')
-        .upsert({
-          user_id: userId,
-          upgrade_id: upgradeId,
-          level: level,
-          rate_bonus: rateBonus,
-        });
-      
-      if (upgradeError) throw upgradeError;
-      
-      // Adım 2: Bakiyeyi güncelle
-      const { error: balanceError } = await supabase
-        .from('profiles')
-        .update({ 
-          balance: currentBalance - cost,
-          mining_rate: 0.003 + rateBonus // Yeni mining rate
-        })
-        .eq('id', userId);
-      
-      if (balanceError) throw balanceError;
-      
-      debugLog("useDataUpgrader", "Upgrade purchased successfully:", { upgradeId, level, cost, rateBonus });
-      toast.success("Yükseltme satın alındı");
+        .select('*')
+        .eq('user_id', userId)
+        .eq('upgrade_id', upgradeId)
+        .single();
+
+      if (existingUpgrade) {
+        // Mevcut yükseltmeyi güncelle
+        const { error: updateError } = await supabase
+          .from('upgrades')
+          .update({
+            level: level > existingUpgrade.level ? level : existingUpgrade.level,
+            rate_bonus: rateBonus
+          })
+          .eq('id', existingUpgrade.id);
+
+        if (updateError) throw updateError;
+      } else {
+        // Yeni yükseltme ekle
+        const { error: insertError } = await supabase
+          .from('upgrades')
+          .insert({
+            upgrade_id: upgradeId,
+            user_id: userId,
+            level: level,
+            rate_bonus: rateBonus
+          });
+
+        if (insertError) throw insertError;
+      }
+
+      debugLog('useDataUpgrader', 'Yükseltme başarıyla kaydedildi');
       return true;
     } catch (error) {
-      errorLog("useDataUpgrader", "Error purchasing upgrade:", error);
-      toast.error("Yükseltme satın alınırken bir hata oluştu");
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  /**
-   * Görevleri tamamlama
-   */
-  const completeTask = async (taskId: number, reward: number, currentBalance: number): Promise<boolean> => {
-    if (!userId) {
-      toast.error("Bu işlem için oturum açmanız gerekmektedir");
+      errorLog('useDataUpgrader', 'Yükseltme kaydedilirken hata:', error);
+      toast.error('Yükseltme kaydedilemedi, lütfen tekrar deneyin.');
       return false;
     }
+  }, []);
 
-    setIsLoading(true);
-    
-    try {
-      // Adım 1: Görevi ekle
-      const { error: taskError } = await supabase
-        .from('completed_tasks')
-        .upsert({
-          user_id: userId,
-          task_id: taskId
-        });
-      
-      if (taskError) throw taskError;
-      
-      // Adım 2: Ödül ekle
-      const { error: balanceError } = await supabase
-        .from('profiles')
-        .update({ 
-          balance: currentBalance + reward 
-        })
-        .eq('id', userId);
-      
-      if (balanceError) throw balanceError;
-      
-      debugLog("useDataUpgrader", "Task completed successfully:", { taskId, reward });
-      toast.success(`Görev tamamlandı: ${reward} NC kazandınız!`);
-      return true;
-    } catch (error) {
-      errorLog("useDataUpgrader", "Error completing task:", error);
-      toast.error("Görev tamamlanırken bir hata oluştu");
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return {
-    purchaseUpgrade,
-    completeTask,
-    isLoading
-  };
+  return { upgradeData };
 }
