@@ -1,7 +1,8 @@
 
 import { User } from "firebase/auth";
 import { toast } from "sonner";
-import { clearUserData } from "@/utils/storage";
+import { useEffect } from "react"; // useEffect hook'unu ekledik
+import { UserData, clearUserData } from "@/utils/storage"; // UserData türünü ekledik
 import { QueryCacheManager } from "@/services/db";
 import { useFirebaseDataLoader } from "@/hooks/user/useFirebaseDataLoader";
 import { debugLog } from "@/utils/debugUtils";
