@@ -20,7 +20,7 @@ export function useTaskProgress(
     
     // Madencilik görevi: userData'dan madencilik oturumu bilgisine göre güncelle
     if (userData.miningSession !== undefined) {
-      const miningTaskIndex = updatedTasks.findIndex(task => task.id === 1);
+      const miningTaskIndex = updatedTasks.findIndex(task => task.id === "1");
       if (miningTaskIndex !== -1) {
         // Her 0.003 coin kazanıldığında bir ilerleme sayılır (1 periyot tamamlandığında)
         const miningProgress = Math.min(
@@ -37,7 +37,7 @@ export function useTaskProgress(
     }
     
     // Profil görevi: Kullanıcı profil bilgileri varsa tamamlandı
-    const profileTaskIndex = updatedTasks.findIndex(task => task.id === 2);
+    const profileTaskIndex = updatedTasks.findIndex(task => task.id === "2");
     if (profileTaskIndex !== -1) {
       const profileCompleted = !!(userData.name && userData.emailAddress);
       updatedTasks[profileTaskIndex] = {
@@ -48,7 +48,7 @@ export function useTaskProgress(
     }
     
     // Davet görevi: Artık kullanılmıyor
-    const inviteTaskIndex = updatedTasks.findIndex(task => task.id === 3);
+    const inviteTaskIndex = updatedTasks.findIndex(task => task.id === "3");
     if (inviteTaskIndex !== -1) {
       updatedTasks[inviteTaskIndex] = {
         ...updatedTasks[inviteTaskIndex],

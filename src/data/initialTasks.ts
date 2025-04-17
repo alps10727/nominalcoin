@@ -8,7 +8,7 @@ type TranslationFunction = (key: string, ...args: any[]) => string;
 export function getInitialTasks(t: TranslationFunction): Task[] {
   return [
     {
-      id: 1,
+      id: "1",
       title: t("tasks.mineTask"),
       description: t("tasks.mineTaskDesc"),
       reward: 1,
@@ -17,7 +17,7 @@ export function getInitialTasks(t: TranslationFunction): Task[] {
       completed: false
     },
     {
-      id: 2,
+      id: "2",
       title: t("tasks.profileTask"),
       description: t("tasks.profileTaskDesc"),
       reward: 0.5,
@@ -26,7 +26,7 @@ export function getInitialTasks(t: TranslationFunction): Task[] {
       completed: false
     },
     {
-      id: 3,
+      id: "3",
       title: t("tasks.inviteTask"),
       description: t("tasks.inviteTaskDesc"),
       reward: 2,

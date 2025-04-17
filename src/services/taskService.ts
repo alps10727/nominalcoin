@@ -3,6 +3,36 @@ import { supabase } from '@/integrations/supabase/client';
 import { Task } from '@/types/tasks';
 import { debugLog, errorLog } from '@/utils/debugUtils';
 
+// Helper function to convert from DB format to our Task interface
+const mapDbTaskToTask = (dbTask: any): Task => {
+  return {
+    id: dbTask.id,
+    title: dbTask.title,
+    description: dbTask.description || '',
+    reward: dbTask.reward,
+    progress: dbTask.progress || 0,
+    totalRequired: dbTask.total_required,
+    completed: dbTask.completed || false,
+    attachmentUrl: dbTask.attachment_url,
+    userId: dbTask.user_id,
+    createdAt: dbTask.created_at
+  };
+};
+
+// Helper function to convert from our Task interface to DB format
+const mapTaskToDbTask = (task: Omit<Task, 'id'>): any => {
+  return {
+    title: task.title,
+    description: task.description,
+    reward: task.reward,
+    progress: task.progress,
+    total_required: task.totalRequired,
+    completed: task.completed,
+    user_id: task.userId,
+    attachment_url: task.attachmentUrl
+  };
+};
+
 /**
  * Kullanıcıya ait tüm görevleri getirir
  */
@@ -19,7 +49,7 @@ export async function fetchUserTasks(userId: string): Promise<Task[]> {
       throw error;
     }
     
-    return data || [];
+    return (data || []).map(mapDbTaskToTask);
   } catch (error) {
     errorLog('taskService', 'Görevler yüklenirken hata:', error);
     throw error;
@@ -33,18 +63,11 @@ export async function addNewTask(task: Omit<Task, 'id'>): Promise<Task> {
   try {
     debugLog('taskService', 'Yeni görev ekleniyor');
     
+    const dbTask = mapTaskToDbTask(task);
+    
     const { data, error } = await supabase
       .from('tasks')
-      .insert([{
-        title: task.title,
-        description: task.description,
-        reward: task.reward,
-        progress: task.progress,
-        total_required: task.totalRequired,
-        completed: task.completed,
-        user_id: task.userId,
-        attachment_url: task.attachmentUrl
-      }])
+      .insert([dbTask])
       .select();
       
     if (error) {
@@ -55,7 +78,7 @@ export async function addNewTask(task: Omit<Task, 'id'>): Promise<Task> {
       throw new Error('Görev eklenemedi');
     }
     
-    return data[0] as Task;
+    return mapDbTaskToTask(data[0]);
   } catch (error) {
     errorLog('taskService', 'Görev eklenirken hata:', error);
     throw error;
