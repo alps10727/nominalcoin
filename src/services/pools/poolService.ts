@@ -1,4 +1,3 @@
-
 import { doc, collection, getDoc, setDoc, updateDoc, query, where, getDocs, increment, serverTimestamp } from "firebase/firestore";
 import { db } from "@/config/firebase";
 import { MiningPool, PoolMembership, MemberRank } from "@/types/pools";
@@ -294,14 +293,17 @@ export async function updateUserRank(userId: string): Promise<string | null> {
  */
 export async function getAllPools(filter?: { minLevel?: number, isPublic?: boolean }): Promise<MiningPool[]> {
   try {
-    let poolQuery = collection(db, "pools");
+    let poolQuery;
     
     if (filter) {
-      // Create filtered query
+      // Create filtered query - fixed type issue here
       poolQuery = query(
         collection(db, "pools"),
         ...Object.entries(filter).map(([key, value]) => where(key, "==", value))
       );
+    } else {
+      // Just use the collection reference if no filters
+      poolQuery = collection(db, "pools");
     }
     
     const poolSnapshot = await getDocs(poolQuery);

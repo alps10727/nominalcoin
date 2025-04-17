@@ -9,39 +9,59 @@ import TeamMemberCard from "@/components/team/TeamMemberCard";
 import { usePoolSystem } from "@/hooks/usePoolSystem";
 import { useAuth } from "@/contexts/AuthContext";
 
-// Example team member data
+// Updated team member data to match TeamMember interface
 const teamMembers = [
   {
     id: 1,
     name: "Ahmet Yılmaz",
     role: "Lider",
-    avatar: "https://i.pravatar.cc/150?img=1",
-    balance: 1240,
-    miningDays: 120
+    imageUrl: "https://i.pravatar.cc/150?img=1",
+    description: "Blokzincir teknolojisi uzmanı ve deneyimli yazılım geliştirici.",
+    skills: ["Blockchain", "Smart Contracts", "React"],
+    socialLinks: {
+      twitter: "https://twitter.com/ahmetyilmaz",
+      linkedin: "https://linkedin.com/in/ahmetyilmaz",
+      github: "https://github.com/ahmetyilmaz"
+    }
   },
   {
     id: 2,
     name: "Ayşe Demir",
     role: "Madenci",
-    avatar: "https://i.pravatar.cc/150?img=2",
-    balance: 860,
-    miningDays: 78
+    imageUrl: "https://i.pravatar.cc/150?img=2",
+    description: "Veri bilimci ve makine öğrenimi uzmanı.",
+    skills: ["Data Science", "Machine Learning", "Python"],
+    socialLinks: {
+      twitter: "https://twitter.com/aysedemir",
+      linkedin: "https://linkedin.com/in/aysedemir",
+      github: null
+    }
   },
   {
     id: 3,
     name: "Murat Kaya",
     role: "Madenci",
-    avatar: "https://i.pravatar.cc/150?img=3",
-    balance: 540,
-    miningDays: 45
+    imageUrl: "https://i.pravatar.cc/150?img=3",
+    description: "UI/UX tasarımcısı ve ön uç geliştirici.",
+    skills: ["UI/UX", "Frontend", "Figma"],
+    socialLinks: {
+      twitter: null,
+      linkedin: "https://linkedin.com/in/muratkaya",
+      github: "https://github.com/muratkaya"
+    }
   },
   {
     id: 4,
     name: "Zeynep Şahin",
     role: "Çaylak",
-    avatar: "https://i.pravatar.cc/150?img=4",
-    balance: 120,
-    miningDays: 15
+    imageUrl: "https://i.pravatar.cc/150?img=4",
+    description: "Mobil uygulama geliştirme uzmanı.",
+    skills: ["iOS", "Android", "React Native"],
+    socialLinks: {
+      twitter: "https://twitter.com/zeynepsahin",
+      linkedin: "https://linkedin.com/in/zeynepsahin",
+      github: "https://github.com/zeynepsahin"
+    }
   },
 ];
 

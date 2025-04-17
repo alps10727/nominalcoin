@@ -88,11 +88,12 @@ export function usePoolSystem() {
     return success;
   };
   
-  // Create a new pool
-  const handleCreatePool = async (poolData: Omit<MiningPool, 'createdAt' | 'poolId' | 'owner' | 'memberCount'>) => {
+  // Create a new pool - Fix the type issue here
+  const handleCreatePool = async (poolData: MiningPool) => {
     if (!currentUser) return null;
     
     setLoading(true);
+    // Pass the poolData correctly to createPool
     const poolId = await createPool(poolData, currentUser.uid);
     
     if (poolId) {
