@@ -22,17 +22,23 @@ export async function updateUserDataWithStatus(
   try {
     // Use current data or create defaults
     const baseData: UserData = currentData || {
+      userId: userId,
       balance: 0,
-      miningRate: 0.003, // Sabit mining rate: 0.003
-      lastSaved: Date.now()
+      miningRate: 0.003,
+      lastSaved: Date.now(),
+      miningActive: false,
+      miningTime: 0,
+      miningPeriod: 21600,
+      miningSession: 0
     };
     
     // Create updated data object
     const updatedData: UserData = {
       ...baseData,
       ...updates,
-      miningRate: 0.003, // Sabit mining rate: 0.003 - Zorla geçersiz kılıyoruz
-      lastSaved: Date.now()
+      miningRate: 0.003, // Force override
+      lastSaved: Date.now(),
+      userId: userId // Ensure userId is always set
     };
     
     // Special handling for mining end time if mining is active
@@ -116,9 +122,14 @@ export async function updateUserDataWithStatus(
     
     // Tüm hatalardan kurtulma - en azından default veri döndür
     const fallbackData: UserData = {
+      userId: userId,
       balance: currentData?.balance || 0,
       miningRate: 0.003,
-      lastSaved: Date.now()
+      lastSaved: Date.now(),
+      miningActive: false,
+      miningTime: 0,
+      miningPeriod: 21600,
+      miningSession: 0
     };
     
     toast.error("Veri kaydetme işlemi başarısız oldu", {

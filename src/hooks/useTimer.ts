@@ -1,92 +1,90 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { debugLog } from '@/utils/debugUtils';
 
-interface TimerProps {
-  initialTime?: number;
-  autoStart?: boolean;
-}
-
-export function useTimer(initialTime: number = 0, { autoStart = false }: TimerProps = {}) {
+/**
+ * A timer hook for countdown functionality
+ */
+export function useTimer(initialTime: number = 0) {
   const [time, setTime] = useState<number>(initialTime);
-  const [isActive, setIsActive] = useState<boolean>(autoStart);
+  const [isActive, setIsActive] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
-  const intervalRef = useRef<number | null>(null);
-  const initialTimeRef = useRef<number>(initialTime);
-  
-  // Timer'ı başlat
-  const startTimer = (newDuration?: number) => {
-    if (newDuration !== undefined) {
-      setTime(newDuration);
-      initialTimeRef.current = newDuration;
+  const [totalDuration, setTotalDuration] = useState<number>(initialTime);
+
+  // Function to set time remaining
+  const setTimeRemaining = useCallback((seconds: number) => {
+    setTime(seconds);
+    if (seconds > 0 && totalDuration === 0) {
+      setTotalDuration(seconds);
+    }
+    setProgress(calculateProgress(seconds, totalDuration || seconds));
+  }, [totalDuration]);
+
+  // Function to start timer
+  const startTimer = useCallback((duration?: number) => {
+    if (duration !== undefined) {
+      setTime(duration);
+      setTotalDuration(duration);
+      setProgress(0);
     }
     setIsActive(true);
-  };
-  
-  // Timer'ı durdur
-  const stopTimer = () => {
+    debugLog('useTimer', 'Timer started with duration:', duration ?? time);
+  }, [time]);
+
+  // Function to stop timer
+  const stopTimer = useCallback(() => {
     setIsActive(false);
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
+    debugLog('useTimer', 'Timer stopped at:', time);
+  }, [time]);
+
+  // Function to reset timer
+  const resetTimer = useCallback(() => {
+    setTime(totalDuration);
+    setIsActive(false);
+    setProgress(0);
+    debugLog('useTimer', 'Timer reset to:', totalDuration);
+  }, [totalDuration]);
+
+  // Calculate progress percentage
+  const calculateProgress = (currentTime: number, total: number): number => {
+    if (total <= 0) return 0;
+    return Math.max(0, Math.min(100, ((total - currentTime) / total) * 100));
   };
-  
-  // Zamanı manuel ayarla
-  const setTimeRemaining = (newTime: number) => {
-    setTime(newTime);
-    // Progress'i güncelle
-    const progressValue = initialTimeRef.current > 0 ? 
-      1 - (newTime / initialTimeRef.current) : 0;
-    setProgress(Math.min(Math.max(progressValue, 0), 1)); // 0-1 arasında sınırla
-  };
-  
-  // Timer aktif olduğunda interval başlat
+
+  // Timer effect
   useEffect(() => {
-    if (isActive) {
-      intervalRef.current = window.setInterval(() => {
-        setTime((prevTime) => {
-          if (prevTime <= 0) {
-            stopTimer();
-            return 0;
+    let interval: number | undefined;
+
+    if (isActive && time > 0) {
+      interval = window.setInterval(() => {
+        setTime(prevTime => {
+          const newTime = Math.max(0, prevTime - 1);
+          setProgress(calculateProgress(newTime, totalDuration));
+          if (newTime === 0) {
+            setIsActive(false);
+            debugLog('useTimer', 'Timer completed');
           }
-          // Yeni zamanı hesapla
-          const newTime = prevTime - 1;
-          
-          // Progress'i güncelle (1'den 0'a doğru)
-          const progressValue = initialTimeRef.current > 0 ? 
-            1 - (newTime / initialTimeRef.current) : 0;
-          setProgress(Math.min(Math.max(progressValue, 0), 1)); // 0-1 arasında sınırla
-          
           return newTime;
         });
       }, 1000);
+    } else if (time === 0 && isActive) {
+      setIsActive(false);
     }
 
-    // Cleanup interval
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
+      if (interval !== undefined) {
+        clearInterval(interval);
       }
     };
-  }, [isActive]);
-  
-  // Initial timer değişirse state'i güncelle
-  useEffect(() => {
-    initialTimeRef.current = initialTime;
-    if (!isActive) {
-      setTime(initialTime);
-      // Progress'i güncelle
-      setProgress(0);
-    }
-  }, [initialTime]);
-  
-  return { 
-    time, 
-    startTimer, 
-    stopTimer,
-    setTimeRemaining,
+  }, [isActive, time, totalDuration]);
+
+  return {
+    time,
     isActive,
-    progress 
+    progress,
+    startTimer,
+    stopTimer,
+    resetTimer,
+    setTimeRemaining
   };
 }

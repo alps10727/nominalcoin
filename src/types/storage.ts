@@ -3,22 +3,23 @@
  * User data interface definition
  */
 export interface UserData {
-  userId?: string;
+  userId: string; // Changed to required
   balance: number;
   miningRate: number;
   lastSaved: number;
-  miningActive?: boolean;
-  miningTime?: number;
-  miningSession?: number;
-  upgrades?: any[];
-  miningPeriod?: number; // Total mining period in seconds
-  miningEndTime?: number; // Added absolute end time for reliable timing
-  progress?: number; // Added progress property for mining state tracking
-  miningStartTime?: number; // Added start time for better tracking and calculations
-  name?: string; // User's name
-  emailAddress?: string; // User's email address
-  isAdmin?: boolean; // Added isAdmin property for admin panel access
+  miningActive: boolean;
+  miningTime: number;
+  miningPeriod: number; 
+  miningSession: number;
+  upgrades?: any[]; // Added upgrades array
+  miningEndTime?: number | null; 
+  progress?: number;
+  miningStartTime?: number | null;
+  name?: string; 
+  emailAddress?: string; 
+  isAdmin?: boolean;
   tasks?: {
-    completed?: number[]  // Tamamlanan görev ID'leri
+    completed?: number[]
   };
+  [x: string]: any; // Allow additional properties
 }

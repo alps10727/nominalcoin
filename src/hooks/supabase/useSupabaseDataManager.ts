@@ -125,7 +125,7 @@ export function useSupabaseDataManager(userId: string | undefined) {
     } finally {
       setIsUpdating(false);
     }
-  }, [userId]);
+  }, [userId, upgradeData]);
   
   return { loadUserData, updateUserData, isUpdating, upgradeData };
 }

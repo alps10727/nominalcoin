@@ -1,3 +1,4 @@
+
 // Re-export everything from the refactored modules
 // This maintains backward compatibility with existing code
 
@@ -93,22 +94,3 @@ export const optimizedStorage = {
     }
   }
 };
-
-export interface UserData {
-  userId: string;
-  name?: string;
-  email?: string;
-  balance: number;
-  miningRate: number;
-  miningActive: boolean;
-  miningTime: number;
-  miningPeriod: number;
-  miningSession: number;
-  miningEndTime?: number | null;
-  miningStartTime?: number | null;
-  progress?: number;
-  lastSaved: number;
-  isAdmin?: boolean;
-  upgrades?: Array<{id: number, level: number, rateBonus: number}>;
-  [x: string]: any;
-}
