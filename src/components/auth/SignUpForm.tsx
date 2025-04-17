@@ -4,23 +4,36 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff, Mail, User, Lock } from "lucide-react";
+import FormErrorDisplay from "./form-sections/FormErrorDisplay";
 
 interface SignUpFormProps {
   onSubmit: (name: string, email: string, password: string) => Promise<void>;
   loading: boolean;
   error: string | null;
+  isOffline: boolean;
 }
 
-const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
+const SignUpForm = ({ onSubmit, loading, error, isOffline }: SignUpFormProps) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!name || name.trim() === "") {
+      setFormError("İsim alanı boş bırakılamaz");
+      return;
+    }
+    
+    if (!email || email.trim() === "") {
+      setFormError("Email alanı boş bırakılamaz");
+      return;
+    }
     
     if (password !== confirmPassword) {
       setPasswordError("Şifreler eşleşmiyor");
@@ -33,6 +46,7 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
     }
 
     setPasswordError(null);
+    setFormError(null);
     await onSubmit(name, email, password);
   };
 
@@ -125,16 +139,12 @@ const SignUpForm = ({ onSubmit, loading, error }: SignUpFormProps) => {
         )}
       </div>
 
-      {error && (
-        <div className="rounded-md bg-red-900/20 px-3 py-2 text-sm text-red-400">
-          {error}
-        </div>
-      )}
+      <FormErrorDisplay error={error} formError={formError} isOffline={isOffline} />
 
       <Button
         type="submit"
         className="w-full bg-purple-600 hover:bg-purple-700"
-        disabled={loading}
+        disabled={loading || isOffline}
       >
         {loading ? 'Kaydediliyor...' : 'Kayıt Ol'}
       </Button>

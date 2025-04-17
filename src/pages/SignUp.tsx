@@ -10,8 +10,23 @@ import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 const SignUp = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const navigate = useNavigate();
   const { register } = useSupabaseAuth();
+
+  // Monitor network status
+  useState(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  });
 
   const handleSignUp = async (name: string, email: string, password: string) => {
     try {
@@ -19,6 +34,11 @@ const SignUp = () => {
       setError(null);
       
       debugLog("SignUp", "Starting registration", { name, email });
+      
+      if (isOffline) {
+        setError("İnternet bağlantınız olmadan kayıt olamazsınız");
+        return;
+      }
       
       // Register the user with Supabase
       const success = await register(email, password, {
@@ -53,7 +73,8 @@ const SignUp = () => {
         <CardContent>
           <SignUpForm 
             onSubmit={handleSignUp} 
-            loading={loading} 
+            loading={loading}
+            isOffline={isOffline} 
             error={error}
           />
         </CardContent>

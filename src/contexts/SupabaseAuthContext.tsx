@@ -55,12 +55,13 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
   // Auth state listener
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, newSession) => {
+      async (event, newSession) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
         
         // User profile değiştiğinde veriler güncelleniyor
         if (event === 'SIGNED_IN') {
+          // Use setTimeout to prevent auth state deadlock
           setTimeout(() => {
             fetchUserProfile(newSession?.user?.id);
           }, 0);
