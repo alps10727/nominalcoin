@@ -1,5 +1,5 @@
 
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, Timestamp } from "firebase/firestore";
 import { db } from "@/config/firebase";
 import { MiningPool } from "@/types/pools";
 import { POOL_CAPACITY } from "./poolHelpers";
@@ -10,7 +10,7 @@ import { toast } from "sonner";
 /**
  * Pool data structure used by the form
  */
-interface PoolFormData {
+export interface PoolFormData {
   name: string;
   description: string;
   level: number;
@@ -37,7 +37,7 @@ export async function createPool(poolData: PoolFormData, userId: string): Promis
       level: poolData.level,
       owner: userId,
       memberCount: 0,
-      createdAt: serverTimestamp(),
+      createdAt: null, // We'll set this with serverTimestamp() below
       capacity: POOL_CAPACITY[poolData.level as keyof typeof POOL_CAPACITY] || 100,
       isPublic: poolData.isPublic,
       minRequirements: {
@@ -47,7 +47,12 @@ export async function createPool(poolData: PoolFormData, userId: string): Promis
       minRank: poolData.requirements.minRank ? String(poolData.requirements.minRank) : undefined
     };
     
-    await setDoc(doc(db, "pools", poolId), newPool);
+    // Use serverTimestamp() when saving to Firestore, but don't assign it directly to createdAt
+    await setDoc(doc(db, "pools", poolId), {
+      ...newPool,
+      createdAt: serverTimestamp()
+    });
+    
     debugLog("poolService", "New pool created:", poolId);
     
     // Update creator's membership
