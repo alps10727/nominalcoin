@@ -7,6 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
+import AppLayout from "./components/layout/AppLayout"; // Import AppLayout
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,7 +28,9 @@ function App() {
             <ThemeProvider>
               <LanguageProvider>
                 <Toaster closeButton richColors position="top-center" />
-                <AppRoutes />
+                <AppLayout>
+                  <AppRoutes />
+                </AppLayout>
               </LanguageProvider>
             </ThemeProvider>
           </AuthProvider>

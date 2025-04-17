@@ -7,6 +7,7 @@ import Header from "@/components/Header";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
 import MobileNavigation from "@/components/MobileNavigation";
 import { SpaceBackground } from "./background/SpaceBackground";
+import HeaderDecoration from "@/components/dashboard/HeaderDecoration";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -23,6 +24,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         <Sonner />
         
         <Header />
+        <HeaderDecoration />
         
         <main className="flex-1 relative z-10">
           <Suspense fallback={<LoadingScreen message="Sayfa yükleniyor..." />}>
