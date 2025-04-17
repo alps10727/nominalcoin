@@ -1,7 +1,7 @@
 
 import { useCallback, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { UserData, saveUserData, loadUserData } from '@/utils/storage';
+import { UserData, saveUserData, loadUserData as localLoadUserData } from '@/utils/storage';
 import { useDataUpgrader } from './useDataUpgrader';
 import { debugLog, errorLog } from '@/utils/debugUtils';
 import { toast } from 'sonner';
@@ -56,7 +56,7 @@ export function useSupabaseDataManager(userId: string | undefined) {
       errorLog('useSupabaseDataManager', 'Kullanıcı verileri yüklenirken hata:', error);
       
       // Try to load from local cache as fallback
-      const localData = loadUserData();
+      const localData = localLoadUserData();
       return localData;
     }
   };
@@ -71,7 +71,7 @@ export function useSupabaseDataManager(userId: string | undefined) {
     
     try {
       // First, update local storage for instant feedback
-      const localData = loadUserData();
+      const localData = localLoadUserData();
       
       // Ensure currentData is valid, if not create a default object with required fields
       const baseData: UserData = localData || {
