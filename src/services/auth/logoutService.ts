@@ -1,9 +1,14 @@
 
+import { signOut } from "firebase/auth";
+import { auth } from "@/config/firebase";
+import { debugLog, errorLog } from "@/utils/debugUtils";
+
 export async function logoutUser(): Promise<void> {
   try {
-    console.log("User logged out successfully");
+    await signOut(auth);
+    debugLog("authService", "User logged out successfully");
   } catch (error) {
-    console.error("Logout error:", error);
+    errorLog("authService", "Logout error:", error);
     throw error;
   }
 }

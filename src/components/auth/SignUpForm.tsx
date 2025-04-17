@@ -27,6 +27,7 @@ const signUpSchema = z.object({
     message: "Şifre en az 6 karakter olmalıdır.",
   }),
   confirmPassword: z.string(),
+  referralCode: z.string().optional(),
   agreedToTerms: z.literal(true, {
     errorMap: () => ({ message: "Kullanım koşullarını kabul etmelisiniz." }),
   }),
@@ -38,12 +39,13 @@ const signUpSchema = z.object({
 type SignUpFormValues = z.infer<typeof signUpSchema>;
 
 interface SignUpFormProps {
-  onSubmit: (name: string, email: string, password: string) => Promise<void>;
+  onSubmit: (name: string, email: string, password: string, referralCode?: string) => Promise<void>;
   loading: boolean;
   error: string | null;
+  initialReferralCode?: string;
 }
 
-export default function SignUpForm({ onSubmit, loading, error }: SignUpFormProps) {
+export default function SignUpForm({ onSubmit, loading, error, initialReferralCode = '' }: SignUpFormProps) {
   const navigate = useNavigate();
   const [isOffline, setIsOffline] = useState(false);
   
@@ -54,6 +56,7 @@ export default function SignUpForm({ onSubmit, loading, error }: SignUpFormProps
       email: "",
       password: "",
       confirmPassword: "",
+      referralCode: initialReferralCode || "",
       // Set as undefined instead of false, so form validation will handle it
       agreedToTerms: undefined as any, // Cast to any to bypass TypeScript check since undefined isn't assignable to literal true
     },
@@ -64,7 +67,8 @@ export default function SignUpForm({ onSubmit, loading, error }: SignUpFormProps
       await onSubmit(
         values.name, 
         values.email, 
-        values.password
+        values.password, 
+        values.referralCode || undefined
       );
     } catch (error: any) {
       console.error("Form submission error:", error);
@@ -97,6 +101,25 @@ export default function SignUpForm({ onSubmit, loading, error }: SignUpFormProps
           setConfirmPassword={(value) => form.setValue("confirmPassword", value)}
           disabled={loading}
         />
+        
+        {/* Referral Code Input */}
+        <div className="space-y-2">
+          <label htmlFor="referralCode" className="text-sm font-medium">
+            Referans Kodu (İsteğe Bağlı)
+          </label>
+          <input
+            id="referralCode"
+            type="text"
+            className="w-full p-2 border rounded-md bg-background"
+            placeholder="Referans kodu girin"
+            value={form.watch("referralCode")}
+            onChange={(e) => form.setValue("referralCode", e.target.value)}
+            disabled={loading || !!initialReferralCode}
+          />
+          {initialReferralCode && (
+            <p className="text-xs text-blue-500">Referans kodu ile kaydoluyorsunuz</p>
+          )}
+        </div>
         
         <div className="space-y-2">
           <TermsAgreement 

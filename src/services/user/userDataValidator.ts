@@ -2,6 +2,7 @@
 import { UserData } from "@/types/storage";
 import { BASE_MINING_RATE, calculateMiningRate } from "@/utils/miningCalculator";
 import { debugLog } from "@/utils/debugUtils";
+import { generateReferralCode } from "@/utils/referral";
 
 /**
  * Varsayılan kullanıcı verisi oluştur
@@ -9,12 +10,18 @@ import { debugLog } from "@/utils/debugUtils";
 export function createDefaultUserData(userId: string): UserData {
   debugLog("userDataValidator", "Varsayılan değerler ile yeni profil oluşturuluyor");
   
+  // Generate a default referral code for the user
+  const referralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+  
   return {
     balance: 0,
     miningRate: BASE_MINING_RATE,
     lastSaved: Date.now(),
     miningActive: false,
-    userId: userId
+    userId: userId,
+    referralCode: referralCode, // Add default referral code
+    referralCount: 0,
+    referrals: []
   };
 }
 

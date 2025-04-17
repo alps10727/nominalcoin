@@ -1,33 +1,48 @@
 
 import { createUserWithEmailAndPassword, User } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/config/firebase";
-import { UserRegistrationData } from "./types";
+import { UserRegistrationData, AuthResponse } from "./types";
 import { debugLog, errorLog } from "@/utils/debugUtils";
+import { createReferralCodeForUser } from "@/utils/referral";
+import { checkReferralCode, processReferralCode } from "@/utils/referral";
 import { toast } from "sonner";
 
-/**
- * Kullanıcı kaydı yapan fonksiyon
- * @param email Kullanıcı email adresi
- * @param password Kullanıcı şifresi
- * @param userData Ek kullanıcı verileri
- * @returns Firebase User nesnesi
- */
 export async function registerUser(
   email: string, 
   password: string, 
   userData: UserRegistrationData = {}
 ): Promise<User> {
   try {
-    debugLog("authService", "Kullanıcı kaydı başlıyor...", { email });
+    debugLog("authService", "Registering user...", { email });
     
-    // Firebase'de kullanıcı oluştur
+    // Validate referral code if provided
+    let referralValid = false;
+    let referrerUserId = null;
+    let referralCode = userData.referralCode ? userData.referralCode.toUpperCase() : "";
+    
+    if (referralCode && referralCode.length > 0) {
+      try {
+        debugLog("authService", "Checking referral code", { code: referralCode });
+        const { valid, ownerId } = await checkReferralCode(referralCode);
+        referralValid = valid;
+        referrerUserId = ownerId;
+        debugLog("authService", "Referral code check result", { valid, ownerId });
+      } catch (err) {
+        errorLog("authService", "Error checking referral code:", err);
+      }
+    }
+    
+    // Create user in Firebase
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
     
-    debugLog("authService", "Kullanıcı Firebase Auth'da oluşturuldu", { userId: user.uid });
+    debugLog("authService", "User created in Firebase Auth", { userId: user.uid });
     
-    // Varsayılan kullanıcı verileri
+    // Generate referral code for new user
+    const userReferralCode = await createReferralCodeForUser(user.uid);
+    
+    // Default user data
     const defaultUserData = {
       name: userData.name || "",
       emailAddress: email,
@@ -37,16 +52,46 @@ export async function registerUser(
       lastSaved: Date.now(),
       miningActive: false,
       isAdmin: false,
-      registrationDate: new Date()
+      referralCode: userReferralCode,
+      referralCount: 0,
+      referrals: [],
+      invitedBy: referralValid && referrerUserId ? referrerUserId : null
     };
     
-    // Kullanıcı verilerini Firestore'a kaydet
+    // Save user data to Firestore
     await setDoc(doc(db, "users", user.uid), defaultUserData);
-    debugLog("authService", "Kullanıcı verileri Firestore'a kaydedildi");
+    debugLog("authService", "User data saved to Firestore");
+    
+    // Process referral reward if valid
+    if (referralValid && referrerUserId) {
+      try {
+        // Önce kullanıcı kaydını tamamla, sonra referansı işle
+        debugLog("authService", "Processing referral reward", { code: referralCode, referrerId: referrerUserId });
+        
+        // Kısa bir gecikme ekleyerek veritabanı işlemlerinin sıralanmasını sağlıyoruz
+        setTimeout(async () => {
+          const success = await processReferralCode(referralCode, user.uid);
+          
+          if (success) {
+            debugLog("authService", "Referral successfully processed");
+          } else {
+            errorLog("authService", "Failed to process referral reward");
+            // Yeniden deneme ekleyerek daha güvenilir hale getirelim
+            setTimeout(async () => {
+              const retrySuccess = await processReferralCode(referralCode, user.uid);
+              debugLog("authService", "Referral retry result:", retrySuccess);
+            }, 2000);
+          }
+        }, 1000);
+        
+      } catch (rewardErr) {
+        errorLog("authService", "Error processing referral reward:", rewardErr);
+      }
+    }
     
     return user;
   } catch (error) {
-    errorLog("authService", "Kayıt hatası:", error);
+    errorLog("authService", "Registration error:", error);
     throw error;
   }
 }

@@ -1,10 +1,11 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Clock, Zap } from "lucide-react";
+import { Activity, Clock, Zap, Users } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { BASE_MINING_RATE } from "@/utils/miningCalculator";
+import { REFERRAL_BONUS_RATE } from "@/utils/referral/bonusCalculator";
 
 interface MiningRateCardProps {
   miningRate: number;
@@ -20,6 +21,10 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
   const cycleReward = parseFloat((miningRate * 3).toFixed(3)); // Reward per 3-minute cycle
   const hourlyRate = parseFloat((miningRate * 60).toFixed(3)); // Rate per hour
   const dailyRate = parseFloat((miningRate * 60 * 24).toFixed(3)); // Rate per day
+  
+  // Referral stats
+  const referralCount = userData?.referralCount || 0;
+  const referralBonus = parseFloat((referralCount * REFERRAL_BONUS_RATE).toFixed(4));
   
   return (
     <Card className="mb-4 overflow-hidden relative border-none shadow-md bg-gradient-to-r from-purple-900/90 to-indigo-900/90">
@@ -51,6 +56,16 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
               <span className="text-purple-200">Base Rate</span>
               <span className="text-white font-medium">{BASE_MINING_RATE.toFixed(3)} NC/min</span>
             </div>
+            
+            {referralCount > 0 && (
+              <div className="flex justify-between text-xs">
+                <div className="flex items-center">
+                  <Users className="h-3 w-3 mr-1 text-blue-300" />
+                  <span className="text-blue-300">Referrals ({referralCount})</span>
+                </div>
+                <span className="text-blue-300">+{referralBonus} NC/min</span>
+              </div>
+            )}
             
             <div className="h-2 bg-purple-950 rounded-full overflow-hidden mt-1">
               <div 

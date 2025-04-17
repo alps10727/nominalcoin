@@ -1,5 +1,7 @@
 
 import { useState, useEffect } from "react";
+import { auth } from "@/config/firebase";
+import { User, onAuthStateChanged } from "firebase/auth";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 
 export interface AuthObserverState {
@@ -8,14 +10,9 @@ export interface AuthObserverState {
   authInitialized: boolean;
 }
 
-// Simple user interface
-interface User {
-  uid: string;
-  email: string | null;
-}
-
 /**
- * Hook that simulates authentication state observation
+ * Hook that observes Firebase authentication state changes
+ * Provides authentication initialization status and user information
  */
 export function useAuthObserver(): AuthObserverState {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -24,27 +21,45 @@ export function useAuthObserver(): AuthObserverState {
 
   useEffect(() => {
     debugLog("useAuthObserver", "Authentication observer initializing...");
+    let authTimeoutId: NodeJS.Timeout;
     
-    // Simulate authentication delay
-    const timer = setTimeout(() => {
-      // Check local storage for mock user
-      const storedUser = localStorage.getItem('mockUser');
-      if (storedUser) {
-        try {
-          const user = JSON.parse(storedUser);
-          setCurrentUser(user);
-          debugLog("useAuthObserver", "Mock user loaded from storage");
-        } catch (err) {
-          errorLog("useAuthObserver", "Failed to parse stored user", err);
-        }
+    // Set timeout for Firebase auth initialization (30 seconds)
+    authTimeoutId = setTimeout(() => {
+      if (loading && !authInitialized) {
+        debugLog("useAuthObserver", "Firebase Auth timed out, falling back to offline mode");
+        setLoading(false);
+        setCurrentUser(null);
+        setAuthInitialized(true);
+        console.warn("Firebase Authentication timed out, offline mode activated");
       }
-      
-      setAuthInitialized(true);
-      setLoading(false);
-    }, 500);
+    }, 30000);
 
-    return () => clearTimeout(timer);
-  }, []);
+    // Listen for auth state changes
+    const unsubscribe = onAuthStateChanged(auth, 
+      // Success handler
+      (user) => {
+        debugLog("useAuthObserver", "Auth state changed:", user ? user.email : 'No user');
+        clearTimeout(authTimeoutId);
+        setCurrentUser(user);
+        setAuthInitialized(true);
+        setLoading(false);
+      }, 
+      // Error handler
+      (error) => {
+        errorLog("useAuthObserver", "Auth observer error:", error);
+        clearTimeout(authTimeoutId);
+        setAuthInitialized(true);
+        setLoading(false);
+        console.error("Authentication observer error:", error);
+      }
+    );
+
+    // Cleanup function
+    return () => {
+      clearTimeout(authTimeoutId);
+      unsubscribe();
+    };
+  }, [loading, authInitialized]);
 
   return { currentUser, loading, authInitialized };
 }

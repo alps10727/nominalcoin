@@ -1,6 +1,6 @@
 
 import { UserData } from "@/types/storage";
-import { MemberRank } from "@/types/pools";
+import { REFERRAL_BONUS_RATE } from "@/utils/referral/bonusCalculator";
 
 // Base mining rate (0.003 coins per minute)
 export const BASE_MINING_RATE = 0.003; // per minute
@@ -15,21 +15,6 @@ export function calculateMiningRate(userData: UserData | null): number {
   // Start with base rate (per minute)
   let rate = BASE_MINING_RATE;
   
-  // Add bonus for team rank if applicable
-  if (userData.miningStats?.rank) {
-    switch (userData.miningStats.rank) {
-      case MemberRank.MINER:
-        rate *= 1.1; // 10% bonus
-        break;
-      case MemberRank.LEADER:
-        rate *= 1.25; // 25% bonus
-        break;
-    }
-  }
-  
-  // Add pool membership bonus if applicable
-  // This could be expanded in the future
-  
   // Add bonus for upgrades if any
   const upgradeBonus = userData.upgrades?.reduce((total, upgrade) => {
     // Fix precision for each upgrade bonus
@@ -37,6 +22,10 @@ export function calculateMiningRate(userData: UserData | null): number {
   }, 0) || 0;
   
   rate += upgradeBonus;
+  
+  // Add referral bonus
+  const referralBonus = (userData.referralCount || 0) * REFERRAL_BONUS_RATE;
+  rate += referralBonus;
   
   // Return with fixed precision (4 decimal places)
   return parseFloat(rate.toFixed(4));

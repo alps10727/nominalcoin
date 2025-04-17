@@ -15,9 +15,10 @@ const NotFound = lazy(() => import("@/pages/NotFound"));
 const Profile = lazy(() => import("@/pages/Profile"));
 const History = lazy(() => import("@/pages/History"));
 const Tasks = lazy(() => import("@/pages/Tasks"));
-const Team = lazy(() => import("@/pages/Team"));
+const MiningUpgrades = lazy(() => import("@/pages/MiningUpgrades"));
 const Statistics = lazy(() => import("@/pages/Statistics"));
 const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
+const Referral = lazy(() => import("@/pages/Referral")); // Added Referral page import
 
 const AppRoutes = () => {
   // Sayfaları önceden yükle
@@ -64,11 +65,11 @@ const AppRoutes = () => {
           </PrivateRoute>
         } />
         
-        <Route path="/team" element={
+        <Route path="/mining/upgrades" element={
           <PrivateRoute>
-            <Suspense fallback={<LoadingScreen message="Takım bilgileri yükleniyor..." />}>
+            <Suspense fallback={<LoadingScreen message="Yükseltmeler yükleniyor..." />}>
               <PageTransition>
-                <Team />
+                <MiningUpgrades />
               </PageTransition>
             </Suspense>
           </PrivateRoute>
@@ -79,6 +80,17 @@ const AppRoutes = () => {
             <Suspense fallback={<LoadingScreen message="İstatistikler yükleniyor..." />}>
               <PageTransition>
                 <Statistics />
+              </PageTransition>
+            </Suspense>
+          </PrivateRoute>
+        } />
+        
+        {/* Add Referral Route */}
+        <Route path="/referral" element={
+          <PrivateRoute>
+            <Suspense fallback={<LoadingScreen message="Referans sayfası yükleniyor..." />}>
+              <PageTransition>
+                <Referral />
               </PageTransition>
             </Suspense>
           </PrivateRoute>

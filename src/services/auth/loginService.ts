@@ -1,22 +1,16 @@
 
-interface AuthResponse {
-  user: any | null;
-  error?: Error;
-}
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/config/firebase";
+import { debugLog, errorLog } from "@/utils/debugUtils";
+import { AuthResponse } from "./types";
 
 export async function loginUser(email: string, password: string): Promise<AuthResponse> {
   try {
-    console.log("Mock login for:", email);
-    
-    // Mock successful login
-    const mockUser = {
-      uid: "user123",
-      email
-    };
-    
-    return { user: mockUser };
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    debugLog("authService", "User logged in successfully", { email });
+    return { user: userCredential.user };
   } catch (error) {
-    console.error("Login error:", error);
+    errorLog("authService", "Login error:", error);
     return { user: null, error: error as Error };
   }
 }
