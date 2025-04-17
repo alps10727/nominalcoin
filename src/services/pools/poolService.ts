@@ -1,3 +1,4 @@
+
 import { doc, collection, getDoc, setDoc, updateDoc, query, where, getDocs, increment, serverTimestamp } from "firebase/firestore";
 import { db } from "@/config/firebase";
 import { MiningPool, PoolMembership, MemberRank } from "@/types/pools";
@@ -15,7 +16,7 @@ const POOL_CAPACITY = {
 /**
  * Create a new pool
  */
-export async function createPool(poolData: Omit<MiningPool, 'createdAt'>, userId: string): Promise<string | null> {
+export async function createPool(poolData: MiningPool, userId: string): Promise<string | null> {
   try {
     // Generate a unique pool ID
     const poolId = `${poolData.name.toLowerCase().replace(/\s+/g, '-')}-${Date.now().toString().slice(-6)}`;
@@ -83,6 +84,7 @@ export async function checkPoolRequirements(userId: string, poolId: string): Pro
     
     const miningDays = userData.miningStats?.totalDays || 0;
     const balance = userData.balance || 0;
+    const userRank = userData.miningStats?.rank || MemberRank.ROOKIE;
     
     // Check requirements
     if (miningDays < poolData.minRequirements.miningDays) {
@@ -97,6 +99,23 @@ export async function checkPoolRequirements(userId: string, poolId: string): Pro
         meetsRequirements: false, 
         reason: `Minimum ${poolData.minRequirements.minBalance} NC gerekli` 
       };
+    }
+    
+    // Check minimum rank requirement if specified
+    if (poolData.minRank && poolData.minRank !== MemberRank.ROOKIE) {
+      // Define rank hierarchy for comparison
+      const rankHierarchy = {
+        [MemberRank.ROOKIE]: 0,
+        [MemberRank.MINER]: 1,
+        [MemberRank.LEADER]: 2
+      };
+      
+      if (rankHierarchy[userRank as MemberRank] < rankHierarchy[poolData.minRank as MemberRank]) {
+        return {
+          meetsRequirements: false,
+          reason: `Minimum "${poolData.minRank}" rütbesi gerekli`
+        };
+      }
     }
     
     // Check if pool has capacity

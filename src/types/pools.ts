@@ -18,6 +18,7 @@ export interface MiningPool {
   imageUrl?: string;
   capacity?: number;
   isPublic?: boolean;
+  minRank?: string; // Added minimum rank requirement
 }
 
 export interface PoolMembership {

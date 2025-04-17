@@ -27,6 +27,9 @@ export function calculateMiningRate(userData: UserData | null): number {
     }
   }
   
+  // Add pool membership bonus if applicable
+  // This could be expanded in the future
+  
   // Add bonus for upgrades if any
   const upgradeBonus = userData.upgrades?.reduce((total, upgrade) => {
     // Fix precision for each upgrade bonus
