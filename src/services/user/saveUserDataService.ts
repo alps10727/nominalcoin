@@ -1,57 +1,69 @@
 
-import { saveDocument } from "../dbService";
-import { saveUserData as saveToLocalStorage } from "@/utils/storage";
+import { supabase } from "@/integrations/supabase/client";
 import { UserData } from "@/types/storage";
 import { debugLog, errorLog } from "@/utils/debugUtils";
-import { toast } from "sonner";
-import { calculateMiningRate } from "@/utils/miningCalculator";
-import { handleDataSavingError } from "@/utils/errorHandling";
+import { saveUserData as saveUserDataToLocal } from "@/utils/storage";
 
 /**
- * Kullanıcı verilerini Firestore'a kaydetme
+ * Save user data to Supabase
  */
-export async function saveUserDataToFirebase(userId: string, userData: UserData): Promise<void> {
+export async function saveUserDataToSupabase(userId: string, userData: UserData): Promise<boolean> {
+  if (!userId || !userData) {
+    errorLog("saveUserDataService", "Invalid parameters:", { userId, userData });
+    return false;
+  }
+
   try {
-    debugLog("saveUserDataService", "Kullanıcı verileri kaydediliyor...", userId);
+    // Ensure userId is set properly
+    const dataToSave = { ...userData, userId };
     
-    // Sanitize the data - remove undefined values that Firebase doesn't allow
-    const sanitizedData = Object.entries(userData).reduce((acc, [key, value]) => {
-      // Only include defined values
-      if (value !== undefined) {
-        acc[key] = value;
-      }
-      return acc;
-    }, {} as Record<string, any>);
+    // Add lastSaved timestamp
+    const now = Date.now();
+    dataToSave.lastSaved = now;
     
-    // Ensure required fields are present
-    const cleanedData = {
-      ...sanitizedData,
-      userId: userId, // Her zaman userId ekle
-      balance: userData.balance || 0,
-      miningRate: calculateMiningRate(userData), // Referans sayısına göre hesapla
-      lastSaved: Date.now() // Önce client timestamp kullan
-    };
+    // Save to local storage first for offline support
+    saveUserDataToLocal(dataToSave);
     
-    try {
-      // Her zaman önce yerel depoya kaydet (daha hızlı erişim için)
-      saveToLocalStorage(cleanedData);
-      debugLog("saveUserDataService", "Veriler yerel depoya kaydedildi");
-    } catch (storageErr) {
-      errorLog("saveUserDataService", "Yerel depoya kaydetme hatası:", storageErr);
-      toast.error("Yerel depoya kaydetme sırasında bir hata oluştu");
+    // Check if user already exists
+    const { data: existingUser, error: checkError } = await supabase
+      .from('users')
+      .select('userId')
+      .eq('userId', userId)
+      .maybeSingle();
+      
+    if (checkError) {
+      errorLog("saveUserDataService", "Error checking existing user:", checkError);
+      return false;
     }
     
-    try {
-      // Verileri Firebase'e kaydet (arkaplanda ve otomatik yeniden deneme ile)
-      await saveDocument("users", userId, cleanedData);
-      debugLog("saveUserDataService", "Kullanıcı verileri başarıyla kaydedildi:", userId);
-    } catch (firebaseErr) {
-      // Handle Firebase specific errors
-      handleDataSavingError(firebaseErr, "Kullanıcı verileri");
+    let result;
+    
+    // Update or insert based on whether user exists
+    if (existingUser) {
+      // Update existing user
+      result = await supabase
+        .from('users')
+        .update(dataToSave)
+        .eq('userId', userId);
+    } else {
+      // Insert new user
+      result = await supabase
+        .from('users')
+        .insert([dataToSave]);
     }
-  } catch (err) {
-    errorLog("saveUserDataService", "Kullanıcı verilerini kaydetme işlemi başarısız:", err);
-    toast.error("Veri kaydetme işlemi başarısız oldu");
-    throw err;
+    
+    if (result.error) {
+      errorLog("saveUserDataService", "Error saving user data:", result.error);
+      return false;
+    }
+    
+    debugLog("saveUserDataService", "User data saved successfully");
+    return true;
+  } catch (error) {
+    errorLog("saveUserDataService", "Error in saveUserDataToSupabase:", error);
+    return false;
   }
 }
+
+// For backward compatibility
+export const saveUserDataToFirebase = saveUserDataToSupabase;

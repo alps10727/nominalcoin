@@ -1,16 +1,16 @@
 
-import { UserData } from "@/utils/storage";
-import { useFirebaseLoader } from "./useFirebaseLoader";
-import { useFirebaseDataMerger } from "./useFirebaseDataMerger";
-import { handleFirebaseConnectionError } from "@/utils/firebaseErrorHandler";
+import { UserData } from "@/types/storage";
+import { useSupabaseLoader } from "./useSupabaseLoader";
+import { useSupabaseDataMerger } from "./useSupabaseDataMerger";
+import { handleSupabaseConnectionError } from "@/utils/supabaseErrorHandler";
 
 export function useFirebaseDataLoader() {
-  const { loadFirebaseUserData } = useFirebaseLoader();
-  const { mergeUserData } = useFirebaseDataMerger();
+  const { loadSupabaseUserData } = useSupabaseLoader();
+  const { mergeUserData } = useSupabaseDataMerger();
 
   return {
-    loadFirebaseUserData,
-    handleFirebaseError: handleFirebaseConnectionError,
+    loadFirebaseUserData: loadSupabaseUserData, // For backward compatibility
+    handleFirebaseError: handleSupabaseConnectionError, // For backward compatibility
     mergeUserData
   };
 }

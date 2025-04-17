@@ -1,17 +1,17 @@
 
 // Re-export user data services for backward compatibility
-import { loadUserDataFromFirebase, UserData } from './user/userDataLoaderService';
-import { saveUserDataToFirebase } from './user/saveUserDataService';
+import { loadUserDataFromSupabase } from './user/userDataLoaderService';
+import { saveUserDataToSupabase } from './user/saveUserDataService';
 import { updateUserCoinBalance } from './user/updateBalanceService';
-import { initializeMiningStateFromFirebase } from './miningStateInitializer';
+import { initializeMiningStateFromSupabase } from './miningStateInitializer';
 
 // Export all functions to maintain backwards compatibility
 export { 
-  loadUserDataFromFirebase,
-  saveUserDataToFirebase,
-  initializeMiningStateFromFirebase,
+  loadUserDataFromSupabase as loadUserDataFromFirebase,
+  saveUserDataToSupabase as saveUserDataToFirebase,
+  initializeMiningStateFromSupabase as initializeMiningStateFromFirebase,
   updateUserCoinBalance
 };
 
 // Export types
-export type { UserData };
+export type { UserData } from './user/userDataLoaderService';

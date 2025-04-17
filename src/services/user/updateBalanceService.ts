@@ -1,79 +1,39 @@
 
-import { saveDocument } from "../dbService";
-import { UserData, saveUserData as saveToLocalStorage } from "@/utils/storage";
+import { supabase } from "@/integrations/supabase/client";
+import { UserData } from "@/types/storage";
 import { debugLog, errorLog } from "@/utils/debugUtils";
-import { toast } from "sonner";
-import { handleDataSavingError } from "@/utils/errorHandling";
+import { loadUserDataFromSupabase } from "./userDataLoaderService";
+import { saveUserDataToSupabase } from "./saveUserDataService";
 
 /**
- * Kullanıcının coin bakiyesini güncelleyen fonksiyon
- * Firebase ve localStorage senkronizasyonu ile güvenilir bakiye yönetimi sağlar
- * 
- * @param userId Kullanıcı kimliği
- * @param newBalance Yeni coin bakiyesi
- * @param isIncrement Ekleme işlemi mi yoksa tam değer güncellemesi mi?
+ * Update user coin balance in Supabase with optimistic update
  */
-export async function updateUserCoinBalance(userId: string, newBalance: number, isIncrement: boolean = false): Promise<void> {
+export async function updateUserCoinBalance(
+  userId: string, 
+  newBalance: number, 
+  localData: UserData | null = null
+): Promise<boolean> {
   try {
-    debugLog("updateBalanceService", `Kullanıcı coin bakiyesi ${isIncrement ? 'artırılıyor' : 'güncelleniyor'}...`, { userId, newBalance });
+    debugLog("updateBalanceService", "Updating balance for user:", { userId, newBalance });
     
-    // Önce kullanıcının mevcut verilerini al (yerel depodan)
-    const localData = localStorage.getItem('fcMinerUserData');
-    let userData: UserData | null = null;
-    
-    if (localData) {
-      try {
-        userData = JSON.parse(localData) as UserData;
-      } catch (parseErr) {
-        errorLog("updateBalanceService", "Yerel veri ayrıştırma hatası:", parseErr);
-      }
+    if (!localData) {
+      localData = await loadUserDataFromSupabase(userId);
     }
     
-    // Tutarsızlık kontrolü (manipülasyon tespiti)
-    // Anormal artış tespiti (güvenlik kontrolü)
-    const safeNewBalance = isIncrement ? Math.min(newBalance, 10) : newBalance; // Tek seferde max 10 coin artış
-    
-    // Güncellenmiş bakiye hesapla
-    const currentBalance = (userData && typeof userData.balance === 'number') ? userData.balance : 0;
-    const updatedBalance = isIncrement ? currentBalance + safeNewBalance : safeNewBalance;
-    
-    // Güncellenmiş veri nesnesi oluştur
-    const updatedData: UserData = {
-      ...(userData || { miningRate: 0.003, lastSaved: Date.now() }),
-      balance: updatedBalance,
-      miningRate: userData?.miningRate || 0.003, // Mevcut miningRate'i koru
-      lastSaved: Date.now()
-    };
-    
-    try {
-      // Önce yerel depoya kaydet (hızlı erişim için)
-      saveToLocalStorage(updatedData);
-      debugLog("updateBalanceService", "Güncellenen bakiye yerel depoya kaydedildi", updatedBalance);
-    } catch (storageErr) {
-      errorLog("updateBalanceService", "Yerel depoya bakiye kaydetme hatası:", storageErr);
-      toast.error("Coin bakiyesi yerel olarak kaydedilemedi");
+    if (!localData) {
+      errorLog("updateBalanceService", "No user data found to update balance");
+      return false;
     }
     
-    try {
-      // Firebase'e kaydet (güvenilir veri senkronizasyonu için)
-      await saveDocument("users", userId, {
-        balance: updatedBalance,
-        miningRate: updatedData.miningRate || 0.003, 
-        lastSaved: Date.now()
-      }, { merge: true });
-      
-      debugLog("updateBalanceService", "Coin bakiyesi başarıyla güncellendi:", updatedBalance);
-      toast.success(`${isIncrement ? safeNewBalance.toFixed(2) + ' coin kazandınız!' : 'Coin bakiyeniz güncellendi!'}`);
-    } catch (firebaseErr) {
-      // Firebase bağlantı hatalarını ele al
-      handleDataSavingError(firebaseErr, "Bakiye");
-      
-      // Çevrimdışı mod - daha sonra senkronize edilecek
-      toast.info("Çevrimdışı modda bakiye güncellendi. İnternet bağlantısı olduğunda senkronize edilecek.");
-    }
-  } catch (err) {
-    errorLog("updateBalanceService", "Coin bakiyesi güncelleme hatası:", err);
-    toast.error("Coin bakiyesi güncellenirken bir hata oluştu");
-    throw err;
+    // Update balance
+    localData.balance = newBalance;
+    localData.lastSaved = Date.now();
+    
+    // Save to Supabase
+    const success = await saveUserDataToSupabase(userId, localData);
+    return success;
+  } catch (error) {
+    errorLog("updateBalanceService", "Error updating user balance:", error);
+    return false;
   }
 }

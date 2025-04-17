@@ -1,9 +1,9 @@
 
 // Re-export from refactored modules to maintain backward compatibility
-import { saveUserDataToFirebase } from './user/saveUserDataService';
+import { saveUserDataToSupabase } from './user/saveUserDataService';
 import { updateUserCoinBalance } from './user/updateBalanceService';
 
 export {
-  saveUserDataToFirebase,
+  saveUserDataToSupabase as saveUserDataToFirebase,
   updateUserCoinBalance
 };

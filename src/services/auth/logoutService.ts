@@ -1,11 +1,13 @@
 
-import { signOut } from "firebase/auth";
-import { auth } from "@/config/firebase";
+import { supabase } from "@/integrations/supabase/client";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 
 export async function logoutUser(): Promise<void> {
   try {
-    await signOut(auth);
+    const { error } = await supabase.auth.signOut();
+    
+    if (error) throw error;
+    
     debugLog("authService", "User logged out successfully");
   } catch (error) {
     errorLog("authService", "Logout error:", error);

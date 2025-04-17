@@ -3,11 +3,11 @@
 // Yeni kod doğrudan yeni servis dosyalarını kullanmalıdır
 
 import { 
-  loadUserDataFromFirebase
+  loadUserDataFromSupabase as loadUserDataFromFirebase
 } from './user/userDataLoaderService';
 
 import {
-  saveUserDataToFirebase,
+  saveUserDataToSupabase as saveUserDataToFirebase,
 } from './user/saveUserDataService';
 
 import {
@@ -15,7 +15,7 @@ import {
 } from './user/updateBalanceService';
 
 import {
-  initializeMiningStateFromFirebase 
+  initializeMiningStateFromSupabase as initializeMiningStateFromFirebase 
 } from './miningStateInitializer';
 
 import {

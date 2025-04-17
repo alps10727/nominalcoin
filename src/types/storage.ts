@@ -19,11 +19,16 @@ export interface UserData {
   emailAddress?: string; // User's email address
   isAdmin?: boolean; // Added isAdmin property for admin panel access
   tasks?: {
-    completed?: number[]  // Tamamlanan görev ID'leri
+    completed?: number[]  // Completed task IDs
   };
   referralCode?: string; // User's unique referral code
   invitedBy?: string; // UserID of the inviter
   referralCount?: number; // Number of successful referrals
   referrals?: string[]; // Array of user IDs referred by this user
   indirectReferrals?: number; // Count of indirect referrals (level 2)
+  miningStats?: {
+    totalDays?: number;
+    dailyAverage?: number;
+    rank?: string;
+  };
 }

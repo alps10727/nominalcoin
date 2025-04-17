@@ -1,13 +1,16 @@
 
 // Re-export from refactored modules to maintain backward compatibility
-import { loadUserDataFromFirebase } from "./user/userDataLoaderService";
+import { loadUserDataFromSupabase } from "./user/userDataLoaderService";
 import { createDefaultUserData, validateUserData } from "./user/userDataValidator";
 
 export { 
-  loadUserDataFromFirebase,
+  loadUserDataFromSupabase,
   createDefaultUserData,
   validateUserData
 };
+
+// For backward compatibility
+export const loadUserDataFromFirebase = loadUserDataFromSupabase;
 
 // Re-export the UserData type for consumers of this module
 export type { UserData } from "@/utils/storage";

@@ -1,7 +1,5 @@
 
-import { createUserWithEmailAndPassword, User } from "firebase/auth";
-import { doc, setDoc, getDoc } from "firebase/firestore";
-import { auth, db } from "@/config/firebase";
+import { supabase } from "@/integrations/supabase/client";
 import { UserRegistrationData, AuthResponse } from "./types";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { createReferralCodeForUser } from "@/utils/referral";
@@ -12,7 +10,7 @@ export async function registerUser(
   email: string, 
   password: string, 
   userData: UserRegistrationData = {}
-): Promise<User> {
+): Promise<any> {
   try {
     debugLog("authService", "Registering user...", { email });
     
@@ -33,20 +31,35 @@ export async function registerUser(
       }
     }
     
-    // Create user in Firebase
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
+    // Create user in Supabase
+    const { data: { user }, error } = await supabase.auth.signUp({
+      email, 
+      password,
+      options: {
+        data: {
+          name: userData.name || "",
+        }
+      }
+    });
     
-    debugLog("authService", "User created in Firebase Auth", { userId: user.uid });
+    if (error) {
+      throw error;
+    }
+    
+    if (!user) {
+      throw new Error("User registration failed: No user data returned");
+    }
+    
+    debugLog("authService", "User created in Supabase Auth", { userId: user.id });
     
     // Generate referral code for new user
-    const userReferralCode = await createReferralCodeForUser(user.uid);
+    const userReferralCode = await createReferralCodeForUser(user.id);
     
     // Default user data
     const defaultUserData = {
       name: userData.name || "",
       emailAddress: email,
-      userId: user.uid,
+      userId: user.id,
       balance: 0,
       miningRate: 0.003,
       lastSaved: Date.now(),
@@ -58,27 +71,31 @@ export async function registerUser(
       invitedBy: referralValid && referrerUserId ? referrerUserId : null
     };
     
-    // Save user data to Firestore
-    await setDoc(doc(db, "users", user.uid), defaultUserData);
-    debugLog("authService", "User data saved to Firestore");
+    // Save user data to Supabase
+    const { error: profileError } = await supabase
+      .from('users')
+      .insert([defaultUserData]);
+      
+    if (profileError) {
+      errorLog("authService", "Error saving user data to Supabase:", profileError);
+    }
     
     // Process referral reward if valid
     if (referralValid && referrerUserId) {
       try {
-        // Önce kullanıcı kaydını tamamla, sonra referansı işle
         debugLog("authService", "Processing referral reward", { code: referralCode, referrerId: referrerUserId });
         
-        // Kısa bir gecikme ekleyerek veritabanı işlemlerinin sıralanmasını sağlıyoruz
+        // Process the referral with a small delay to ensure database consistency
         setTimeout(async () => {
-          const success = await processReferralCode(referralCode, user.uid);
+          const success = await processReferralCode(referralCode, user.id);
           
           if (success) {
             debugLog("authService", "Referral successfully processed");
           } else {
             errorLog("authService", "Failed to process referral reward");
-            // Yeniden deneme ekleyerek daha güvenilir hale getirelim
+            // Retry once after a short delay
             setTimeout(async () => {
-              const retrySuccess = await processReferralCode(referralCode, user.uid);
+              const retrySuccess = await processReferralCode(referralCode, user.id);
               debugLog("authService", "Referral retry result:", retrySuccess);
             }, 2000);
           }
