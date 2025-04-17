@@ -1,9 +1,16 @@
+
 import React, { useState, useEffect } from 'react';
 import { useTasks } from '@/contexts/TasksContext';
-import { Task } from '@/types/task';
+import { Task, Badge } from '@/types/tasks';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { getInitialTasks, getInitialBadges } from '@/data/initialTasks';
+import { useTaskProgress } from '@/hooks/tasks/useTaskProgress';
+import { useBadgeProgress } from '@/hooks/tasks/useBadgeProgress';
+import { useTaskRewards } from '@/hooks/tasks/useTaskRewards';
 
+// Simple task component
 const TasksData = () => {
   const { tasks, addTask, updateTask, deleteTask } = useTasks();
   const { currentUser } = useAuth();
@@ -64,6 +71,31 @@ const TasksData = () => {
       )}
     </div>
   );
+};
+
+// Hook for daily tasks and badges
+export const useTasksData = () => {
+  const { t } = useLanguage();
+  const { userData, currentUser } = useAuth();
+  
+  const [dailyTasks, setDailyTasks] = useState<Task[]>(getInitialTasks(t));
+  const [badges, setBadges] = useState<Badge[]>(getInitialBadges(t));
+
+  // Task ilerleme durumlarını kullanıcı verilerine göre güncelle
+  useTaskProgress(dailyTasks, setDailyTasks, userData);
+  
+  // Rozet ilerleme durumlarını kullanıcı verilerine göre güncelle
+  useBadgeProgress(badges, setBadges, userData);
+  
+  // Görev ödül talep etme fonksiyonunu al
+  const { claimReward } = useTaskRewards(
+    dailyTasks, 
+    setDailyTasks, 
+    userData, 
+    currentUser?.id || null
+  );
+
+  return { dailyTasks, badges, claimReward };
 };
 
 export default TasksData;
