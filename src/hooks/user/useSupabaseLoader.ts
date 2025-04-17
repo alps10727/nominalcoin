@@ -1,6 +1,6 @@
 
 import { UserData } from "@/types/storage";
-import { loadUserDataFromSupabase } from "@/services/userDataLoader";
+import { loadUserDataFromSupabase } from "@/services/user/userDataLoaderService";
 import { debugLog } from "@/utils/debugUtils";
 import { handleSupabaseConnectionError } from "@/utils/supabaseErrorHandler";
 import { useSupabaseCacheManager } from "./useSupabaseCacheManager";
@@ -13,12 +13,12 @@ export function useSupabaseLoader() {
     timeoutMs: number = 10000
   ): Promise<{ data: UserData | null; source: 'supabase' | 'cache' | 'timeout' }> => {
     try {
-      debugLog("useSupabaseLoader", "Supabase'den veriler yükleniyor...");
+      debugLog("useSupabaseLoader", "Loading data from Supabase...");
       
       // Check cache first
       const cachedData = getCachedData(userId);
       if (cachedData) {
-        debugLog("useSupabaseLoader", "Kullanıcı verisi önbellekten yüklendi", userId);
+        debugLog("useSupabaseLoader", "User data loaded from cache", userId);
         return { data: cachedData, source: 'cache' };
       }
       

@@ -17,10 +17,10 @@ export function handleSupabaseConnectionError(error: any, source: string = "unkn
     errorMsg.includes("unavailable");
   
   if (isNetworkError) {
-    console.warn("Supabase bağlantı hatası, çevrimdışı moda geçiliyor");
+    console.warn("Supabase connection error, switching to offline mode");
     // Only show toast for actual user interactions
     if (source !== "useSupabaseLoader" && source !== "backgroundSync") {
-      toast.error("İnternet bağlantısı kesildi, çevrimdışı moda geçildi", {
+      toast.error("Internet connection lost, switched to offline mode", {
         duration: 4000,
       });
     }

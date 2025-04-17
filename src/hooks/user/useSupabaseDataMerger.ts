@@ -19,7 +19,7 @@ export function useSupabaseDataMerger() {
     let finalBalance = 0;
     if (isLocalBalanceSuspicious) {
       finalBalance = supabaseData.balance;
-      debugLog("useSupabaseDataMerger", "Şüpheli yerel bakiye tespit edildi, sunucu değeri kullanılıyor", 
+      debugLog("useSupabaseDataMerger", "Suspicious local balance detected, using server value", 
         { local: localData.balance, supabase: supabaseData.balance });
     } else if (wasSupabaseUpdatedAfterLocal) {
       finalBalance = supabaseData.balance;
@@ -34,7 +34,7 @@ export function useSupabaseDataMerger() {
       lastSaved: Math.max(supabaseData.lastSaved || 0, localData.lastSaved || 0)
     };
 
-    debugLog("useSupabaseDataMerger", "Veriler birleştirildi:", {
+    debugLog("useSupabaseDataMerger", "Data merged:", {
       localBalance: localData.balance,
       supabaseBalance: supabaseData.balance,
       resultBalance: result.balance,

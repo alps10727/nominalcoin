@@ -3,17 +3,18 @@ import { useAuthObserver } from "./useAuthObserver";
 import { useUserDataLoader } from "./useUserDataLoader";
 import { UserData } from "@/types/storage";
 import { useEffect, useState } from "react";
+import { User } from "@supabase/supabase-js";
 
 export interface AuthState {
   currentUser: User | null;
   userData: UserData | null;
   loading: boolean;
   isOffline: boolean;
-  dataSource: 'firebase' | 'cache' | 'local' | null;
+  dataSource: 'supabase' | 'cache' | 'local' | null;
 }
 
 /**
- * Authentication state hook with Firebase and local storage integration
+ * Authentication state hook with Supabase and local storage integration
  */
 export function useAuthState(): AuthState {
   // Network availability monitor
@@ -36,10 +37,10 @@ export function useAuthState(): AuthState {
   // Use auth observer hook
   const { currentUser, loading: authLoading, authInitialized } = useAuthObserver();
   
-  // Use user data loader hook (Firebase prioritized)
+  // Use user data loader hook (Supabase prioritized)
   const { userData, loading: dataLoading, dataSource } = useUserDataLoader(currentUser, authInitialized);
   
-  // Combine Firebase and local data loading states
+  // Combine Supabase and local data loading states
   const loading = authLoading || dataLoading;
   
   // Track offline state (user data from local storage or no network connection)
@@ -53,6 +54,3 @@ export function useAuthState(): AuthState {
     dataSource
   };
 }
-
-// Import Firebase User type
-import { User } from "firebase/auth";

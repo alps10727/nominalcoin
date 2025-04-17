@@ -14,21 +14,32 @@ export async function saveUserDataToSupabase(userId: string, userData: UserData)
   }
 
   try {
-    // Ensure userId is set properly
-    const dataToSave = { ...userData, userId };
-    
-    // Add lastSaved timestamp
-    const now = Date.now();
-    dataToSave.lastSaved = now;
+    // Prepare data for Supabase profiles table
+    const profileData = {
+      id: userId,
+      name: userData.name || "",
+      email: userData.emailAddress || "",
+      balance: userData.balance,
+      mining_rate: userData.miningRate,
+      last_saved: userData.lastSaved,
+      mining_active: userData.miningActive,
+      mining_time: userData.miningTime,
+      mining_session: userData.miningSession,
+      mining_period: userData.miningPeriod,
+      mining_end_time: userData.miningEndTime,
+      mining_start_time: userData.miningStartTime,
+      progress: userData.progress,
+      is_admin: userData.isAdmin,
+    };
     
     // Save to local storage first for offline support
-    saveUserDataToLocal(dataToSave);
+    saveUserDataToLocal(userData);
     
     // Check if user already exists
     const { data: existingUser, error: checkError } = await supabase
-      .from('users')
-      .select('userId')
-      .eq('userId', userId)
+      .from('profiles')
+      .select('id')
+      .eq('id', userId)
       .maybeSingle();
       
     if (checkError) {
@@ -42,14 +53,14 @@ export async function saveUserDataToSupabase(userId: string, userData: UserData)
     if (existingUser) {
       // Update existing user
       result = await supabase
-        .from('users')
-        .update(dataToSave)
-        .eq('userId', userId);
+        .from('profiles')
+        .update(profileData)
+        .eq('id', userId);
     } else {
       // Insert new user
       result = await supabase
-        .from('users')
-        .insert([dataToSave]);
+        .from('profiles')
+        .insert([profileData]);
     }
     
     if (result.error) {

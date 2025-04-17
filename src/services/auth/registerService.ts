@@ -56,25 +56,27 @@ export async function registerUser(
     const userReferralCode = await createReferralCodeForUser(user.id);
     
     // Default user data
-    const defaultUserData = {
+    const profileData = {
+      id: user.id,
       name: userData.name || "",
-      emailAddress: email,
-      userId: user.id,
+      email: email,
       balance: 0,
-      miningRate: 0.003,
-      lastSaved: Date.now(),
-      miningActive: false,
-      isAdmin: false,
-      referralCode: userReferralCode,
-      referralCount: 0,
-      referrals: [],
-      invitedBy: referralValid && referrerUserId ? referrerUserId : null
+      mining_rate: 0.003,
+      last_saved: Date.now(),
+      mining_active: false,
+      is_admin: false,
+      // Store these in user metadata or separate tables for referrals
+      // These fields aren't in the profiles table schema
+      // referralCode: userReferralCode,
+      // referralCount: 0,
+      // referrals: [],
+      // invitedBy: referralValid && referrerUserId ? referrerUserId : null
     };
     
     // Save user data to Supabase
     const { error: profileError } = await supabase
-      .from('users')
-      .insert([defaultUserData]);
+      .from('profiles')
+      .insert([profileData]);
       
     if (profileError) {
       errorLog("authService", "Error saving user data to Supabase:", profileError);
