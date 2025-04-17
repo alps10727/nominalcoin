@@ -7,7 +7,7 @@ import { handleSupabaseConnectionError } from "@/utils/supabaseErrorHandler";
 import { QueryCacheManager } from "@/services/db";
 import { UserData, saveUserData, clearUserData } from "@/utils/storage";
 import { useLocalDataLoader } from "@/hooks/user/useLocalDataLoader";
-import { useSupabaseDataLoader } from "@/hooks/user/useSupabaseLoader";
+import { useSupabaseLoader } from "@/hooks/user/useSupabaseLoader";
 import { useUserDataValidator } from "@/hooks/user/useUserDataValidator";
 
 export interface UserDataState {

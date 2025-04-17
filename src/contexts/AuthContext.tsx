@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { User } from "firebase/auth";
+import { User } from "@supabase/supabase-js"; // Changed from firebase/auth to supabase
 import { useAuthState } from "@/hooks/useAuthState";
 import { useAuthActions } from "@/hooks/useAuthActions";
 import { useUserDataManager } from "@/hooks/userData";
@@ -16,7 +16,7 @@ interface AuthContextProps {
   userData: UserData | null;
   updateUserData: (data: Partial<UserData>) => Promise<void>;
   isOffline: boolean;
-  dataSource: 'firebase' | 'cache' | 'local' | null;
+  dataSource: 'supabase' | 'cache' | 'local' | null; // Updated to include 'supabase'
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
