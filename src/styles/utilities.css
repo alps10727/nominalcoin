@@ -54,6 +54,11 @@
     animation: float-3 9s ease-in-out infinite;
   }
   
+  .animate-float-data {
+    animation: float-data 3s ease-out forwards;
+    animation-delay: var(--delay, 0s);
+  }
+  
   .animate-spin-slow {
     animation: spin 15s linear infinite;
   }

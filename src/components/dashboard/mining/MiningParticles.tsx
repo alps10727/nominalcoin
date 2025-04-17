@@ -31,11 +31,11 @@ export const MiningParticles: React.FC<MiningParticlesProps> = ({ miningActive }
         particle.style.left = `${Math.random() * 100}%`;
         
         // Random timing
-        particle.style.animationDelay = `${Math.random() * 2}s`;
-        particle.style.animationDuration = `${3 + Math.random() * 2}s`;
+        particle.style.setProperty('--delay', `${Math.random() * 2}s`);
+        particle.style.setProperty('--tx', `${Math.random() * 40 - 20}px`);
+        particle.style.setProperty('--ty', `-${Math.random() * 20 + 10}px`);
         
         // Add a data point variation for the animation
-        particle.classList.add(`data-point-${i % 6}`);
         particle.classList.add('animate-float-data');
         
         // Add glow effect to some particles
@@ -61,8 +61,7 @@ export const MiningParticles: React.FC<MiningParticlesProps> = ({ miningActive }
         stream.style.left = `${5 + i * 5}%`;
         
         // Animation
-        stream.style.animationDelay = `${i * 0.7}s`;
-        stream.style.animationDuration = `${3 + Math.random() * 2}s`;
+        stream.style.setProperty('--delay', `${i * 0.7}s`);
         stream.classList.add('animate-data-stream');
         
         container.appendChild(stream);
