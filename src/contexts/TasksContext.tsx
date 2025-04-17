@@ -49,7 +49,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const { data, error } = await supabase
           .from('tasks')
           .select('*')
-          .eq('userId', currentUser.id);
+          .eq('user_id', currentUser.id);
           
         if (error) {
           throw error;
@@ -58,7 +58,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         // Eğer veri yoksa boş bir dizi kullan
         const loadedTasks = data || [];
         debugLog("TasksContext", `${loadedTasks.length} görev yüklendi`);
-        setTasks(loadedTasks);
+        setTasks(loadedTasks as Task[]);
       } catch (error) {
         errorLog("TasksContext", "Görevler yüklenirken hata oluştu:", error);
         setError("Görevler yüklenirken bir hata oluştu.");
@@ -75,7 +75,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const addTask = async (title: string, userId: string) => {
     try {
-      const newTask = {
+      const newTask: Omit<Task, 'id'> = {
         title,
         description: "",
         reward: 0,
@@ -88,7 +88,16 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       const { data, error } = await supabase
         .from('tasks')
-        .insert([newTask])
+        .insert([{
+          title: newTask.title,
+          description: newTask.description,
+          reward: newTask.reward,
+          progress: newTask.progress,
+          total_required: newTask.totalRequired,
+          completed: newTask.completed,
+          user_id: newTask.userId,
+          attachment_url: newTask.attachmentUrl
+        }])
         .select();
         
       if (error) {
@@ -96,7 +105,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
       
       if (data && data.length > 0) {
-        setTasks([...tasks, data[0]]);
+        setTasks([...tasks, data[0] as Task]);
         toast.success("Görev başarıyla eklendi.");
       }
     } catch (error) {
@@ -114,9 +123,9 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           description: task.description,
           completed: task.completed,
           progress: task.progress,
-          attachmentUrl: task.attachmentUrl || null,
+          attachment_url: task.attachmentUrl || null,
         })
-        .eq('id', task.id.toString());
+        .eq('id', task.id);
 
       if (error) {
         throw error;
@@ -135,7 +144,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const { error } = await supabase
         .from('tasks')
         .delete()
-        .eq('id', task.id.toString());
+        .eq('id', task.id);
 
       if (error) {
         throw error;

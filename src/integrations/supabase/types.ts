@@ -84,6 +84,45 @@ export type Database = {
         }
         Relationships: []
       }
+      tasks: {
+        Row: {
+          attachment_url: string | null
+          completed: boolean | null
+          created_at: string | null
+          description: string | null
+          id: string
+          progress: number | null
+          reward: number | null
+          title: string
+          total_required: number | null
+          user_id: string | null
+        }
+        Insert: {
+          attachment_url?: string | null
+          completed?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          progress?: number | null
+          reward?: number | null
+          title: string
+          total_required?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          attachment_url?: string | null
+          completed?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          progress?: number | null
+          reward?: number | null
+          title?: string
+          total_required?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       upgrades: {
         Row: {
           id: number

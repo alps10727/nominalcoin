@@ -13,7 +13,7 @@ export async function fetchUserTasks(userId: string): Promise<Task[]> {
     const { data, error } = await supabase
       .from('tasks')
       .select('*')
-      .eq('userId', userId);
+      .eq('user_id', userId);
       
     if (error) {
       throw error;
@@ -35,7 +35,16 @@ export async function addNewTask(task: Omit<Task, 'id'>): Promise<Task> {
     
     const { data, error } = await supabase
       .from('tasks')
-      .insert([task])
+      .insert([{
+        title: task.title,
+        description: task.description,
+        reward: task.reward,
+        progress: task.progress,
+        total_required: task.totalRequired,
+        completed: task.completed,
+        user_id: task.userId,
+        attachment_url: task.attachmentUrl
+      }])
       .select();
       
     if (error) {
@@ -46,7 +55,7 @@ export async function addNewTask(task: Omit<Task, 'id'>): Promise<Task> {
       throw new Error('Görev eklenemedi');
     }
     
-    return data[0];
+    return data[0] as Task;
   } catch (error) {
     errorLog('taskService', 'Görev eklenirken hata:', error);
     throw error;
@@ -67,9 +76,9 @@ export async function updateExistingTask(task: Task): Promise<void> {
         description: task.description,
         progress: task.progress,
         completed: task.completed,
-        attachmentUrl: task.attachmentUrl
+        attachment_url: task.attachmentUrl
       })
-      .eq('id', task.id.toString());
+      .eq('id', task.id);
       
     if (error) {
       throw error;
@@ -83,14 +92,14 @@ export async function updateExistingTask(task: Task): Promise<void> {
 /**
  * Bir görevi siler
  */
-export async function deleteTaskById(taskId: string | number): Promise<void> {
+export async function deleteTaskById(taskId: string): Promise<void> {
   try {
     debugLog('taskService', 'Görev siliniyor:', taskId);
     
     const { error } = await supabase
       .from('tasks')
       .delete()
-      .eq('id', taskId.toString());
+      .eq('id', taskId);
       
     if (error) {
       throw error;
