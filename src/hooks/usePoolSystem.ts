@@ -8,7 +8,7 @@ import {
   createPool,
   getAllPools,
   updateUserRank
-} from "@/services/pools/poolService";
+} from "@/services/pools"; // Updated import path
 import { MiningPool } from "@/types/pools";
 import { debugLog } from "@/utils/debugUtils";
 

@@ -27,11 +27,11 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 const poolFormSchema = z.object({
   name: z.string().min(3, { message: "Havuz adı en az 3 karakter olmalıdır" }).max(50),
   description: z.string().min(10, { message: "Açıklama en az 10 karakter olmalıdır" }).max(500),
-  level: z.string().transform(val => parseInt(val)),
+  level: z.string().transform(val => parseInt(val, 10)),
   isPublic: z.boolean().default(true),
   minRequirements: z.object({
-    miningDays: z.string().transform(val => parseInt(val)),
-    minBalance: z.string().transform(val => parseInt(val)),
+    miningDays: z.string().transform(val => parseInt(val, 10)),
+    minBalance: z.string().transform(val => parseInt(val, 10)),
   }),
   minRank: z.string().default(MemberRank.ROOKIE),
 });
