@@ -26,7 +26,7 @@ export const useTasksData = () => {
     dailyTasks, 
     setDailyTasks, 
     userData, 
-    currentUser?.uid || null
+    currentUser?.id || null // Changed from uid to id
   );
 
   return { dailyTasks, badges, claimReward };

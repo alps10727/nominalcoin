@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         userData: null,
         loading: true,
         isOffline: true,
-        dataSource: null as ('firebase' | 'local' | null)
+        dataSource: null as ('supabase' | 'local' | null)
       };
     }
   })();

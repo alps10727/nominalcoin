@@ -36,7 +36,7 @@ const Profile = () => {
       <h1 className="text-2xl font-bold mb-6">Profil</h1>
       
       <div>
-        <p>Kullanıcı ID: {currentUser?.uid}</p>
+        <p>Kullanıcı ID: {currentUser?.id}</p> {/* Changed from uid to id */}
         <p>Email: {currentUser?.email}</p>
         <Button onClick={handleLogout} disabled={loading}>
           Çıkış Yap

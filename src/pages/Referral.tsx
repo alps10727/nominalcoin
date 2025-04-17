@@ -26,7 +26,7 @@ const Referral = () => {
       setIsRefreshing(true);
       toast.loading("Referans bilgileri yükleniyor...");
       
-      const userDocRef = doc(db, "users", currentUser.uid);
+      const userDocRef = doc(db, "users", currentUser.id); // Changed from uid to id
       const userDocSnap = await getDoc(userDocRef);
       
       if (userDocSnap.exists()) {
@@ -53,7 +53,7 @@ const Referral = () => {
   };
   
   useEffect(() => {
-    if (currentUser && currentUser.uid) {
+    if (currentUser && currentUser.id) { // Changed from uid to id
       refreshUserData();
     }
   }, [currentUser]);

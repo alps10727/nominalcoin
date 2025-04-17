@@ -1,50 +1,39 @@
-
-import { UserData } from "@/types/storage";
+import { UserData } from "@/utils/storage";
 import { debugLog } from "@/utils/debugUtils";
 
 export function useSupabaseDataMerger() {
-  const mergeUserData = (localData: UserData | null, supabaseData: UserData | null): UserData => {
-    if (!supabaseData) return localData || { balance: 0, miningRate: 0.003, lastSaved: Date.now() };
-    if (!localData) return supabaseData;
-
-    // Detect suspicious manipulation
-    const isLocalBalanceSuspicious = localData && supabaseData && (
-      localData.balance > supabaseData.balance * 1.5 ||
-      localData.balance > supabaseData.balance + 10 ||
-      localData.balance > 1000 && supabaseData.balance < 100
-    );
+  /**
+   * Merges local and server data with smart conflict resolution
+   * Prioritizes server data for most fields but carefully handles specific cases
+   */
+  const mergeUserData = (localData: UserData | null, serverData: UserData): UserData => {
+    if (!localData) return serverData;
     
-    const wasSupabaseUpdatedAfterLocal = supabaseData.lastSaved > (localData.lastSaved || 0);
+    // Use server data as base but prefer higher balance from local if it exists
+    const mergedData = { ...serverData };
     
-    let finalBalance = 0;
-    if (isLocalBalanceSuspicious) {
-      finalBalance = supabaseData.balance;
-      debugLog("useSupabaseDataMerger", "Suspicious local balance detected, using server value", 
-        { local: localData.balance, supabase: supabaseData.balance });
-    } else if (wasSupabaseUpdatedAfterLocal) {
-      finalBalance = supabaseData.balance;
-    } else {
-      finalBalance = Math.max(localData.balance || 0, supabaseData.balance || 0);
+    // If local balance is higher, keep it (unless it's suspiciously higher)
+    if (localData.balance > serverData.balance) {
+      // Check if the difference is reasonable (not more than 20%)
+      if (localData.balance <= serverData.balance * 1.2) {
+        mergedData.balance = localData.balance;
+        debugLog("useSupabaseDataMerger", "Using local balance as it's higher but reasonable");
+      } else {
+        debugLog("useSupabaseDataMerger", "Local balance suspiciously high, using server balance");
+      }
     }
-
-    const result: UserData = {
-      ...supabaseData,
-      balance: finalBalance,
-      miningRate: supabaseData.miningRate || localData.miningRate || 0.003,
-      lastSaved: Math.max(supabaseData.lastSaved || 0, localData.lastSaved || 0)
-    };
-
-    debugLog("useSupabaseDataMerger", "Data merged:", {
-      localBalance: localData.balance,
-      supabaseBalance: supabaseData.balance,
-      resultBalance: result.balance,
-      localLastSaved: new Date(localData.lastSaved || 0).toLocaleString(),
-      supabaseLastSaved: new Date(supabaseData.lastSaved || 0).toLocaleString(),
-      isLocalBalanceSuspicious,
-      wasSupabaseUpdatedAfterLocal
-    });
-
-    return result;
+    
+    // For active mining sessions, prioritize local data to avoid disruption
+    if (localData.miningActive && localData.miningEndTime && localData.miningEndTime > Date.now()) {
+      mergedData.miningActive = localData.miningActive;
+      mergedData.miningEndTime = localData.miningEndTime;
+      mergedData.miningStartTime = localData.miningStartTime;
+      mergedData.progress = localData.progress;
+      
+      debugLog("useSupabaseDataMerger", "Preserving active mining session from local data");
+    }
+    
+    return mergedData;
   };
 
   return { mergeUserData };

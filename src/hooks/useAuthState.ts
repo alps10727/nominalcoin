@@ -1,7 +1,7 @@
 
 import { useAuthObserver } from "./useAuthObserver";
 import { useUserDataLoader } from "./useUserDataLoader";
-import { UserData } from "@/types/storage";
+import { UserData } from "@/utils/storage";
 import { useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
 

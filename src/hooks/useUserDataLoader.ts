@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { User } from "@supabase/supabase-js";
 import { toast } from "sonner";
@@ -38,7 +37,7 @@ export function useUserDataLoader(
   const [lastLoadedUserId, setLastLoadedUserId] = useState<string | null>(null);
 
   const { loadLocalUserData, ensureReferralData, createDefaultUserData } = useLocalDataLoader();
-  const { loadSupabaseUserData, mergeUserData } = useSupabaseDataLoader();
+  const { loadSupabaseUserData } = useSupabaseLoader();
   const { ensureValidUserData } = useUserDataValidator();
 
   // Main function to load user data
@@ -146,6 +145,24 @@ export function useUserDataLoader(
       toast.error("Error loading data. Please try again.");
     }
   }, [currentUser, authInitialized, errorOccurred, loadAttempt, lastLoadedUserId]);
+
+  // Helper function to merge data
+  const mergeUserData = (localData: UserData | null, serverData: UserData): UserData => {
+    if (!localData) return serverData;
+    
+    // Use server data as base but prefer higher balance from local if it exists
+    const mergedData = { ...serverData };
+    
+    // If local balance is higher, keep it (unless it's suspiciously higher)
+    if (localData.balance > serverData.balance) {
+      // Check if the difference is reasonable (not more than 20%)
+      if (localData.balance <= serverData.balance * 1.2) {
+        mergedData.balance = localData.balance;
+      }
+    }
+    
+    return mergedData;
+  };
 
   // Start loading
   useEffect(() => {
