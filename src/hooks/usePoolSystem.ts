@@ -1,115 +1,110 @@
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { 
-  getPool,
-  joinPool,
-  leavePool,
-  createPool,
-  getAllPools,
-  updateUserRank
-} from "@/services/pools"; // Updated import path
 import { MiningPool } from "@/types/pools";
-import { debugLog } from "@/utils/debugUtils";
 
 export function usePoolSystem() {
-  const { currentUser, userData, updateUserData } = useAuth();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [currentPool, setCurrentPool] = useState<MiningPool | null>(null);
   const [availablePools, setAvailablePools] = useState<MiningPool[]>([]);
   
-  // Load current pool data
-  useEffect(() => {
-    async function loadPoolData() {
-      if (!userData || !userData.poolMembership?.currentPool) {
-        setCurrentPool(null);
-        setLoading(false);
-        return;
-      }
-      
-      try {
-        const poolId = userData.poolMembership.currentPool;
-        const pool = await getPool(poolId);
-        setCurrentPool(pool);
-      } catch (error) {
-        debugLog("usePoolSystem", "Error loading pool data:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    
-    loadPoolData();
-  }, [userData]);
-  
-  // Load available pools
+  // Dummy functions to replace Firebase functionality
   const loadAvailablePools = async () => {
     setLoading(true);
     try {
-      const pools = await getAllPools({ isPublic: true });
-      setAvailablePools(pools);
+      // Mock data
+      const mockPools: MiningPool[] = [
+        {
+          poolId: "community-pool-123456",
+          name: "Community Pool",
+          description: "A public mining pool for everyone",
+          level: 1,
+          owner: "system",
+          memberCount: 42,
+          createdAt: new Date(),
+          capacity: 100,
+          isPublic: true,
+          minRequirements: {
+            minBalance: 0,
+            miningDays: 0
+          }
+        }
+      ];
+      
+      setTimeout(() => {
+        setAvailablePools(mockPools);
+        setLoading(false);
+      }, 500);
     } catch (error) {
-      debugLog("usePoolSystem", "Error loading available pools:", error);
-    } finally {
+      console.log("Error loading available pools:", error);
       setLoading(false);
     }
   };
   
   // Join a mining pool
   const handleJoinPool = async (poolId: string) => {
-    if (!currentUser) return false;
-    
     setLoading(true);
-    const success = await joinPool(currentUser.uid, poolId);
     
-    if (success) {
-      // Refresh user data and current pool
-      await updateUserData({});
-      const pool = await getPool(poolId);
-      setCurrentPool(pool);
-    }
+    // Mock successful join
+    setTimeout(() => {
+      const pool = availablePools.find(p => p.poolId === poolId);
+      if (pool) {
+        setCurrentPool(pool);
+      }
+      setLoading(false);
+    }, 500);
     
-    setLoading(false);
-    return success;
+    return true;
   };
   
   // Leave current pool
   const handleLeavePool = async () => {
-    if (!currentUser || !userData?.poolMembership?.currentPool) return false;
-    
     setLoading(true);
-    const success = await leavePool(currentUser.uid);
     
-    if (success) {
+    // Mock successful leave
+    setTimeout(() => {
       setCurrentPool(null);
-      await updateUserData({});
-    }
+      setLoading(false);
+    }, 500);
     
-    setLoading(false);
-    return success;
+    return true;
   };
   
   // Create a new pool
-  const handleCreatePool = async (poolData: MiningPool) => {
-    if (!currentUser) return null;
-    
+  const handleCreatePool = async (poolData: any) => {
     setLoading(true);
-    const poolId = await createPool(poolData, currentUser.uid);
     
-    if (poolId) {
-      // Refresh user data and current pool
-      await updateUserData({});
-      const pool = await getPool(poolId);
-      setCurrentPool(pool);
-    }
+    // Generate a unique pool ID
+    const poolId = `${poolData.name?.toLowerCase().replace(/\s+/g, '-')}-${Date.now().toString().slice(-6)}`;
     
-    setLoading(false);
+    // Create mock pool
+    const newPool: MiningPool = {
+      poolId,
+      name: poolData.name || "New Pool",
+      description: poolData.description || "",
+      level: poolData.level || 1,
+      owner: "current-user",
+      memberCount: 1,
+      createdAt: new Date(),
+      capacity: 100,
+      isPublic: poolData.isPublic !== undefined ? poolData.isPublic : true,
+      minRequirements: {
+        minBalance: poolData.requirements?.minBalance || 0,
+        miningDays: poolData.requirements?.minDays || 0
+      },
+      minRank: poolData.requirements?.minRank ? String(poolData.requirements.minRank) : undefined
+    };
+    
+    setTimeout(() => {
+      setCurrentPool(newPool);
+      setLoading(false);
+    }, 500);
+    
     return poolId;
   };
   
   // Check and update user rank
   const checkRankUpdate = async () => {
-    if (!currentUser) return null;
-    return await updateUserRank(currentUser.uid);
+    return "Rookie";
   };
 
   return {

@@ -1,23 +1,29 @@
 
-import { useAuthObserver } from "./useAuthObserver";
-import { useUserDataLoader } from "./useUserDataLoader";
+import { useState, useEffect } from "react";
 import { UserData } from "@/types/storage";
-import { useEffect, useState } from "react";
 
 export interface AuthState {
   currentUser: User | null;
   userData: UserData | null;
   loading: boolean;
   isOffline: boolean;
-  dataSource: 'firebase' | 'cache' | 'local' | null;
+  dataSource: 'storage' | 'local' | null;
 }
 
 /**
- * Authentication state hook with Firebase and local storage integration
+ * Authentication state hook with local storage integration
  */
 export function useAuthState(): AuthState {
   // Network availability monitor
   const [isNetworkAvailable, setIsNetworkAvailable] = useState(navigator.onLine);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [userData, setUserData] = useState<UserData | null>({
+    balance: 100,
+    miningRate: 0.003,
+    lastSaved: Date.now()
+  });
+  const [loading, setLoading] = useState(false);
+  const [dataSource, setDataSource] = useState<'storage' | 'local' | null>('local');
   
   // Setup online/offline event listeners
   useEffect(() => {
@@ -33,26 +39,32 @@ export function useAuthState(): AuthState {
     };
   }, []);
   
-  // Use auth observer hook
-  const { currentUser, loading: authLoading, authInitialized } = useAuthObserver();
-  
-  // Use user data loader hook (Firebase prioritized)
-  const { userData, loading: dataLoading, dataSource } = useUserDataLoader(currentUser, authInitialized);
-  
-  // Combine Firebase and local data loading states
-  const loading = authLoading || dataLoading;
-  
-  // Track offline state (user data from local storage or no network connection)
-  const isOffline = dataSource === 'local' || !isNetworkAvailable;
+  // Simulating user initialization
+  useEffect(() => {
+    setLoading(true);
+    
+    // Simulate authentication check
+    setTimeout(() => {
+      const storedUser = localStorage.getItem('mockUser');
+      if (storedUser) {
+        setCurrentUser(JSON.parse(storedUser));
+      }
+      
+      setLoading(false);
+    }, 500);
+  }, []);
 
   return { 
     currentUser, 
     userData, 
     loading,
-    isOffline,
+    isOffline: !isNetworkAvailable,
     dataSource
   };
 }
 
-// Import Firebase User type
-import { User } from "firebase/auth";
+// User type definition
+export interface User {
+  uid: string;
+  email: string | null;
+}

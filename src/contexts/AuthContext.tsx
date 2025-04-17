@@ -1,25 +1,119 @@
 
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { User } from "firebase/auth";
-import { useAuthState } from "@/hooks/useAuthState";
-import { useAuthActions } from "@/hooks/useAuthActions";
-import { useUserDataManager } from "@/hooks/userData";
-import { debugLog } from "@/utils/debugUtils";
-import { UserData } from "@/utils/storage";
+import React, { useContext, useState, createContext, ReactNode } from "react";
 
-interface AuthContextProps {
-  currentUser: User | null;
-  loading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
-  logout: () => Promise<void>;
-  register: (email: string, password: string, userData?: any) => Promise<boolean>;
-  userData: UserData | null;
-  updateUserData: (data: Partial<UserData>) => Promise<void>;
-  isOffline: boolean;
-  dataSource: 'firebase' | 'cache' | 'local' | null;
+// Mock user data
+interface UserData {
+  balance: number;
+  miningRate: number;
+  lastSaved?: number;
+  miningActive?: boolean;
+  miningTime?: number;
+  miningPeriod?: number;
+  poolMembership?: {
+    currentPool?: string;
+  };
+  miningStats?: {
+    rank?: string;
+    totalDays?: number;
+  };
+  name?: string;
 }
 
-const AuthContext = createContext<AuthContextProps | undefined>(undefined);
+interface AuthContextType {
+  currentUser: any;
+  userData: UserData | null;
+  loading: boolean;
+  isOffline: boolean;
+  login: (email: string, password: string) => Promise<boolean>;
+  logout: () => Promise<void>;
+  register: (email: string, password: string, userData?: object) => Promise<boolean>;
+  updateUserData: (updates: Partial<UserData>) => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [userData, setUserData] = useState<UserData | null>({
+    balance: 100,
+    miningRate: 0.003,
+    lastSaved: Date.now(),
+    miningStats: {
+      rank: "Rookie",
+      totalDays: 5
+    },
+    name: "Demo User"
+  });
+  const [loading, setLoading] = useState(false);
+
+  const login = async (email: string, password: string) => {
+    setLoading(true);
+    try {
+      console.log("Mock login for", email);
+      const user = { uid: "user123", email };
+      setCurrentUser(user);
+      setLoading(false);
+      return true;
+    } catch (error) {
+      console.error("Login error:", error);
+      setLoading(false);
+      return false;
+    }
+  };
+
+  const logout = async () => {
+    setLoading(true);
+    try {
+      console.log("Mock logout");
+      setCurrentUser(null);
+      setUserData(null);
+      setLoading(false);
+    } catch (error) {
+      console.error("Logout error:", error);
+      setLoading(false);
+      throw error;
+    }
+  };
+
+  const register = async (email: string, password: string, userData: any = {}) => {
+    setLoading(true);
+    try {
+      console.log("Mock register for", email);
+      const user = { uid: "new-user-" + Date.now(), email };
+      setCurrentUser(user);
+      setLoading(false);
+      return true;
+    } catch (error) {
+      console.error("Register error:", error);
+      setLoading(false);
+      return false;
+    }
+  };
+
+  const updateUserData = async (updates: Partial<UserData>) => {
+    try {
+      setUserData(prev => {
+        if (!prev) return updates as UserData;
+        return { ...prev, ...updates };
+      });
+    } catch (error) {
+      console.error("Error updating user data:", error);
+    }
+  };
+
+  const value = {
+    currentUser,
+    userData,
+    loading,
+    isOffline: false,
+    login,
+    logout,
+    register,
+    updateUserData
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
 
 export function useAuth() {
   const context = useContext(AuthContext);
@@ -27,79 +121,4 @@ export function useAuth() {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
-}
-
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  // Eğer AuthState yüklenmezse hata fırlatmayı önlemek için try-catch ekledik
-  const authState = (() => {
-    try {
-      return useAuthState();
-    } catch (err) {
-      console.error("AuthState yüklenirken hata:", err);
-      return {
-        currentUser: null,
-        userData: null,
-        loading: true,
-        isOffline: true,
-        dataSource: null as ('firebase' | 'local' | null)
-      };
-    }
-  })();
-  
-  const { currentUser, userData: initialUserData, loading, isOffline, dataSource } = authState;
-  
-  const [userData, setUserData] = useState<UserData | null>(initialUserData);
-  
-  useEffect(() => {
-    if (initialUserData) {
-      debugLog("AuthProvider", "initialUserData değişti, userData güncelleniyor", initialUserData);
-      setUserData(initialUserData);
-    }
-  }, [initialUserData]);
-  
-  // AuthActions için de try-catch ekledik
-  const { login, logout, register } = (() => {
-    try {
-      return useAuthActions();
-    } catch (err) {
-      console.error("AuthActions yüklenirken hata:", err);
-      return {
-        login: async () => false,
-        logout: async () => {},
-        register: async () => false
-      };
-    }
-  })();
-  
-  // UserDataManager için de try-catch ekledik
-  const { updateUserData } = (() => {
-    try {
-      return useUserDataManager(currentUser, userData, setUserData);
-    } catch (err) {
-      console.error("UserDataManager yüklenirken hata:", err);
-      return {
-        updateUserData: async () => {}
-      };
-    }
-  })();
-
-  const value = {
-    currentUser,
-    loading,
-    login,
-    logout,
-    register,
-    userData,
-    updateUserData,
-    isOffline,
-    dataSource
-  };
-
-  debugLog("AuthProvider", "AuthProvider yüklendi, kullanıcı:", currentUser?.email || "Yok");
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
 }

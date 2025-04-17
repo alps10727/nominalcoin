@@ -1,7 +1,4 @@
-
 import React, { useState } from 'react';
-import { useAuth } from "@/contexts/AuthContext";
-import { createPool } from "@/services/pools";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,7 +12,6 @@ interface CreatePoolFormProps {
 }
 
 const CreatePoolForm = ({ onSuccess }: CreatePoolFormProps) => {
-  const { currentUser } = useAuth();
   const [loading, setLoading] = useState(false);
   
   // Form values
@@ -34,11 +30,6 @@ const CreatePoolForm = ({ onSuccess }: CreatePoolFormProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!currentUser) {
-      toast.error("Havuz oluşturmak için giriş yapmalısınız");
-      return;
-    }
     
     if (!name.trim()) {
       toast.error("Havuz ismi zorunludur");
@@ -61,20 +52,19 @@ const CreatePoolForm = ({ onSuccess }: CreatePoolFormProps) => {
         }
       };
       
-      const poolId = await createPool(poolData, currentUser.uid);
+      // Generate a mock pool ID
+      const poolId = `${poolData.name.toLowerCase().replace(/\s+/g, '-')}-${Date.now().toString().slice(-6)}`;
       
-      if (poolId) {
+      setTimeout(() => {
+        setLoading(false);
         toast.success("Havuz başarıyla oluşturuldu!");
         if (onSuccess) {
           onSuccess(poolId);
         }
-      } else {
-        toast.error("Havuz oluşturulurken bir hata oluştu");
-      }
+      }, 1000);
     } catch (error) {
       toast.error("Havuz oluşturulamadı: " + (error as Error).message);
       console.error("Pool creation error:", error);
-    } finally {
       setLoading(false);
     }
   };

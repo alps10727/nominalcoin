@@ -8,7 +8,7 @@ import { usePoolSystem } from "@/hooks/usePoolSystem";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserPlus, Settings, Users, Database } from "lucide-react";
+import { UserPlus, Database } from "lucide-react";
 import CreatePoolForm from "@/components/pools/CreatePoolForm";
 
 const Profile = () => {
@@ -61,10 +61,10 @@ const Profile = () => {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-2">
                   <div className="text-gray-400">Kullanıcı ID:</div>
-                  <div className="text-gray-200">{currentUser?.uid}</div>
+                  <div className="text-gray-200">{currentUser?.uid || "demo-user"}</div>
                   
                   <div className="text-gray-400">Email:</div>
-                  <div className="text-gray-200">{currentUser?.email}</div>
+                  <div className="text-gray-200">{currentUser?.email || "demo@example.com"}</div>
                   
                   <div className="text-gray-400">Rütbe:</div>
                   <div className="text-purple-300 font-medium">{userData?.miningStats?.rank || "Çaylak"}</div>

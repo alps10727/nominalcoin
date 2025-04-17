@@ -1,23 +1,56 @@
-// Re-export everything from the refactored modules
-// This maintains backward compatibility with existing code
 
-import { QueryCacheManager } from "@/services/db";
-export { loadUserData, saveUserData, clearUserData } from './storageOperations';
-export { getNextUserId } from './userIdGenerator';
-export type { UserData } from '../types/storage'; // Make sure we're exporting the same UserData
+// User data types
+export interface UserData {
+  balance: number;
+  miningRate: number;
+  lastSaved?: number;
+  userId?: string;
+  miningActive?: boolean;
+  miningTime?: number;
+  miningPeriod?: number;
+  poolMembership?: {
+    currentPool?: string;
+  };
+}
 
-// Add optimized storage helpers
-export const clearStorageCache = () => {
+const LOCAL_STORAGE_KEY = 'fcMinerUserData';
+
+// Load user data from localStorage
+export function loadUserData(): UserData | null {
   try {
-    // Clear query cache
-    QueryCacheManager.invalidate();
-    console.log("Storage cache cleared successfully");
-    return true;
+    const data = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (data) {
+      return JSON.parse(data);
+    }
+    return null;
   } catch (error) {
-    console.error("Error clearing storage cache:", error);
-    return false;
+    console.error("Error loading user data from localStorage:", error);
+    return null;
   }
-};
+}
+
+// Save user data to localStorage
+export function saveUserData(userData: UserData): void {
+  try {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(userData));
+  } catch (error) {
+    console.error("Error saving user data to localStorage:", error);
+  }
+}
+
+// Clear user data from localStorage
+export function clearUserData(): void {
+  try {
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+  } catch (error) {
+    console.error("Error clearing user data from localStorage:", error);
+  }
+}
+
+// Get next user ID (used for generating random IDs)
+export function getNextUserId(): string {
+  return `user-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+}
 
 // Export enhanced storage functions for high-scale operations
 export const optimizedStorage = {
@@ -30,39 +63,6 @@ export const optimizedStorage = {
       return true;
     } catch (error) {
       console.error(`Error setting localStorage key ${key}:`, error);
-      
-      // Is this a quota error? (likely out of space)
-      if (error instanceof DOMException && error.code === 22) {
-        // Try to clear some space by removing old items
-        const keysToRemove = [];
-        
-        // Find old or non-essential items to remove
-        for (let i = 0; i < localStorage.length; i++) {
-          const storageKey = localStorage.key(i);
-          if (storageKey && !storageKey.startsWith('fcMinerUserData')) {
-            keysToRemove.push(storageKey);
-          }
-        }
-        
-        // Remove up to 5 items to make space
-        const itemsToRemove = keysToRemove.slice(0, 5);
-        itemsToRemove.forEach(itemKey => {
-          try {
-            localStorage.removeItem(itemKey);
-          } catch (e) {
-            // Ignore
-          }
-        });
-        
-        // Try again
-        try {
-          localStorage.setItem(key, JSON.stringify(value));
-          return true;
-        } catch (retryError) {
-          console.error("Failed to set item after clearing space:", retryError);
-        }
-      }
-      
       return false;
     }
   },
