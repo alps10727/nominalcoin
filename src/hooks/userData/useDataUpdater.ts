@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { User } from "firebase/auth";
+import { User } from "@supabase/supabase-js"; // Changed from firebase/auth to supabase
 import { UserData } from "@/utils/storage";
 import { debugLog } from "@/utils/debugUtils";
 import { updateUserDataWithStatus } from "@/utils/userDataUpdater";
@@ -27,7 +27,7 @@ export function useDataUpdater(
       
       // Use the extracted utility function to handle the update
       const { status, updatedData } = await updateUserDataWithStatus(
-        currentUser.uid, 
+        currentUser.id, // Changed from uid to id
         userData, 
         data
       );

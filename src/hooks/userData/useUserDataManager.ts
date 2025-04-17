@@ -1,5 +1,5 @@
 
-import { User } from "firebase/auth";
+import { User } from "@supabase/supabase-js"; // Changed from firebase/auth to supabase
 import { UserData } from "@/utils/storage";
 import { useDataUpdater } from "./useDataUpdater";
 
