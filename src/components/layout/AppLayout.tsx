@@ -37,7 +37,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
                   height: Math.random() < 0.85 ? '1px' : Math.random() < 0.97 ? '2px' : '3px',
                   top: `${Math.random() * 100}%`,
                   left: `${Math.random() * 100}%`,
-                  opacity: Math.random() * 0.7 + 0.3, // Increased min opacity
+                  opacity: Math.random() * 0.7 + 0.3, 
                   animationDuration: `${Math.random() * 5 + 2}s`,
                   animationDelay: `${Math.random() * 5}s`,
                 }}
