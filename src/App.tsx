@@ -1,6 +1,7 @@
 
 import { Toaster } from "sonner";
 import { SupabaseAuthProvider } from "./contexts/SupabaseAuthContext";
+import { AuthProvider } from "./contexts/AuthContext"; // Add the old AuthProvider temporarily
 import AppRoutes from "./components/routing/AppRoutes";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
@@ -22,12 +23,14 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <SupabaseAuthProvider>
-          <ThemeProvider>
-            <LanguageProvider>
-              <Toaster closeButton richColors position="top-center" />
-              <AppRoutes />
-            </LanguageProvider>
-          </ThemeProvider>
+          <AuthProvider>
+            <ThemeProvider>
+              <LanguageProvider>
+                <Toaster closeButton richColors position="top-center" />
+                <AppRoutes />
+              </LanguageProvider>
+            </ThemeProvider>
+          </AuthProvider>
         </SupabaseAuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
