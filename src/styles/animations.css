@@ -1,85 +1,4 @@
 
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes pulse-glow {
-  0%, 100% {
-    opacity: 0.5;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.05);
-  }
-}
-
-@keyframes star-twinkle {
-  0%, 100% {
-    opacity: 0.2;
-  }
-  50% {
-    opacity: 0.8;
-  }
-}
-
-@keyframes circular-rotate {
-  from {
-    transform: rotate(0deg) translateX(60px) rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg) translateX(60px) rotate(-360deg);
-  }
-}
-
-@keyframes reverse-circular-rotate {
-  from {
-    transform: rotate(0deg) translateX(40px) rotate(0deg);
-  }
-  to {
-    transform: rotate(-360deg) translateX(40px) rotate(360deg);
-  }
-}
-
-@keyframes float-data {
-  0% {
-    opacity: 0;
-    transform: translate(0, 0);
-  }
-  20% {
-    opacity: 1;
-  }
-  80% {
-    opacity: 0.7;
-  }
-  100% {
-    opacity: 0;
-    transform: translate(var(--tx, 0), -50px);
-  }
-}
-
-@keyframes data-stream {
-  0% {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
-  20% {
-    opacity: 0.8;
-  }
-  80% {
-    opacity: 0.8;
-  }
-  100% {
-    transform: translateX(200%);
-    opacity: 0;
-  }
-}
-
 @keyframes nebula-shift {
   0% {
     background-position: 0% 50%;
@@ -92,29 +11,85 @@
   }
 }
 
-@keyframes cosmic-pulse {
+@keyframes float {
   0%, 100% {
-    transform: scale(0.95);
-    opacity: 0.6;
+    transform: translateY(0);
   }
   50% {
-    transform: scale(1.05);
-    opacity: 1;
+    transform: translateY(-10px);
   }
 }
 
-@keyframes particle-trace {
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes reverse-spin {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes cosmic-pulse {
   0% {
-    opacity: 0;
-    transform: scale(0.5);
+    opacity: 0.8;
+    transform: scale(0.97);
   }
   50% {
     opacity: 1;
-    transform: scale(1);
+    transform: scale(1.03);
+  }
+  100% {
+    opacity: 0.8;
+    transform: scale(0.97);
+  }
+}
+
+@keyframes data-stream {
+  0% {
+    opacity: 0;
+    transform: translate(-100%, 0);
+  }
+  50% {
+    opacity: 0.5;
   }
   100% {
     opacity: 0;
-    transform: scale(0.5) translate(var(--tx, 10px), -20px);
+    transform: translate(100%, 0);
+  }
+}
+
+@keyframes float-data {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+  20% {
+    opacity: 0.7;
+  }
+  80% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--tx, -20px), var(--ty, -20px));
   }
 }
 
@@ -130,73 +105,71 @@
   }
 }
 
-@keyframes twinkle {
-  0%, 100% {
-    opacity: 0.2;
-    transform: scale(0.8);
+@keyframes ping-slow {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
   }
-  50% {
-    opacity: 1;
-    transform: scale(1.2);
-  }
+}
+
+/* Animation utility classes */
+.animate-nebula-shift {
+  animation: nebula-shift 60s ease infinite;
 }
 
 .animate-float {
-  animation: float 3s ease-in-out infinite;
+  animation: float 6s ease-in-out infinite;
 }
 
-.animate-pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
 }
 
-.animate-star-twinkle {
-  animation: star-twinkle 3s ease-in-out infinite;
+.animate-spin-slow {
+  animation: spin-slow 10s linear infinite;
 }
 
-.animate-circular-rotate {
-  animation: circular-rotate 10s linear infinite;
-}
-
-.animate-reverse-circular-rotate {
-  animation: reverse-circular-rotate 8s linear infinite;
-}
-
-.animate-float-data {
-  animation: float-data 4s ease-out forwards;
-}
-
-.animate-data-stream {
-  animation: data-stream 4s linear infinite;
-}
-
-.animate-nebula-shift {
-  animation: nebula-shift 15s ease infinite;
+.animate-reverse-spin {
+  animation: reverse-spin 15s linear infinite;
 }
 
 .animate-cosmic-pulse {
-  animation: cosmic-pulse 2s ease-in-out infinite;
+  animation: cosmic-pulse 3s ease-in-out infinite;
 }
 
-.animate-particle-trace {
-  animation: particle-trace 2s linear forwards;
+.animate-data-stream {
+  animation: data-stream 3s ease-out infinite;
+}
+
+.animate-float-data {
+  animation: float-data 3s ease-out forwards;
 }
 
 .animate-gradient-x {
-  animation: gradient-x 3s ease infinite;
+  animation: gradient-x 15s ease infinite;
 }
 
-.animate-twinkle {
-  animation: twinkle 4s ease-in-out infinite;
+.animate-ping-slow {
+  animation: ping-slow 3s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
 .bg-size-200 {
   background-size: 200% 200%;
 }
 
-.bg-noise-pattern {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' viewBox='0 0 4 4'%3E%3Cpath fill='%239C92AC' fill-opacity='0.4' d='M1 3h1v1H1V3zm2-2h1v1H3V1z'%3E%3C/path%3E%3C/svg%3E");
+.button-shimmer {
+  animation: data-stream 3s linear infinite;
+  background-size: 200% 100%;
 }
 
-.bg-grid-pattern {
-  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+.perspective-800 {
+  perspective: 800px;
+}
+
+.shadow-glow {
+  box-shadow: 0 0 15px 0 rgba(139, 92, 246, 0.3);
+}
+
+.shadow-deep-glow {
+  box-shadow: 0 0 25px 5px rgba(139, 92, 246, 0.15);
 }

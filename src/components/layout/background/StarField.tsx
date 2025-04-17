@@ -3,19 +3,52 @@ import React from "react";
 
 export const StarField = () => {
   return (
-    <div className="absolute inset-0 overflow-hidden">
-      {Array.from({ length: 250 }).map((_, i) => (
+    <div className="absolute inset-0">
+      {/* Small stars */}
+      {Array.from({ length: 80 }).map((_, i) => (
         <div
-          key={i}
-          className="absolute bg-white rounded-full animate-star-twinkle"
+          key={`star-sm-${i}`}
+          className="absolute rounded-full bg-white opacity-60 animate-pulse-slow"
           style={{
-            width: Math.random() < 0.85 ? '1px' : Math.random() < 0.97 ? '2px' : '3px',
-            height: Math.random() < 0.85 ? '1px' : Math.random() < 0.97 ? '2px' : '3px',
+            width: '1px',
+            height: '1px',
             top: `${Math.random() * 100}%`,
             left: `${Math.random() * 100}%`,
-            opacity: Math.random() * 0.7 + 0.3, 
-            animationDuration: `${Math.random() * 5 + 2}s`,
-            animationDelay: `${Math.random() * 5}s`,
+            animationDuration: `${3 + Math.random() * 5}s`,
+            animationDelay: `${Math.random() * 5}s`
+          }}
+        />
+      ))}
+      
+      {/* Medium stars */}
+      {Array.from({ length: 40 }).map((_, i) => (
+        <div
+          key={`star-md-${i}`}
+          className="absolute rounded-full bg-white opacity-70 animate-pulse-slow"
+          style={{
+            width: '2px',
+            height: '2px',
+            top: `${Math.random() * 100}%`,
+            left: `${Math.random() * 100}%`,
+            animationDuration: `${4 + Math.random() * 6}s`,
+            animationDelay: `${Math.random() * 5}s`
+          }}
+        />
+      ))}
+      
+      {/* Large bright stars */}
+      {Array.from({ length: 15 }).map((_, i) => (
+        <div
+          key={`star-lg-${i}`}
+          className="absolute rounded-full bg-white opacity-90 animate-pulse-slow"
+          style={{
+            width: '3px',
+            height: '3px',
+            boxShadow: '0 0 4px 1px rgba(255, 255, 255, 0.4)',
+            top: `${Math.random() * 100}%`,
+            left: `${Math.random() * 100}%`,
+            animationDuration: `${5 + Math.random() * 7}s`,
+            animationDelay: `${Math.random() * 5}s`
           }}
         />
       ))}

@@ -12,7 +12,7 @@ import BalanceCard from "@/components/dashboard/BalanceCard";
 import MiningCard from "@/components/dashboard/MiningCard";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
 import MiningRateCard from "@/components/dashboard/MiningRateCard";
-import MiningRateDisplay from "@/components/mining/MiningRateDisplay"; // Yeni eklenen bileşen
+import MiningRateDisplay from "@/components/mining/MiningRateDisplay"; 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton"; 
 import { toast } from "sonner";
@@ -111,7 +111,7 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col relative pb-20">
       {showOfflineIndicator && (
-        <div className="bg-orange-500/80 text-white text-center text-sm py-1.5 px-2 shadow-sm">
+        <div className="bg-orange-500/80 text-white text-center text-xs py-1.5 px-2 shadow-sm">
           Çevrimdışı moddasınız. Senkronizasyon internet bağlantısıyla yeniden sağlanacak.
         </div>
       )}
@@ -119,8 +119,10 @@ const Index = () => {
       {/* Ana içerik */}
       <main className={`flex-1 ${isMobile ? 'px-4 py-4' : 'px-6 py-6'} max-w-3xl mx-auto w-full relative z-10`}>
         {/* Karşılama bölümü */}
-        <div className="mt-2 mb-6">
-          <h1 className="text-2xl font-bold text-purple-300">NOMINAL Coin Dashboard</h1>
+        <div className="mt-2 mb-6 text-center">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent">
+            NOMINAL Coin Dashboard
+          </h1>
           <p className="text-purple-300/80 text-sm mt-1">
             Welcome to the NC mining hub - Earn cryptocurrency by mining!
           </p>
