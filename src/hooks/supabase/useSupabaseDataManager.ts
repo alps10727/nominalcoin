@@ -71,10 +71,10 @@ export function useSupabaseDataManager(userId: string | undefined) {
     
     try {
       // First, update local storage for instant feedback
-      const currentData = loadUserData();
+      const localData = loadUserData();
       
       // Ensure currentData is valid, if not create a default object with required fields
-      const baseData: UserData = currentData || {
+      const baseData: UserData = localData || {
         userId: userId,
         balance: 0,
         miningRate: 0.003,
