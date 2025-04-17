@@ -10,6 +10,7 @@ import { useOfflineManager } from "./useOfflineManager";
 import { usePeriodicSync } from "./usePeriodicSync";
 import { useCacheCleanup } from "./useCacheCleanup";
 import { UserData } from "@/types/storage";
+import { useFirebaseDataLoader } from "../user/useFirebaseDataLoader";
 
 export interface UserDataState {
   userData: UserData | null;
