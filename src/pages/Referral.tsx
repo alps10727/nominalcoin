@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { doc, getDoc } from "firebase/firestore";
@@ -26,7 +25,7 @@ const Referral = () => {
       setIsRefreshing(true);
       toast.loading("Referans bilgileri yükleniyor...");
       
-      const userDocRef = doc(db, "users", currentUser.id); // Changed from uid to id
+      const userDocRef = doc(db, "users", currentUser.id);
       const userDocSnap = await getDoc(userDocRef);
       
       if (userDocSnap.exists()) {
@@ -53,7 +52,7 @@ const Referral = () => {
   };
   
   useEffect(() => {
-    if (currentUser && currentUser.id) { // Changed from uid to id
+    if (currentUser && currentUser.id) {
       refreshUserData();
     }
   }, [currentUser]);

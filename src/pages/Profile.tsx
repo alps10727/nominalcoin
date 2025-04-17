@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -36,7 +35,7 @@ const Profile = () => {
       <h1 className="text-2xl font-bold mb-6">Profil</h1>
       
       <div>
-        <p>Kullanıcı ID: {currentUser?.id}</p> {/* Changed from uid to id */}
+        <p>Kullanıcı ID: {currentUser?.id}</p>
         <p>Email: {currentUser?.email}</p>
         <Button onClick={handleLogout} disabled={loading}>
           Çıkış Yap
