@@ -6,6 +6,7 @@ import { useAuthActions } from "@/hooks/useAuthActions";
 import { useUserDataManager } from "@/hooks/userData";
 import { debugLog } from "@/utils/debugUtils";
 import { UserData } from "@/utils/storage";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AuthContextProps {
   currentUser: User | null;
@@ -56,6 +57,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUserData(initialUserData);
     }
   }, [initialUserData]);
+  
+  // Set up realtime subscription for profile changes
+  useEffect(() => {
+    if (!currentUser) return;
+
+    debugLog("AuthProvider", "Setting up realtime subscription for profile changes", { userId: currentUser.id });
+
+    // Enable realtime on the profiles table (if not already enabled)
+    const enableRealtimeQuery = async () => {
+      try {
+        await supabase.rpc('grant_realtime_access', { table_name: 'profiles' });
+      } catch (error) {
+        // This might fail if the function doesn't exist, which is fine
+      }
+    };
+    
+    enableRealtimeQuery();
+    
+    // Subscribe to changes on user's profile
+    const channel = supabase
+      .channel('profile-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${currentUser.id}`
+        },
+        (payload) => {
+          debugLog("AuthProvider", "Profile updated in realtime", payload.new);
+          if (payload.new && userData) {
+            // Update only specific fields from payload to preserve the rest of userData
+            const updatedData: UserData = {
+              ...userData,
+              balance: payload.new.balance || userData.balance,
+              miningRate: payload.new.mining_rate || userData.miningRate,
+              referralCount: payload.new.referral_count || userData.referralCount,
+              referrals: payload.new.referrals || userData.referrals,
+              invitedBy: payload.new.invited_by || userData.invitedBy
+            };
+            
+            setUserData(updatedData);
+          }
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      debugLog("AuthProvider", "Cleaning up realtime subscription");
+      supabase.removeChannel(channel);
+    };
+  }, [currentUser, userData]);
   
   // AuthActions için de try-catch ekledik
   const { login, logout, register } = (() => {
