@@ -6,20 +6,21 @@ import ErrorBoundary from "./ErrorBoundary";
 import PrivateRoute from "./PrivateRoute";
 import PageTransition from "./PageTransition";
 import { usePagePreloading } from "@/hooks/routing/usePagePreloading";
-import SignIn from "@/pages/SignIn"; 
-import Index from "@/pages/Index";
-import SignUp from "@/pages/SignUp";
+import SignIn from "@/pages/SignIn"; // Direct import
+import Index from "@/pages/Index"; // Direct import instead of lazy loading
+import SignUp from "@/pages/SignUp"; // Direct import instead of lazy loading
 
+// Lazy-loaded pages with reduced loading timeout
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const Profile = lazy(() => import("@/pages/Profile"));
 const History = lazy(() => import("@/pages/History"));
 const Tasks = lazy(() => import("@/pages/Tasks"));
-const MiningUpgrades = lazy(() => import("@/pages/MiningUpgrades"));
+const Team = lazy(() => import("@/pages/Team"));
 const Statistics = lazy(() => import("@/pages/Statistics"));
 const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
-const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 
 const AppRoutes = () => {
+  // Sayfaları önceden yükle
   usePagePreloading();
 
   return (
@@ -63,11 +64,11 @@ const AppRoutes = () => {
           </PrivateRoute>
         } />
         
-        <Route path="/mining/upgrades" element={
+        <Route path="/team" element={
           <PrivateRoute>
-            <Suspense fallback={<LoadingScreen message="Yükseltmeler yükleniyor..." />}>
+            <Suspense fallback={<LoadingScreen message="Takım bilgileri yükleniyor..." />}>
               <PageTransition>
-                <MiningUpgrades />
+                <Team />
               </PageTransition>
             </Suspense>
           </PrivateRoute>
@@ -99,14 +100,6 @@ const AppRoutes = () => {
           <Suspense fallback={<LoadingScreen message="Şifre sıfırlama sayfası yükleniyor..." />}>
             <PageTransition>
               <ForgotPassword />
-            </PageTransition>
-          </Suspense>
-        } />
-        
-        <Route path="/reset-password" element={
-          <Suspense fallback={<LoadingScreen message="Şifre sıfırlama sayfası yükleniyor..." />}>
-            <PageTransition>
-              <ResetPassword />
             </PageTransition>
           </Suspense>
         } />

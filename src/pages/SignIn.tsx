@@ -1,24 +1,30 @@
 
 import { useEffect } from "react";
-import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
 import SignInContainer from "@/components/auth/SignInContainer";
 import { Toaster } from "sonner";
-import { useNavigate } from "react-router-dom";
 
 const SignIn = () => {
-  const navigate = useNavigate();
-  const { user, isLoading } = useSupabaseAuth();
-
-  // Kullanıcı giriş yapmışsa ana sayfaya yönlendir
   useEffect(() => {
-    if (user && !isLoading) {
-      navigate("/");
-    }
-  }, [user, isLoading, navigate]);
+    console.log("SignIn component mounted");
+    return () => {
+      console.log("SignIn component unmounted");
+    };
+  }, []);
 
-  // Eğer sayfa yükleniyorsa, yükleme ekranını göster
-  if (isLoading) {
+  // Try to use auth context, but fallback gracefully if not ready
+  const auth = (() => {
+    try {
+      return useAuth();
+    } catch (err) {
+      console.error("Auth context error:", err);
+      return { loading: true };
+    }
+  })();
+  
+  // If page is loading, show loading screen
+  if (auth.loading) {
     return <LoadingScreen />;
   }
 

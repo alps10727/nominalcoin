@@ -39,19 +39,10 @@ export async function updateUserCoinBalance(userId: string, newBalance: number, 
     
     // Güncellenmiş veri nesnesi oluştur
     const updatedData: UserData = {
-      ...(userData || {
-        userId: userId,
-        miningRate: 0.003, 
-        lastSaved: Date.now(),
-        miningActive: false,
-        miningTime: 0,
-        miningPeriod: 21600,
-        miningSession: 0
-      }),
+      ...(userData || { miningRate: 0.003, lastSaved: Date.now() }),
       balance: updatedBalance,
       miningRate: userData?.miningRate || 0.003, // Mevcut miningRate'i koru
-      lastSaved: Date.now(),
-      userId: userId // Ensure userId is set
+      lastSaved: Date.now()
     };
     
     try {

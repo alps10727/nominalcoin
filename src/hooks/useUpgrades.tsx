@@ -4,7 +4,6 @@ import { Zap, TrendingUp, Coins, Bolt } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Upgrade } from "@/components/mining/UpgradeCard";
 import { useAuth } from "@/contexts/AuthContext";
-import { UserData } from "@/utils/storage";
 
 export function useUpgrades() {
   const { currentUser, userData, updateUserData } = useAuth();
@@ -64,17 +63,7 @@ export function useUpgrades() {
       setMiningRate(userData.miningRate || 0.003);
       
       if (userData.upgrades && userData.upgrades.length > 0) {
-        const userUpgrades = upgrades.map(upgrade => {
-          const foundUpgrade = userData.upgrades?.find(u => u.id.toString() === upgrade.id);
-          if (foundUpgrade) {
-            return {
-              ...upgrade,
-              level: foundUpgrade.level || 0
-            };
-          }
-          return upgrade;
-        });
-        setUpgrades(userUpgrades);
+        setUpgrades(userData.upgrades);
       } else if (userData.miningRate && userData.miningRate > 0.003) {
         // Eski veri formatı uyumluluğu için
         const currentRateLevel = Math.round((userData.miningRate - 0.003) / 0.005);
@@ -92,19 +81,10 @@ export function useUpgrades() {
 
   useEffect(() => {
     if (currentUser && userData) {
-      const upgradeDataArray = upgrades.map(upgrade => ({
-        id: parseInt(upgrade.id === "rate" ? "1" : 
-                   upgrade.id === "speed" ? "2" : 
-                   upgrade.id === "efficiency" ? "3" : 
-                   upgrade.id === "bonus" ? "4" : "0"),
-        level: upgrade.level,
-        rateBonus: upgrade.id === "rate" ? 0.005 * upgrade.level : 0
-      }));
-
       updateUserData({
         balance: balance,
         miningRate: miningRate,
-        upgrades: upgradeDataArray as UserData["upgrades"]
+        upgrades: upgrades
       });
     }
   }, [balance, miningRate, upgrades, currentUser, updateUserData, userData]);
@@ -149,20 +129,10 @@ export function useUpgrades() {
           const newMiningRate = 0.003 + newLevel * 0.005;
           setMiningRate(newMiningRate);
           
-          // Convert to expected format
-          const upgradeDataArray = newUpgrades.map(upgrade => ({
-            id: parseInt(upgrade.id === "rate" ? "1" : 
-                       upgrade.id === "speed" ? "2" : 
-                       upgrade.id === "efficiency" ? "3" : 
-                       upgrade.id === "bonus" ? "4" : "0"),
-            level: upgrade.level,
-            rateBonus: upgrade.id === "rate" ? 0.005 * upgrade.level : 0
-          }));
-          
           updateUserData({
             miningRate: newMiningRate,
             balance: newBalance,
-            upgrades: upgradeDataArray as UserData["upgrades"]
+            upgrades: newUpgrades
           });
         }
         

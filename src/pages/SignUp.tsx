@@ -1,32 +1,33 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SignUpForm from "../components/auth/SignUpForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
+import { registerUser } from "@/services/authService";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { toast } from "sonner";
-import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
+import { App } from '@capacitor/app';
 
 const SignUp = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const navigate = useNavigate();
-  const { register } = useSupabaseAuth();
 
-  // Monitor network status
-  useState(() => {
-    const handleOnline = () => setIsOffline(false);
-    const handleOffline = () => setIsOffline(true);
-    
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-    
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+  // Android back button handler
+  useEffect(() => {
+    const handleBackButton = () => {
+      // Prevent back button on registration page
+      return false;
     };
-  });
+
+    // Listen for back button events with Capacitor App plugin
+    App.addListener('backButton', handleBackButton);
+
+    // Remove listeners when component unmounts
+    return () => {
+      App.removeAllListeners();
+    };
+  }, []);
 
   const handleSignUp = async (name: string, email: string, password: string) => {
     try {
@@ -35,24 +36,15 @@ const SignUp = () => {
       
       debugLog("SignUp", "Starting registration", { name, email });
       
-      if (isOffline) {
-        setError("İnternet bağlantınız olmadan kayıt olamazsınız");
-        return;
-      }
-      
-      // Register the user with Supabase
-      const success = await register(email, password, {
+      // Register the user
+      const userCredential = await registerUser(email, password, {
         name,
         emailAddress: email
       });
 
-      if (success) {
-        // Registration successful, redirect to home page
-        toast.success("Hesabınız başarıyla oluşturuldu!");
-        navigate("/");
-      } else {
-        setError("Kayıt işlemi başarısız oldu");
-      }
+      // Registration successful, redirect to home page
+      toast.success("Hesabınız başarıyla oluşturuldu!");
+      navigate("/");
     } catch (error: any) {
       setError(error.message);
       errorLog("SignUp", "Registration error:", error);
@@ -73,8 +65,7 @@ const SignUp = () => {
         <CardContent>
           <SignUpForm 
             onSubmit={handleSignUp} 
-            loading={loading}
-            isOffline={isOffline} 
+            loading={loading} 
             error={error}
           />
         </CardContent>

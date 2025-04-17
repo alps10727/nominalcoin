@@ -3,7 +3,6 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
-import './styles/main.css'; // Ana CSS'yi eklediğimizden emin olalım
 
 // Uygulamayı daha güvenli bir şekilde başlatmak için try-catch ekleyelim
 try {

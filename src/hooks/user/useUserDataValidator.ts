@@ -46,27 +46,6 @@ export function useUserDataValidator() {
       validData.lastSaved = Date.now();
       errors.push("Invalid last saved timestamp");
     }
-    
-    // Ensure required mining fields
-    if (typeof validData.miningActive !== 'boolean') {
-      validData.miningActive = false;
-      errors.push("Invalid mining active state");
-    }
-    
-    if (typeof validData.miningTime !== 'number' || isNaN(validData.miningTime)) {
-      validData.miningTime = 0;
-      errors.push("Invalid mining time");
-    }
-    
-    if (typeof validData.miningPeriod !== 'number' || isNaN(validData.miningPeriod)) {
-      validData.miningPeriod = 21600;
-      errors.push("Invalid mining period");
-    }
-    
-    if (typeof validData.miningSession !== 'number' || isNaN(validData.miningSession)) {
-      validData.miningSession = 0;
-      errors.push("Invalid mining session");
-    }
 
     // Update validation errors
     if (errors.length > 0) {
@@ -85,10 +64,7 @@ export function useUserDataValidator() {
       balance: 0,
       miningRate: 0.003,
       lastSaved: Date.now(),
-      miningActive: false,
-      miningTime: 0,
-      miningPeriod: 21600,
-      miningSession: 0
+      miningActive: false
     };
   }, []);
 

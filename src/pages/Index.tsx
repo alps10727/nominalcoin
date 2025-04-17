@@ -4,7 +4,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useMiningData } from "@/hooks/useMiningData";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState, useRef, useMemo } from "react";
 
 // Imported components
@@ -12,11 +12,13 @@ import BalanceCard from "@/components/dashboard/BalanceCard";
 import MiningCard from "@/components/dashboard/MiningCard";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
 import MiningRateCard from "@/components/dashboard/MiningRateCard";
-import MiningRateDisplay from "@/components/mining/MiningRateDisplay"; 
+import MiningRateDisplay from "@/components/mining/MiningRateDisplay"; // Yeni eklenen bileşen
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton"; 
 import { toast } from "sonner";
+import { loadUserData } from "@/utils/storage";
 import { debugLog } from "@/utils/debugUtils";
+import { QueryCacheManager } from "@/services/optimizationService";
 
 const Index = () => {
   const {
@@ -33,22 +35,18 @@ const Index = () => {
   } = useMiningData();
   
   // Optimistik UI güncelleme için bakiye durumu
-  const [balance, setBalance] = useState<number>(0);
+  const [balance, setBalance] = useState<number>(() => {
+    const localData = loadUserData();
+    const initialBalance = localData?.balance || 0;
+    debugLog("Index", `Initial balance from localStorage: ${initialBalance}`);
+    return initialBalance;
+  });
   
   const isFirstRender = useRef(true);
   const storedBalanceRef = useRef(balance);
   
-  const { userData, isLoading: authLoading, isOffline: authOffline } = useSupabaseAuth();
-  const [isInitialized, setIsInitialized] = useState(false);
-  
-  // İlk yüklemede userData'dan balance değerini al
-  useEffect(() => {
-    if (userData?.balance !== undefined) {
-      setBalance(userData.balance);
-      storedBalanceRef.current = userData.balance;
-      setIsInitialized(true);
-    }
-  }, [userData]);
+  const { userData, loading: authLoading, isOffline: authOffline } = useAuth();
+  const [isInitialized, setIsInitialized] = useState(!!loadUserData());
   
   // Optimistik veri güncelleme - UI'ı anında güncellemek için
   useEffect(() => {
@@ -67,12 +65,12 @@ const Index = () => {
     }
   }, [miningBalance, miningLoading]);
   
-  // Supabase'den gelen veri senkronizasyonu
+  // Firebase'den gelen veri senkronizasyonu
   useEffect(() => {
     if (!authLoading && userData?.balance !== undefined) {
       debugLog("Index", `Checking auth balance: ${userData.balance}, Current: ${storedBalanceRef.current}`);
       
-      // Supabase verisinde daha yüksek bakiye varsa güncelle
+      // Firebase verisinde daha yüksek bakiye varsa güncelle
       if (userData.balance > storedBalanceRef.current) {
         debugLog("Index", `Using higher balance from auth: ${userData.balance}`);
         setBalance(userData.balance);
@@ -80,6 +78,23 @@ const Index = () => {
       }
     }
   }, [userData, authLoading]);
+  
+  // Periyodik önbellek temizleme
+  useEffect(() => {
+    const cleanupInterval = setInterval(() => {
+      // Eskimiş önbellek girdilerini temizle
+      QueryCacheManager.manageSize(500);
+    }, 300000); // 5 dakikada bir
+    
+    return () => clearInterval(cleanupInterval);
+  }, []);
+  
+  // Yükleme durumunda gecikmeyi azalt
+  useEffect(() => {
+    if (!isInitialized) {
+      setIsInitialized(true);
+    }
+  }, [isInitialized]);
 
   const isMobile = useIsMobile();
   const { t } = useLanguage();
@@ -111,7 +126,7 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col relative pb-20">
       {showOfflineIndicator && (
-        <div className="bg-orange-500/80 text-white text-center text-xs py-1.5 px-2 shadow-sm">
+        <div className="bg-orange-500/80 text-white text-center text-sm py-1.5 px-2 shadow-sm">
           Çevrimdışı moddasınız. Senkronizasyon internet bağlantısıyla yeniden sağlanacak.
         </div>
       )}
@@ -119,10 +134,8 @@ const Index = () => {
       {/* Ana içerik */}
       <main className={`flex-1 ${isMobile ? 'px-4 py-4' : 'px-6 py-6'} max-w-3xl mx-auto w-full relative z-10`}>
         {/* Karşılama bölümü */}
-        <div className="mt-2 mb-6 text-center">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent">
-            NOMINAL Coin Dashboard
-          </h1>
+        <div className="mt-2 mb-6">
+          <h1 className="text-2xl font-bold text-purple-300">NOMINAL Coin Dashboard</h1>
           <p className="text-purple-300/80 text-sm mt-1">
             Welcome to the NC mining hub - Earn cryptocurrency by mining!
           </p>

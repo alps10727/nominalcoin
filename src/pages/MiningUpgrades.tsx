@@ -3,12 +3,12 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import UpgradesGrid from "@/components/mining/UpgradesGrid";
 import { useUpgrades } from "@/hooks/useUpgrades";
-import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext"; // Changed from useAuth
+import { useAuth } from "@/contexts/AuthContext";
 import { Zap } from "lucide-react";
 
 const MiningUpgrades = () => {
   const { upgrades, purchaseUpgrade } = useUpgrades();
-  const { userData } = useSupabaseAuth(); // Changed from useAuth
+  const { userData } = useAuth();
   const balance = userData?.balance || 0;
 
   return (

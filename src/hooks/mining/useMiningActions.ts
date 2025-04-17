@@ -1,7 +1,7 @@
 
 import { MiningState } from '@/types/mining';
 import { UserData } from '@/types/storage'; // Changed from @/utils/storage to @/types/storage
-import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext'; // Changed from useAuth
+import { useAuth } from '@/contexts/AuthContext';
 import { debugLog, errorLog } from '@/utils/debugUtils';
 import { toast } from 'sonner';
 
@@ -9,7 +9,7 @@ export function useMiningActions(
   state: MiningState, 
   setState: React.Dispatch<React.SetStateAction<MiningState>>
 ) {
-  const { userData, user: currentUser, updateUserData } = useSupabaseAuth(); // Changed from useAuth
+  const { userData, currentUser, updateUserData } = useAuth();
   
   const handleStartMining = async () => {
     if (state.isLoading) {
