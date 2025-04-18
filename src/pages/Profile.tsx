@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogOut, Save } from "lucide-react";
+import { LogOut, Save, RefreshCw } from "lucide-react";
 
 const Profile = () => {
   const [loading, setLoading] = useState(false);
@@ -18,18 +18,46 @@ const Profile = () => {
   const navigate = useNavigate();
   const { logout, currentUser, userData, updateUserData } = useAuth();
   
-  const [name, setName] = useState(userData?.name || "");
+  const [name, setName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  
+  // Update local state when userData changes
+  useEffect(() => {
+    if (userData) {
+      setName(userData.name || "");
+    }
+  }, [userData]);
 
   const handleLogout = async () => {
     setLoading(true);
     try {
       await logout();
+      
+      // Clear any cached user data
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('fcMinerUserData') || key === 'userReferralCode')) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      
       navigate("/sign-in");
       toast.success("Çıkış başarılı!");
     } catch (error) {
       setError("Çıkış yapılamadı: " + (error as Error).message);
       toast.error("Çıkış yapılamadı: " + (error as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleRefresh = async () => {
+    setLoading(true);
+    try {
+      // Force reload the current page
+      window.location.reload();
     } finally {
       setLoading(false);
     }
@@ -60,7 +88,17 @@ const Profile = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">Profil</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Profil</h1>
+        <Button 
+          variant="outline"
+          size="sm"
+          onClick={handleRefresh}
+        >
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Yenile
+        </Button>
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="bg-gradient-to-br from-navy-900/90 to-navy-950/90">

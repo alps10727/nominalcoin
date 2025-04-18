@@ -37,6 +37,25 @@ export function useAuthState(): AuthState {
   // Use auth observer hook
   const { currentUser, loading: authLoading, authInitialized } = useAuthObserver();
   
+  // Clear local storage when user logs out
+  useEffect(() => {
+    if (authInitialized && !currentUser) {
+      // Clear user-specific data from localStorage when logged out
+      const keysToRemove: string[] = [];
+      
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('fcMinerUserData')) {
+          keysToRemove.push(key);
+        }
+      }
+      
+      keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+      });
+    }
+  }, [currentUser, authInitialized]);
+  
   // Use user data loader hook (Supabase prioritized)
   const { userData, loading: dataLoading, dataSource } = useUserDataLoader(currentUser, authInitialized);
   

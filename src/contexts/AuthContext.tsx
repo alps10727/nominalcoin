@@ -49,14 +49,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { currentUser, userData: initialUserData, loading, isOffline, dataSource } = authState;
   
   const [userData, setUserData] = useState<UserData | null>(initialUserData);
+  const [userId, setUserId] = useState<string | null>(null);
   
+  // Update userData when initialUserData changes or user changes
   useEffect(() => {
+    if (currentUser?.id !== userId) {
+      // User has changed, reset userData
+      setUserId(currentUser?.id || null);
+      setUserData(null);
+    }
+    
     if (initialUserData) {
       debugLog("AuthProvider", "initialUserData değişti, userData güncelleniyor", initialUserData);
       setUserData(initialUserData);
     }
-  }, [initialUserData]);
+  }, [initialUserData, currentUser, userId]);
   
+  // Set up realtime subscription for profile changes
   useEffect(() => {
     if (!currentUser) return;
 
@@ -95,7 +104,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               miningRate: payload.new.mining_rate || userData.miningRate,
               referralCount: payload.new.referral_count || userData.referralCount,
               referrals: payload.new.referrals || userData.referrals,
-              invitedBy: payload.new.invited_by || userData.invitedBy
+              invitedBy: payload.new.invited_by || userData.invitedBy,
+              name: payload.new.name || userData.name
             };
             
             setUserData(updatedData);
@@ -110,7 +120,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [currentUser, userData]);
   
-  const { login, logout, register } = (() => {
+  const { login, logout: baseLogout, register } = (() => {
     try {
       return useAuthActions();
     } catch (err) {
@@ -122,6 +132,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       };
     }
   })();
+  
+  // Enhanced logout function that clears local user data
+  const logout = async () => {
+    // Clear user data before logging out
+    setUserData(null);
+    
+    try {
+      // Clear localStorage for this user
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('fcMinerUserData') || key === 'userReferralCode')) {
+          keysToRemove.push(key);
+        }
+      }
+      
+      keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+      });
+      
+      // Perform the actual logout
+      await baseLogout();
+    } catch (err) {
+      console.error("Logout error:", err);
+      throw err;
+    }
+  };
   
   const { updateUserData } = (() => {
     try {
@@ -138,7 +175,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     currentUser,
     loading,
     login,
-    logout,
+    logout, // Use our enhanced logout function
     register,
     userData,
     updateUserData,

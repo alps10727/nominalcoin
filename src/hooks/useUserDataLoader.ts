@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { User } from "@supabase/supabase-js";
 import { toast } from "sonner";
@@ -34,11 +35,33 @@ export function useUserDataLoader(
   const [dataSource, setDataSource] = useState<'supabase' | 'cache' | 'local' | null>(null);
   const [errorOccurred, setErrorOccurred] = useState(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
-  const [lastLoadedUserId, setLastLoadedUserId] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   const { loadLocalUserData, ensureReferralData, createDefaultUserData } = useLocalDataLoader();
   const { loadSupabaseUserData } = useSupabaseLoader();
   const { ensureValidUserData } = useUserDataValidator();
+
+  // Reset state when user changes
+  useEffect(() => {
+    if (currentUser?.id !== currentUserId) {
+      if (currentUserId) {
+        debugLog("useUserDataLoader", "User changed, clearing old data", 
+          { lastUser: currentUserId, newUser: currentUser?.id });
+      }
+      
+      // Clear data when user changes
+      setUserData(null);
+      setDataSource(null);
+      
+      // Update current user ID
+      setCurrentUserId(currentUser?.id || null);
+      
+      // Clear cache for previous user
+      if (currentUserId) {
+        QueryCacheManager.invalidate(new RegExp(`^userData_${currentUserId}`));
+      }
+    }
+  }, [currentUser, currentUserId]);
 
   // Main function to load user data
   const loadUserData = useCallback(async () => {
@@ -51,39 +74,20 @@ export function useUserDataLoader(
       return;
     }
 
-    // Clear data when user changes
-    if (lastLoadedUserId && lastLoadedUserId !== currentUser.id) {
-      debugLog("useUserDataLoader", "User changed, clearing data", 
-        { lastUser: lastLoadedUserId, newUser: currentUser.id });
-      clearUserData();
-      QueryCacheManager.invalidate(new RegExp(`^userData_${lastLoadedUserId}`));
-      setUserData(null);
-    }
-    
     // Save current user ID
-    setLastLoadedUserId(currentUser.id);
+    setCurrentUserId(currentUser.id);
 
     try {
-      // Load local data for current user
-      let localData = loadLocalUserData();
-      
-      // Check for different user
+      // Clear localStorage if we detect a user that's different from currentUser
+      const localData = loadLocalUserData();
       if (localData && localData.userId && localData.userId !== currentUser.id) {
         debugLog("useUserDataLoader", "Local data belongs to different user, clearing", 
           { storedId: localData.userId, currentId: currentUser.id });
         clearUserData();
-        localData = null;
       }
       
-      // Check and create referral code if needed
-      localData = ensureReferralData(localData, currentUser.id);
-      
-      if (localData) {
-        // Temporarily use local data for speed
-        setUserData(localData);
-        setDataSource('local');
-        debugLog("useUserDataLoader", "Loaded data from local storage:", localData);
-      }
+      // Start fresh - No local data
+      setLoading(true);
       
       try {
         // Try loading data from Supabase
@@ -93,76 +97,54 @@ export function useUserDataLoader(
           debugLog("useUserDataLoader", `Data loaded from ${source} source:`, supabaseData);
           
           if (supabaseData) {
-            // Compare local and Supabase data and do smart merge
-            // This will detect manipulated localStorage data
-            const mergedData = mergeUserData(localData, supabaseData);
-            const validatedData = ensureValidUserData(mergedData, currentUser.id);
+            // Ensure we have a valid referral code
+            const validatedData = ensureReferralData(supabaseData, currentUser.id);
+            const finalData = ensureValidUserData(validatedData, currentUser.id);
             
-            // Show notification if there's a discrepancy between Firebase and local storage
-            if (localData && Math.abs(localData.balance - supabaseData.balance) > 0.1) {
-              if (localData.balance > supabaseData.balance * 1.2) { // >20% difference is suspicious
-                toast.warning("Account balance discrepancy detected. Using correct value.");
-                debugLog("useUserDataLoader", "Suspicious balance difference detected", 
-                  { local: localData.balance, server: supabaseData.balance });
-              }
-            }
-            
-            setUserData(validatedData);
+            // Update state with fetched data
+            setUserData(finalData);
             setDataSource(source);
-            saveUserData(validatedData, currentUser.id);
+            saveUserData(finalData, currentUser.id);
+          } else {
+            // No data found in Supabase, create default data
+            const emptyData = createDefaultUserData(currentUser.id);
+            setUserData(emptyData);
+            saveUserData(emptyData, currentUser.id);
+            setDataSource('local');
           }
-        } else if (source === 'timeout' && !localData) {
-          // Couldn't access Supabase and no local data, create new data
+        } else if (source === 'timeout') {
+          // Couldn't access Supabase, create new data
           const emptyData = createDefaultUserData(currentUser.id);
           setUserData(emptyData);
           saveUserData(emptyData, currentUser.id);
           setDataSource('local');
           
-          toast.warning("Your user data was not found. A new profile has been created.");
+          toast.warning("Sunucu verilerinize erişilemedi. Yerel veriler kullanılıyor.");
         }
       } catch (error) {
         handleSupabaseConnectionError(error, "useUserDataLoader");
         
-        if (!localData) {
-          const emptyData = createDefaultUserData(currentUser.id);
-          setUserData(emptyData);
-          saveUserData(emptyData, currentUser.id);
-          setDataSource('local');
-        }
+        // Create default data if we couldn't get from Supabase
+        const emptyData = createDefaultUserData(currentUser.id);
+        setUserData(emptyData);
+        saveUserData(emptyData, currentUser.id);
+        setDataSource('local');
       }
       
       setLoading(false);
     } catch (error) {
       errorLog("useUserDataLoader", "Critical error loading user data:", error);
       
-      const emptyData = createDefaultUserData(currentUser?.id);
+      const emptyData = createDefaultUserData(currentUser?.id || "unknown");
       
       setUserData(emptyData);
       saveUserData(emptyData, currentUser?.id);
       setDataSource('local');
       setLoading(false);
       
-      toast.error("Error loading data. Please try again.");
+      toast.error("Kullanıcı verileri yüklenirken bir hata oluştu.");
     }
-  }, [currentUser, authInitialized, errorOccurred, loadAttempt, lastLoadedUserId]);
-
-  // Helper function to merge data
-  const mergeUserData = (localData: UserData | null, serverData: UserData): UserData => {
-    if (!localData) return serverData;
-    
-    // Use server data as base but prefer higher balance from local if it exists
-    const mergedData = { ...serverData };
-    
-    // If local balance is higher, keep it (unless it's suspiciously higher)
-    if (localData.balance > serverData.balance) {
-      // Check if the difference is reasonable (not more than 20%)
-      if (localData.balance <= serverData.balance * 1.2) {
-        mergedData.balance = localData.balance;
-      }
-    }
-    
-    return mergedData;
-  };
+  }, [currentUser, authInitialized, errorOccurred, loadAttempt]);
 
   // Start loading
   useEffect(() => {
@@ -175,27 +157,33 @@ export function useUserDataLoader(
     
     initializeData();
     
-    // Periodic revalidation (every 5 minutes)
+    // Periodic revalidation (every 5 minutes) - reduced frequency
     const refreshInterval = setInterval(() => {
-      if (currentUser) {
+      if (currentUser && navigator.onLine) {
         // Just update cache with server data in background
-        // This happens without freezing UI
         loadSupabaseUserData(currentUser.id)
           .then(({ data, source }) => {
+            if (!isActive) return;
+            
             if (data && (source === 'supabase' || source === 'cache')) {
-              // Update local data if server has higher balance
+              // Update with server data if different
               setUserData(current => {
                 if (!current) return data;
                 
-                if (data.balance > current.balance) {
-                  debugLog("useUserDataLoader", "Higher balance detected on server, updating", {
-                    currentBalance: current.balance,
-                    serverBalance: data.balance
-                  });
+                // Only update if there are meaningful differences
+                if (data.balance !== current.balance ||
+                    data.referralCount !== current.referralCount ||
+                    data.name !== current.name) {
+                  
+                  debugLog("useUserDataLoader", "Detected changes from server, updating local data");
                   
                   const updatedData = {
                     ...current,
-                    balance: data.balance
+                    balance: data.balance,
+                    referralCount: data.referralCount || current.referralCount,
+                    referrals: data.referrals || current.referrals,
+                    invitedBy: data.invitedBy || current.invitedBy,
+                    name: data.name || current.name
                   };
                   
                   saveUserData(updatedData, currentUser.id);
@@ -205,6 +193,9 @@ export function useUserDataLoader(
                 return current;
               });
             }
+          })
+          .catch(() => {
+            // Silent fail on background refresh
           });
       }
     }, 300000); // 5 minutes
