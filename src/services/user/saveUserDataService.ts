@@ -14,8 +14,29 @@ export async function saveUserDataToSupabase(userId: string, userData: UserData)
   }
 
   try {
+    debugLog("saveUserDataService", "Saving user data to Supabase:", { 
+      id: userId, 
+      balance: userData.balance,
+      miningActive: userData.miningActive,
+      referralCount: userData.referralCount
+    });
+
     // Get the referral code from userData or localStorage
     const referralCode = userData.referralCode || localStorage.getItem('userReferralCode') || "";
+    
+    // Mevcut veriyi önce kontrol et
+    const { data: existingData, error: fetchError } = await supabase
+      .from('profiles')
+      .select('balance')
+      .eq('id', userId)
+      .maybeSingle();
+    
+    if (!fetchError && existingData && existingData.balance > userData.balance) {
+      // Eğer sunucudaki bakiye daha yüksekse, sunucudaki değeri kullan
+      // Bu şekilde veriler senkron olmadığında bakiye kaybı olmaz
+      debugLog("saveUserDataService", `Using higher balance from server: ${existingData.balance} vs ${userData.balance}`);
+      userData.balance = existingData.balance;
+    }
     
     // Prepare data for Supabase profiles table
     const profileData = {
@@ -23,24 +44,27 @@ export async function saveUserDataToSupabase(userId: string, userData: UserData)
       name: userData.name || "",
       email: userData.emailAddress || "",
       balance: userData.balance,
-      mining_rate: userData.miningRate,
-      last_saved: userData.lastSaved,
-      mining_active: userData.miningActive,
+      mining_rate: userData.miningRate || 0.003,
+      last_saved: userData.lastSaved || Date.now(),
+      mining_active: userData.miningActive || false,
       mining_time: userData.miningTime,
-      mining_session: userData.miningSession,
-      mining_period: userData.miningPeriod,
+      mining_session: userData.miningSession || 0,
+      mining_period: userData.miningPeriod || 21600,
       mining_end_time: userData.miningEndTime,
       mining_start_time: userData.miningStartTime,
-      progress: userData.progress,
-      is_admin: userData.isAdmin,
+      progress: userData.progress || 0,
+      is_admin: userData.isAdmin || false,
       referral_code: referralCode,
       referral_count: userData.referralCount || 0,
       referrals: userData.referrals || [],
-      invited_by: userData.invitedBy
+      invited_by: userData.invitedBy || null
     };
     
     // Save to local storage first for offline support
-    saveUserDataToLocal(userData);
+    saveUserDataToLocal({
+      ...userData,
+      balance: profileData.balance // Güncellenmiş bakiye varsa onu da yerel depolamaya kaydet
+    });
     
     // Check if user already exists
     const { data: existingUser, error: checkError } = await supabase
@@ -49,7 +73,7 @@ export async function saveUserDataToSupabase(userId: string, userData: UserData)
       .eq('id', userId)
       .maybeSingle();
       
-    if (checkError) {
+    if (checkError && !checkError.message.includes('No rows found')) {
       errorLog("saveUserDataService", "Error checking existing user:", checkError);
       return false;
     }
@@ -80,7 +104,7 @@ export async function saveUserDataToSupabase(userId: string, userData: UserData)
       localStorage.setItem('userReferralCode', referralCode);
     }
     
-    debugLog("saveUserDataService", "User data saved successfully");
+    debugLog("saveUserDataService", "User data saved successfully with balance:", userData.balance);
     return true;
   } catch (error) {
     errorLog("saveUserDataService", "Error in saveUserDataToSupabase:", error);

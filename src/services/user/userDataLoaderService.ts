@@ -11,6 +11,21 @@ export async function loadUserDataFromSupabase(userId: string): Promise<UserData
   try {
     debugLog("userDataLoaderService", "Loading user data from Supabase:", userId);
     
+    // Önce yüksek öncelikle yerel depolama kontrolü yap
+    const localStorageKey = `fcMinerUserData_${userId}_v1.0`;
+    const localData = localStorage.getItem(localStorageKey);
+    let localUserData: UserData | null = null;
+    
+    if (localData) {
+      try {
+        localUserData = JSON.parse(localData);
+        debugLog("userDataLoaderService", "Found local data first:", { balance: localUserData?.balance });
+      } catch (e) {
+        errorLog("userDataLoaderService", "Error parsing local data:", e);
+      }
+    }
+    
+    // Supabase'den verileri yükle
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -19,11 +34,23 @@ export async function loadUserDataFromSupabase(userId: string): Promise<UserData
       
     if (error) {
       errorLog("userDataLoaderService", "Error loading user data:", error);
+      
+      // Hata durumunda yerel veriyi kullan
+      if (localUserData) {
+        debugLog("userDataLoaderService", "Using local data due to Supabase error");
+        return localUserData;
+      }
       return null;
     }
     
     if (!data) {
       debugLog("userDataLoaderService", "No user data found for:", userId);
+      
+      // Veri bulunamadıysa yerel veriyi kullan
+      if (localUserData) {
+        debugLog("userDataLoaderService", "Using local data because no server data found");
+        return localUserData;
+      }
       return null;
     }
     
@@ -75,15 +102,51 @@ export async function loadUserDataFromSupabase(userId: string): Promise<UserData
       invitedBy: data.invited_by
     };
     
+    // Bakiye karşılaştırması - yerel veri varsa ve bakiye daha yüksekse onu kullan
+    if (localUserData && typeof localUserData.balance === 'number' && 
+        localUserData.balance > userData.balance) {
+      debugLog("userDataLoaderService", 
+        `Using higher balance from local storage: ${localUserData.balance} vs ${userData.balance}`);
+      userData.balance = localUserData.balance;
+      
+      // Sunucuya da daha yüksek bakiyeyi gönder
+      try {
+        await supabase
+          .from('profiles')
+          .update({ balance: userData.balance })
+          .eq('id', userId);
+      } catch (err) {
+        errorLog("userDataLoaderService", "Error updating balance with higher local value:", err);
+      }
+    }
+    
     // Save the referral code to localStorage for persistence
     if (userData.referralCode) {
       localStorage.setItem('userReferralCode', userData.referralCode);
     }
     
-    debugLog("userDataLoaderService", "User data loaded successfully");
+    // Son kullanıcı verilerini yerel olarak da sakla
+    localStorage.setItem(localStorageKey, JSON.stringify(userData));
+    
+    debugLog("userDataLoaderService", "User data loaded successfully with balance:", userData.balance);
     return userData;
   } catch (error) {
     errorLog("userDataLoaderService", "Error in loadUserDataFromSupabase:", error);
+    
+    // Hata durumunda yerel verileri dene
+    try {
+      const localStorageKey = `fcMinerUserData_${userId}_v1.0`;
+      const localData = localStorage.getItem(localStorageKey);
+      
+      if (localData) {
+        const userData = JSON.parse(localData) as UserData;
+        debugLog("userDataLoaderService", "Fallback to local storage after error:", userData.balance);
+        return userData;
+      }
+    } catch (e) {
+      errorLog("userDataLoaderService", "Error parsing local fallback data:", e);
+    }
+    
     return null;
   }
 }

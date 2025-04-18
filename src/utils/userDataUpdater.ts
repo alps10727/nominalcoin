@@ -31,7 +31,9 @@ export async function updateUserDataWithStatus(
     const updatedData: UserData = {
       ...baseData,
       ...updates,
-      miningRate: 0.003, // Sabit mining rate: 0.003 - Zorla geçersiz kılıyoruz
+      // Sabit mining rate olarak tanımladığımız değeri korumak için miningRate'i özellikle burada set ediyoruz
+      // Bu sayede updates içerisinde farklı bir değer gelse bile her zaman 0.003 kullanılacak
+      miningRate: 0.003,
       lastSaved: Date.now()
     };
     
