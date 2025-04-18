@@ -15,7 +15,7 @@ export async function findReferralCode(code: string): Promise<{
 }> {
   try {
     // Normalize code to uppercase
-    const normalizedCode = code.toUpperCase();
+    const normalizedCode = code.trim().toUpperCase();
     
     debugLog("referralQueries", "Finding referral code", { code: normalizedCode });
     
@@ -28,13 +28,15 @@ export async function findReferralCode(code: string): Promise<{
       try {
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('id')
+          .select('id, referral_code')
           .eq('referral_code', testCode)
           .limit(1)
           .maybeSingle();
           
         if (profileError) {
-          debugLog("referralQueries", "Error querying profiles table:", profileError);
+          if (profileError.code !== 'PGRST116') { // Not a "not found" error
+            debugLog("referralQueries", "Error querying profiles table:", profileError);
+          }
           // Continue to next variation
         } else if (profileData) {
           debugLog("referralQueries", "Referral code found in profiles", {
@@ -82,8 +84,9 @@ export async function findReferralCode(code: string): Promise<{
       }
     }
     
-    // Method 3: Last resort - try Edge Function if available (most comprehensive)
+    // Method 3: Use Edge Function for access with admin privileges
     try {
+      debugLog("referralQueries", "Trying edge function for referral code lookup");
       // Direct RPC call to Edge Function - pass original code to let server handle variations
       const { data, error } = await supabase.functions.invoke('find_referral_code', {
         body: { code: normalizedCode },
@@ -101,7 +104,6 @@ export async function findReferralCode(code: string): Promise<{
       }
     } catch (rpcError) {
       errorLog("referralQueries", "Exception calling edge function:", rpcError);
-      // We've exhausted all methods
     }
     
     // If we get here, the code was not found after trying all methods and variations

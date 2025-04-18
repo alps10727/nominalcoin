@@ -23,14 +23,12 @@ export function validateReferralCodeFormat(code: string): boolean {
   }
   
   // Check if code contains only valid characters (A-Z, 0-9)
-  // First attempt with strict validation (no confusing chars)
-  if (/^[A-HJ-NP-Z2-9]+$/.test(trimmedCode)) {
+  // First attempt with strict validation (now include more characters)
+  if (/^[A-Z0-9]+$/.test(trimmedCode)) {
     return true;
   }
   
-  // More permissive fallback (allow all alphanumeric)
-  // This helps with existing codes in the system
-  return /^[A-Z0-9]+$/.test(trimmedCode);
+  return false;
 }
 
 /**
@@ -67,17 +65,9 @@ export function normalizeReferralCode(code: string | null): string | null {
 export function sanitizeReferralCodeInput(code: string): string {
   if (!code) return '';
   
-  // Remove spaces and convert to uppercase
-  const upperCode = code.trim().toUpperCase();
-  
-  // Replace potentially confusing characters with safe alternatives
-  // Prevent 0/O, 1/I/L, 8/B confusion
-  return upperCode
-    .replace(/0/g, 'O')  // 0 → O
-    .replace(/1/g, '7')  // 1 → 7 
-    .replace(/I/g, 'H')  // I → H
-    .replace(/L/g, 'F')  // L → F
-    .replace(/8/g, '6'); // 8 → 6
+  // Just uppercase and trim - don't replace characters anymore
+  // This was causing issues with valid codes being transformed into invalid ones
+  return code.trim().toUpperCase();
 }
 
 /**

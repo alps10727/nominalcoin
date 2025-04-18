@@ -47,7 +47,7 @@ serve(async (req) => {
     // Create Supabase client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''  // Use service role key for admin access
     )
     
     // Normalize code to uppercase and trim
@@ -60,67 +60,97 @@ serve(async (req) => {
 
     // First check in profiles table for persistent codes
     for (const testCode of possibleCodes) {
-      const { data: profileData, error: profileError } = await supabaseClient
-        .from('profiles')
-        .select('id, referral_code')
-        .eq('referral_code', testCode)
-        .limit(1)
-        .maybeSingle();
+      try {
+        const { data: profileData, error: profileError } = await supabaseClient
+          .from('profiles')
+          .select('id, referral_code')
+          .eq('referral_code', testCode)
+          .limit(1)
+          .maybeSingle();
+          
+        if (profileData) {
+          console.log(`Referral code found in profiles: ${JSON.stringify(profileData)}`);
+          
+          return new Response(
+            JSON.stringify({
+              exists: true,
+              owner: profileData.id,
+              used: false // Persistent codes are always valid
+            }),
+            { 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              status: 200 
+            }
+          )
+        }
         
-      if (profileData) {
-        console.log(`Referral code found in profiles: ${JSON.stringify(profileData)}`);
-        
-        return new Response(
-          JSON.stringify({
-            exists: true,
-            owner: profileData.id,
-            used: false // Persistent codes are always valid
-          }),
-          { 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            status: 200 
-          }
-        )
+        // Only log meaningful errors, not "not found"
+        if (profileError && profileError.code !== 'PGRST116') {
+          console.error(`Error querying profiles: ${JSON.stringify(profileError)}`);
+        } 
+      } catch (err) {
+        console.error(`Error checking profile for code ${testCode}:`, err);
       }
-      
-      // Only log meaningful errors, not "not found"
-      if (profileError && profileError.code !== 'PGRST116') {
-        console.error(`Error querying profiles: ${JSON.stringify(profileError)}`);
-      } 
     }
     
     console.log(`No profile found with referral code: ${normalizedCode}`);
     
     // If not found in profiles, check in referral_codes table (legacy)
     for (const testCode of possibleCodes) {
-      const { data: codeData, error: codeError } = await supabaseClient
-        .from('referral_codes')
-        .select('id, owner, used, used_by, code')
-        .eq('code', testCode)
-        .limit(1)
-        .maybeSingle();
+      try {
+        const { data: codeData, error: codeError } = await supabaseClient
+          .from('referral_codes')
+          .select('id, owner, used, used_by, code')
+          .eq('code', testCode)
+          .limit(1)
+          .maybeSingle();
 
-      if (codeData) {
-        console.log(`Referral code found in legacy table: ${JSON.stringify(codeData)}`);
+        if (codeData) {
+          console.log(`Referral code found in legacy table: ${JSON.stringify(codeData)}`);
+          
+          return new Response(
+            JSON.stringify({
+              exists: true,
+              owner: codeData.owner,
+              used: codeData.used,
+              used_by: codeData.used_by,
+              code: codeData.code
+            }),
+            { 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              status: 200 
+            }
+          )
+        }
         
+        if (codeError && codeError.code !== 'PGRST116') {
+          console.error(`Error querying referral_codes: ${JSON.stringify(codeError)}`);
+        }
+      } catch (err) {
+        console.error(`Error checking legacy table for code ${testCode}:`, err);
+      }
+    }
+
+    // Direct query with SQL as a last resort (in case RLS is blocking access)
+    try {
+      const { data: directQueryData, error: directQueryError } = await supabaseClient.rpc(
+        'find_referral_code_direct',
+        { code_to_find: normalizedCode }
+      );
+      
+      if (!directQueryError && directQueryData && directQueryData.exists) {
+        console.log(`Referral code found via direct query: ${JSON.stringify(directQueryData)}`);
         return new Response(
-          JSON.stringify({
-            exists: true,
-            owner: codeData.owner,
-            used: codeData.used,
-            used_by: codeData.used_by,
-            code: codeData.code
-          }),
+          JSON.stringify(directQueryData),
           { 
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 200 
           }
-        )
+        );
       }
-      
-      if (codeError && codeError.code !== 'PGRST116') {
-        console.error(`Error querying referral_codes: ${JSON.stringify(codeError)}`);
-      }
+    } catch (directErr) {
+      console.error('Error in direct SQL query:', directErr);
+      // Continue to the final response if this fails
     }
 
     // If we get here, code was not found in either location
