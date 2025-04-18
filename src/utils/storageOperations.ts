@@ -18,14 +18,19 @@ export function loadUserData(userId?: string): UserData | null {
         
         // Ensure we have valid numeric balance value
         if (typeof parsedData.balance !== 'number' || isNaN(parsedData.balance)) {
-          errorLog('storageOperations', 'Invalid balance value in stored data:', parsedData.balance);
+          // Consolidated error logging
+          errorLog(
+            'storageOperations', 
+            `Invalid balance value in stored data: ${parsedData.balance}`
+          );
           parsedData.balance = 0;
         }
         
         debugLog("storageOperations", `Successfully loaded data with balance: ${parsedData.balance}`);
         return parsedData;
       } catch (parseErr) {
-        errorLog('storageOperations', 'JSON parse hatası:', parseErr);
+        // Simplified error logging
+        errorLog('storageOperations', 'JSON parse error', parseErr);
         // If there's an error parsing, clean up the corrupt data
         localStorage.removeItem(getUserStorageKey(userId));
         return null;
@@ -67,12 +72,14 @@ export function loadUserData(userId?: string): UserData | null {
       }
     }
   } catch (err) {
-    errorLog('storageOperations', 'Error loading user data:', err);
+    // Simplified error logging
+    errorLog('storageOperations', 'Error loading user data', err);
+    
     // If there's an error parsing, clean up the corrupt data
     try {
       localStorage.removeItem(getUserStorageKey(userId));
     } catch (removeErr) {
-      errorLog('storageOperations', 'Corrupt data temizleme hatası:', removeErr);
+      errorLog('storageOperations', 'Corrupt data removal error', removeErr);
     }
   }
   // Return null if no data found - this ensures new users get default values
