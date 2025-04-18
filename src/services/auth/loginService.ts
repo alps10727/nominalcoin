@@ -7,8 +7,17 @@ import { toast } from "sonner";
 export async function loginUser(email: string, password: string): Promise<AuthResponse> {
   try {
     // First check if the user exists but might not be confirmed
+    // Changed from getUserByEmail to the correct method getUserById
     const { data: userData, error: userCheckError } = await supabase.auth.admin
-      .getUserByEmail(email)
+      .listUsers()
+      .then(response => {
+        const users = response.data.users || [];
+        const user = users.find(u => u.email === email);
+        return {
+          data: user || null,
+          error: user ? null : new Error('User not found')
+        };
+      })
       .catch(() => ({ data: null, error: null }));
       
     // Then attempt the login
