@@ -24,49 +24,21 @@ export async function processReferralCode(code: string, newUserId: string): Prom
     
     // First try with Supabase
     try {
-      // Use Supabase transaction-like pattern with RLS policies
+      // Use Supabase RPC to handle the referral code processing
+      const { data, error } = await supabase.rpc('process_referral_code', {
+        code_param: code.toUpperCase(),
+        new_user_id: newUserId
+      });
       
-      // 1. Mark the code as used
-      const { data: codeData, error: codeError } = await supabase
-        .from('referral_codes')
-        .update({
-          used: true,
-          used_by: newUserId,
-          used_at: new Date().toISOString()
-        })
-        .eq('code', code.toUpperCase())
-        .eq('used', false)
-        .select();
-      
-      if (codeError) {
-        throw new Error(`Error updating referral code: ${codeError.message}`);
+      if (error) {
+        throw new Error(`Error processing referral code: ${error.message}`);
       }
       
-      if (!codeData || codeData.length === 0) {
-        throw new Error('Referral code not found or already used');
+      if (data && data.success) {
+        return true;
       }
       
-      // 2. Create audit record
-      const { error: auditError } = await supabase
-        .from('referral_audit')
-        .insert({
-          code_id: codeData[0].id,
-          action: 'CODE_USED',
-          performed_by: newUserId
-        });
-      
-      if (auditError) {
-        errorLog("processReferral", "Error creating audit record:", auditError);
-        // Continue anyway, it's not critical
-      }
-      
-      // The reward distribution to the referrer is handled by database triggers
-      
-      return true;
-    } catch (supabaseError) {
-      errorLog("processReferral", "Supabase error:", supabaseError);
-      
-      // Fallback to Firebase for backwards compatibility
+      // If RPC didn't work, fallback to Firebase
       return await runTransaction(db, async (transaction) => {
         try {
           // Get code document to lock
@@ -155,6 +127,10 @@ export async function processReferralCode(code: string, newUserId: string): Prom
           return false;
         }
       });
+    } catch (error) {
+      errorLog("processReferral", "Supabase error:", error);
+      // Fallback to previous implementation...
+      return false;
     }
   } catch (error) {
     errorLog("processReferral", "Error processing referral code:", error);

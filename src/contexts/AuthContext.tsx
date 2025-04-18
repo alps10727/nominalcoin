@@ -64,16 +64,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     debugLog("AuthProvider", "Setting up realtime subscription for profile changes", { userId: currentUser.id });
 
-    // Enable realtime on the profiles table (if not already enabled)
-    const enableRealtimeQuery = async () => {
-      try {
-        await supabase.rpc('grant_realtime_access', { table_name: 'profiles' });
-      } catch (error) {
-        // This might fail if the function doesn't exist, which is fine
-      }
+    // Enable this table for realtime
+    const setupRealtime = async () => {
+      await supabase.rpc('enable_realtime_for_table', { table_name: 'profiles' }).catch(err => {
+        console.warn("Error enabling realtime:", err);
+      });
     };
     
-    enableRealtimeQuery();
+    setupRealtime();
     
     // Subscribe to changes on user's profile
     const channel = supabase
