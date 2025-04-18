@@ -16,7 +16,7 @@ const Profile = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { logout, currentUser, userData, updateUserData } = useAuth();
+  const { logout, currentUser, userData, updateUserData, isOffline } = useAuth();
   
   const [name, setName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -31,18 +31,22 @@ const Profile = () => {
   const handleLogout = async () => {
     setLoading(true);
     try {
-      await logout();
-      
-      // Clear any cached user data
+      // Clear any cached user data before logout
+      localStorage.removeItem('supabase.auth.token');
       const keysToRemove: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && (key.startsWith('fcMinerUserData') || key === 'userReferralCode')) {
+        if (key && (
+          key.startsWith('fcMinerUserData') || 
+          key === 'userReferralCode' ||
+          key.includes('supabase')
+        )) {
           keysToRemove.push(key);
         }
       }
       keysToRemove.forEach(key => localStorage.removeItem(key));
       
+      await logout();
       navigate("/sign-in");
       toast.success("Çıkış başarılı!");
     } catch (error) {
@@ -99,6 +103,13 @@ const Profile = () => {
           Yenile
         </Button>
       </div>
+      
+      {isOffline && (
+        <div className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 p-3 rounded-md mb-4 flex items-center">
+          <span className="inline-block w-2 h-2 bg-yellow-500 rounded-full mr-2 animate-pulse"></span>
+          Çevrimdışı mod - Sınırlı fonksiyonellik sunuluyor
+        </div>
+      )}
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="bg-gradient-to-br from-navy-900/90 to-navy-950/90">

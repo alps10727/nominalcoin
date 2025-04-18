@@ -18,13 +18,6 @@ export interface UserDataState {
 
 /**
  * Optimized data loading hook for millions of users
- * 
- * Features:
- * - Advanced caching
- * - Automatic retry
- * - Error isolation
- * - Smart synchronization
- * - Suspicious data detection
  */
 export function useUserDataLoader(
   currentUser: User | null,
@@ -43,25 +36,42 @@ export function useUserDataLoader(
 
   // Reset state when user changes
   useEffect(() => {
-    if (currentUser?.id !== currentUserId) {
+    if (authInitialized && currentUser?.id !== currentUserId) {
       if (currentUserId) {
         debugLog("useUserDataLoader", "User changed, clearing old data", 
           { lastUser: currentUserId, newUser: currentUser?.id });
+          
+        // Clear data when user changes
+        setUserData(null);
+        setDataSource(null);
+        
+        // Clear EVERYTHING in localStorage related to the previous user
+        const keysToRemove: string[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (
+            key.startsWith('fcMinerUserData') || 
+            key === 'userReferralCode' ||
+            key.includes('supabase.auth')
+          )) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach(key => localStorage.removeItem(key));
       }
-      
-      // Clear data when user changes
-      setUserData(null);
-      setDataSource(null);
       
       // Update current user ID
       setCurrentUserId(currentUser?.id || null);
+      
+      // Trigger reload of user data
+      setLoadAttempt(prev => prev + 1);
       
       // Clear cache for previous user
       if (currentUserId) {
         QueryCacheManager.invalidate(new RegExp(`^userData_${currentUserId}`));
       }
     }
-  }, [currentUser, currentUserId]);
+  }, [currentUser, currentUserId, authInitialized]);
 
   // Main function to load user data
   const loadUserData = useCallback(async () => {
@@ -83,7 +93,7 @@ export function useUserDataLoader(
       if (localData && localData.userId && localData.userId !== currentUser.id) {
         debugLog("useUserDataLoader", "Local data belongs to different user, clearing", 
           { storedId: localData.userId, currentId: currentUser.id });
-        clearUserData();
+        clearUserData(true); // Clear ALL user data
       }
       
       // Start fresh - No local data
@@ -204,7 +214,7 @@ export function useUserDataLoader(
       isActive = false;
       clearInterval(refreshInterval);
     };
-  }, [loadUserData, currentUser]);
+  }, [loadUserData, currentUser, loadAttempt]);
 
   return { userData, loading, dataSource };
 }

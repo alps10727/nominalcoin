@@ -37,24 +37,41 @@ export function useAuthState(): AuthState {
   // Use auth observer hook
   const { currentUser, loading: authLoading, authInitialized } = useAuthObserver();
   
-  // Clear local storage when user logs out
+  // Track previous user ID to detect changes
+  const [previousUserId, setPreviousUserId] = useState<string | null>(null);
+  
+  // Clear local storage when user changes or logs out
   useEffect(() => {
-    if (authInitialized && !currentUser) {
-      // Clear user-specific data from localStorage when logged out
-      const keysToRemove: string[] = [];
-      
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith('fcMinerUserData')) {
-          keysToRemove.push(key);
+    // Check if user has changed
+    if (authInitialized && previousUserId !== currentUser?.id) {
+      // Clear user-specific data if previous user existed and now we have a different user or no user
+      if (previousUserId && previousUserId !== currentUser?.id) {
+        debugLog("useAuthState", "User changed, clearing previous user data", 
+          { previous: previousUserId, current: currentUser?.id });
+        
+        // Clear user-specific data from localStorage when logged out or user changed
+        const keysToRemove: string[] = [];
+        
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (
+            key.startsWith('fcMinerUserData') || 
+            key === 'userReferralCode' ||
+            key.includes('supabase.auth')
+          )) {
+            keysToRemove.push(key);
+          }
         }
+        
+        keysToRemove.forEach(key => {
+          localStorage.removeItem(key);
+        });
       }
       
-      keysToRemove.forEach(key => {
-        localStorage.removeItem(key);
-      });
+      // Update our tracked user ID
+      setPreviousUserId(currentUser?.id || null);
     }
-  }, [currentUser, authInitialized]);
+  }, [currentUser, authInitialized, previousUserId]);
   
   // Use user data loader hook (Supabase prioritized)
   const { userData, loading: dataLoading, dataSource } = useUserDataLoader(currentUser, authInitialized);
@@ -72,4 +89,9 @@ export function useAuthState(): AuthState {
     isOffline,
     dataSource
   };
+}
+
+// Helper function for more consistent logging
+function debugLog(component: string, message: string, data?: any) {
+  console.info(`[${component}] ${message}`, data || '');
 }

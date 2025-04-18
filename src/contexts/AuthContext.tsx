@@ -17,7 +17,7 @@ interface AuthContextProps {
   userData: UserData | null;
   updateUserData: (data: Partial<UserData>) => Promise<void>;
   isOffline: boolean;
-  dataSource: 'supabase' | 'cache' | 'local' | null; // Updated to only include valid values
+  dataSource: 'supabase' | 'cache' | 'local' | null;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -57,6 +57,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // User has changed, reset userData
       setUserId(currentUser?.id || null);
       setUserData(null);
+      
+      // Clear any cached data for previous user
+      if (userId && userId !== currentUser?.id) {
+        debugLog("AuthProvider", "User changed, resetting user data cache", 
+          { previous: userId, current: currentUser?.id });
+          
+        // Clear localStorage for previous user
+        const keysToRemove: string[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (
+            key.startsWith('fcMinerUserData') || 
+            key === 'userReferralCode' ||
+            (key.includes('supabase.auth') && !currentUser) // Only clear auth if logging out
+          )) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+      }
     }
     
     if (initialUserData) {
@@ -143,7 +163,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const keysToRemove: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && (key.startsWith('fcMinerUserData') || key === 'userReferralCode')) {
+        if (key && (
+          key.startsWith('fcMinerUserData') || 
+          key === 'userReferralCode' ||
+          key.includes('supabase')
+        )) {
           keysToRemove.push(key);
         }
       }
@@ -154,6 +178,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Perform the actual logout
       await baseLogout();
+      
+      // Also force clear anything that might be leftover
+      localStorage.removeItem('supabase.auth.token');
     } catch (err) {
       console.error("Logout error:", err);
       throw err;
