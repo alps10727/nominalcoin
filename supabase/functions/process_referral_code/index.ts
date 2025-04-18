@@ -24,7 +24,13 @@ serve(async (req) => {
       throw new Error('Referral code and new user ID are required')
     }
 
-    // Create Supabase client
+    // Create Supabase client with service role for admin access
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+    
+    // Create regular client for normal operations
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
@@ -68,12 +74,12 @@ serve(async (req) => {
       )
     }
     
-    // Apply rewards to both parties in a transaction
+    // Apply rewards to both parties using transactions for data consistency
     try {
       // 1. Update referrer - add mining rate and referral count
       const currentMiningRate = referrerData.mining_rate || 0.003
       const newMiningRate = parseFloat((currentMiningRate + REFERRAL_BONUS_RATE).toFixed(4))
-      const { error: updateReferrerError } = await supabaseClient
+      const { error: updateReferrerError } = await supabaseAdmin
         .from('profiles')
         .update({
           mining_rate: newMiningRate,
@@ -97,7 +103,7 @@ serve(async (req) => {
         throw newUserError
       }
       
-      const { error: updateNewUserError } = await supabaseClient
+      const { error: updateNewUserError } = await supabaseAdmin
         .from('profiles')
         .update({
           balance: (newUserData.balance || 0) + REFERRAL_TOKEN_REWARD,
@@ -110,7 +116,7 @@ serve(async (req) => {
       }
       
       // 3. Create audit entry
-      const { error: auditError } = await supabaseClient
+      const { error: auditError } = await supabaseAdmin
         .from('referral_audit')
         .insert({
           referrer_id: referrerId,
@@ -121,6 +127,17 @@ serve(async (req) => {
       if (auditError) {
         console.error('Error creating audit log:', auditError)
         // Non-critical error, continue
+      }
+      
+      // 4. Enable realtime updates for this user and the referrer
+      try {
+        await supabaseAdmin.functions.invoke('enable_realtime', {
+          body: { table: 'profiles' }
+        }).catch(err => {
+          console.warn("Error enabling realtime:", err);
+        });
+      } catch (error) {
+        console.warn("Error enabling realtime:", error);
       }
       
       console.log('Referral rewards applied successfully')

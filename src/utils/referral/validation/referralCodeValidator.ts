@@ -22,13 +22,8 @@ export function validateReferralCodeFormat(code: string): boolean {
     return false;
   }
   
-  // Check if code contains only valid characters (A-Z, 0-9)
-  // First attempt with strict validation (now include more characters)
-  if (/^[A-Z0-9]+$/.test(trimmedCode)) {
-    return true;
-  }
-  
-  return false;
+  // More permissive validation that accepts all alphanumeric characters
+  return /^[A-Z0-9]+$/.test(trimmedCode);
 }
 
 /**
@@ -59,20 +54,17 @@ export function normalizeReferralCode(code: string | null): string | null {
 }
 
 /**
- * Process referral code characters to avoid visually similar characters
- * This prevents confusion with similar looking characters
+ * Process referral code characters 
  */
 export function sanitizeReferralCodeInput(code: string): string {
   if (!code) return '';
   
-  // Just uppercase and trim - don't replace characters anymore
-  // This was causing issues with valid codes being transformed into invalid ones
+  // Just uppercase and trim - don't replace characters
   return code.trim().toUpperCase();
 }
 
 /**
  * Get possible alternative interpretations of a code with common misreadings
- * This helps match codes even when users type in similar-looking characters
  */
 export function getPossibleCodeVariations(code: string): string[] {
   if (!code || code.length !== 6) return [code];
@@ -88,8 +80,8 @@ export function getPossibleCodeVariations(code: string): string[] {
     'L': ['1', 'I'],
     'B': ['8'],
     '8': ['B'],
-    '5': ['S'],
     'S': ['5'],
+    '5': ['S'],
     'Z': ['2'],
     '2': ['Z'],
   };

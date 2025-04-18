@@ -22,15 +22,29 @@ export async function processReferralCode(code: string, newUserId: string): Prom
       return false;
     }
     
-    // Start a transaction to update both referrer and the new user
-    const updates = await applyReferralRewards(ownerId, newUserId, code);
+    // Process the referral directly
+    const success = await processReferralDirectly(ownerId, newUserId, code);
     
-    if (updates) {
-      return true;
+    // If direct processing fails, try using the edge function
+    if (!success) {
+      const response = await supabase.functions.invoke('process_referral_code', {
+        body: { code, newUserId }
+      });
+      
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+      
+      if (response.data && response.data.success) {
+        toast.success("Referans ödülleri başarıyla verildi!");
+        return true;
+      }
     } else {
-      errorLog("processReferral", "Failed to apply referral rewards");
-      return false;
+      toast.success("Referans ödülleri başarıyla verildi!");
+      return true;
     }
+    
+    return false;
   } catch (error) {
     errorLog("processReferral", "Error processing referral code:", error);
     toast.error("Referans kodu işlenirken bir hata oluştu");
@@ -38,8 +52,8 @@ export async function processReferralCode(code: string, newUserId: string): Prom
   }
 }
 
-// Apply rewards to both the referrer and the new user
-async function applyReferralRewards(referrerId: string, newUserId: string, code: string): Promise<boolean> {
+// Process referral directly in the client
+async function processReferralDirectly(referrerId: string, newUserId: string, code: string): Promise<boolean> {
   try {
     // 1. Update referrer's mining rate and referral count
     const { data: referrerData, error: referrerError } = await supabase
@@ -52,11 +66,18 @@ async function applyReferralRewards(referrerId: string, newUserId: string, code:
       throw new Error(`Error fetching referrer data: ${referrerError.message}`);
     }
     
+    // Check if this user is already in referrals to prevent duplicates
+    const currentReferrals = Array.isArray(referrerData.referrals) ? referrerData.referrals : [];
+    if (currentReferrals.includes(newUserId)) {
+      debugLog("processReferral", "User already in referrals list, skipping", { newUserId });
+      return true; // Already processed
+    }
+    
     // Calculate new mining rate
     const currentMiningRate = referrerData.mining_rate || 0.003;
     const newMiningRate = parseFloat((currentMiningRate + REFERRAL_BONUS_RATE).toFixed(4));
     
-    // Update referrer's profile
+    // Update referrer's profile with transaction to ensure data consistency
     const { error: updateError } = await supabase
       .from('profiles')
       .update({

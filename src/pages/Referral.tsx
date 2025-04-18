@@ -72,6 +72,54 @@ const Referral = () => {
     getOrCreateReferralCode();
   }, [currentUser, userData?.referralCode]);
   
+  // Set up realtime subscription for profile changes
+  useEffect(() => {
+    if (!currentUser) return;
+    
+    // Enable realtime for profiles table
+    const setupRealtime = async () => {
+      try {
+        await supabase.functions.invoke('enable_realtime', {
+          body: { table: 'profiles' }
+        }).catch(err => {
+          console.warn("Error enabling realtime:", err);
+        });
+      } catch (error) {
+        console.warn("Error enabling realtime:", error);
+      }
+    };
+    
+    setupRealtime();
+    
+    // Subscribe to changes
+    const channel = supabase
+      .channel('referral-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${currentUser.id}`
+        },
+        (payload) => {
+          debugLog("Referral", "Profile updated in realtime", payload.new);
+          
+          if (payload.new) {
+            // Update local state with new data
+            if (payload.new.referral_count !== undefined || payload.new.referrals !== undefined) {
+              refreshUserData();
+            }
+          }
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentUser?.id]);
+  
   const refreshUserData = async () => {
     if (!currentUser) return;
     
@@ -81,7 +129,7 @@ const Referral = () => {
       
       const { data, error } = await supabase
         .from('profiles')
-        .select('referral_code, referral_count, referrals')
+        .select('referral_code, referral_count, referrals, balance, mining_rate')
         .eq('id', currentUser.id)
         .single();
       
@@ -90,7 +138,7 @@ const Referral = () => {
       }
       
       if (data) {
-        if (updateUserData) {
+        if (updateUserData && userData) {
           // Only update the code if one is returned and it's not empty
           const newCode = data.referral_code || referralCode;
           
@@ -105,7 +153,8 @@ const Referral = () => {
             referralCode: newCode,
             referralCount: data.referral_count || 0,
             referrals: data.referrals || [],
-            miningRate: userData?.miningRate || 0.003
+            balance: data.balance !== undefined ? data.balance : userData.balance,
+            miningRate: data.mining_rate !== undefined ? data.mining_rate : userData.miningRate
           });
           
           toast.success("Referans bilgileri güncellendi");
@@ -129,6 +178,18 @@ const Referral = () => {
       setIsLoading(false);
     }
   }, [currentUser?.id]);
+  
+  // Set up auto-refresh timer
+  useEffect(() => {
+    if (!currentUser) return;
+    
+    // Refresh every 30 seconds
+    const refreshInterval = setInterval(() => {
+      refreshUserData();
+    }, 30000);
+    
+    return () => clearInterval(refreshInterval);
+  }, [currentUser]);
   
   if (isLoading && !referralCode) {
     return (
