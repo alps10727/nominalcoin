@@ -4,8 +4,8 @@ import { User } from "@supabase/supabase-js";
 import { useAuthState } from "@/hooks/useAuthState";
 import { useAuthActions } from "@/hooks/useAuthActions";
 import { useUserDataManager } from "@/hooks/userData";
-import { debugLog } from "@/utils/debugUtils";
-import { UserData } from "@/utils/storage";
+import { debugLog, errorLog } from "@/utils/debugUtils";
+import { UserData, clearUserData } from "@/utils/storage";
 import { supabase } from "@/integrations/supabase/client";
 
 interface AuthContextProps {
@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         userData: null,
         loading: true,
         isOffline: true,
-        dataSource: null as ('supabase' | 'local' | null)
+        dataSource: null as ('supabase' | 'local' | 'cache' | null)
       };
     }
   })();
@@ -55,15 +55,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (currentUser?.id !== userId) {
       // User has changed, reset userData
+      debugLog("AuthProvider", "User changed, resetting user data cache", 
+        { previous: userId, current: currentUser?.id });
+      
       setUserId(currentUser?.id || null);
       setUserData(null);
       
       // Clear any cached data for previous user
       if (userId && userId !== currentUser?.id) {
-        debugLog("AuthProvider", "User changed, resetting user data cache", 
-          { previous: userId, current: currentUser?.id });
-          
         // Clear localStorage for previous user
+        clearUserData(true);
+        
+        // Additional cleanup for any missed items
         const keysToRemove: string[] = [];
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
@@ -91,6 +94,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     debugLog("AuthProvider", "Setting up realtime subscription for profile changes", { userId: currentUser.id });
 
+    // Enable realtime for profiles table if not already enabled
     const setupRealtime = async () => {
       try {
         await supabase.functions.invoke('enable_realtime', {
@@ -105,6 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     setupRealtime();
     
+    // Subscribe to profile changes for current user
     const channel = supabase
       .channel('profile-changes')
       .on(
@@ -155,25 +160,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
   // Enhanced logout function that clears local user data
   const logout = async () => {
+    debugLog("AuthContext", "Enhanced logout function called");
+    
     // Clear user data before logging out
     setUserData(null);
     
     try {
       // Clear localStorage for this user
+      clearUserData(true);
+      
+      // Additional cleanup for any missed items
       const keysToRemove: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key && (
           key.startsWith('fcMinerUserData') || 
           key === 'userReferralCode' ||
-          key.includes('supabase')
+          key.includes('supabase') ||
+          key.includes('sb-')
         )) {
           keysToRemove.push(key);
         }
       }
       
       keysToRemove.forEach(key => {
-        localStorage.removeItem(key);
+        try {
+          localStorage.removeItem(key);
+          debugLog("AuthContext", `Removed item: ${key}`);
+        } catch (e) {
+          // Ignore errors
+        }
       });
       
       // Perform the actual logout
@@ -181,8 +197,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Also force clear anything that might be leftover
       localStorage.removeItem('supabase.auth.token');
+      
     } catch (err) {
-      console.error("Logout error:", err);
+      errorLog("AuthContext", "Logout error:", err);
+      
+      // Even if there's an error, try to clear localStorage
+      try {
+        clearUserData(true);
+        localStorage.removeItem('supabase.auth.token');
+      } catch (e) {
+        // Ignore errors
+      }
+      
       throw err;
     }
   };

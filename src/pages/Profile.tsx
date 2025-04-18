@@ -10,6 +10,8 @@ import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LogOut, Save, RefreshCw } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { debugLog, errorLog } from "@/utils/debugUtils";
 
 const Profile = () => {
   const [loading, setLoading] = useState(false);
@@ -25,33 +27,55 @@ const Profile = () => {
   useEffect(() => {
     if (userData) {
       setName(userData.name || "");
+      debugLog("Profile", "userData updated:", userData);
     }
   }, [userData]);
 
   const handleLogout = async () => {
     setLoading(true);
     try {
-      // Clear any cached user data before logout
-      localStorage.removeItem('supabase.auth.token');
+      debugLog("Profile", "Logging out...");
+      
+      // Clear local storage first
       const keysToRemove: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key && (
           key.startsWith('fcMinerUserData') || 
           key === 'userReferralCode' ||
-          key.includes('supabase')
+          key.includes('supabase') ||
+          key.includes('sb-')
         )) {
           keysToRemove.push(key);
         }
       }
-      keysToRemove.forEach(key => localStorage.removeItem(key));
       
+      keysToRemove.forEach(key => {
+        try {
+          localStorage.removeItem(key);
+          debugLog("Profile", `Removed item: ${key}`);
+        } catch (e) {
+          // Ignore errors
+        }
+      });
+      
+      // Use the logout function from AuthContext
       await logout();
-      navigate("/sign-in");
+      navigate("/sign-in", { replace: true });
       toast.success("Çıkış başarılı!");
+      
     } catch (error) {
       setError("Çıkış yapılamadı: " + (error as Error).message);
       toast.error("Çıkış yapılamadı: " + (error as Error).message);
+      
+      // Force hard logout if normal logout fails
+      try {
+        debugLog("Profile", "Forcing hard logout...");
+        localStorage.clear(); // Clear everything as a last resort
+        window.location.href = "/sign-in"; // Hard redirect
+      } catch (e) {
+        errorLog("Profile", "Even hard logout failed:", e);
+      }
     } finally {
       setLoading(false);
     }
@@ -61,7 +85,12 @@ const Profile = () => {
     setLoading(true);
     try {
       // Force reload the current page
+      debugLog("Profile", "Refreshing page...");
+      await supabase.auth.refreshSession();
       window.location.reload();
+    } catch (error) {
+      toast.error("Yenilenirken hata oluştu");
+      errorLog("Profile", "Refresh error:", error);
     } finally {
       setLoading(false);
     }
@@ -75,12 +104,12 @@ const Profile = () => {
     try {
       await updateUserData({
         name,
-        // Diğer profil verileri burada güncellenebilir
       });
       
       toast.success("Profil başarıyla güncellendi");
     } catch (error) {
       toast.error("Profil güncellenirken bir hata oluştu");
+      errorLog("Profile", "Profile update error:", error);
     } finally {
       setIsSaving(false);
     }

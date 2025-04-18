@@ -54,67 +54,73 @@ serve(async (req) => {
     const normalizedCode = code.trim().toUpperCase();
     console.log(`Normalized code: ${normalizedCode}`);
 
+    // Generate possible code variations to handle common misreadings
+    const possibleCodes = generateCodeVariations(normalizedCode);
+    console.log(`Testing ${possibleCodes.length} possible code variations`);
+
     // First check in profiles table for persistent codes
-    const { data: profileData, error: profileError } = await supabaseClient
-      .from('profiles')
-      .select('id, referral_code')
-      .eq('referral_code', normalizedCode)
-      .limit(1)
-      .maybeSingle();
+    for (const testCode of possibleCodes) {
+      const { data: profileData, error: profileError } = await supabaseClient
+        .from('profiles')
+        .select('id, referral_code')
+        .eq('referral_code', testCode)
+        .limit(1)
+        .maybeSingle();
+        
+      if (profileData) {
+        console.log(`Referral code found in profiles: ${JSON.stringify(profileData)}`);
+        
+        return new Response(
+          JSON.stringify({
+            exists: true,
+            owner: profileData.id,
+            used: false // Persistent codes are always valid
+          }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200 
+          }
+        )
+      }
       
-    if (profileData) {
-      console.log(`Referral code found in profiles: ${JSON.stringify(profileData)}`);
-      
-      return new Response(
-        JSON.stringify({
-          exists: true,
-          owner: profileData.id,
-          used: false // Persistent codes are always valid
-        }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200 
-        }
-      )
+      // Only log meaningful errors, not "not found"
+      if (profileError && profileError.code !== 'PGRST116') {
+        console.error(`Error querying profiles: ${JSON.stringify(profileError)}`);
+      } 
     }
     
-    // More detailed logging for troubleshooting
-    if (profileError && profileError.code !== 'PGRST116') {
-      console.error(`Error querying profiles: ${JSON.stringify(profileError)}`);
-    } else {
-      console.log(`No profile found with referral code: ${normalizedCode}`);
-    }
+    console.log(`No profile found with referral code: ${normalizedCode}`);
     
     // If not found in profiles, check in referral_codes table (legacy)
-    const { data: codeData, error: codeError } = await supabaseClient
-      .from('referral_codes')
-      .select('id, owner, used, used_by, code')
-      .eq('code', normalizedCode)
-      .limit(1)
-      .maybeSingle();
+    for (const testCode of possibleCodes) {
+      const { data: codeData, error: codeError } = await supabaseClient
+        .from('referral_codes')
+        .select('id, owner, used, used_by, code')
+        .eq('code', testCode)
+        .limit(1)
+        .maybeSingle();
 
-    if (codeData) {
-      console.log(`Referral code found in legacy table: ${JSON.stringify(codeData)}`);
+      if (codeData) {
+        console.log(`Referral code found in legacy table: ${JSON.stringify(codeData)}`);
+        
+        return new Response(
+          JSON.stringify({
+            exists: true,
+            owner: codeData.owner,
+            used: codeData.used,
+            used_by: codeData.used_by,
+            code: codeData.code
+          }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200 
+          }
+        )
+      }
       
-      return new Response(
-        JSON.stringify({
-          exists: true,
-          owner: codeData.owner,
-          used: codeData.used,
-          used_by: codeData.used_by,
-          code: codeData.code
-        }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200 
-        }
-      )
-    }
-    
-    if (codeError && codeError.code !== 'PGRST116') {
-      console.error(`Error querying referral_codes: ${JSON.stringify(codeError)}`);
-    } else {
-      console.log(`No referral code found in legacy table for: ${normalizedCode}`);
+      if (codeError && codeError.code !== 'PGRST116') {
+        console.error(`Error querying referral_codes: ${JSON.stringify(codeError)}`);
+      }
     }
 
     // If we get here, code was not found in either location
@@ -137,3 +143,41 @@ serve(async (req) => {
     )
   }
 })
+
+// Helper function to generate code variations for common misreadings
+function generateCodeVariations(code: string): string[] {
+  if (!code || code.length !== 6) return [code];
+  
+  const variations: string[] = [code];
+  
+  // Map of visually similar characters
+  const similarChars: Record<string, string[]> = {
+    'O': ['0'],
+    '0': ['O'],
+    'I': ['1', 'L'],
+    '1': ['I', 'L'],
+    'L': ['1', 'I'],
+    'B': ['8'],
+    '8': ['B'],
+    '5': ['S'],
+    'S': ['5'],
+    'Z': ['2'],
+    '2': ['Z'],
+  };
+  
+  // Generate variations
+  for (let i = 0; i < code.length; i++) {
+    const char = code[i];
+    const similars = similarChars[char];
+    
+    if (similars) {
+      for (const similar of similars) {
+        variations.push(
+          code.substring(0, i) + similar + code.substring(i + 1)
+        );
+      }
+    }
+  }
+  
+  return [...new Set(variations)]; // Remove duplicates
+}
