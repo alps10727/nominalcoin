@@ -25,19 +25,36 @@ const SignUp = () => {
   
   const [isValidReferralCode, setIsValidReferralCode] = useState<boolean | null>(null);
   const [isValidating, setIsValidating] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   // Validate referral code when component mounts
   useEffect(() => {
     const validateInitialCode = async () => {
-      if (initialReferralCode && initialReferralCode.length === 6) {
+      if (initialReferralCode && initialReferralCode.length > 0) {
         try {
           setIsValidating(true);
-          const { valid } = await checkReferralCode(initialReferralCode);
+          setValidationError(null);
+          
+          // First check basic format to provide immediate feedback
+          if (!validateReferralCodeFormat(initialReferralCode)) {
+            setIsValidReferralCode(false);
+            setValidationError("Geçersiz referans kodu formatı");
+            toast.error("Geçersiz referans kodu formatı");
+            setIsValidating(false);
+            return;
+          }
+          
+          // Then check with backend
+          const { valid, error: validationError } = await checkReferralCode(initialReferralCode);
           setIsValidReferralCode(valid);
           
           if (!valid) {
-            debugLog("SignUp", "Invalid referral code detected", { code: initialReferralCode });
-            toast.error("Geçersiz referans kodu");
+            debugLog("SignUp", "Invalid referral code detected", { 
+              code: initialReferralCode, 
+              error: validationError 
+            });
+            setValidationError(validationError || "Geçersiz referans kodu");
+            toast.error(validationError || "Geçersiz referans kodu");
           } else {
             debugLog("SignUp", "Valid referral code detected", { code: initialReferralCode });
             toast.success("Geçerli referans kodu! Kayıt olduğunuzda 10 NC Token kazanacaksınız.");
@@ -45,6 +62,7 @@ const SignUp = () => {
         } catch (err) {
           errorLog("SignUp", "Error validating referral code:", err);
           setIsValidReferralCode(false);
+          setValidationError("Referans kodu doğrulanırken hata oluştu");
         } finally {
           setIsValidating(false);
         }
@@ -80,12 +98,19 @@ const SignUp = () => {
       
       // Validate referral code if provided
       let validReferral = true;
+      let validationError = null;
+      
       if (normalizedCode) {
-        const { valid } = await checkReferralCode(normalizedCode);
-        validReferral = valid;
+        const result = await checkReferralCode(normalizedCode);
+        validReferral = result.valid;
+        validationError = result.error;
         
-        if (!valid) {
-          toast.error("Geçersiz referans kodu. Kayıt işlemi referans kodu olmadan devam edecek.");
+        if (!validReferral) {
+          toast.error(validationError || "Geçersiz referans kodu. Kayıt işlemi referans kodu olmadan devam edecek.");
+          debugLog("SignUp", "Invalid referral code on signup attempt", { 
+            code: normalizedCode, 
+            error: validationError 
+          });
           normalizedCode = null;
         }
       }
@@ -133,7 +158,9 @@ const SignUp = () => {
             }`}>
               {isValidating && 'Referans kodu doğrulanıyor: '}
               {!isValidating && isValidReferralCode === true && 'Geçerli referans kodu (+10 NC Token): '}
-              {!isValidating && isValidReferralCode === false && 'Geçersiz referans kodu: '}
+              {!isValidating && isValidReferralCode === false && (
+                <>Geçersiz referans kodu: {validationError ? `(${validationError})` : ''}</>
+              )}
               {!isValidating && isValidReferralCode === null && 'Referans kodu: '}
               <span className="font-mono font-bold">{initialReferralCode}</span>
             </div>

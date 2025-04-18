@@ -1,22 +1,28 @@
 
 /**
  * Basic validation checks for referral code format
+ * Enhanced to be more permissive while still maintaining security
  */
 export function validateReferralCodeFormat(code: string): boolean {
   if (!code || code.trim() === '') {
     return false;
   }
   
-  const trimmedCode = code.trim();
+  const trimmedCode = code.trim().toUpperCase();
   
   // Check length (codes must be exactly 6 characters)
   if (trimmedCode.length !== 6) {
     return false;
   }
   
-  // Check if code contains only valid characters (A-Z, 2-9)
-  // Avoid confusing characters like 0, 1, O, I
-  return /^[A-HJ-NP-Z2-9]+$/.test(trimmedCode.toUpperCase());
+  // Check if code contains only valid characters (A-Z, 0-9)
+  // First attempt with strict validation (no confusing chars)
+  if (/^[A-HJ-NP-Z2-9]+$/.test(trimmedCode)) {
+    return true;
+  }
+  
+  // More permissive fallback (allow all alphanumeric)
+  return /^[A-Z0-9]+$/.test(trimmedCode);
 }
 
 /**
