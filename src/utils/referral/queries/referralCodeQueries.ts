@@ -15,7 +15,7 @@ export async function findReferralCode(code: string): Promise<{
     
     debugLog("referralQueries", "Finding referral code", { code: normalizedCode });
     
-    // Try Supabase first using RPC function to avoid type issues
+    // Try Supabase first using Edge Function to avoid type issues
     const { data, error } = await supabase.functions.invoke('find_referral_code', {
       body: { code: normalizedCode }
     });
