@@ -3,12 +3,20 @@
  * Basic validation checks for referral code format
  */
 export function validateReferralCodeFormat(code: string): boolean {
-  if (!code || code.length !== 6) {
+  if (!code || code.trim() === '') {
+    return false;
+  }
+  
+  const trimmedCode = code.trim();
+  
+  // Check length (typical codes are 6 characters, but allow up to 10 for flexibility)
+  if (trimmedCode.length < 3 || trimmedCode.length > 10) {
     return false;
   }
   
   // Check if code is alphanumeric (uppercase letters and numbers only)
-  return /^[A-Z0-9]{6}$/.test(code.toUpperCase());
+  // This is a more permissive validation to catch common issues while avoiding false negatives
+  return /^[A-Z0-9]+$/.test(trimmedCode.toUpperCase());
 }
 
 /**
@@ -26,7 +34,7 @@ export function validateSelfReferral(ownerId: string | undefined, currentUserId:
  * Check if format is valid and normalize
  */
 export function normalizeReferralCode(code: string | null): string | null {
-  if (!code) return null;
+  if (!code || code.trim() === '') return null;
   
   const normalized = code.trim().toUpperCase();
   

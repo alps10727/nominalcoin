@@ -20,24 +20,32 @@ const SignUp = () => {
   const [initialReferralCode, setInitialReferralCode] = useState<string>(() => {
     const params = new URLSearchParams(location.search);
     const code = params.get('ref') || '';
-    return code.toUpperCase(); // Normalize to uppercase
+    return code.toUpperCase().trim(); // Normalize to uppercase and trim
   });
   
   const [isValidReferralCode, setIsValidReferralCode] = useState<boolean | null>(null);
+  const [isValidating, setIsValidating] = useState(false);
 
   // Validate referral code when component mounts
   useEffect(() => {
     const validateInitialCode = async () => {
       if (initialReferralCode && validateReferralCodeFormat(initialReferralCode)) {
         try {
+          setIsValidating(true);
           const { valid } = await checkReferralCode(initialReferralCode);
           setIsValidReferralCode(valid);
           
           if (!valid) {
+            debugLog("SignUp", "Invalid referral code detected", { code: initialReferralCode });
             toast.error("Geçersiz referans kodu");
+          } else {
+            debugLog("SignUp", "Valid referral code detected", { code: initialReferralCode });
           }
         } catch (err) {
+          errorLog("SignUp", "Error validating referral code:", err);
           setIsValidReferralCode(false);
+        } finally {
+          setIsValidating(false);
         }
       }
     };
@@ -117,13 +125,15 @@ const SignUp = () => {
           </CardDescription>
           {initialReferralCode && (
             <div className={`mt-2 text-sm py-1 px-2 rounded-md ${
+              isValidating ? 'bg-gray-800/30 text-gray-300 animate-pulse' :
               isValidReferralCode === true ? 'bg-blue-900/30 text-blue-200' :
               isValidReferralCode === false ? 'bg-red-900/30 text-red-200' :
               'bg-gray-800/30 text-gray-300'
             }`}>
-              {isValidReferralCode === true && 'Geçerli referans kodu: '}
-              {isValidReferralCode === false && 'Geçersiz referans kodu: '}
-              {isValidReferralCode === null && 'Referans kodu doğrulanıyor: '}
+              {isValidating && 'Referans kodu doğrulanıyor: '}
+              {!isValidating && isValidReferralCode === true && 'Geçerli referans kodu: '}
+              {!isValidating && isValidReferralCode === false && 'Geçersiz referans kodu: '}
+              {!isValidating && isValidReferralCode === null && 'Referans kodu: '}
               {initialReferralCode}
             </div>
           )}
