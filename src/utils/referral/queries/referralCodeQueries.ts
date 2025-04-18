@@ -13,11 +13,11 @@ export async function findReferralCode(code: string): Promise<{
     
     debugLog("referralQueries", "Finding referral code", { code: normalizedCode });
     
-    // Try Supabase direct query first (more reliable than edge function)
+    // Referral codes are now stored directly in the profiles table
     const { data, error } = await supabase
-      .from('referral_codes')
-      .select('id, owner, used, used_by')
-      .eq('code', normalizedCode)
+      .from('profiles')
+      .select('id')
+      .eq('referral_code', normalizedCode)
       .limit(1)
       .single();
       
@@ -28,47 +28,20 @@ export async function findReferralCode(code: string): Promise<{
         return { exists: false };
       }
       
-      // If any other error, try edge function as fallback
       errorLog("referralQueries", "Error querying Supabase directly:", error);
-      
-      // Try Supabase Edge Function as fallback
-      const { data: edgeData, error: edgeError } = await supabase.functions.invoke('find_referral_code', {
-        body: { code: normalizedCode }
-      });
-      
-      if (edgeData) {
-        debugLog("referralQueries", "Referral code found in Supabase Edge Function", {
-          code: normalizedCode,
-          ownerId: edgeData.owner,
-          used: edgeData.used
-        });
-        
-        return { 
-          exists: true, 
-          ownerId: edgeData.owner,
-          used: edgeData.used 
-        };
-      }
-      
-      if (edgeError) {
-        errorLog("referralQueries", "Error querying Supabase Edge Function:", edgeError);
-        return { exists: false };
-      }
-      
       return { exists: false };
     }
     
     if (data) {
-      debugLog("referralQueries", "Referral code found in Supabase", {
+      debugLog("referralQueries", "Referral code found in profiles", {
         code: normalizedCode,
-        ownerId: data.owner,
-        used: data.used
+        ownerId: data.id
       });
       
       return { 
         exists: true, 
-        ownerId: data.owner,
-        used: data.used 
+        ownerId: data.id,
+        used: false // Referral codes are persistent and can be used multiple times
       };
     }
     

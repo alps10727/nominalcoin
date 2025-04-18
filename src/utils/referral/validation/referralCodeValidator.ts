@@ -9,14 +9,14 @@ export function validateReferralCodeFormat(code: string): boolean {
   
   const trimmedCode = code.trim();
   
-  // Check length (typical codes are 6 characters, but allow up to 10 for flexibility)
-  if (trimmedCode.length < 3 || trimmedCode.length > 10) {
+  // Check length (codes must be exactly 6 characters)
+  if (trimmedCode.length !== 6) {
     return false;
   }
   
-  // Check if code is alphanumeric (uppercase letters and numbers only)
-  // This is a more permissive validation to catch common issues while avoiding false negatives
-  return /^[A-Z0-9]+$/.test(trimmedCode.toUpperCase());
+  // Check if code contains only valid characters (A-Z, 2-9)
+  // Avoid confusing characters like 0, 1, O, I
+  return /^[A-HJ-NP-Z2-9]+$/.test(trimmedCode.toUpperCase());
 }
 
 /**

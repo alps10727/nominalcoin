@@ -29,7 +29,7 @@ const SignUp = () => {
   // Validate referral code when component mounts
   useEffect(() => {
     const validateInitialCode = async () => {
-      if (initialReferralCode && validateReferralCodeFormat(initialReferralCode)) {
+      if (initialReferralCode && initialReferralCode.length === 6) {
         try {
           setIsValidating(true);
           const { valid } = await checkReferralCode(initialReferralCode);
@@ -40,6 +40,7 @@ const SignUp = () => {
             toast.error("Geçersiz referans kodu");
           } else {
             debugLog("SignUp", "Valid referral code detected", { code: initialReferralCode });
+            toast.success("Geçerli referans kodu! Kayıt olduğunuzda 10 NC Token kazanacaksınız.");
           }
         } catch (err) {
           errorLog("SignUp", "Error validating referral code:", err);
@@ -74,7 +75,7 @@ const SignUp = () => {
       setLoading(true);
       setError(null);
       
-      // Normalize and validate referral code
+      // Normalize referral code
       let normalizedCode = referralCode ? referralCode.toUpperCase().trim() : null;
       
       // Validate referral code if provided
@@ -95,15 +96,15 @@ const SignUp = () => {
       const userCredential = await registerUser(email, password, {
         name,
         emailAddress: email,
-        referralCode: normalizedCode // Pass referral code to registration function
+        referralCode: normalizedCode
       });
 
-      // Registration successful, redirect to home page
+      // Registration successful
       toast.success("Hesabınız başarıyla oluşturuldu!");
       
       // Show special message for referral code
       if (normalizedCode && validReferral) {
-        toast.success("Referans kodu başarıyla uygulandı!");
+        toast.success("Referans kodunuz sayesinde 10 NC Token kazandınız!");
       }
       
       navigate("/");
@@ -126,15 +127,15 @@ const SignUp = () => {
           {initialReferralCode && (
             <div className={`mt-2 text-sm py-1 px-2 rounded-md ${
               isValidating ? 'bg-gray-800/30 text-gray-300 animate-pulse' :
-              isValidReferralCode === true ? 'bg-blue-900/30 text-blue-200' :
+              isValidReferralCode === true ? 'bg-green-900/30 text-green-200' :
               isValidReferralCode === false ? 'bg-red-900/30 text-red-200' :
               'bg-gray-800/30 text-gray-300'
             }`}>
               {isValidating && 'Referans kodu doğrulanıyor: '}
-              {!isValidating && isValidReferralCode === true && 'Geçerli referans kodu: '}
+              {!isValidating && isValidReferralCode === true && 'Geçerli referans kodu (+10 NC Token): '}
               {!isValidating && isValidReferralCode === false && 'Geçersiz referans kodu: '}
               {!isValidating && isValidReferralCode === null && 'Referans kodu: '}
-              {initialReferralCode}
+              <span className="font-mono font-bold">{initialReferralCode}</span>
             </div>
           )}
         </CardHeader>

@@ -32,11 +32,11 @@ export async function checkReferralCode(code: string, currentUserId?: string): P
       return { valid: false };
     }
     
-    // Check if code is already used
-    if (used) {
-      debugLog("referralUtils", "Referral code already used", { code: normalizedCode });
-      return { valid: false };
-    }
+    // Check if code is already used - disabled, as we use persistent referral codes
+    // if (used) {
+    //   debugLog("referralUtils", "Referral code already used", { code: normalizedCode });
+    //   return { valid: false };
+    // }
     
     // Prevent self-referral
     if (!validateSelfReferral(ownerId, currentUserId)) {

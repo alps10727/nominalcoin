@@ -2,7 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { UserRegistrationData, AuthResponse } from "./types";
 import { debugLog, errorLog } from "@/utils/debugUtils";
-import { createReferralCodeForUser } from "@/utils/referral";
+import { generateReferralCode } from "@/utils/referral/generateReferralCode";
 import { checkReferralCode, processReferralCode } from "@/utils/referral";
 import { toast } from "sonner";
 
@@ -31,6 +31,10 @@ export async function registerUser(
       }
     }
     
+    // Generate a unique referral code for the new user
+    const userReferralCode = generateReferralCode();
+    debugLog("authService", "Generated referral code for new user", { userReferralCode });
+    
     // Create user in Supabase
     const { data: { user }, error } = await supabase.auth.signUp({
       email, 
@@ -38,6 +42,7 @@ export async function registerUser(
       options: {
         data: {
           name: userData.name || "",
+          referral_code: userReferralCode
         }
       }
     });
@@ -52,9 +57,6 @@ export async function registerUser(
     
     debugLog("authService", "User created in Supabase Auth", { userId: user.id });
     
-    // Generate referral code for new user
-    const userReferralCode = await createReferralCodeForUser(user.id);
-    
     // Default user data
     const profileData = {
       id: user.id,
@@ -65,12 +67,10 @@ export async function registerUser(
       last_saved: Date.now(),
       mining_active: false,
       is_admin: false,
-      // Store these in user metadata or separate tables for referrals
-      // These fields aren't in the profiles table schema
-      // referralCode: userReferralCode,
-      // referralCount: 0,
-      // referrals: [],
-      // invitedBy: referralValid && referrerUserId ? referrerUserId : null
+      referral_code: userReferralCode,
+      referral_count: 0,
+      referrals: [],
+      invited_by: referralValid && referrerUserId ? referrerUserId : null
     };
     
     // Save user data to Supabase
@@ -93,6 +93,7 @@ export async function registerUser(
           
           if (success) {
             debugLog("authService", "Referral successfully processed");
+            toast.success("Referans kodunu kullandığınız için 10 NC Token kazandınız!");
           } else {
             errorLog("authService", "Failed to process referral reward");
             // Retry once after a short delay

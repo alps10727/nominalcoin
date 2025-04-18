@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Share2, Copy, CheckCircle2 } from "lucide-react";
@@ -46,6 +46,13 @@ const ReferralCodeCard = ({ referralCode }: ReferralCodeCardProps) => {
       handleCopy();
     }
   };
+  
+  // Store referral code in localStorage for persistence
+  useEffect(() => {
+    if (referralCode) {
+      localStorage.setItem('userReferralCode', referralCode);
+    }
+  }, [referralCode]);
 
   return (
     <Card className="bg-gradient-to-br from-blue-900/80 to-indigo-900/80 border-none shadow-md">
@@ -69,6 +76,9 @@ const ReferralCodeCard = ({ referralCode }: ReferralCodeCardProps) => {
           >
             {copied ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
           </Button>
+        </div>
+        <div className="mt-2 text-xs text-blue-300">
+          Her kullanıcıya özel sabit kod - değişmez
         </div>
       </CardContent>
       <CardFooter>

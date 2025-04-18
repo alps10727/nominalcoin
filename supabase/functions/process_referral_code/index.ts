@@ -7,6 +7,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Constants
+const REFERRAL_BONUS_RATE = 0.003;  // Mining rate bonus for referrer
+const REFERRAL_TOKEN_REWARD = 10;   // Token reward for invited user
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -28,28 +32,120 @@ serve(async (req) => {
     
     // Normalize code to uppercase
     const normalizedCode = code.toUpperCase()
+    console.log(`Processing referral code: ${normalizedCode} for user: ${newUserId}`);
 
-    // Start a Postgres transaction using RPC
-    const { data: result, error: transactionError } = await supabaseClient.rpc(
-      'process_referral_transaction', 
-      {
-        p_code: normalizedCode,
-        p_new_user_id: newUserId
-      }
-    )
-
-    if (transactionError) {
-      console.error('Transaction error:', transactionError)
-      throw new Error(`Transaction failed: ${transactionError.message}`)
+    // First try to find the referrer by referral_code in profiles
+    const { data: referrerData, error: referrerError } = await supabaseClient
+      .from('profiles')
+      .select('id, mining_rate, referral_count, referrals')
+      .eq('referral_code', normalizedCode)
+      .single()
+      
+    if (referrerError) {
+      console.error('Error finding referrer:', referrerError)
+      throw new Error(`Failed to find referrer: ${referrerError.message}`)
     }
-
-    return new Response(
-      JSON.stringify({ success: true, result }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200 
+    
+    if (!referrerData) {
+      throw new Error('Referral code owner not found')
+    }
+    
+    const referrerId = referrerData.id
+    console.log(`Referrer found: ${referrerId}`);
+    
+    // Make sure it's not self-referral
+    if (referrerId === newUserId) {
+      throw new Error('Cannot use your own referral code')
+    }
+    
+    // Check if referral already exists
+    const referrals = referrerData.referrals || []
+    if (referrals.includes(newUserId)) {
+      console.log('Referral already processed, skipping')
+      return new Response(
+        JSON.stringify({ success: true, result: 'already_processed' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+    
+    // Apply rewards to both parties in a transaction
+    try {
+      // 1. Update referrer - add mining rate and referral count
+      const currentMiningRate = referrerData.mining_rate || 0.003
+      const newMiningRate = parseFloat((currentMiningRate + REFERRAL_BONUS_RATE).toFixed(4))
+      const { error: updateReferrerError } = await supabaseClient
+        .from('profiles')
+        .update({
+          mining_rate: newMiningRate,
+          referral_count: (referrerData.referral_count || 0) + 1,
+          referrals: [...referrals, newUserId]
+        })
+        .eq('id', referrerId)
+        
+      if (updateReferrerError) {
+        throw updateReferrerError
       }
-    )
+      
+      // 2. Update new user - add tokens and set invited_by
+      const { data: newUserData, error: newUserError } = await supabaseClient
+        .from('profiles')
+        .select('balance')
+        .eq('id', newUserId)
+        .single()
+        
+      if (newUserError) {
+        throw newUserError
+      }
+      
+      const { error: updateNewUserError } = await supabaseClient
+        .from('profiles')
+        .update({
+          balance: (newUserData.balance || 0) + REFERRAL_TOKEN_REWARD,
+          invited_by: referrerId
+        })
+        .eq('id', newUserId)
+        
+      if (updateNewUserError) {
+        throw updateNewUserError
+      }
+      
+      // 3. Create audit entry
+      const { error: auditError } = await supabaseClient
+        .from('referral_audit')
+        .insert({
+          referrer_id: referrerId,
+          invitee_id: newUserId,
+          code: normalizedCode
+        })
+        
+      if (auditError) {
+        console.error('Error creating audit log:', auditError)
+        // Non-critical error, continue
+      }
+      
+      console.log('Referral rewards applied successfully')
+      
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          result: {
+            referrer: {
+              id: referrerId,
+              miningRateBonus: REFERRAL_BONUS_RATE,
+              newMiningRate: newMiningRate
+            },
+            invitee: {
+              id: newUserId,
+              tokenReward: REFERRAL_TOKEN_REWARD
+            }
+          }
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    } catch (error) {
+      console.error('Error processing rewards:', error)
+      throw new Error(`Transaction failed: ${error.message}`)
+    }
   } catch (error) {
     console.error('Error in process_referral_code function:', error)
     return new Response(

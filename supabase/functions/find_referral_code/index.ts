@@ -33,19 +33,41 @@ serve(async (req) => {
     const normalizedCode = code.trim().toUpperCase()
     console.log(`Normalized code: ${normalizedCode}`);
 
-    // Query referral codes table
-    const { data, error } = await supabaseClient
+    // First check in profiles table for persistent codes
+    const { data: profileData, error: profileError } = await supabaseClient
+      .from('profiles')
+      .select('id')
+      .eq('referral_code', normalizedCode)
+      .limit(1)
+      .single()
+      
+    if (profileData) {
+      console.log(`Referral code found in profiles: ${JSON.stringify(profileData)}`);
+      
+      return new Response(
+        JSON.stringify({
+          exists: true,
+          owner: profileData.id,
+          used: false // Persistent codes are always valid
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200 
+        }
+      )
+    }
+    
+    // If not found in profiles, check in referral_codes table (legacy)
+    const { data: codeData, error: codeError } = await supabaseClient
       .from('referral_codes')
       .select('id, owner, used, used_by')
       .eq('code', normalizedCode)
       .limit(1)
       .single()
 
-    if (error) {
-      console.error('Error querying referral code:', error.message)
-      
-      // If not found, return specific message
-      if (error.code === 'PGRST116') {
+    if (codeError) {
+      // If not found in either table, return not exists
+      if (codeError.code === 'PGRST116' || profileError?.code === 'PGRST116') {
         return new Response(
           JSON.stringify({ exists: false, message: 'Code not found' }),
           { 
@@ -55,17 +77,17 @@ serve(async (req) => {
         )
       }
       
-      throw error
+      throw codeError
     }
 
-    console.log(`Referral code found: ${JSON.stringify(data)}`);
+    console.log(`Referral code found in legacy table: ${JSON.stringify(codeData)}`);
     
     return new Response(
       JSON.stringify({
         exists: true,
-        owner: data.owner,
-        used: data.used,
-        used_by: data.used_by
+        owner: codeData.owner,
+        used: codeData.used,
+        used_by: codeData.used_by
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
