@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { UserData } from "@/types/storage";
 import { debugLog, errorLog } from "@/utils/debugUtils";
+import { generateDeterministicCode } from "@/utils/referral/generateReferralCode";
 
 /**
  * Load user data from Supabase
@@ -26,6 +27,32 @@ export async function loadUserDataFromSupabase(userId: string): Promise<UserData
       return null;
     }
     
+    // Get or generate a stable referral code
+    let referralCode = data.referral_code;
+    
+    // If no code in database, check localStorage
+    if (!referralCode) {
+      referralCode = localStorage.getItem('userReferralCode') || null;
+    }
+    
+    // If still no code, generate a deterministic one and save it
+    if (!referralCode) {
+      referralCode = generateDeterministicCode(userId);
+      
+      // Save to localStorage
+      localStorage.setItem('userReferralCode', referralCode);
+      
+      // Also update in database
+      try {
+        await supabase
+          .from('profiles')
+          .update({ referral_code: referralCode })
+          .eq('id', userId);
+      } catch (err) {
+        errorLog("userDataLoaderService", "Error updating referral code:", err);
+      }
+    }
+    
     // Map Supabase profile data to our UserData interface
     const userData: UserData = {
       userId: data.id,
@@ -42,7 +69,16 @@ export async function loadUserDataFromSupabase(userId: string): Promise<UserData
       name: data.name || "",
       emailAddress: data.email,
       isAdmin: data.is_admin || false,
+      referralCode: referralCode,
+      referralCount: data.referral_count || 0,
+      referrals: data.referrals || [],
+      invitedBy: data.invited_by
     };
+    
+    // Save the referral code to localStorage for persistence
+    if (userData.referralCode) {
+      localStorage.setItem('userReferralCode', userData.referralCode);
+    }
     
     debugLog("userDataLoaderService", "User data loaded successfully");
     return userData;

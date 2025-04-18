@@ -14,6 +14,9 @@ export async function saveUserDataToSupabase(userId: string, userData: UserData)
   }
 
   try {
+    // Get the referral code from userData or localStorage
+    const referralCode = userData.referralCode || localStorage.getItem('userReferralCode') || "";
+    
     // Prepare data for Supabase profiles table
     const profileData = {
       id: userId,
@@ -30,6 +33,10 @@ export async function saveUserDataToSupabase(userId: string, userData: UserData)
       mining_start_time: userData.miningStartTime,
       progress: userData.progress,
       is_admin: userData.isAdmin,
+      referral_code: referralCode,
+      referral_count: userData.referralCount || 0,
+      referrals: userData.referrals || [],
+      invited_by: userData.invitedBy
     };
     
     // Save to local storage first for offline support
@@ -66,6 +73,11 @@ export async function saveUserDataToSupabase(userId: string, userData: UserData)
     if (result.error) {
       errorLog("saveUserDataService", "Error saving user data:", result.error);
       return false;
+    }
+    
+    // Store referral code in localStorage for persistence
+    if (referralCode) {
+      localStorage.setItem('userReferralCode', referralCode);
     }
     
     debugLog("saveUserDataService", "User data saved successfully");

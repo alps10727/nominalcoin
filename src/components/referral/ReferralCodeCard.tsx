@@ -12,9 +12,15 @@ interface ReferralCodeCardProps {
 
 const ReferralCodeCard = ({ referralCode }: ReferralCodeCardProps) => {
   const [copied, setCopied] = useState(false);
-  const referralLink = `https://app.nominalcoin.com/signup?ref=${referralCode}`;
+  // Only generate the referral link once the code is available
+  const referralLink = referralCode ? `https://app.nominalcoin.com/signup?ref=${referralCode}` : '';
 
   const handleCopy = async () => {
+    if (!referralCode) {
+      toast.error("Referans kodu henüz mevcut değil");
+      return;
+    }
+    
     try {
       await navigator.clipboard.writeText(referralCode);
       setCopied(true);
@@ -28,6 +34,11 @@ const ReferralCodeCard = ({ referralCode }: ReferralCodeCardProps) => {
   };
 
   const handleShare = async () => {
+    if (!referralCode) {
+      toast.error("Referans kodu henüz mevcut değil");
+      return;
+    }
+    
     if (navigator.share) {
       try {
         await navigator.share({
@@ -46,13 +57,6 @@ const ReferralCodeCard = ({ referralCode }: ReferralCodeCardProps) => {
       handleCopy();
     }
   };
-  
-  // Store referral code in localStorage for persistence
-  useEffect(() => {
-    if (referralCode) {
-      localStorage.setItem('userReferralCode', referralCode);
-    }
-  }, [referralCode]);
 
   return (
     <Card className="bg-gradient-to-br from-blue-900/80 to-indigo-900/80 border-none shadow-md">

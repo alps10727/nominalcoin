@@ -9,15 +9,68 @@ import ReferralCodeCard from "@/components/referral/ReferralCodeCard";
 import ReferralBenefits from "@/components/referral/ReferralBenefits";
 import ReferralList from "@/components/referral/ReferralList";
 import { supabase } from "@/integrations/supabase/client";
+import { generateDeterministicCode } from "@/utils/referral/generateReferralCode";
 
 const Referral = () => {
   const { userData, currentUser, updateUserData } = useAuth();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [referralCode, setReferralCode] = useState<string>('');
   
-  const referralCode = userData?.referralCode || '';
   const referralCount = userData?.referralCount || 0;
   const referrals = userData?.referrals || [];
+  
+  // Load the referral code from userData, localStorage or generate it deterministically
+  useEffect(() => {
+    if (!currentUser) return;
+    
+    // Define a function to get or create the referral code
+    const getOrCreateReferralCode = async () => {
+      // Try to get from userData first
+      if (userData?.referralCode) {
+        setReferralCode(userData.referralCode);
+        return;
+      }
+      
+      // Try to get from localStorage next
+      const storedCode = localStorage.getItem('userReferralCode');
+      if (storedCode) {
+        setReferralCode(storedCode);
+        
+        // If we have userData but no referralCode in it, update userData
+        if (userData && updateUserData) {
+          await updateUserData({
+            ...userData,
+            referralCode: storedCode
+          });
+        }
+        return;
+      }
+      
+      // If no code is available, generate a deterministic one based on user ID
+      const deterministicCode = generateDeterministicCode(currentUser.id);
+      setReferralCode(deterministicCode);
+      localStorage.setItem('userReferralCode', deterministicCode);
+      
+      // Update userData with the new code
+      if (userData && updateUserData) {
+        await updateUserData({
+          ...userData,
+          referralCode: deterministicCode
+        });
+      }
+      
+      // Also update the code in Supabase
+      if (currentUser && currentUser.id) {
+        await supabase
+          .from('profiles')
+          .update({ referral_code: deterministicCode })
+          .eq('id', currentUser.id);
+      }
+    };
+    
+    getOrCreateReferralCode();
+  }, [currentUser, userData?.referralCode]);
   
   const refreshUserData = async () => {
     if (!currentUser) return;
@@ -38,12 +91,18 @@ const Referral = () => {
       
       if (data) {
         if (updateUserData) {
+          // Only update the code if one is returned and it's not empty
+          const newCode = data.referral_code || referralCode;
+          
           // Store referral code in localStorage for persistence
-          localStorage.setItem('userReferralCode', data.referral_code || '');
+          if (newCode) {
+            localStorage.setItem('userReferralCode', newCode);
+            setReferralCode(newCode);
+          }
           
           await updateUserData({
             ...userData,
-            referralCode: data.referral_code || referralCode,
+            referralCode: newCode,
             referralCount: data.referral_count || 0,
             referrals: data.referrals || [],
             miningRate: userData?.miningRate || 0.003
@@ -62,21 +121,9 @@ const Referral = () => {
     }
   };
   
-  // Load stored referral code from localStorage on mount and when user changes
+  // Load data when component mounts
   useEffect(() => {
-    const storedCode = localStorage.getItem('userReferralCode');
-    
     if (currentUser && currentUser.id) {
-      if (storedCode && (!userData?.referralCode || userData?.referralCode !== storedCode)) {
-        // Use stored code if available and different from current
-        if (updateUserData && userData) {
-          updateUserData({
-            ...userData,
-            referralCode: storedCode
-          });
-        }
-      }
-      
       refreshUserData();
     } else {
       setIsLoading(false);
