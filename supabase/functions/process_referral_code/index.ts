@@ -30,22 +30,16 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
     
-    // Create regular client for normal operations
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
-    )
-    
     // Normalize code to uppercase
     const normalizedCode = code.toUpperCase()
     console.log(`Processing referral code: ${normalizedCode} for user: ${newUserId}`);
 
     // First try to find the referrer by referral_code in profiles
-    const { data: referrerData, error: referrerError } = await supabaseClient
+    const { data: referrerData, error: referrerError } = await supabaseAdmin
       .from('profiles')
       .select('id, mining_rate, referral_count, referrals')
       .eq('referral_code', normalizedCode)
-      .single()
+      .maybeSingle()
       
     if (referrerError) {
       console.error('Error finding referrer:', referrerError)
@@ -92,27 +86,50 @@ serve(async (req) => {
         throw updateReferrerError
       }
       
+      console.log(`Successfully updated referrer (${referrerId}) with new mining rate: ${newMiningRate}`);
+      
       // 2. Update new user - add tokens and set invited_by
-      const { data: newUserData, error: newUserError } = await supabaseClient
+      const { data: newUserData, error: newUserError } = await supabaseAdmin
         .from('profiles')
         .select('balance')
         .eq('id', newUserId)
-        .single()
+        .maybeSingle()
         
       if (newUserError) {
         throw newUserError
       }
       
-      const { error: updateNewUserError } = await supabaseAdmin
-        .from('profiles')
-        .update({
-          balance: (newUserData.balance || 0) + REFERRAL_TOKEN_REWARD,
-          invited_by: referrerId
-        })
-        .eq('id', newUserId)
+      if (!newUserData) {
+        // If profile doesn't exist yet, create it
+        const { error: createError } = await supabaseAdmin
+          .from('profiles')
+          .insert({
+            id: newUserId,
+            balance: REFERRAL_TOKEN_REWARD,
+            invited_by: referrerId,
+            mining_rate: 0.003
+          })
+          
+        if (createError) {
+          throw createError
+        }
         
-      if (updateNewUserError) {
-        throw updateNewUserError
+        console.log(`Created new profile for user ${newUserId} with referral bonus`);
+      } else {
+        // Update existing profile
+        const { error: updateNewUserError } = await supabaseAdmin
+          .from('profiles')
+          .update({
+            balance: (newUserData.balance || 0) + REFERRAL_TOKEN_REWARD,
+            invited_by: referrerId
+          })
+          .eq('id', newUserId)
+          
+        if (updateNewUserError) {
+          throw updateNewUserError
+        }
+        
+        console.log(`Updated invitee (${newUserId}) with token reward: ${REFERRAL_TOKEN_REWARD}`);
       }
       
       // 3. Create audit entry
@@ -171,6 +188,6 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400 
       }
-    )
+    );
   }
 })
