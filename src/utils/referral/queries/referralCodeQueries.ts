@@ -1,4 +1,3 @@
-
 import { collection, query, where, getDocs, limit } from "firebase/firestore";
 import { db } from "@/config/firebase";
 import { debugLog, errorLog } from "@/utils/debugUtils";
@@ -15,22 +14,22 @@ export async function findReferralCode(code: string): Promise<{
     
     debugLog("referralQueries", "Finding referral code", { code: normalizedCode });
     
-    // Try Supabase first using Edge Function to avoid type issues
+    // Try Supabase Edge Function to avoid type issues
     const { data, error } = await supabase.functions.invoke('find_referral_code', {
       body: { code: normalizedCode }
     });
     
-    if (data && Array.isArray(data) && data.length > 0) {
+    if (data) {
       debugLog("referralQueries", "Referral code found in Supabase", {
         code: normalizedCode,
-        ownerId: data[0].owner,
-        used: data[0].used
+        ownerId: data.owner,
+        used: data.used
       });
       
       return { 
         exists: true, 
-        ownerId: data[0].owner,
-        used: data[0].used 
+        ownerId: data.owner,
+        used: data.used 
       };
     }
     
