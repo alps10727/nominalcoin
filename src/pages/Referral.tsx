@@ -25,7 +25,6 @@ const Referral = () => {
       setIsRefreshing(true);
       toast.loading("Referans bilgileri yükleniyor...");
       
-      // Supabase'den referans bilgilerini yükle
       const { data, error } = await supabase
         .from('profiles')
         .select('referral_code, referral_count, referrals')
@@ -39,6 +38,7 @@ const Referral = () => {
       if (data) {
         if (updateUserData) {
           await updateUserData({
+            ...userData,
             referralCode: data.referral_code || referralCode,
             referralCount: data.referral_count || 0,
             referrals: data.referrals || [],

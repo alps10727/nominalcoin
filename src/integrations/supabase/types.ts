@@ -36,6 +36,7 @@ export type Database = {
           created_at: string | null
           email: string
           id: string
+          invited_by: string | null
           is_admin: boolean | null
           last_saved: number | null
           mining_active: boolean | null
@@ -47,12 +48,16 @@ export type Database = {
           mining_time: number | null
           name: string | null
           progress: number | null
+          referral_code: string | null
+          referral_count: number | null
+          referrals: string[] | null
         }
         Insert: {
           balance?: number | null
           created_at?: string | null
           email: string
           id: string
+          invited_by?: string | null
           is_admin?: boolean | null
           last_saved?: number | null
           mining_active?: boolean | null
@@ -64,12 +69,16 @@ export type Database = {
           mining_time?: number | null
           name?: string | null
           progress?: number | null
+          referral_code?: string | null
+          referral_count?: number | null
+          referrals?: string[] | null
         }
         Update: {
           balance?: number | null
           created_at?: string | null
           email?: string
           id?: string
+          invited_by?: string | null
           is_admin?: boolean | null
           last_saved?: number | null
           mining_active?: boolean | null
@@ -81,8 +90,68 @@ export type Database = {
           mining_time?: number | null
           name?: string | null
           progress?: number | null
+          referral_code?: string | null
+          referral_count?: number | null
+          referrals?: string[] | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_audit: {
+        Row: {
+          code: string
+          code_id: string | null
+          created_at: string | null
+          id: string
+          invitee_id: string | null
+          referrer_id: string | null
+        }
+        Insert: {
+          code: string
+          code_id?: string | null
+          created_at?: string | null
+          id?: string
+          invitee_id?: string | null
+          referrer_id?: string | null
+        }
+        Update: {
+          code?: string
+          code_id?: string | null
+          created_at?: string | null
+          id?: string
+          invitee_id?: string | null
+          referrer_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_audit_code_id_fkey"
+            columns: ["code_id"]
+            isOneToOne: false
+            referencedRelation: "referral_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_audit_invitee_id_fkey"
+            columns: ["invitee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_audit_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       referral_codes: {
         Row: {
