@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js"; 
 import { useAuthState } from "@/hooks/useAuthState";
@@ -31,7 +30,6 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  // Eğer AuthState yüklenmezse hata fırlatmayı önlemek için try-catch ekledik
   const authState = (() => {
     try {
       return useAuthState();
@@ -58,22 +56,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [initialUserData]);
   
-  // Set up realtime subscription for profile changes
   useEffect(() => {
     if (!currentUser) return;
 
     debugLog("AuthProvider", "Setting up realtime subscription for profile changes", { userId: currentUser.id });
 
-    // Enable this table for realtime
     const setupRealtime = async () => {
-      await supabase.rpc('enable_realtime_for_table', { table_name: 'profiles' }).catch(err => {
-        console.warn("Error enabling realtime:", err);
-      });
+      try {
+        await supabase.functions.invoke('enable_realtime', {
+          body: { table: 'profiles' }
+        }).catch(err => {
+          console.warn("Error enabling realtime:", err);
+        });
+      } catch (error) {
+        console.warn("Error enabling realtime:", error);
+      }
     };
     
     setupRealtime();
     
-    // Subscribe to changes on user's profile
     const channel = supabase
       .channel('profile-changes')
       .on(
@@ -87,7 +88,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         (payload) => {
           debugLog("AuthProvider", "Profile updated in realtime", payload.new);
           if (payload.new && userData) {
-            // Update only specific fields from payload to preserve the rest of userData
             const updatedData: UserData = {
               ...userData,
               balance: payload.new.balance || userData.balance,
@@ -109,7 +109,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [currentUser, userData]);
   
-  // AuthActions için de try-catch ekledik
   const { login, logout, register } = (() => {
     try {
       return useAuthActions();
@@ -123,7 +122,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   })();
   
-  // UserDataManager için de try-catch ekledik
   const { updateUserData } = (() => {
     try {
       return useUserDataManager(currentUser, userData, setUserData);

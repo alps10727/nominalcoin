@@ -24,10 +24,12 @@ export async function processReferralCode(code: string, newUserId: string): Prom
     
     // First try with Supabase
     try {
-      // Use Supabase RPC to handle the referral code processing
-      const { data, error } = await supabase.rpc('process_referral_code', {
-        code_param: code.toUpperCase(),
-        new_user_id: newUserId
+      // Use Supabase Edge Function to handle the referral code processing
+      const { data, error } = await supabase.functions.invoke('process_referral_code', {
+        body: { 
+          code: code.toUpperCase(),
+          newUserId: newUserId
+        }
       });
       
       if (error) {
@@ -38,7 +40,7 @@ export async function processReferralCode(code: string, newUserId: string): Prom
         return true;
       }
       
-      // If RPC didn't work, fallback to Firebase
+      // If Edge Function didn't work, fallback to Firebase
       return await runTransaction(db, async (transaction) => {
         try {
           // Get code document to lock

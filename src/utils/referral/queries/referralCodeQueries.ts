@@ -16,21 +16,21 @@ export async function findReferralCode(code: string): Promise<{
     debugLog("referralQueries", "Finding referral code", { code: normalizedCode });
     
     // Try Supabase first using RPC function to avoid type issues
-    const { data: supabaseData, error } = await supabase.rpc('find_referral_code', {
-      code_param: normalizedCode
+    const { data, error } = await supabase.functions.invoke('find_referral_code', {
+      body: { code: normalizedCode }
     });
     
-    if (supabaseData && Array.isArray(supabaseData) && supabaseData.length > 0) {
+    if (data && Array.isArray(data) && data.length > 0) {
       debugLog("referralQueries", "Referral code found in Supabase", {
         code: normalizedCode,
-        ownerId: supabaseData[0].owner,
-        used: supabaseData[0].used
+        ownerId: data[0].owner,
+        used: data[0].used
       });
       
       return { 
         exists: true, 
-        ownerId: supabaseData[0].owner,
-        used: supabaseData[0].used 
+        ownerId: data[0].owner,
+        used: data[0].used 
       };
     }
     
