@@ -1,4 +1,3 @@
-
 import { UserData } from "../types/storage";
 import { getUserStorageKey, GLOBAL_STORAGE_KEY } from "../constants/storageConstants";
 import { debugLog, errorLog } from "@/utils/debugUtils";
@@ -117,7 +116,8 @@ export function saveUserData(userData: UserData, userId?: string): void {
       if (verifyData) {
         const parsed = JSON.parse(verifyData);
         if (parsed.balance !== sanitizedData.balance) {
-          errorLog("storageOperations", 'Balance verification failed! Saved:', sanitizedData.balance, 'Loaded:', parsed.balance);
+          // Fix: removing extra arguments, keeping only the message and the values
+          errorLog("storageOperations", 'Balance verification failed! Saved: ' + sanitizedData.balance + ' Loaded: ' + parsed.balance);
           
           // Yeniden kaydetmeyi dene
           localStorage.setItem(storageKey, jsonData);
