@@ -1,8 +1,8 @@
 
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { debugLog } from "@/utils/debugUtils";
 import { toast } from "sonner";
+import { useProfileDataFetch } from "./useProfileDataFetch";
+import { useUserDataUpdate } from "./useUserDataUpdate";
 
 export const useReferralRefresh = (
   currentUser: any,
@@ -12,6 +12,8 @@ export const useReferralRefresh = (
   setReferralCode: (code: string) => void,
 ) => {
   const { userData, updateUserData } = useAuth();
+  const { fetchProfileData } = useProfileDataFetch();
+  const { updateProfileData } = useUserDataUpdate();
 
   const refreshUserData = async () => {
     if (!currentUser) return;
@@ -20,40 +22,24 @@ export const useReferralRefresh = (
       setIsRefreshing(true);
       toast("Referans bilgileri yükleniyor...");
       
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('referral_code, referral_count, referrals, balance, mining_rate')
-        .eq('id', currentUser.id)
-        .maybeSingle();
+      const profileData = await fetchProfileData(currentUser.id);
       
-      if (error) {
-        throw error;
-      }
-      
-      if (data) {
-        if (updateUserData && userData) {
-          const newCode = data.referral_code || referralCode;
+      if (profileData) {
+        const newCode = profileData.referral_code || referralCode;
           
-          if (newCode) {
-            localStorage.setItem('userReferralCode', newCode);
-            setReferralCode(newCode);
-          }
-          
-          await updateUserData({
-            ...userData,
-            referralCode: newCode,
-            referralCount: data.referral_count || 0,
-            referrals: data.referrals || [],
-            balance: data.balance !== undefined ? data.balance : userData.balance,
-            miningRate: data.mining_rate !== undefined ? data.mining_rate : userData.miningRate
-          });
-          
-          toast("Referans bilgileri güncellendi");
+        if (newCode) {
+          localStorage.setItem('userReferralCode', newCode);
+          setReferralCode(newCode);
         }
+        
+        await updateProfileData(userData, updateUserData, {
+          referralCode: newCode,
+          referralCount: profileData.referral_count || 0,
+          referrals: profileData.referrals || [],
+          balance: profileData.balance,
+          miningRate: profileData.mining_rate
+        });
       }
-    } catch (error) {
-      toast.error("Verileri güncellerken bir hata oluştu");
-      debugLog("Referral", "Error refreshing data:", error);
     } finally {
       setIsRefreshing(false);
       setIsLoading(false);
