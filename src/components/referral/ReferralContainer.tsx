@@ -24,14 +24,14 @@ const ReferralContainer = () => {
 
   useReferralCode(currentUser, setReferralCode);
 
-  // Set up auto-refresh timer
+  // Set up auto-refresh timer with longer interval
   useEffect(() => {
     if (!currentUser) return;
     
-    // Refresh every 30 seconds
+    // Refresh every 2 minutes instead of 30 seconds
     const refreshInterval = setInterval(() => {
       refreshUserData();
-    }, 30000);
+    }, 120000); // 2 minutes
     
     return () => clearInterval(refreshInterval);
   }, [currentUser, refreshUserData]);

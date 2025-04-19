@@ -26,7 +26,10 @@ export const useProfileDataFetch = () => {
       
       return data;
     } catch (error) {
-      toast.error("Verileri yüklerken bir hata oluştu");
+      // Show error toast with a fixed ID to prevent duplicates
+      toast.error("Verileri yüklerken bir hata oluştu", {
+        id: "referral-error-toast",
+      });
       debugLog("ProfileData", "Error fetching data:", error);
       return null;
     }

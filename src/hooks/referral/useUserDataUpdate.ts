@@ -27,11 +27,17 @@ export const useUserDataUpdate = () => {
         miningRate: newData.miningRate !== undefined ? newData.miningRate : userData.miningRate
       });
       
-      toast("Referans bilgileri güncellendi");
+      // Use a fixed ID for the success toast to prevent duplicates
+      toast("Referans bilgileri güncellendi", {
+        id: "referral-update-success-toast"
+      });
       return true;
     } catch (error) {
       debugLog("UserData", "Error updating data:", error);
-      toast.error("Verileri güncellerken bir hata oluştu");
+      // Use a fixed ID for error toast to prevent duplicates
+      toast.error("Verileri güncellerken bir hata oluştu", {
+        id: "referral-update-error-toast"
+      });
       return false;
     }
   };
