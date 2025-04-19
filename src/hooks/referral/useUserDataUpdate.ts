@@ -29,14 +29,16 @@ export const useUserDataUpdate = () => {
       
       // Use a fixed ID for the success toast to prevent duplicates
       toast("Referans bilgileri güncellendi", {
-        id: "referral-update-success-toast"
+        id: "referral-update-success-toast",
+        duration: 2000 // Shorter duration for better UX
       });
       return true;
     } catch (error) {
       debugLog("UserData", "Error updating data:", error);
       // Use a fixed ID for error toast to prevent duplicates
       toast.error("Verileri güncellerken bir hata oluştu", {
-        id: "referral-update-error-toast"
+        id: "referral-update-error-toast",
+        duration: 3000
       });
       return false;
     }

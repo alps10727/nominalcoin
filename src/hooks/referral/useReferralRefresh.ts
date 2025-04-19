@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useProfileDataFetch } from "./useProfileDataFetch";
 import { useUserDataUpdate } from "./useUserDataUpdate";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 export const useReferralRefresh = (
   currentUser: any,
@@ -16,17 +16,21 @@ export const useReferralRefresh = (
   const { fetchProfileData } = useProfileDataFetch();
   const { updateProfileData } = useUserDataUpdate();
   const [toastShown, setToastShown] = useState(false);
+  const isRefreshingRef = useRef(false);
 
   const refreshUserData = async () => {
-    if (!currentUser) return;
+    if (!currentUser || isRefreshingRef.current) return;
     
     try {
+      // Prevent multiple simultaneous refresh calls
+      isRefreshingRef.current = true;
       setIsRefreshing(true);
       
       // Only show toast on manual refresh (not on auto-refresh)
       if (!toastShown) {
         toast("Referans bilgileri yükleniyor...", {
           id: "referral-loading-toast", // Using a fixed ID prevents duplicate toasts
+          duration: 3000, // Limit duration to 3 seconds
         });
         setToastShown(true);
       }
@@ -55,6 +59,10 @@ export const useReferralRefresh = (
     } finally {
       setIsRefreshing(false);
       setIsLoading(false);
+      // Allow refreshing again after a short delay
+      setTimeout(() => {
+        isRefreshingRef.current = false;
+      }, 1000);
     }
   };
 

@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useReferralData } from "@/hooks/referral/useReferralData";
 import { useReferralCode } from "@/hooks/referral/useReferralCode";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,19 +24,24 @@ const ReferralContainer = () => {
 
   useReferralCode(currentUser, setReferralCode);
 
+  // Use useCallback to prevent unnecessary re-renders
+  const handleRefresh = useCallback(() => {
+    refreshUserData();
+  }, [refreshUserData]);
+
   // Set up auto-refresh timer with longer interval
   useEffect(() => {
     if (!currentUser) return;
     
-    // Refresh every 2 minutes instead of 30 seconds
+    // Refresh only once every 3 minutes instead of 2 minutes
     const refreshInterval = setInterval(() => {
       refreshUserData();
-    }, 120000); // 2 minutes
+    }, 180000); // 3 minutes
     
     return () => clearInterval(refreshInterval);
   }, [currentUser, refreshUserData]);
 
-  // Initial data load
+  // Initial data load - only once when component mounts
   useEffect(() => {
     if (currentUser && currentUser.id) {
       refreshUserData();
@@ -49,7 +54,7 @@ const ReferralContainer = () => {
 
   return (
     <div className="container max-w-md px-4 py-8 mx-auto space-y-6">
-      <ReferralHeader onRefresh={refreshUserData} isRefreshing={isRefreshing} />
+      <ReferralHeader onRefresh={handleRefresh} isRefreshing={isRefreshing} />
       <ReferralStats referralCount={referralCount} />
       <ReferralCodeCard referralCode={referralCode} />
       <ReferralBenefits />
