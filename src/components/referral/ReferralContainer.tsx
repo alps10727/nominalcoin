@@ -1,5 +1,5 @@
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useReferralData } from "@/hooks/referral/useReferralData";
 import { useReferralCode } from "@/hooks/referral/useReferralCode";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,22 +23,41 @@ const ReferralContainer = () => {
   } = useReferralData();
 
   useReferralCode(currentUser, setReferralCode);
+  const autoRefreshRef = useRef<NodeJS.Timeout | null>(null);
+  const lastRefreshTimeRef = useRef(0);
 
-  // Use useCallback to prevent unnecessary re-renders
+  // Use useCallback with better debounce logic
   const handleRefresh = useCallback(() => {
+    const now = Date.now();
+    if (now - lastRefreshTimeRef.current < 5000) return; // Prevent refresh if clicked within the last 5 seconds
+    
+    lastRefreshTimeRef.current = now;
     refreshUserData();
   }, [refreshUserData]);
 
-  // Set up auto-refresh timer with longer interval
+  // Set up auto-refresh timer with much longer interval
   useEffect(() => {
     if (!currentUser) return;
     
-    // Refresh only once every 3 minutes instead of 2 minutes
-    const refreshInterval = setInterval(() => {
-      refreshUserData();
-    }, 180000); // 3 minutes
+    // Clear existing timeout if any
+    if (autoRefreshRef.current) {
+      clearInterval(autoRefreshRef.current);
+    }
     
-    return () => clearInterval(refreshInterval);
+    // Refresh only once every 5 minutes
+    autoRefreshRef.current = setInterval(() => {
+      // Only auto-refresh if not manually refreshed in the last minute
+      const now = Date.now();
+      if (now - lastRefreshTimeRef.current > 60000) {
+        refreshUserData();
+      }
+    }, 300000); // 5 minutes
+    
+    return () => {
+      if (autoRefreshRef.current) {
+        clearInterval(autoRefreshRef.current);
+      }
+    };
   }, [currentUser, refreshUserData]);
 
   // Initial data load - only once when component mounts

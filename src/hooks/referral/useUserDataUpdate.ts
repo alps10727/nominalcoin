@@ -27,18 +27,25 @@ export const useUserDataUpdate = () => {
         miningRate: newData.miningRate !== undefined ? newData.miningRate : userData.miningRate
       });
       
+      // Dismiss any existing toasts with this ID
+      toast.dismiss("referral-update-success-toast");
+      
       // Use a fixed ID for the success toast to prevent duplicates
       toast("Referans bilgileri güncellendi", {
         id: "referral-update-success-toast",
-        duration: 2000 // Shorter duration for better UX
+        duration: 1500, // Even shorter duration for better UX
       });
       return true;
     } catch (error) {
       debugLog("UserData", "Error updating data:", error);
+      
+      // Dismiss any existing error toasts
+      toast.dismiss("referral-update-error-toast");
+      
       // Use a fixed ID for error toast to prevent duplicates
       toast.error("Verileri güncellerken bir hata oluştu", {
         id: "referral-update-error-toast",
-        duration: 3000
+        duration: 2500
       });
       return false;
     }

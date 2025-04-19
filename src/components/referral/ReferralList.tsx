@@ -1,30 +1,34 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { REFERRAL_BONUS_RATE } from "@/utils/referral/bonusCalculator";
+import { UserIcon } from "lucide-react";
 
 interface ReferralListProps {
   referrals: string[];
 }
 
 const ReferralList = ({ referrals }: ReferralListProps) => {
-  if (referrals.length === 0) return null;
+  if (!referrals || referrals.length === 0) {
+    return null;
+  }
 
   return (
-    <Card className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 border-none shadow-md">
+    <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-white">Davet Ettiğin Kişiler</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <UserIcon className="w-5 h-5" /> 
+          <span>Referansların</span>
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          {referrals.map((userId, index) => (
-            <div key={userId} className="flex items-center justify-between p-2 bg-gray-800/40 rounded">
-              <div className="flex items-center">
-                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mr-2">
-                  {index + 1}
-                </div>
-                <div className="text-sm text-white">Kullanıcı {userId.substring(0, 6)}...</div>
+          {referrals.map((referral, index) => (
+            <div 
+              key={`referral-${index}-${referral.substring(0, 8)}`} 
+              className="p-2 bg-secondary/50 rounded-md"
+            >
+              <div className="text-sm font-medium">
+                {referral}
               </div>
-              <div className="text-sm text-green-400">+{REFERRAL_BONUS_RATE} NC/dk</div>
             </div>
           ))}
         </div>

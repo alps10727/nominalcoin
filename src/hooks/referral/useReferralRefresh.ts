@@ -17,20 +17,35 @@ export const useReferralRefresh = (
   const { updateProfileData } = useUserDataUpdate();
   const [toastShown, setToastShown] = useState(false);
   const isRefreshingRef = useRef(false);
+  const lastRefreshTimeRef = useRef(0);
 
   const refreshUserData = async () => {
-    if (!currentUser || isRefreshingRef.current) return;
+    if (!currentUser) return;
+    
+    // Prevent refresh if another refresh is in progress
+    if (isRefreshingRef.current) return;
+    
+    // Add debouncing - prevent refresh if last refresh was less than 5 seconds ago
+    const now = Date.now();
+    if (now - lastRefreshTimeRef.current < 5000) return;
+    lastRefreshTimeRef.current = now;
     
     try {
-      // Prevent multiple simultaneous refresh calls
+      // Mark as refreshing
       isRefreshingRef.current = true;
       setIsRefreshing(true);
+      
+      // Clear any existing toasts with these IDs before showing new ones
+      toast.dismiss("referral-loading-toast");
+      toast.dismiss("referral-error-toast");
+      toast.dismiss("referral-update-success-toast");
+      toast.dismiss("referral-update-error-toast");
       
       // Only show toast on manual refresh (not on auto-refresh)
       if (!toastShown) {
         toast("Referans bilgileri yükleniyor...", {
-          id: "referral-loading-toast", // Using a fixed ID prevents duplicate toasts
-          duration: 3000, // Limit duration to 3 seconds
+          id: "referral-loading-toast",
+          duration: 2000, // Even shorter duration
         });
         setToastShown(true);
       }
@@ -54,15 +69,23 @@ export const useReferralRefresh = (
         });
       }
       
-      // Reset toast flag after successful refresh
-      setTimeout(() => setToastShown(false), 5000);
+      // Reset toast flag after successful refresh, with delay
+      setTimeout(() => setToastShown(false), 3000);
+    } catch (error) {
+      console.error("Error in refreshUserData:", error);
+      // Show an error toast
+      toast.error("Verileri yüklerken bir hata oluştu", {
+        id: "refresh-error-toast", 
+        duration: 3000
+      });
     } finally {
       setIsRefreshing(false);
       setIsLoading(false);
-      // Allow refreshing again after a short delay
+      
+      // Allow new refresh after a cooldown period
       setTimeout(() => {
         isRefreshingRef.current = false;
-      }, 1000);
+      }, 3000); // Longer cooldown to prevent rapid refreshes
     }
   };
 
