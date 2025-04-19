@@ -1,9 +1,11 @@
-
 import { MiningState } from "@/types/mining";
 import { calculateProgress } from '@/utils/miningUtils';
 import { addMiningReward, handleMiningCompletion } from './useMiningRewards';
 import { saveUserData } from "@/utils/storage";
 import { debugLog } from "@/utils/debugUtils";
+
+// Track already processed reward times to prevent duplicate rewards
+const processedRewardTimes = new Set<number>();
 
 /**
  * Process mining based on absolute timestamps (most reliable method)
@@ -65,28 +67,46 @@ export function processTimestampBasedMining(
     if (secondsPassed >= 180) {
       // Calculate complete 3-minute cycles with precise math
       const completeCycles = Math.floor(secondsPassed / 180);
-      // Mining rate is per minute, so multiply by 3 for each 3-minute cycle
-      const rewardAmount = parseFloat((completeCycles * (state.miningRate * 3)).toFixed(6));
       
-      // Update state with rewards (fixed precision)
-      const updatedState = {
-        miningTime: remainingSeconds,
-        progress: progress,
-        balance: parseFloat((state.balance + rewardAmount).toFixed(6)),
-        miningSession: parseFloat((state.miningSession + rewardAmount).toFixed(6))
-      };
+      // Create key for timestamp to prevent duplicate rewards
+      const rewardTimeKey = Math.floor(now / 180000); // Group by 3-min intervals
       
-      // Periodic save with fixed values
-      if (now - lastSaveTimeRef.current > 10000) {
-        saveUserData({
-          ...state,
-          ...updatedState,
-          lastSaved: now
-        });
-        lastSaveTimeRef.current = now;
+      // Only process if we haven't already given rewards for this time
+      if (!processedRewardTimes.has(rewardTimeKey)) {
+        // Add to processed set to prevent duplicates
+        processedRewardTimes.add(rewardTimeKey);
+        
+        // Limit set size to prevent memory issues
+        if (processedRewardTimes.size > 100) {
+          // Keep only the most recent entries
+          const values = Array.from(processedRewardTimes).sort((a, b) => b - a).slice(0, 50);
+          processedRewardTimes.clear();
+          values.forEach(v => processedRewardTimes.add(v));
+        }
+        
+        // Mining rate is per minute, so multiply by 3 for each 3-minute cycle
+        const rewardAmount = parseFloat((completeCycles * (state.miningRate * 3)).toFixed(6));
+        
+        // Update state with rewards (fixed precision)
+        const updatedState = {
+          miningTime: remainingSeconds,
+          progress: progress,
+          balance: parseFloat((state.balance + rewardAmount).toFixed(6)),
+          miningSession: parseFloat((state.miningSession + rewardAmount).toFixed(6))
+        };
+        
+        // Periodic save with fixed values
+        if (now - lastSaveTimeRef.current > 10000) {
+          saveUserData({
+            ...state,
+            ...updatedState,
+            lastSaved: now
+          });
+          lastSaveTimeRef.current = now;
+        }
+        
+        return updatedState;
       }
-      
-      return updatedState;
     }
   }
   

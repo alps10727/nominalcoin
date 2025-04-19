@@ -16,14 +16,15 @@ export function addMiningReward(
   currentCyclePosition: number
 ): Partial<MiningState> | null {
   // Check if we crossed a 3-minute boundary during this update
-  const addReward = (previousCyclePosition > currentCyclePosition) || 
-                   (currentCyclePosition === 0 && totalElapsed > 0);
+  // Only add reward if we completed a full 3-minute cycle
+  const addReward = (previousCyclePosition > currentCyclePosition) && 
+                   (totalElapsed >= 180); // Min 180 seconds (3 min) must pass
   
   if (!addReward) {
     return null;
   }
   
-  debugLog("useMiningRewards", "Adding mining reward");
+  debugLog("useMiningRewards", "Adding mining reward at exact 3-minute interval");
   
   // Check current localStorage data for consistency
   const localData = loadUserData();
@@ -55,11 +56,15 @@ export function addMiningReward(
     userId: prevState.userId
   });
   
-  // Show reward toast with improved styling
+  // Show reward toast with improved styling - using unique ID to prevent duplicates
+  const toastId = `reward-${Date.now()}`;
+  
+  // Check if there's already a reward toast with similar content
   toast.success(`+${rewardAmount.toFixed(3)} NC earned!`, {
     style: { background: "#4338ca", color: "white", border: "1px solid #3730a3" },
     icon: '💰',
-    id: `reward-${Date.now()}` // Add unique ID to prevent duplicate toasts
+    id: toastId, // Unique ID prevents duplicate toasts
+    duration: 3000, // Shorter duration
   });
   
   return {
@@ -100,11 +105,12 @@ export function handleMiningCompletion(prevState: MiningState): Partial<MiningSt
     userId: prevState.userId
   });
   
-  // Show completion toast with improved styling
+  // Show completion toast with improved styling - using fixed ID to prevent duplicates
   toast.info("Mining cycle completed!", {
     style: { background: "#4338ca", color: "white", border: "1px solid #3730a3" },
     icon: '🏆',
-    id: 'mining-completed'
+    id: 'mining-completed', // Fixed ID prevents duplicate completion toasts
+    duration: 3000, // Shorter duration
   });
   
   return {
