@@ -25,12 +25,9 @@ export function Toaster() {
               )}
             </div>
             {action}
-            <button 
-              onClick={() => dismiss(id)}
-              className="absolute top-2 right-2 p-1 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <X className="h-4 w-4 text-gray-500 hover:text-gray-700" />
-            </button>
+            <ToastClose onClick={() => dismiss(id)} className="absolute top-2 right-2">
+              <X className="h-4 w-4" />
+            </ToastClose>
           </Toast>
         )
       })}

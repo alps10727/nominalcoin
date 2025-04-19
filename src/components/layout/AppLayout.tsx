@@ -1,7 +1,6 @@
 
 import { Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Header from "@/components/Header";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
@@ -57,7 +56,6 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         </div>
         
         <Toaster />
-        <Sonner />
         
         <Header />
         

@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { debugLog } from "@/utils/debugUtils";
 import ReferralHeader from "@/components/referral/ReferralHeader";
 import ReferralStats from "@/components/referral/ReferralStats";
@@ -125,7 +125,10 @@ const Referral = () => {
     
     try {
       setIsRefreshing(true);
-      toast.loading("Referans bilgileri yükleniyor...");
+      toast({
+        title: "Referans bilgileri yükleniyor...",
+        duration: 3000
+      });
       
       const { data, error } = await supabase
         .from('profiles')
@@ -157,16 +160,24 @@ const Referral = () => {
             miningRate: data.mining_rate !== undefined ? data.mining_rate : userData.miningRate
           });
           
-          toast.success("Referans bilgileri güncellendi");
+          toast({
+            title: "Referans bilgileri güncellendi",
+            variant: "default",
+            duration: 3000
+          });
         }
       }
     } catch (error) {
-      toast.error("Verileri güncellerken bir hata oluştu");
+      toast({
+        title: "Hata",
+        description: "Verileri güncellerken bir hata oluştu",
+        variant: "destructive",
+        duration: 5000
+      });
       debugLog("Referral", "Error refreshing data:", error);
     } finally {
       setIsRefreshing(false);
       setIsLoading(false);
-      toast.dismiss();
     }
   };
   

@@ -1,9 +1,9 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Share2, Copy, CheckCircle2 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { debugLog } from "@/utils/debugUtils";
 
 interface ReferralCodeCardProps {
@@ -17,25 +17,44 @@ const ReferralCodeCard = ({ referralCode }: ReferralCodeCardProps) => {
 
   const handleCopy = async () => {
     if (!referralCode) {
-      toast.error("Referans kodu henüz mevcut değil");
+      toast({
+        title: "Hata",
+        description: "Referans kodu henüz mevcut değil",
+        variant: "destructive",
+        duration: 3000
+      });
       return;
     }
     
     try {
       await navigator.clipboard.writeText(referralCode);
       setCopied(true);
-      toast.success("Referans kodu kopyalandı!");
+      toast({
+        title: "Başarılı",
+        description: "Referans kodu kopyalandı!",
+        duration: 3000
+      });
       
       setTimeout(() => setCopied(false), 3000);
     } catch (err) {
-      toast.error("Kopyalama başarısız oldu");
+      toast({
+        title: "Hata",
+        description: "Kopyalama başarısız oldu",
+        variant: "destructive",
+        duration: 3000
+      });
       debugLog("Referral", "Copy failed:", err);
     }
   };
 
   const handleShare = async () => {
     if (!referralCode) {
-      toast.error("Referans kodu henüz mevcut değil");
+      toast({
+        title: "Hata",
+        description: "Referans kodu henüz mevcut değil",
+        variant: "destructive",
+        duration: 3000
+      });
       return;
     }
     
@@ -46,10 +65,19 @@ const ReferralCodeCard = ({ referralCode }: ReferralCodeCardProps) => {
           text: 'Madencilik yaparak NC kazanın! Referans kodumu kullanarak kaydolun:',
           url: referralLink
         });
-        toast.success("Paylaşım başarılı!");
+        toast({
+          title: "Başarılı",
+          description: "Paylaşım başarılı!",
+          duration: 3000
+        });
       } catch (err) {
         if ((err as Error).name !== 'AbortError') {
-          toast.error("Paylaşım başarısız oldu");
+          toast({
+            title: "Hata",
+            description: "Paylaşım başarısız oldu",
+            variant: "destructive",
+            duration: 3000
+          });
           debugLog("Referral", "Share failed:", err);
         }
       }
