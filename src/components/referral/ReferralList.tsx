@@ -1,12 +1,15 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserIcon } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ReferralListProps {
   referrals: string[];
 }
 
 const ReferralList = ({ referrals }: ReferralListProps) => {
+  const { t } = useLanguage();
+  
   if (!referrals || referrals.length === 0) {
     return null;
   }
@@ -16,7 +19,7 @@ const ReferralList = ({ referrals }: ReferralListProps) => {
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2">
           <UserIcon className="w-5 h-5" /> 
-          <span>Referansların</span>
+          <span>{t("referral.yourReferrals")}</span>
         </CardTitle>
       </CardHeader>
       <CardContent>

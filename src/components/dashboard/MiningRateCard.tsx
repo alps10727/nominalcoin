@@ -48,12 +48,12 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
                     hover:bg-purple-900/80 transition-all duration-300 group">
           <div className="flex items-center text-xs text-purple-400/80 mb-1">
             <Activity className="h-3 w-3 mr-1 group-hover:text-purple-300 transition-colors" />
-            <span className="text-xs font-medium text-white">Mining Power</span>
+            <span className="text-xs font-medium text-white">{t("mining.power")}</span>
           </div>
           
           <div className="flex flex-col gap-1 mt-1">
             <div className="flex justify-between text-xs">
-              <span className="text-purple-200">Base Rate</span>
+              <span className="text-purple-200">{t("mining.baseRate")}</span>
               <span className="text-white font-medium">{BASE_MINING_RATE.toFixed(3)} NC/min</span>
             </div>
             
@@ -61,7 +61,7 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
               <div className="flex justify-between text-xs">
                 <div className="flex items-center">
                   <Users className="h-3 w-3 mr-1 text-blue-300" />
-                  <span className="text-blue-300">Referrals ({referralCount})</span>
+                  <span className="text-blue-300">{t("referral.referrals")} ({referralCount})</span>
                 </div>
                 <span className="text-blue-300">+{referralBonus} NC/min</span>
               </div>
@@ -81,11 +81,11 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
                     hover:bg-purple-900/80 transition-all duration-300 group">
           <div className="flex items-center text-xs text-purple-400/80 mb-1">
             <Zap className="h-3 w-3 mr-1 group-hover:text-purple-300 transition-colors" />
-            <span className="text-xs font-medium text-white">Rewards</span>
+            <span className="text-xs font-medium text-white">{t("mining.rewards")}</span>
           </div>
           
           <div className="flex justify-between items-end mt-1">
-            <span className="text-xs text-purple-200">NC/3min cycle</span>
+            <span className="text-xs text-purple-200">{t("mining.cycleReward")}</span>
             <span className="text-xl font-bold text-white">{cycleReward.toFixed(3)}</span>
           </div>
         </div>
@@ -95,7 +95,7 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
                     hover:bg-purple-900/80 transition-all duration-300 group">
           <div className="flex items-center text-xs text-purple-400/80 mb-1">
             <Clock className="h-3 w-3 mr-1 group-hover:text-purple-300 transition-colors" />
-            <span className="text-xs font-medium text-white">Hourly</span>
+            <span className="text-xs font-medium text-white">{t("mining.hourly")}</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-xs text-purple-200">NC/h</span>
@@ -108,7 +108,7 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
                     hover:bg-purple-900/80 transition-all duration-300 group">
           <div className="flex items-center text-xs text-purple-400/80 mb-1">
             <Clock className="h-3 w-3 mr-1 group-hover:text-purple-300 transition-colors" />
-            <span className="text-xs font-medium text-white">Daily</span>
+            <span className="text-xs font-medium text-white">{t("mining.daily")}</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-xs text-purple-200">NC/day</span>

@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { LogOut, Save, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { debugLog, errorLog } from "@/utils/debugUtils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Profile = () => {
   const [loading, setLoading] = useState(false);
@@ -19,6 +20,7 @@ const Profile = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { logout, currentUser, userData, updateUserData, isOffline } = useAuth();
+  const { t } = useLanguage();
   
   const [name, setName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -62,11 +64,11 @@ const Profile = () => {
       // Use the logout function from AuthContext
       await logout();
       navigate("/sign-in", { replace: true });
-      toast.success("Çıkış başarılı!");
+      toast.success(t("auth.logoutSuccess"));
       
     } catch (error) {
       setError("Çıkış yapılamadı: " + (error as Error).message);
-      toast.error("Çıkış yapılamadı: " + (error as Error).message);
+      toast.error(t("auth.logoutFailed") + ": " + (error as Error).message);
       
       // Force hard logout if normal logout fails
       try {
@@ -89,7 +91,7 @@ const Profile = () => {
       await supabase.auth.refreshSession();
       window.location.reload();
     } catch (error) {
-      toast.error("Yenilenirken hata oluştu");
+      toast.error(t("auth.refreshError"));
       errorLog("Profile", "Refresh error:", error);
     } finally {
       setLoading(false);
@@ -106,9 +108,9 @@ const Profile = () => {
         name,
       });
       
-      toast.success("Profil başarıyla güncellendi");
+      toast.success(t("profile.updateSuccess"));
     } catch (error) {
-      toast.error("Profil güncellenirken bir hata oluştu");
+      toast.error(t("profile.updateError"));
       errorLog("Profile", "Profile update error:", error);
     } finally {
       setIsSaving(false);
@@ -122,28 +124,28 @@ const Profile = () => {
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Profil</h1>
+        <h1 className="text-2xl font-bold">{t("profile.title")}</h1>
         <Button 
           variant="outline"
           size="sm"
           onClick={handleRefresh}
         >
           <RefreshCw className="w-4 h-4 mr-2" />
-          Yenile
+          {t("profile.refresh")}
         </Button>
       </div>
       
       {isOffline && (
         <div className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 p-3 rounded-md mb-4 flex items-center">
           <span className="inline-block w-2 h-2 bg-yellow-500 rounded-full mr-2 animate-pulse"></span>
-          Çevrimdışı mod - Sınırlı fonksiyonellik sunuluyor
+          {t("app.offlineMode")}
         </div>
       )}
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="bg-gradient-to-br from-navy-900/90 to-navy-950/90">
           <CardHeader>
-            <CardTitle>Profil Bilgileri</CardTitle>
+            <CardTitle>{t("profile.information")}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center space-y-6">
             <ProfileAvatar 
@@ -154,17 +156,17 @@ const Profile = () => {
             
             <div className="w-full space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Adınız</Label>
+                <Label htmlFor="name">{t("profile.name")}</Label>
                 <Input 
                   id="name" 
                   value={name} 
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Adınızı girin"
+                  placeholder={t("profile.namePlaceholder")}
                 />
               </div>
               
               <div className="space-y-2">
-                <Label>Email</Label>
+                <Label>{t("profile.email")}</Label>
                 <Input 
                   value={currentUser?.email || ""} 
                   disabled
@@ -173,7 +175,7 @@ const Profile = () => {
               </div>
               
               <div className="space-y-2">
-                <Label>Kullanıcı ID</Label>
+                <Label>{t("profile.userId")}</Label>
                 <Input 
                   value={currentUser?.id || ""} 
                   disabled
@@ -189,12 +191,12 @@ const Profile = () => {
                 {isSaving ? (
                   <>
                     <div className="animate-spin h-4 w-4 mr-2 border-2 border-white rounded-full border-t-transparent" />
-                    Kaydediliyor...
+                    {t("profile.saving")}
                   </>
                 ) : (
                   <>
                     <Save className="w-4 h-4 mr-2" />
-                    Profili Kaydet
+                    {t("profile.saveProfile")}
                   </>
                 )}
               </Button>
@@ -204,17 +206,17 @@ const Profile = () => {
         
         <Card className="bg-gradient-to-br from-navy-900/90 to-navy-950/90">
           <CardHeader>
-            <CardTitle>Hesap Yönetimi</CardTitle>
+            <CardTitle>{t("profile.accountManagement")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
-              <h3 className="text-lg font-medium">Kullanıcı Bilgileri</h3>
+              <h3 className="text-lg font-medium">{t("profile.userInfo")}</h3>
               <p className="text-gray-500 dark:text-gray-400 mt-1">
-                Email: {currentUser?.email}
+                {t("profile.email")}: {currentUser?.email}
               </p>
               {userData?.isAdmin && (
                 <div className="mt-2 bg-amber-600/20 text-amber-400 px-2 py-1 rounded-md inline-block">
-                  Admin
+                  {t("profile.admin")}
                 </div>
               )}
             </div>
@@ -226,7 +228,7 @@ const Profile = () => {
               className="w-full"
             >
               <LogOut className="w-4 h-4 mr-2" />
-              Çıkış Yap
+              {t("auth.logout")}
             </Button>
           </CardContent>
         </Card>

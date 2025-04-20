@@ -7,6 +7,7 @@ import { useFileUpload } from "@/hooks/useFileUpload";
 import { useAuth } from "@/contexts/AuthContext";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProfileAvatarProps {
   initialAvatarUrl?: string;
@@ -19,6 +20,7 @@ const ProfileAvatar = ({
   onAvatarChange,
   size = "md" 
 }: ProfileAvatarProps) => {
+  const { t } = useLanguage();
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(initialAvatarUrl);
   const { uploadUserFile, deleteUserFile, uploading, progress } = useFileUpload();
   const { currentUser, userData } = useAuth();
@@ -39,13 +41,13 @@ const ProfileAvatar = ({
     
     // Resim dosyası olup olmadığını kontrol et
     if (!file.type.startsWith('image/')) {
-      toast.error("Lütfen geçerli bir resim dosyası seçin");
+      toast.error(t("profile.validImageError"));
       return;
     }
     
     // Dosya boyut kontrolü (5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("Dosya boyutu 5MB'dan küçük olmalıdır");
+      toast.error(t("profile.fileSizeError"));
       return;
     }
     
@@ -59,7 +61,7 @@ const ProfileAvatar = ({
         }
       }
     } catch (error) {
-      toast.error("Profil resmi yüklenemedi");
+      toast.error(t("profile.uploadError"));
     }
   };
   
@@ -76,7 +78,7 @@ const ProfileAvatar = ({
         }
       }
     } catch (error) {
-      toast.error("Profil resmi silinemedi");
+      toast.error(t("profile.deleteError"));
     }
   };
   
@@ -106,7 +108,7 @@ const ProfileAvatar = ({
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           />
           <Upload className="h-4 w-4 mr-1" />
-          Yükle
+          {t("profile.upload")}
         </Button>
         
         {avatarUrl && (
@@ -117,7 +119,7 @@ const ProfileAvatar = ({
             disabled={uploading}
           >
             <Trash2 className="h-4 w-4 mr-1" />
-            Sil
+            {t("profile.delete")}
           </Button>
         )}
       </div>
