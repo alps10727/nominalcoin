@@ -1,3 +1,4 @@
+
 export const en = {
   "app.title": "NOMINAL Coin",
   "balance.title": "Your NC Balance",
@@ -83,4 +84,22 @@ export const en = {
   "badges.socialNetworkerDesc": "Refer 5 friends to FC",
   "badges.upgradeMaster": "Upgrade Master",
   "badges.upgradeMasterDesc": "Purchase 3 mining upgrades",
+  
+  // Auth translations
+  "auth.loginSuccess": "Successfully logged in!",
+  "auth.invalidCredentials": "Invalid email or password.",
+  "auth.tooManyRequests": "Too many attempts. Please try again later.",
+  "auth.networkError": "Please check your internet connection.",
+  "auth.loginFailed": "Login failed",
+  "auth.logoutSuccess": "Logged out",
+  "auth.logoutFailed": "Failed to log out",
+  "auth.registrationSuccess": "Your account has been successfully created!",
+  "auth.registrationWithReferralSuccess": "Your account has been created and the referral code accepted!",
+  "auth.emailInUse": "This email address is already in use.",
+  "auth.weakPassword": "Password must be at least 6 characters.",
+  "auth.invalidEmail": "Invalid email address.",
+  "auth.invalidReferral": "Invalid referral code. Registration will proceed without it.",
+  "auth.emailRateLimitExceeded": "Email sending limit exceeded. Please try again later.",
+  "auth.registrationFailed": "Registration failed",
+  "menu.open": "Open menu"
 };

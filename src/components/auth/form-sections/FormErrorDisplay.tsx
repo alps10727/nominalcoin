@@ -1,7 +1,6 @@
 
 import ErrorAlert from "../alerts/ErrorAlert";
 import OfflineAlert from "../alerts/OfflineAlert";
-import { AlertCircle } from "lucide-react";
 
 interface FormErrorDisplayProps {
   error: string | null;
@@ -9,6 +8,18 @@ interface FormErrorDisplayProps {
   isOffline: boolean;
   referralError?: string | null;
   warningMessage?: string | null;
+  
+  // Çeviri anahtarları için yeni prop'lar ekledik
+  errorKey?: string;
+  formErrorKey?: string;
+  referralErrorKey?: string;
+  warningKey?: string;
+  
+  // Çeviri değişkenleri için
+  errorArgs?: string[];
+  formErrorArgs?: string[];
+  referralErrorArgs?: string[];
+  warningArgs?: string[];
 }
 
 const FormErrorDisplay = ({ 
@@ -16,26 +27,44 @@ const FormErrorDisplay = ({
   formError, 
   isOffline, 
   referralError,
-  warningMessage 
+  warningMessage,
+  errorKey,
+  formErrorKey,
+  referralErrorKey,
+  warningKey,
+  errorArgs,
+  formErrorArgs,
+  referralErrorArgs,
+  warningArgs
 }: FormErrorDisplayProps) => {
   return (
     <>
-      {/* Rate limit or warning messages */}
-      {warningMessage && (
-        <ErrorAlert message={warningMessage} variant="warning" />
+      {/* Rate limit veya uyarı mesajları */}
+      {(warningMessage || warningKey) && (
+        <ErrorAlert 
+          message={warningMessage || ""} 
+          variant="warning"
+          translationKey={warningKey}
+          translationArgs={warningArgs}
+        />
       )}
       
-      {/* Regular errors (auth errors etc.) */}
-      {(error || formError) && (
-        <ErrorAlert message={error || formError} />
+      {/* Normal hatalar (auth hataları vs.) */}
+      {(error || formError || errorKey || formErrorKey) && (
+        <ErrorAlert 
+          message={error || formError || ""} 
+          translationKey={errorKey || formErrorKey}
+          translationArgs={errorKey ? errorArgs : formErrorArgs}
+        />
       )}
       
-      {/* Referral-specific errors shown separately */}
-      {referralError && (
-        <div className="mb-4 p-3 bg-red-50/90 border border-red-200 text-red-600 rounded-md flex items-start">
-          <AlertCircle className="h-5 w-5 mr-2 shrink-0 mt-0.5" />
-          <span className="text-sm">{referralError}</span>
-        </div>
+      {/* Referral'a özel hatalar ayrı gösteriliyor */}
+      {(referralError || referralErrorKey) && (
+        <ErrorAlert
+          message={referralError || ""}
+          translationKey={referralErrorKey}
+          translationArgs={referralErrorArgs}
+        />
       )}
       
       {isOffline && <OfflineAlert />}

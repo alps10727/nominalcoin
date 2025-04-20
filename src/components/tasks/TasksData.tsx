@@ -118,17 +118,17 @@ export const useTasksData = () => {
   const { error: tasksError } = useTasks();
   
   const [loading, setLoading] = useState(true);
-  const [dailyTasks, setDailyTasks] = useState<Task[]>(getInitialTasks(t));
-  const [badges, setBadges] = useState<Badge[]>(getInitialBadges(t));
+  const [dailyTasks, setDailyTasks] = useState<Task[]>([]);
+  const [badges, setBadges] = useState<Badge[]>([]);
 
   useEffect(() => {
     // Başlangıç verilerini yükleme 
     try {
       setDailyTasks(getInitialTasks(t));
       setBadges(getInitialBadges(t));
+      setLoading(false);
     } catch (error) {
       errorLog('useTasksData', 'Görevler yüklenirken hata:', error);
-    } finally {
       setLoading(false);
     }
   }, [t]);

@@ -1,3 +1,4 @@
+
 export const ru = {
   "app.title": "NOMINAL Монета",
   "balance.title": "Ваш Баланс NC",
@@ -83,4 +84,22 @@ export const ru = {
   "badges.socialNetworkerDesc": "Пригласите 5 друзей в NC",
   "badges.upgradeMaster": "Мастер апгрейдов",
   "badges.upgradeMasterDesc": "Приобретите 3 улучшения для майнинга",
+
+  // Auth translations
+  "auth.loginSuccess": "Вход выполнен успешно!",
+  "auth.invalidCredentials": "Неверный email или пароль.",
+  "auth.tooManyRequests": "Слишком много попыток. Попробуйте позже.",
+  "auth.networkError": "Проверьте подключение к интернету.",
+  "auth.loginFailed": "Ошибка входа",
+  "auth.logoutSuccess": "Выход выполнен",
+  "auth.logoutFailed": "Не удалось выйти",
+  "auth.registrationSuccess": "Ваша учетная запись успешно создана!",
+  "auth.registrationWithReferralSuccess": "Ваша учетная запись создана и реферальный код принят!",
+  "auth.emailInUse": "Этот email уже используется.",
+  "auth.weakPassword": "Пароль должен содержать минимум 6 символов.",
+  "auth.invalidEmail": "Неверный email адрес.",
+  "auth.invalidReferral": "Неверный реферальный код. Регистрация продолжится без него.",
+  "auth.emailRateLimitExceeded": "Превышен лимит отправки email. Попробуйте позже.",
+  "auth.registrationFailed": "Ошибка регистрации",
+  "menu.open": "Открыть меню"
 };

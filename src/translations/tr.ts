@@ -1,3 +1,4 @@
+
 export const tr = {
   "app.title": "NOMINAL Coin",
   "balance.title": "NC Bakiyeniz",
@@ -83,4 +84,22 @@ export const tr = {
   "badges.socialNetworkerDesc": "NC'ye 5 arkadaş yönlendir",
   "badges.upgradeMaster": "Yükseltme Ustası",
   "badges.upgradeMasterDesc": "3 madencilik yükseltmesi satın al",
+  
+  // Auth translations
+  "auth.loginSuccess": "Başarıyla giriş yapıldı!",
+  "auth.invalidCredentials": "Email veya şifre hatalı.",
+  "auth.tooManyRequests": "Çok fazla deneme yaptınız. Lütfen daha sonra tekrar deneyin.",
+  "auth.networkError": "Lütfen internet bağlantınızı kontrol edin.",
+  "auth.loginFailed": "Giriş başarısız",
+  "auth.logoutSuccess": "Çıkış yapıldı",
+  "auth.logoutFailed": "Çıkış yapılamadı",
+  "auth.registrationSuccess": "Hesabınız başarıyla oluşturuldu!",
+  "auth.registrationWithReferralSuccess": "Hesabınız oluşturuldu ve referans kodu kabul edildi!",
+  "auth.emailInUse": "Bu email adresi zaten kullanımda.",
+  "auth.weakPassword": "Şifre en az 6 karakter olmalıdır.",
+  "auth.invalidEmail": "Geçersiz email adresi.",
+  "auth.invalidReferral": "Geçersiz referans kodu. Kayıt işlemi referans kodu olmadan devam ediyor.",
+  "auth.emailRateLimitExceeded": "Email gönderim limiti aşıldı. Lütfen bir süre sonra tekrar deneyin.",
+  "auth.registrationFailed": "Kayıt başarısız",
+  "menu.open": "Menüyü aç"
 };

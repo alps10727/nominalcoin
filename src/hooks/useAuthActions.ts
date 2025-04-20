@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { User } from "@supabase/supabase-js"; // Changed from firebase/auth to supabase
 import { loginUser, logoutUser, registerUser, UserRegistrationData } from "@/services/authService";
 import { debugLog, errorLog } from "@/utils/debugUtils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface AuthActions {
   login: (email: string, password: string) => Promise<boolean>;
@@ -11,12 +12,14 @@ interface AuthActions {
 }
 
 export function useAuthActions(): AuthActions {
+  const { t } = useLanguage();
+  
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       debugLog("useAuthActions", "Starting login process:", email);
       const user = await loginUser(email, password);
       if (user) {
-        toast.success("Successfully logged in!");
+        toast.success(t("auth.loginSuccess"));
         return true;
       }
       return false;
@@ -28,13 +31,13 @@ export function useAuthActions(): AuthActions {
          errorMessage.includes("wrong-password") || 
          errorMessage.includes("invalid-credential") ||
          errorMessage.includes("invalid-email")) {
-        toast.error("Email veya şifre hatalı.");
+        toast.error(t("auth.invalidCredentials"));
       } else if (errorMessage.includes("too-many-requests")) {
-        toast.error("Çok fazla deneme yaptınız. Lütfen daha sonra tekrar deneyin.");
+        toast.error(t("auth.tooManyRequests"));
       } else if (errorMessage.includes("network-request-failed") || errorMessage.includes("timeout")) {
-        toast.error("Lütfen internet bağlantınızı kontrol edin.");
+        toast.error(t("auth.networkError"));
       } else {
-        toast.error("Giriş başarısız: " + errorMessage);
+        toast.error(t("auth.loginFailed") + ": " + errorMessage);
       }
       return false;
     }
@@ -43,10 +46,10 @@ export function useAuthActions(): AuthActions {
   const logout = async (): Promise<void> => {
     try {
       await logoutUser();
-      toast.success("Logged out");
+      toast.success(t("auth.logoutSuccess"));
     } catch (error) {
       errorLog("useAuthActions", "Logout error:", error);
-      toast.error("Failed to log out: " + (error as Error).message);
+      toast.error(t("auth.logoutFailed") + ": " + (error as Error).message);
     }
   };
 
@@ -60,9 +63,9 @@ export function useAuthActions(): AuthActions {
         
         // Show different toast message based on referral status
         if (userData.referralCode) {
-          toast.success("Hesabınız oluşturuldu ve referans kodu kabul edildi!");
+          toast.success(t("auth.registrationWithReferralSuccess"));
         } else {
-          toast.success("Hesabınız başarıyla oluşturuldu!");
+          toast.success(t("auth.registrationSuccess"));
         }
         
         return true;
@@ -76,19 +79,19 @@ export function useAuthActions(): AuthActions {
       const errorCode = (error as any).code || '';
       
       if (errorMessage.includes("email-already-in-use")) {
-        toast.error("Bu email adresi zaten kullanımda.");
+        toast.error(t("auth.emailInUse"));
       } else if (errorMessage.includes("weak-password")) {
-        toast.error("Şifre en az 6 karakter olmalıdır.");
+        toast.error(t("auth.weakPassword"));
       } else if (errorMessage.includes("invalid-email")) {
-        toast.error("Geçersiz email adresi.");
+        toast.error(t("auth.invalidEmail"));
       } else if (errorMessage.includes("network-request-failed") || errorMessage.includes("timeout")) {
-        toast.error("Lütfen internet bağlantınızı kontrol edin.");
+        toast.error(t("auth.networkError"));
       } else if (errorMessage.includes("invalid-referral")) {
-        toast.error("Geçersiz referans kodu. Kayıt işlemi referans kodu olmadan devam ediyor.");
+        toast.error(t("auth.invalidReferral"));
       } else if (errorCode === "over_email_send_rate_limit" || errorMessage.includes("email rate limit exceeded")) {
-        toast.error("Email gönderim limiti aşıldı. Lütfen bir süre sonra tekrar deneyin.");
+        toast.error(t("auth.emailRateLimitExceeded"));
       } else {
-        toast.error("Kayıt başarısız: " + errorMessage);
+        toast.error(t("auth.registrationFailed") + ": " + errorMessage);
       }
       
       // Let the error propagate so it can be handled by components that display specific error UI
