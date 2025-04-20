@@ -48,6 +48,12 @@ export async function registerUser(
     });
     
     if (error) {
+      // Map Supabase error codes to our application's error format
+      if (error.status === 429 || error.message.includes('rate limit')) {
+        const rateLimitError = new Error(error.message);
+        (rateLimitError as any).code = "over_email_send_rate_limit";
+        throw rateLimitError;
+      }
       throw error;
     }
     

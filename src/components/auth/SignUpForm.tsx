@@ -42,10 +42,17 @@ interface SignUpFormProps {
   onSubmit: (name: string, email: string, password: string, referralCode?: string) => Promise<void>;
   loading: boolean;
   error: string | null;
+  warningMessage?: string | null;
   initialReferralCode?: string;
 }
 
-export default function SignUpForm({ onSubmit, loading, error, initialReferralCode = '' }: SignUpFormProps) {
+export default function SignUpForm({ 
+  onSubmit, 
+  loading, 
+  error, 
+  warningMessage,
+  initialReferralCode = '' 
+}: SignUpFormProps) {
   const navigate = useNavigate();
   const [isOffline, setIsOffline] = useState(false);
   
@@ -139,6 +146,7 @@ export default function SignUpForm({ onSubmit, loading, error, initialReferralCo
           error={error} 
           formError={Object.values(form.formState.errors)[0]?.message?.toString() || null}
           isOffline={isOffline} 
+          warningMessage={warningMessage}
         />
         
         <SignUpButton 

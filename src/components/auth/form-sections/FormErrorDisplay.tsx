@@ -8,11 +8,23 @@ interface FormErrorDisplayProps {
   formError: string | null;
   isOffline: boolean;
   referralError?: string | null;
+  warningMessage?: string | null;
 }
 
-const FormErrorDisplay = ({ error, formError, isOffline, referralError }: FormErrorDisplayProps) => {
+const FormErrorDisplay = ({ 
+  error, 
+  formError, 
+  isOffline, 
+  referralError,
+  warningMessage 
+}: FormErrorDisplayProps) => {
   return (
     <>
+      {/* Rate limit or warning messages */}
+      {warningMessage && (
+        <ErrorAlert message={warningMessage} variant="warning" />
+      )}
+      
       {/* Regular errors (auth errors etc.) */}
       {(error || formError) && (
         <ErrorAlert message={error || formError} />

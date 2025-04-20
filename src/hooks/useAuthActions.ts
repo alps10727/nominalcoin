@@ -73,21 +73,26 @@ export function useAuthActions(): AuthActions {
     } catch (error) {
       errorLog("useAuthActions", "Registration error:", error);
       const errorMessage = (error as Error).message;
+      const errorCode = (error as any).code || '';
       
       if (errorMessage.includes("email-already-in-use")) {
-        toast.error("This email is already in use.");
+        toast.error("Bu email adresi zaten kullanımda.");
       } else if (errorMessage.includes("weak-password")) {
-        toast.error("Password must be at least 6 characters.");
+        toast.error("Şifre en az 6 karakter olmalıdır.");
       } else if (errorMessage.includes("invalid-email")) {
-        toast.error("Invalid email address.");
+        toast.error("Geçersiz email adresi.");
       } else if (errorMessage.includes("network-request-failed") || errorMessage.includes("timeout")) {
-        toast.error("Please check your internet connection.");
+        toast.error("Lütfen internet bağlantınızı kontrol edin.");
       } else if (errorMessage.includes("invalid-referral")) {
-        toast.error("Invalid referral code. Registration proceeding without referral.");
+        toast.error("Geçersiz referans kodu. Kayıt işlemi referans kodu olmadan devam ediyor.");
+      } else if (errorCode === "over_email_send_rate_limit" || errorMessage.includes("email rate limit exceeded")) {
+        toast.error("Email gönderim limiti aşıldı. Lütfen bir süre sonra tekrar deneyin.");
       } else {
-        toast.error("Registration failed: " + errorMessage);
+        toast.error("Kayıt başarısız: " + errorMessage);
       }
-      return false;
+      
+      // Let the error propagate so it can be handled by components that display specific error UI
+      throw error;
     }
   };
 

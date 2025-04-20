@@ -13,6 +13,7 @@ import { checkReferralCode } from "@/utils/referral/validateReferralCode";
 const SignUp = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [warningMessage, setWarningMessage] = useState<string | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
   
@@ -92,6 +93,7 @@ const SignUp = () => {
     try {
       setLoading(true);
       setError(null);
+      setWarningMessage(null);
       
       // Normalize referral code
       let normalizedCode = referralCode ? referralCode.toUpperCase().trim() : null;
@@ -134,8 +136,16 @@ const SignUp = () => {
       
       navigate("/");
     } catch (error: any) {
-      setError(error.message);
       errorLog("SignUp", "Registration error:", error);
+      
+      // Handle specific error cases
+      if (error.code === "over_email_send_rate_limit" || 
+          error.message?.includes("email rate limit exceeded")) {
+        setWarningMessage("Email gönderim limiti aşıldı. Lütfen bir süre sonra tekrar deneyin.");
+        setError(null);
+      } else {
+        setError(error.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -171,6 +181,7 @@ const SignUp = () => {
             onSubmit={handleSignUp} 
             loading={loading} 
             error={error}
+            warningMessage={warningMessage}
             initialReferralCode={initialReferralCode} 
           />
         </CardContent>
