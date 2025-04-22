@@ -7,6 +7,7 @@ import { saveUserDataToSupabase } from "./saveUserDataService";
 
 /**
  * Update user coin balance in Supabase with optimistic update
+ * Now uses the stored procedure for better security and consistency
  */
 export async function updateUserCoinBalance(
   userId: string, 
@@ -25,13 +26,32 @@ export async function updateUserCoinBalance(
       return false;
     }
     
-    // Update balance
+    // Calculate the difference to pass to our stored procedure
+    const currentBalance = localData.balance || 0;
+    const balanceDifference = newBalance - currentBalance;
+    
+    if (balanceDifference === 0) {
+      // No change needed
+      return true;
+    }
+    
+    // Call the stored procedure through RPC
+    const { data, error } = await supabase.rpc('update_user_balance', {
+      user_id: userId,
+      amount: balanceDifference,
+      reason: 'Balance update from application'
+    });
+    
+    if (error) {
+      errorLog("updateBalanceService", "Error updating balance with stored procedure:", error);
+      return false;
+    }
+    
+    // Optimistically update local data
     localData.balance = newBalance;
     localData.lastSaved = Date.now();
     
-    // Save to Supabase
-    const success = await saveUserDataToSupabase(userId, localData);
-    return success;
+    return true;
   } catch (error) {
     errorLog("updateBalanceService", "Error updating user balance:", error);
     return false;

@@ -17,7 +17,7 @@ export const handleApiRequest = async <T>(
   }
 };
 
-// Profil verilerini getirme
+// Profil verilerini getirme - Improved with RLS in mind
 export const fetchProfileData = async (userId: string) => {
   return handleApiRequest(async () => {
     const { data, error } = await supabase
@@ -31,12 +31,14 @@ export const fetchProfileData = async (userId: string) => {
   }, "Profil verileri yüklenirken bir hata oluştu");
 };
 
-// Kullanıcı verilerini güncelleme
+// Kullanıcı verilerini güncelleme - Improved with RLS in mind
 export const updateUserData = async (
   userId: string,
   updates: Record<string, any>
 ) => {
   return handleApiRequest(async () => {
+    // With RLS, we only need the user ID in the WHERE clause
+    // as policies ensure users can only update their own data
     const { data, error } = await supabase
       .from('profiles')
       .update(updates)
@@ -49,7 +51,7 @@ export const updateUserData = async (
   }, "Veriler güncellenirken bir hata oluştu");
 };
 
-// Transaction log fonksiyonu
+// Transaction log function uses the stored procedure via RPC
 export const logTransaction = async (
   userId: string,
   amount: number,
@@ -57,15 +59,11 @@ export const logTransaction = async (
   description?: string
 ): Promise<void> => {
   await handleApiRequest(async () => {
-    const { error } = await supabase
-      .from('transactions')
-      .insert({
-        user_id: userId,
-        amount,
-        type,
-        description,
-        status: 'completed'
-      });
+    const { error } = await supabase.rpc('update_user_balance', {
+      user_id: userId,
+      amount: amount,
+      reason: `${type}: ${description || ''}`
+    });
       
     if (error) throw error;
   }, "İşlem kaydedilirken bir hata oluştu");

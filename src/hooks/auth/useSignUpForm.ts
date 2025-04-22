@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { signUpSchema, type SignUpFormValues } from "@/components/auth/schemas/signUpSchema";
 import { validateSignUpForm } from "@/utils/formValidation";
 import { toast } from "sonner";
+import { useEffect } from "react";
 
 interface UseSignUpFormProps {
   onSubmit: (name: string, email: string, password: string, referralCode?: string) => Promise<void>;
@@ -29,7 +30,7 @@ export const useSignUpForm = ({ onSubmit, initialReferralCode = '' }: UseSignUpF
   });
   
   // Check online status
-  useState(() => {
+  useEffect(() => {
     const handleOnlineStatus = () => setIsOffline(!navigator.onLine);
     window.addEventListener('online', handleOnlineStatus);
     window.addEventListener('offline', handleOnlineStatus);
@@ -37,7 +38,7 @@ export const useSignUpForm = ({ onSubmit, initialReferralCode = '' }: UseSignUpF
       window.removeEventListener('online', handleOnlineStatus);
       window.removeEventListener('offline', handleOnlineStatus);
     };
-  });
+  }, []);
   
   const isFormValid = form.formState.isValid && 
                      !!form.watch("name")?.trim() && 

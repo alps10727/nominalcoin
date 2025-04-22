@@ -22,17 +22,20 @@ export async function processReferralCode(code: string, newUserId: string): Prom
       return false;
     }
     
-    // Skip direct processing and use the edge function for consistency
-    const response = await supabase.functions.invoke('process_referral_code', {
-      body: { code, newUserId }
+    // Use the stored procedure for referral processing
+    const { data, error } = await supabase.rpc('process_referral', {
+      referrer_id: ownerId, 
+      new_user_id: newUserId, 
+      referral_code: code
     });
     
-    if (response.error) {
-      errorLog("processReferral", "Edge function error:", response.error);
-      throw new Error(response.error.message);
+    if (error) {
+      errorLog("processReferral", "Error calling process_referral function:", error);
+      toast.error("Referans kodu işlenirken bir hata oluştu");
+      return false;
     }
     
-    if (response.data && response.data.success) {
+    if (data) {
       toast.success("Referans ödülleri başarıyla verildi!");
       return true;
     }
