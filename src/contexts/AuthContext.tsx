@@ -7,7 +7,6 @@ import { useUserDataManager } from "@/hooks/userData";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { UserData, clearUserData } from "@/utils/storage";
 import { supabase } from "@/integrations/supabase/client";
-import { useTokenRefresh } from "@/hooks/auth/useTokenRefresh"; // Added token refresh hook
 
 interface AuthContextProps {
   currentUser: User | null;
@@ -32,9 +31,6 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  // Initialize token refresh mechanism
-  useTokenRefresh(); // Added token refresh hook
-  
   const authState = (() => {
     try {
       return useAuthState();

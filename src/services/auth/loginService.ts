@@ -7,6 +7,7 @@ import { toast } from "sonner";
 export async function loginUser(email: string, password: string): Promise<AuthResponse> {
   try {
     // First check if the user exists but might not be confirmed
+    // Changed from getUserByEmail to the correct method getUserById
     const { data: userData, error: userCheckError } = await supabase.auth.admin
       .listUsers()
       .then(response => {
@@ -20,7 +21,6 @@ export async function loginUser(email: string, password: string): Promise<AuthRe
       .catch(() => ({ data: null, error: null }));
       
     // Then attempt the login
-    // Note: We remove the expiresIn option as it's not supported in this format
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
@@ -39,7 +39,6 @@ export async function loginUser(email: string, password: string): Promise<AuthRe
           
           if (!confirmError) {
             // Try signing in again after confirmation
-            // Note: We remove the expiresIn option here as well
             const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
               email,
               password
@@ -66,54 +65,9 @@ export async function loginUser(email: string, password: string): Promise<AuthRe
     }
     
     debugLog("authService", "User logged in successfully", { email });
-    
-    // After successful login, update the session expiration (using a different method)
-    // This is the correct way to set session expiration in Supabase
-    try {
-      // Set session to expire in 1 hour instead of default 24h
-      await supabase.auth.setSession({
-        access_token: data.session?.access_token || '',
-        refresh_token: data.session?.refresh_token || ''
-      });
-      debugLog("authService", "Session expiration updated to 1 hour");
-    } catch (sessionErr) {
-      errorLog("authService", "Failed to update session expiration:", sessionErr);
-    }
-    
-    // Set up refresh token mechanism
-    setupRefreshTokenTimer();
-    
     return { user: data.user };
   } catch (error) {
     errorLog("authService", "Login error:", error);
     return { user: null, error: error as Error };
   }
-}
-
-/**
- * Sets up a timer to refresh the token before it expires
- */
-function setupRefreshTokenTimer() {
-  // Refresh token 5 minutes before expiry (55 minutes after login)
-  const refreshTimeout = setTimeout(async () => {
-    try {
-      const { data, error } = await supabase.auth.refreshSession();
-      
-      if (error) {
-        errorLog("authService", "Token refresh error:", error);
-        return;
-      }
-      
-      if (data.session) {
-        debugLog("authService", "Token refreshed successfully");
-        // Set up the next refresh
-        setupRefreshTokenTimer();
-      }
-    } catch (err) {
-      errorLog("authService", "Token refresh error:", err);
-    }
-  }, 55 * 60 * 1000); // 55 minutes
-  
-  // Clear the timeout if user logs out
-  return () => clearTimeout(refreshTimeout);
 }
