@@ -1,7 +1,5 @@
-
 import React, { useMemo, useCallback } from "react";
 import { FixedSizeList, VariableSizeList, ListChildComponentProps } from "react-window";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { debugLog } from "@/utils/debugUtils";
 
@@ -38,50 +36,44 @@ function OptimizedList<T>({
   scrollToIndex,
   useVariableHeight = false
 }: OptimizedListProps<T>) {
-  // Performance optimization - track rendered items to detect unnecessary renders
-  debugLog("OptimizedList", `Rendering list with ${items.length} items`);
+  
+  // Performance logging
+  debugLog("OptimizedList", `Rendering list with ${items.length} items, useVariableHeight: ${useVariableHeight}`);
 
-  // Scroll sonu algılama
+  // Memoize scroll handler
   const handleScroll = useCallback(({ scrollOffset, scrollUpdateWasRequested }: 
     { scrollOffset: number; scrollUpdateWasRequested: boolean }) => {
     if (!scrollUpdateWasRequested && onScrollEnd && items.length > 0) {
-      // Liste sonuna yaklaşıldığında onScrollEnd çağır
       const totalSize = typeof itemHeight === 'number' 
         ? items.length * itemHeight 
         : items.reduce((total, _, i) => total + (itemHeight as (index: number) => number)(i), 0);
       
       if (scrollOffset > totalSize - height - 100) {
+        debugLog("OptimizedList", "Reached scroll threshold, calling onScrollEnd");
         onScrollEnd();
       }
     }
   }, [onScrollEnd, items.length, itemHeight, height]);
 
-  // Satır render fonksiyonu - tek bir satırı render eder
+  // Memoize row renderer
   const Row = useCallback(({ index, style }: ListChildComponentProps) => {
     const item = items[index];
     if (!item) return null;
     
+    const key = itemKey(item, index);
+    debugLog("OptimizedList", `Rendering row ${index} with key ${key}`);
+    
     return (
-      <div style={style} key={itemKey(item, index)}>
+      <div style={style} key={key}>
         {renderItem(item, index)}
       </div>
     );
   }, [items, renderItem, itemKey]);
 
-  // Performance optimization - Memoize satır bileşeni
+  // Memoize the row component
   const MemoizedRow = useMemo(() => React.memo(Row), [Row]);
 
-  // ListRef için referans oluştur
-  const listRef = React.useRef<FixedSizeList | VariableSizeList>(null);
-  
-  // Belirli indekse kaydırma
-  React.useEffect(() => {
-    if (scrollToIndex !== undefined && listRef.current) {
-      listRef.current.scrollToItem(scrollToIndex, "start");
-    }
-  }, [scrollToIndex]);
-  
-  // Quick navigation buttons for extra-large lists
+  // Memoize navigation buttons
   const QuickNavButtons = useMemo(() => {
     if (items.length < 500) return null;
     
@@ -104,7 +96,18 @@ function OptimizedList<T>({
       </div>
     );
   }, [items.length]);
+
+  // List reference
+  const listRef = React.useRef<FixedSizeList | VariableSizeList>(null);
   
+  // Scroll to index effect
+  React.useEffect(() => {
+    if (scrollToIndex !== undefined && listRef.current) {
+      debugLog("OptimizedList", `Scrolling to index ${scrollToIndex}`);
+      listRef.current.scrollToItem(scrollToIndex, "start");
+    }
+  }, [scrollToIndex]);
+
   // Empty state check
   if (!loading && items.length === 0) {
     return (
@@ -141,7 +144,6 @@ function OptimizedList<T>({
         </div>
       )}
       
-      {/* react-window ile sanal scroll */}
       <div style={{ height: `${height}px` }}>
         {useVariableHeight ? (
           <VariableSizeList
@@ -177,4 +179,5 @@ function OptimizedList<T>({
   );
 }
 
-export default OptimizedList;
+// Prevent unnecessary re-renders of the entire list component
+export default React.memo(OptimizedList);
