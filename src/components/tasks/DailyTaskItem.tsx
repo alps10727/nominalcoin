@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Task } from "@/types/tasks";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { commonStyles, combineStyles } from "@/styles/shared";
 
 interface DailyTaskItemProps {
   task: Task;
@@ -15,14 +16,14 @@ const DailyTaskItem = ({ task, onClaim }: DailyTaskItemProps) => {
   const { t } = useLanguage();
   
   return (
-    <Card className="border-none shadow-md bg-gray-800 text-gray-100 dark:bg-gray-850 overflow-hidden">
-      <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-2">
+    <Card className={commonStyles.card}>
+      <CardContent className={commonStyles.cardContent}>
+        <div className={commonStyles.flexBetween}>
           <div>
             <h3 className="font-medium text-gray-200">{task.title}</h3>
             <p className="text-sm text-gray-400">{task.description}</p>
           </div>
-          <div className="flex items-center">
+          <div className={commonStyles.flexCenter}>
             <span className="text-green-400 font-medium mr-2">+{task.reward} FC</span>
             {task.completed ? (
               <span className="bg-green-900/50 text-green-300 text-xs px-2 py-1 rounded-md">
@@ -32,7 +33,7 @@ const DailyTaskItem = ({ task, onClaim }: DailyTaskItemProps) => {
               task.progress >= task.totalRequired ? (
                 <Button 
                   size="sm" 
-                  className="bg-indigo-600 hover:bg-indigo-700 h-8"
+                  className={combineStyles(commonStyles.button.primary, "h-8")}
                   onClick={() => onClaim(task.id)}
                 >
                   {t('tasks.claim')}
@@ -47,11 +48,14 @@ const DailyTaskItem = ({ task, onClaim }: DailyTaskItemProps) => {
         </div>
         {!task.completed && (
           <div className="mt-3">
-            <div className="flex justify-between text-xs text-gray-400 mb-1">
-              <span>{t('tasks.progress')}</span>
-              <span>{task.progress}/{task.totalRequired}</span>
+            <div className={commonStyles.flexBetween}>
+              <span className="text-xs text-gray-400">{t('tasks.progress')}</span>
+              <span className="text-xs text-gray-400">{task.progress}/{task.totalRequired}</span>
             </div>
-            <Progress value={(task.progress / task.totalRequired) * 100} className="h-2 bg-gray-700" />
+            <Progress 
+              value={(task.progress / task.totalRequired) * 100} 
+              className={commonStyles.progressBar} 
+            />
           </div>
         )}
       </CardContent>
