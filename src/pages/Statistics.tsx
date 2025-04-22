@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart as BarChartIcon, Clock, Award, UserPlus, Coins, TrendingUp, BarChart, PieChart } from "lucide-react";
@@ -55,8 +54,6 @@ const Statistics = () => {
 
   return (
     <div className={`min-h-screen bg-gradient-to-br from-gray-900 to-indigo-950 dark:from-gray-950 dark:to-indigo-950 flex flex-col`}>
-      <Header />
-
       <main className="flex-1 p-5 max-w-3xl mx-auto w-full pb-24 md:pb-5">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-white">{t('stats.title')}</h1>
