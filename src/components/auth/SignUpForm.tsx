@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -64,12 +63,22 @@ export default function SignUpForm({
       password: "",
       confirmPassword: "",
       referralCode: initialReferralCode || "",
-      // Set as undefined instead of false, so form validation will handle it
-      agreedToTerms: undefined as any, // Cast to any to bypass TypeScript check since undefined isn't assignable to literal true
+      agreedToTerms: undefined as any,
     },
   });
   
+  const isFormValid = form.watch("name")?.trim() && 
+                     form.watch("email")?.trim() && 
+                     form.watch("password")?.trim() && 
+                     form.watch("confirmPassword") === form.watch("password") &&
+                     form.watch("agreedToTerms");
+  
   const handleSubmit = async (values: SignUpFormValues) => {
+    if (!isFormValid) {
+      toast.error("Lütfen tüm alanları doldurun ve şartları kabul edin.");
+      return;
+    }
+
     try {
       await onSubmit(
         values.name, 
@@ -109,7 +118,6 @@ export default function SignUpForm({
           disabled={loading}
         />
         
-        {/* Referral Code Input */}
         <div className="space-y-2">
           <label htmlFor="referralCode" className="text-sm font-medium">
             Referans Kodu (İsteğe Bağlı)
@@ -132,7 +140,6 @@ export default function SignUpForm({
           <TermsAgreement 
             checked={form.watch("agreedToTerms") === true} 
             onCheckedChange={(checked) => {
-              // Only set the value to true when checked, otherwise set to undefined
               form.setValue("agreedToTerms", checked ? true : undefined)
             }}
             disabled={loading}
@@ -151,7 +158,8 @@ export default function SignUpForm({
         
         <SignUpButton 
           loading={loading} 
-          isOffline={isOffline} 
+          isOffline={isOffline}
+          disabled={!isFormValid} 
         />
       </form>
     </Form>
