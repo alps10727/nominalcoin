@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -16,7 +15,7 @@ import SignUpButton from "./buttons/SignUpButton";
 import TermsAgreement from "./terms/TermsAgreement";
 import { validateSignUpForm } from "@/utils/formValidation";
 
-// SignUp Schema
+// SignUp Schema - Daha detaylı validasyon kuralları
 const signUpSchema = z.object({
   name: z.string().min(2, {
     message: "Ad alanı en az 2 karakter olmalıdır.",
@@ -24,9 +23,11 @@ const signUpSchema = z.object({
   email: z.string().email({
     message: "Geçerli bir e-posta adresi giriniz.",
   }),
-  password: z.string().min(6, {
-    message: "Şifre en az 6 karakter olmalıdır.",
-  }),
+  password: z.string()
+    .min(6, { message: "Şifre en az 6 karakter olmalıdır." })
+    .regex(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/, {
+      message: "Şifre en az bir harf ve bir rakam içermelidir."
+    }),
   confirmPassword: z.string(),
   referralCode: z.string().optional(),
   agreedToTerms: z.literal(true, {
@@ -201,7 +202,7 @@ export default function SignUpForm({
         <SignUpButton 
           loading={loading} 
           isOffline={isOffline}
-          disabled={!isFormValid} 
+          disabled={!isFormValid || loading} 
         />
       </form>
     </Form>
