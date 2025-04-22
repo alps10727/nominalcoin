@@ -16,6 +16,9 @@ interface DailyTaskItemProps {
 const DailyTaskItem = ({ task, onClaim }: DailyTaskItemProps) => {
   const { t } = useLanguage();
   
+  // Create formatted reward and title strings for translation
+  const rewardString = task.reward.toString();
+  
   return (
     <Card className={commonStyles.card}>
       <CardContent className="p-4">
@@ -47,7 +50,7 @@ const DailyTaskItem = ({ task, onClaim }: DailyTaskItemProps) => {
                       <AlertDialogTitle>{t('tasks.confirmClaim')}</AlertDialogTitle>
                       <AlertDialogDescription>
                         {t('tasks.claimDescription', {
-                          reward: task.reward,
+                          reward: rewardString,
                           title: task.title
                         })}
                       </AlertDialogDescription>

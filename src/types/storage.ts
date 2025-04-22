@@ -19,7 +19,7 @@ export interface UserData {
   emailAddress?: string; // User's email address
   isAdmin?: boolean; // Added isAdmin property for admin panel access
   tasks?: {
-    completed?: number[]  // Completed task IDs
+    completed?: (number | string)[]  // Updated to support both number and string IDs
   };
   referralCode?: string; // User's unique referral code
   invitedBy?: string; // UserID of the inviter

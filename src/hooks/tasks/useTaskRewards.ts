@@ -47,7 +47,10 @@ export function useTaskRewards(
             balance: (userData.balance || 0) + task.reward,
             tasks: {
               ...userData.tasks,
-              completed: [...(userData.tasks?.completed || []), taskId]
+              // Fix type issue: ensure completed is always number[]
+              completed: [...(userData.tasks?.completed || []).map(id => 
+                typeof id === 'string' ? parseInt(id, 10) : id
+              ), typeof taskId === 'string' ? parseInt(taskId, 10) : taskId]
             }
           };
           
