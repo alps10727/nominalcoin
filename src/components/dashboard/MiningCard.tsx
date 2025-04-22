@@ -14,7 +14,7 @@ interface MiningCardProps {
   miningSession: number;
   miningTime: number;
   onStartMining: () => void;
-  onStopMining: () => void;
+  onStopMining: () => void; // This prop is still received but won't be used
 }
 
 const MiningCard = React.memo<MiningCardProps>(({
@@ -24,22 +24,20 @@ const MiningCard = React.memo<MiningCardProps>(({
   miningSession,
   miningTime,
   onStartMining,
-  onStopMining
+  onStopMining // This prop is still received but won't be used
 }) => {
   const isMobile = useIsMobile();
   const { isDarkMode } = useTheme();
   
-  // Handle button clicks with debounce logic to prevent rapid toggling
+  // Only allow starting mining
   const handleButtonClick = React.useCallback(() => {
-    if (miningActive) {
-      onStopMining();
-    } else {
+    if (!miningActive) {
       onStartMining();
     }
-  }, [miningActive, onStartMining, onStopMining]);
+  }, [miningActive, onStartMining]);
 
   // Quick stats for display
-  const hourlyRate = (miningRate * 60).toFixed(1); // 60 minutes per hour
+  const hourlyRate = (miningRate * 60).toFixed(1);
 
   return (
     <Card className="border-0 overflow-hidden shadow-lg transition-all duration-300 relative rounded-xl backdrop-blur-sm group
@@ -103,14 +101,14 @@ const MiningCard = React.memo<MiningCardProps>(({
           />
         </div>
       
-        {/* Live mining stats - enhanced only shown when active */}
+        {/* Live mining stats */}
         {miningActive && (
           <div className="mt-8 grid grid-cols-2 gap-3">
             <div className="bg-darkPurple-950/60 p-3 rounded-lg border border-purple-900/15 backdrop-blur-sm 
                         hover:bg-darkPurple-950/80 transition-all duration-300 group">
               <div className="flex items-center text-xs text-purple-400/80 mb-1">
                 <Clock className="h-3 w-3 mr-1 group-hover:text-purple-300 transition-colors" />
-                Session Time
+                Kalan Süre
               </div>
               <div className="text-sm font-semibold text-white">
                 {Math.floor(miningTime / 60)}m {miningTime % 60}s
@@ -120,7 +118,7 @@ const MiningCard = React.memo<MiningCardProps>(({
                         hover:bg-navy-950/80 transition-all duration-300 group">
               <div className="flex items-center text-xs text-purple-400/80 mb-1">
                 <Diamond className="h-3 w-3 mr-1 group-hover:text-purple-300 transition-colors" />
-                Session Earned
+                Kazanılan
               </div>
               <div className="text-sm font-semibold text-white">
                 +{miningSession.toFixed(2)} FC
@@ -133,7 +131,7 @@ const MiningCard = React.memo<MiningCardProps>(({
         {!miningActive && (
           <div className="mt-4 text-center">
             <p className="text-xs text-purple-400/60 max-w-xs mx-auto leading-relaxed">
-              Earn Future Coin by mining with your device. The longer you mine, the more FC you'll earn.
+              Madenciliği başlatmak için butona tıklayın. 6 saat boyunca FC kazanacaksınız.
             </p>
           </div>
         )}

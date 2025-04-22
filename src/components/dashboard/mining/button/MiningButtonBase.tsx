@@ -12,9 +12,6 @@ interface MiningButtonBaseProps {
   children: React.ReactNode;
 }
 
-/**
- * Base button component that handles the click event and scaling animation
- */
 export const MiningButtonBase = React.memo<MiningButtonBaseProps>(({ 
   miningActive, 
   onClick,
@@ -26,7 +23,8 @@ export const MiningButtonBase = React.memo<MiningButtonBaseProps>(({
   // Use the extracted click handler logic
   const { handleClick, cooldown, isDisabled } = useMiningButtonClick({
     onClick,
-    disabled,
+    // Disable button if mining is active or other disable conditions are met
+    disabled: disabled || miningActive,
     cooldownTime: 3000
   });
 
@@ -34,14 +32,14 @@ export const MiningButtonBase = React.memo<MiningButtonBaseProps>(({
     <div className="mx-auto flex items-center justify-center">
       <button 
         className={`relative w-36 h-36 rounded-full flex items-center justify-center z-10 transform transition-all duration-500 ${
-          miningActive ? 'scale-110' : 'scale-100 hover:scale-105'
-        } ${isDisabled ? 'opacity-80 cursor-wait' : 'cursor-pointer'}`}
+          miningActive ? 'scale-110 opacity-80' : 'scale-100 hover:scale-105'
+        } ${isDisabled ? 'opacity-80 cursor-not-allowed' : 'cursor-pointer'}`}
         onClick={handleClick}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
         disabled={isDisabled}
-        aria-label={miningActive ? "Stop mining" : "Start mining"}
-        title={miningActive ? "Stop mining" : "Start mining"}
+        aria-label={miningActive ? "Mining in progress" : "Start mining"}
+        title={miningActive ? "Mining in progress" : "Start mining"}
         type="button"
       >
         {children}

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useCallback } from "react";
 import { OrbitalEffects } from "./button/OrbitalEffects";
 import { ParticleEffects } from "./button/ParticleEffects";
 import { ButtonBackground } from "./button/ButtonBackground";
@@ -20,38 +20,18 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
 }) => {
   const [displayTime, setDisplayTime] = useState("");
   const [buttonHovered, setButtonHovered] = useState(false);
-  const [isClickable, setIsClickable] = useState(true);
-  const lastClickTimeRef = useRef<number>(0);
   
   // Format and update time display
-  useEffect(() => {
+  React.useEffect(() => {
     setDisplayTime(formatTimeDisplay(miningTime));
   }, [miningTime]);
-
-  // Optimized debounce logic with useCallback
+  
+  // Only allow starting mining, not stopping
   const handleClick = useCallback(() => {
-    const now = Date.now();
-    // Cooldown period decreased from 3s to 1s for better UX
-    const cooldownPeriod = 1000;
-    
-    if (now - lastClickTimeRef.current < cooldownPeriod) {
-      console.log("Button clicked too quickly, ignoring");
-      return;
+    if (!miningActive) {
+      onButtonClick();
     }
-    
-    setIsClickable(false);
-    lastClickTimeRef.current = now;
-    
-    // Call handler immediately
-    onButtonClick();
-    
-    // Enable after cooldown - optimized to minimize delay
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        setIsClickable(true);
-      }, cooldownPeriod);
-    });
-  }, [onButtonClick]);
+  }, [miningActive, onButtonClick]);
   
   // Optimized hover handlers with useCallback
   const handleMouseEnter = useCallback(() => {
@@ -81,7 +61,7 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
         onClick={handleClick}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        disabled={!isClickable}
+        disabled={miningActive} // Button is disabled when mining is active
       >
         {/* Background layers */}
         <ButtonBackground miningActive={miningActive} />
@@ -93,10 +73,10 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
         />
       </MiningButtonBase>
       
-      {/* Optimized cooldown indicator - only shows when needed */}
-      {!isClickable && (
+      {/* Info text when mining is active */}
+      {miningActive && (
         <div className="absolute top-full left-0 right-0 text-xs text-purple-400/80 text-center mt-2">
-          Lütfen bekleyin...
+          Madencilik işlemi devam ediyor. 6 saat sonunda otomatik olarak duracak.
         </div>
       )}
     </div>
