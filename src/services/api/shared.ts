@@ -20,14 +20,19 @@ export const handleApiRequest = async <T>(
 // Profil verilerini getirme - Improved with RLS in mind
 export const fetchProfileData = async (userId: string) => {
   return handleApiRequest(async () => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('referral_code, referral_count, referrals, balance, mining_rate')
-      .eq('id', userId)
-      .maybeSingle();
-      
-    if (error) throw error;
-    return data;
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('referral_code, referral_count, referrals, balance, mining_rate')
+        .eq('id', userId)
+        .maybeSingle();
+        
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error("Error fetching profile data:", error);
+      throw error;
+    }
   }, "Profil verileri yüklenirken bir hata oluştu");
 };
 
@@ -37,17 +42,22 @@ export const updateUserData = async (
   updates: Record<string, any>
 ) => {
   return handleApiRequest(async () => {
-    // With RLS, we only need the user ID in the WHERE clause
-    // as policies ensure users can only update their own data
-    const { data, error } = await supabase
-      .from('profiles')
-      .update(updates)
-      .eq('id', userId)
-      .select()
-      .single();
-      
-    if (error) throw error;
-    return data;
+    try {
+      // With RLS, we only need the user ID in the WHERE clause
+      // as policies ensure users can only update their own data
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', userId)
+        .select()
+        .single();
+        
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error("Error updating user data:", error);
+      throw error;
+    }
   }, "Veriler güncellenirken bir hata oluştu");
 };
 
@@ -59,12 +69,17 @@ export const logTransaction = async (
   description?: string
 ): Promise<void> => {
   await handleApiRequest(async () => {
-    const { error } = await supabase.rpc('update_user_balance', {
-      p_user_id: userId,
-      p_amount: amount,
-      p_reason: `${type}: ${description || ''}`
-    });
-      
-    if (error) throw error;
+    try {
+      const { error } = await supabase.rpc('update_user_balance', {
+        p_user_id: userId,
+        p_amount: amount,
+        p_reason: `${type}: ${description || ''}`
+      });
+        
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error logging transaction:", error);
+      throw error;
+    }
   }, "İşlem kaydedilirken bir hata oluştu");
 };

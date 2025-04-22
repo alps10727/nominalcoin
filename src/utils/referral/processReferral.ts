@@ -23,24 +23,29 @@ export async function processReferralCode(code: string, newUserId: string): Prom
     }
     
     // Use the stored procedure for referral processing
-    const { data, error } = await supabase.rpc('process_referral', {
-      p_referrer_id: ownerId,
-      p_new_user_id: newUserId,
-      p_referral_code: code
-    });
-    
-    if (error) {
-      errorLog("processReferral", "Error calling process_referral function:", error);
-      toast.error("Referans kodu işlenirken bir hata oluştu");
+    try {
+      const { data, error } = await supabase.rpc('process_referral', {
+        p_referrer_id: ownerId,
+        p_new_user_id: newUserId,
+        p_referral_code: code
+      });
+      
+      if (error) {
+        errorLog("processReferral", "Error calling process_referral function:", error);
+        toast.error("Referans kodu işlenirken bir hata oluştu");
+        return false;
+      }
+      
+      if (data) {
+        toast.success("Referans ödülleri başarıyla verildi!");
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      errorLog("processReferral", "Exception in process_referral:", error);
       return false;
     }
-    
-    if (data) {
-      toast.success("Referans ödülleri başarıyla verildi!");
-      return true;
-    }
-    
-    return false;
   } catch (error) {
     errorLog("processReferral", "Error processing referral code:", error);
     toast.error("Referans kodu işlenirken bir hata oluştu");

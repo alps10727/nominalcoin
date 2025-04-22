@@ -80,12 +80,17 @@ export async function registerUser(
     };
     
     // Save user data to Supabase
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .insert([profileData]);
-      
-    if (profileError) {
-      errorLog("authService", "Error saving user data to Supabase:", profileError);
+    try {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert(profileData);
+        
+      if (profileError) {
+        errorLog("authService", "Error saving user data to Supabase:", profileError);
+      }
+    } catch (error) {
+      errorLog("authService", "Exception in profile creation:", error);
+      // Continue even if profile creation fails - the trigger should handle it
     }
     
     // Process referral reward if valid

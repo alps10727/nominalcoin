@@ -40,16 +40,21 @@ export async function fetchUserTasks(userId: string): Promise<Task[]> {
   try {
     debugLog('taskService', 'Kullanıcı görevleri yükleniyor:', userId);
     
-    const { data, error } = await supabase
-      .from('tasks')
-      .select('*')
-      .eq('user_id', userId);
+    try {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('user_id', userId);
+        
+      if (error) {
+        throw error;
+      }
       
-    if (error) {
+      return (data || []).map(mapDbTaskToTask);
+    } catch (error) {
+      errorLog('taskService', 'Database error loading tasks:', error);
       throw error;
     }
-    
-    return (data || []).map(mapDbTaskToTask);
   } catch (error) {
     errorLog('taskService', 'Görevler yüklenirken hata:', error);
     throw error;
@@ -65,20 +70,25 @@ export async function addNewTask(task: Omit<Task, 'id'>): Promise<Task> {
     
     const dbTask = mapTaskToDbTask(task);
     
-    const { data, error } = await supabase
-      .from('tasks')
-      .insert([dbTask])
-      .select();
+    try {
+      const { data, error } = await supabase
+        .from('tasks')
+        .insert([dbTask])
+        .select();
+        
+      if (error) {
+        throw error;
+      }
       
-    if (error) {
+      if (!data || data.length === 0) {
+        throw new Error('Görev eklenemedi');
+      }
+      
+      return mapDbTaskToTask(data[0]);
+    } catch (error) {
+      errorLog('taskService', 'Database error adding task:', error);
       throw error;
     }
-    
-    if (!data || data.length === 0) {
-      throw new Error('Görev eklenemedi');
-    }
-    
-    return mapDbTaskToTask(data[0]);
   } catch (error) {
     errorLog('taskService', 'Görev eklenirken hata:', error);
     throw error;
@@ -92,18 +102,23 @@ export async function updateExistingTask(task: Task): Promise<void> {
   try {
     debugLog('taskService', 'Görev güncelleniyor:', task.id);
     
-    const { error } = await supabase
-      .from('tasks')
-      .update({
-        title: task.title,
-        description: task.description,
-        progress: task.progress,
-        completed: task.completed,
-        attachment_url: task.attachmentUrl
-      })
-      .eq('id', task.id);
-      
-    if (error) {
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update({
+          title: task.title,
+          description: task.description,
+          progress: task.progress,
+          completed: task.completed,
+          attachment_url: task.attachmentUrl
+        })
+        .eq('id', task.id);
+        
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      errorLog('taskService', 'Database error updating task:', error);
       throw error;
     }
   } catch (error) {
@@ -119,12 +134,17 @@ export async function deleteTaskById(taskId: string): Promise<void> {
   try {
     debugLog('taskService', 'Görev siliniyor:', taskId);
     
-    const { error } = await supabase
-      .from('tasks')
-      .delete()
-      .eq('id', taskId);
-      
-    if (error) {
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', taskId);
+        
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      errorLog('taskService', 'Database error deleting task:', error);
       throw error;
     }
   } catch (error) {

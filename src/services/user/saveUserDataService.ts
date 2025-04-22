@@ -25,17 +25,22 @@ export async function saveUserDataToSupabase(userId: string, userData: UserData)
     const referralCode = userData.referralCode || localStorage.getItem('userReferralCode') || "";
     
     // Mevcut veriyi önce kontrol et
-    const { data: existingData, error: fetchError } = await supabase
-      .from('profiles')
-      .select('balance')
-      .eq('id', userId)
-      .maybeSingle();
-    
-    if (!fetchError && existingData && existingData.balance > userData.balance) {
-      // Eğer sunucudaki bakiye daha yüksekse, sunucudaki değeri kullan
-      // Bu şekilde veriler senkron olmadığında bakiye kaybı olmaz
-      debugLog("saveUserDataService", `Using higher balance from server: ${existingData.balance} vs ${userData.balance}`);
-      userData.balance = existingData.balance;
+    try {
+      const { data: existingData, error: fetchError } = await supabase
+        .from('profiles')
+        .select('balance')
+        .eq('id', userId)
+        .maybeSingle();
+      
+      if (!fetchError && existingData && existingData.balance > userData.balance) {
+        // Eğer sunucudaki bakiye daha yüksekse, sunucudaki değeri kullan
+        // Bu şekilde veriler senkron olmadığında bakiye kaybı olmaz
+        debugLog("saveUserDataService", `Using higher balance from server: ${existingData.balance} vs ${userData.balance}`);
+        userData.balance = existingData.balance;
+      }
+    } catch (error) {
+      errorLog("saveUserDataService", "Error checking existing balance:", error);
+      // Continue with the save operation
     }
     
     // Prepare data for Supabase profiles table
@@ -67,35 +72,40 @@ export async function saveUserDataToSupabase(userId: string, userData: UserData)
     });
     
     // Check if user already exists
-    const { data: existingUser, error: checkError } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('id', userId)
-      .maybeSingle();
+    try {
+      const { data: existingUser, error: checkError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', userId)
+        .maybeSingle();
+        
+      if (checkError && !checkError.message.includes('No rows found')) {
+        errorLog("saveUserDataService", "Error checking existing user:", checkError);
+        return false;
+      }
       
-    if (checkError && !checkError.message.includes('No rows found')) {
-      errorLog("saveUserDataService", "Error checking existing user:", checkError);
-      return false;
-    }
-    
-    let result;
-    
-    // Update or insert based on whether user exists
-    if (existingUser) {
-      // Update existing user
-      result = await supabase
-        .from('profiles')
-        .update(profileData)
-        .eq('id', userId);
-    } else {
-      // Insert new user
-      result = await supabase
-        .from('profiles')
-        .insert([profileData]);
-    }
-    
-    if (result.error) {
-      errorLog("saveUserDataService", "Error saving user data:", result.error);
+      let result;
+      
+      // Update or insert based on whether user exists
+      if (existingUser) {
+        // Update existing user
+        result = await supabase
+          .from('profiles')
+          .update(profileData)
+          .eq('id', userId);
+      } else {
+        // Insert new user
+        result = await supabase
+          .from('profiles')
+          .insert([profileData]);
+      }
+      
+      if (result.error) {
+        errorLog("saveUserDataService", "Error saving user data:", result.error);
+        return false;
+      }
+    } catch (error) {
+      errorLog("saveUserDataService", "Database error in user data save:", error);
       return false;
     }
     

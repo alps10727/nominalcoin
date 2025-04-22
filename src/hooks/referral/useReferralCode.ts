@@ -1,6 +1,5 @@
 
 import { useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
 import { generateDeterministicCode } from "@/utils/referral/generateReferralCode";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -31,10 +30,14 @@ export const useReferralCode = (
       localStorage.setItem('userReferralCode', deterministicCode);
       
       // Update the code in Supabase
-      await supabase
-        .from('profiles')
-        .update({ referral_code: deterministicCode })
-        .eq('id', currentUser.id);
+      try {
+        await supabase
+          .from('profiles')
+          .update({ referral_code: deterministicCode })
+          .eq('id', currentUser.id);
+      } catch (error) {
+        console.error("Error updating referral code:", error);
+      }
     };
     
     getOrCreateReferralCode();

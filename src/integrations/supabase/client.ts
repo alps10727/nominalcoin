@@ -10,4 +10,5 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database, RPCFunctions>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+// Use a simpler type declaration that avoids the constraint issue
+export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);

@@ -22,3 +22,18 @@ export interface RPCFunctions {
     Returns: boolean;
   };
 }
+
+// Export Database schema types for profiles and other tables
+export type ProfileRow = {
+  id: string;
+  referral_code?: string | null;
+  referral_count?: number | null;
+  referrals?: string[] | null;
+  balance?: number | undefined;
+  mining_rate?: number | undefined;
+  name?: string | null;
+  email?: string | null;
+  invited_by?: string | null;
+  created_at?: string | null;
+  // Add other profile fields as needed
+};
