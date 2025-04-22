@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Task } from "@/types/tasks";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { commonStyles, combineStyles } from "@/styles/shared";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 interface DailyTaskItemProps {
   task: Task;
@@ -31,13 +31,36 @@ const DailyTaskItem = ({ task, onClaim }: DailyTaskItemProps) => {
               </span>
             ) : (
               task.progress >= task.totalRequired ? (
-                <Button 
-                  size="sm" 
-                  className={combineStyles(commonStyles.button.primary, "h-8")}
-                  onClick={() => onClaim(task.id)}
-                >
-                  {t('tasks.claim')}
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      size="sm" 
+                      className={combineStyles(commonStyles.button.primary, "h-8")}
+                    >
+                      {t('tasks.claim')}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>{t('tasks.confirmClaim')}</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {t('tasks.claimDescription', {
+                          reward: task.reward,
+                          title: task.title
+                        })}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={() => onClaim(task.id)}
+                        className={commonStyles.button.primary}
+                      >
+                        {t('tasks.confirmReward')}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               ) : (
                 <span className="bg-gray-700 text-gray-300 text-xs px-2 py-1 rounded-md">
                   {t('tasks.progress')}
