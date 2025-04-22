@@ -37,9 +37,9 @@ export async function updateUserCoinBalance(
     
     // Call the stored procedure through RPC
     const { data, error } = await supabase.rpc('update_user_balance', {
-      user_id: userId,
-      amount: balanceDifference,
-      reason: 'Balance update from application'
+      p_user_id: userId,
+      p_amount: balanceDifference,
+      p_reason: 'Balance update from application'
     });
     
     if (error) {

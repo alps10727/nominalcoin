@@ -60,9 +60,9 @@ export const logTransaction = async (
 ): Promise<void> => {
   await handleApiRequest(async () => {
     const { error } = await supabase.rpc('update_user_balance', {
-      user_id: userId,
-      amount: amount,
-      reason: `${type}: ${description || ''}`
+      p_user_id: userId,
+      p_amount: amount,
+      p_reason: `${type}: ${description || ''}`
     });
       
     if (error) throw error;

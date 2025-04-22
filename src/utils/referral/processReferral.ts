@@ -24,9 +24,9 @@ export async function processReferralCode(code: string, newUserId: string): Prom
     
     // Use the stored procedure for referral processing
     const { data, error } = await supabase.rpc('process_referral', {
-      referrer_id: ownerId,
-      new_user_id: newUserId,
-      referral_code: code
+      p_referrer_id: ownerId,
+      p_new_user_id: newUserId,
+      p_referral_code: code
     });
     
     if (error) {
