@@ -1,3 +1,4 @@
+
 import React, { useMemo, useCallback } from "react";
 import { FixedSizeList, VariableSizeList, ListChildComponentProps } from "react-window";
 import { ChevronDown, ChevronUp } from "lucide-react";
@@ -179,5 +180,5 @@ function OptimizedList<T>({
   );
 }
 
-// Prevent unnecessary re-renders of the entire list component
-export default React.memo(OptimizedList);
+// Make sure we're exporting OptimizedList as a generic component
+export default React.memo(OptimizedList) as typeof OptimizedList;

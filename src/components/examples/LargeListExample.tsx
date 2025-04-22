@@ -112,7 +112,7 @@ const LargeListExample = () => {
           React-Window Optimize Edilmiş Liste ({users.length} kullanıcı)
         </h2>
         
-        <OptimizedList<User>
+        <OptimizedList
           items={users}
           height={600}
           itemHeight={useVariableHeight ? getItemHeight : 70}
