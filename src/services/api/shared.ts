@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { debugLog } from "@/utils/debugUtils";
 import { toast } from "sonner";
@@ -48,28 +49,24 @@ export const updateUserData = async (
   }, "Veriler güncellenirken bir hata oluştu");
 };
 
-// Yeni transaction log fonksiyonu
+// Transaction log fonksiyonu
 export const logTransaction = async (
   userId: string,
   amount: number,
   type: 'task_reward' | 'referral_bonus' | 'mining_reward',
   description?: string
-) => {
-  return handleApiRequest(async () => {
-    const { data, error } = await supabase
+): Promise<void> => {
+  await handleApiRequest(async () => {
+    const { error } = await supabase
       .from('transactions')
       .insert({
         user_id: userId,
         amount,
         type,
         description,
-        status: 'completed',
-        created_at: new Date().toISOString()
-      })
-      .select()
-      .single();
+        status: 'completed'
+      });
       
     if (error) throw error;
-    return data;
   }, "İşlem kaydedilirken bir hata oluştu");
 };

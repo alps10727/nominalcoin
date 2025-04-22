@@ -1,11 +1,12 @@
+
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Task } from "@/types/tasks";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { commonStyles, combineStyles } from "@/styles/shared";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { commonStyles } from "@/styles/shared";
 
 interface DailyTaskItemProps {
   task: Task;
@@ -17,13 +18,13 @@ const DailyTaskItem = ({ task, onClaim }: DailyTaskItemProps) => {
   
   return (
     <Card className={commonStyles.card}>
-      <CardContent className={commonStyles.cardContent}>
-        <div className={commonStyles.flexBetween}>
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between">
           <div>
             <h3 className="font-medium text-gray-200">{task.title}</h3>
             <p className="text-sm text-gray-400">{task.description}</p>
           </div>
-          <div className={commonStyles.flexCenter}>
+          <div className="flex items-center">
             <span className="text-green-400 font-medium mr-2">+{task.reward} FC</span>
             {task.completed ? (
               <span className="bg-green-900/50 text-green-300 text-xs px-2 py-1 rounded-md">
@@ -35,7 +36,8 @@ const DailyTaskItem = ({ task, onClaim }: DailyTaskItemProps) => {
                   <AlertDialogTrigger asChild>
                     <Button 
                       size="sm" 
-                      className={combineStyles(commonStyles.button.primary, "h-8")}
+                      variant="default"
+                      className="h-8"
                     >
                       {t('tasks.claim')}
                     </Button>
@@ -54,7 +56,6 @@ const DailyTaskItem = ({ task, onClaim }: DailyTaskItemProps) => {
                       <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
                       <AlertDialogAction 
                         onClick={() => onClaim(task.id)}
-                        className={commonStyles.button.primary}
                       >
                         {t('tasks.confirmReward')}
                       </AlertDialogAction>
@@ -71,13 +72,13 @@ const DailyTaskItem = ({ task, onClaim }: DailyTaskItemProps) => {
         </div>
         {!task.completed && (
           <div className="mt-3">
-            <div className={commonStyles.flexBetween}>
+            <div className="flex justify-between">
               <span className="text-xs text-gray-400">{t('tasks.progress')}</span>
               <span className="text-xs text-gray-400">{task.progress}/{task.totalRequired}</span>
             </div>
             <Progress 
               value={(task.progress / task.totalRequired) * 100} 
-              className={commonStyles.progressBar} 
+              className="h-2 mt-1" 
             />
           </div>
         )}

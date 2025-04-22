@@ -17,9 +17,8 @@ export function useTaskRewards(
   
   const claimReward = async (taskId: string | number) => {
     if (!currentUserId || !userData) {
-      toast({
-        title: t("tasks.loginRequired"),
-        description: t("tasks.loginToClaimRewards"),
+      toast.error(t("tasks.loginRequired"), {
+        description: t("tasks.loginToClaimRewards")
       });
       return;
     }
@@ -47,31 +46,21 @@ export function useTaskRewards(
             ...userData,
             balance: (userData.balance || 0) + task.reward,
             tasks: {
-              ...(userData.tasks || {}),
+              ...userData.tasks,
               completed: [...(userData.tasks?.completed || []), taskId]
             }
           };
           
           // Save updated data
-          saveUserData(updatedUserData, currentUserId);
+          saveUserData(updatedUserData);
           
           // Show success toast with reward details
-          toast.success(
-            t("tasks.rewardClaimed"),
-            {
-              description: `${t("tasks.rewardClaimedDesc", {
-                reward: task.reward.toString(),
-                title: task.title
-              })}`,
-              duration: 4000,
-              action: {
-                label: t("common.view"),
-                onClick: () => {
-                  // You could navigate to a transactions history page here
-                }
-              }
-            }
-          );
+          toast.success(t("tasks.rewardClaimed"), {
+            description: t("tasks.rewardClaimedDesc", {
+              reward: task.reward.toString(),
+              title: task.title
+            })
+          });
           
           debugLog("useTaskRewards", `${task.reward} ödül kazanıldı, yeni bakiye: ${updatedUserData.balance}`);
           
@@ -80,14 +69,12 @@ export function useTaskRewards(
           debugLog("useTaskRewards", "Ödül verme hatası:", error);
         }
       } else if (task.completed) {
-        toast({
-          title: t("tasks.alreadyClaimed"),
-          description: t("tasks.rewardAlreadyClaimed"),
+        toast.error(t("tasks.alreadyClaimed"), {
+          description: t("tasks.rewardAlreadyClaimed")
         });
       } else {
-        toast({
-          title: t("tasks.incompleteTask"),
-          description: t("tasks.completeTaskFirst"),
+        toast.error(t("tasks.incompleteTask"), {
+          description: t("tasks.completeTaskFirst")
         });
       }
     }
