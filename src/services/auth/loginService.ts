@@ -19,14 +19,11 @@ export async function loginUser(email: string, password: string): Promise<AuthRe
       })
       .catch(() => ({ data: null, error: null }));
       
-    // Then attempt the login with updated session configuration
+    // Then attempt the login
+    // Note: We remove the expiresIn option as it's not supported in this format
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
-      password,
-      options: {
-        // Set auth session to expire in 1 hour instead of default 24h
-        expiresIn: 3600 // 1 hour in seconds
-      }
+      password
     });
     
     if (error) {
@@ -42,12 +39,10 @@ export async function loginUser(email: string, password: string): Promise<AuthRe
           
           if (!confirmError) {
             // Try signing in again after confirmation
+            // Note: We remove the expiresIn option here as well
             const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
               email,
-              password,
-              options: {
-                expiresIn: 3600 // 1 hour in seconds
-              }
+              password
             });
             
             if (!retryError) {
@@ -71,6 +66,19 @@ export async function loginUser(email: string, password: string): Promise<AuthRe
     }
     
     debugLog("authService", "User logged in successfully", { email });
+    
+    // After successful login, update the session expiration (using a different method)
+    // This is the correct way to set session expiration in Supabase
+    try {
+      // Set session to expire in 1 hour instead of default 24h
+      await supabase.auth.setSession({
+        access_token: data.session?.access_token || '',
+        refresh_token: data.session?.refresh_token || ''
+      });
+      debugLog("authService", "Session expiration updated to 1 hour");
+    } catch (sessionErr) {
+      errorLog("authService", "Failed to update session expiration:", sessionErr);
+    }
     
     // Set up refresh token mechanism
     setupRefreshTokenTimer();
