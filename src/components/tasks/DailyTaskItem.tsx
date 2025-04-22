@@ -49,10 +49,7 @@ const DailyTaskItem = ({ task, onClaim }: DailyTaskItemProps) => {
                     <AlertDialogHeader>
                       <AlertDialogTitle>{t('tasks.confirmClaim')}</AlertDialogTitle>
                       <AlertDialogDescription>
-                        {t('tasks.claimDescription', {
-                          reward: rewardString,
-                          title: task.title
-                        })}
+                        {t('tasks.claimDescription', rewardString, task.title)}
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

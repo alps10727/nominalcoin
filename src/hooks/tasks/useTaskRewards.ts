@@ -58,11 +58,9 @@ export function useTaskRewards(
           saveUserData(updatedUserData);
           
           // Show success toast with reward details
+          const rewardString = task.reward.toString();
           toast.success(t("tasks.rewardClaimed"), {
-            description: t("tasks.rewardClaimedDesc", {
-              reward: task.reward.toString(),
-              title: task.title
-            })
+            description: t("tasks.rewardClaimedDesc", rewardString, task.title)
           });
           
           debugLog("useTaskRewards", `${task.reward} ödül kazanıldı, yeni bakiye: ${updatedUserData.balance}`);
