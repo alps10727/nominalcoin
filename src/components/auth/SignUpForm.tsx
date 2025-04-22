@@ -1,4 +1,5 @@
 
+import { useEffect } from "react";
 import { Form } from "@/components/ui/form";
 import FormErrorDisplay from "./form-sections/FormErrorDisplay";
 import SignUpButton from "./buttons/SignUpButton";
