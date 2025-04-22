@@ -1,20 +1,22 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { useAuthState } from "@/hooks/useAuthState";
 import { useAuthActions } from "@/hooks/useAuthActions";
 import { useUserDataManager } from "@/hooks/userData";
 import { debugLog } from "@/utils/debugUtils";
 import { UserData, clearUserData } from "@/utils/storage";
-import { supabase } from "@/integrations/supabase/client";
 import { AuthContext } from "./AuthContext";
+import { useProfileRealtime } from "@/hooks/auth/useProfileRealtime";
+import { useUserDataCleanup } from "@/hooks/auth/useUserDataCleanup";
+import { useInitialUserData } from "@/hooks/auth/useInitialUserData";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const authState = (() => {
     try {
       return useAuthState();
     } catch (err) {
-      console.error("AuthState yüklenirken hata:", err);
+      console.error("AuthState loading error:", err);
       return {
         currentUser: null,
         userData: null,
@@ -30,98 +32,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userData, setUserData] = useState<UserData | null>(initialUserData);
   const [userId, setUserId] = useState<string | null>(null);
   
-  // Update userData when initialUserData changes or user changes
-  useEffect(() => {
-    if (currentUser?.id !== userId) {
-      debugLog("AuthProvider", "User changed, resetting user data cache", 
-        { previous: userId, current: currentUser?.id });
-      
-      setUserId(currentUser?.id || null);
-      setUserData(null);
-      
-      if (userId && userId !== currentUser?.id) {
-        clearUserData(true);
-        
-        const keysToRemove: string[] = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && (
-            key.startsWith('fcMinerUserData') || 
-            key === 'userReferralCode' ||
-            (key.includes('supabase.auth') && !currentUser)
-          )) {
-            keysToRemove.push(key);
-          }
-        }
-        keysToRemove.forEach(key => localStorage.removeItem(key));
-      }
-    }
-    
-    if (initialUserData) {
-      debugLog("AuthProvider", "initialUserData değişti, userData güncelleniyor", initialUserData);
-      setUserData(initialUserData);
-    }
-  }, [initialUserData, currentUser, userId]);
-  
-  useEffect(() => {
-    if (!currentUser) return;
-
-    debugLog("AuthProvider", "Setting up realtime subscription for profile changes", { userId: currentUser.id });
-
-    const setupRealtime = async () => {
-      try {
-        await supabase.functions.invoke('enable_realtime', {
-          body: { table: 'profiles' }
-        }).catch(err => {
-          console.warn("Error enabling realtime:", err);
-        });
-      } catch (error) {
-        console.warn("Error enabling realtime:", error);
-      }
-    };
-    
-    setupRealtime();
-    
-    const channel = supabase
-      .channel('profile-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'profiles',
-          filter: `id=eq.${currentUser.id}`
-        },
-        (payload) => {
-          debugLog("AuthProvider", "Profile updated in realtime", payload.new);
-          if (payload.new && userData) {
-            const updatedData: UserData = {
-              ...userData,
-              balance: payload.new.balance || userData.balance,
-              miningRate: payload.new.mining_rate || userData.miningRate,
-              referralCount: payload.new.referral_count || userData.referralCount,
-              referrals: payload.new.referrals || userData.referrals,
-              invitedBy: payload.new.invited_by || userData.invitedBy,
-              name: payload.new.name || userData.name
-            };
-            
-            setUserData(updatedData);
-          }
-        }
-      )
-      .subscribe();
-    
-    return () => {
-      debugLog("AuthProvider", "Cleaning up realtime subscription");
-      supabase.removeChannel(channel);
-    };
-  }, [currentUser, userData]);
+  // Use the extracted hooks
+  useUserDataCleanup(currentUser, userId, setUserId, setUserData);
+  useInitialUserData(initialUserData, setUserData);
+  useProfileRealtime(currentUser, userData, setUserData);
   
   const { login, logout: baseLogout, register } = (() => {
     try {
       return useAuthActions();
     } catch (err) {
-      console.error("AuthActions yüklenirken hata:", err);
+      console.error("AuthActions loading error:", err);
       return {
         login: async () => false,
         logout: async () => {},
@@ -182,7 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       return useUserDataManager(currentUser, userData, setUserData);
     } catch (err) {
-      console.error("UserDataManager yüklenirken hata:", err);
+      console.error("UserDataManager loading error:", err);
       return {
         updateUserData: async () => {}
       };
@@ -201,7 +121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     dataSource
   };
 
-  debugLog("AuthProvider", "AuthProvider yüklendi, kullanıcı:", currentUser?.email || "Yok");
+  debugLog("AuthProvider", "AuthProvider loaded, user:", currentUser?.email || "None");
 
   return (
     <AuthContext.Provider value={value}>
