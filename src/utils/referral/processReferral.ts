@@ -22,7 +22,7 @@ export async function processReferralCode(code: string, newUserId: string): Prom
       return false;
     }
     
-    // Use the stored procedure for referral processing
+    // Use the stored procedure for referral processing with proper typing
     try {
       const { data, error } = await supabase.rpc('process_referral', {
         p_referrer_id: ownerId,
