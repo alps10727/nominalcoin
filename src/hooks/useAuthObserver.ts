@@ -22,10 +22,11 @@ export function useAuthObserver(): AuthObserverState {
   useEffect(() => {
     debugLog("useAuthObserver", "Authentication observer initializing...");
     let authTimeoutId: NodeJS.Timeout;
+    let isMounted = true; // To prevent state updates after unmount
     
     // Set timeout for Supabase auth initialization (30 seconds)
     authTimeoutId = setTimeout(() => {
-      if (loading && !authInitialized) {
+      if (isMounted && loading && !authInitialized) {
         debugLog("useAuthObserver", "Supabase Auth timed out, falling back to offline mode");
         setLoading(false);
         setCurrentUser(null);
@@ -36,6 +37,8 @@ export function useAuthObserver(): AuthObserverState {
 
     // Get initial session
     supabase.auth.getSession().then(({ data, error }) => {
+      if (!isMounted) return;
+      
       if (error) {
         errorLog("useAuthObserver", "Get session error:", error);
         setCurrentUser(null);
@@ -50,6 +53,8 @@ export function useAuthObserver(): AuthObserverState {
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        if (!isMounted) return;
+        
         debugLog("useAuthObserver", "Auth state changed:", event);
         setCurrentUser(session?.user || null);
         setAuthInitialized(true);
@@ -60,6 +65,7 @@ export function useAuthObserver(): AuthObserverState {
 
     // Cleanup function
     return () => {
+      isMounted = false;
       clearTimeout(authTimeoutId);
       subscription.unsubscribe();
     };
