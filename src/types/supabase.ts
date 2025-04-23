@@ -64,12 +64,11 @@ export interface Database {
         Returns: boolean;
       };
     };
-    Views: {};
-    CompositeTypes: {};
+    Views: Record<string, unknown>;
+    CompositeTypes: Record<string, unknown>;
   };
 }
 
 export type ProfileRow = Database['public']['Tables']['profiles']['Row'];
 export type ProfileInsert = Database['public']['Tables']['profiles']['Insert'];
 export type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
-export type RPCFunctions = Database['public']['Functions'];
