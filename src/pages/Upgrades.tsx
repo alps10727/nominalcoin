@@ -1,5 +1,6 @@
+
 import React, { useState } from "react";
-import { Gift } from "lucide-react";
+import { Gift, Star, Clock, Rocket } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
