@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Coins, Rocket, Maximize2, X } from 'lucide-react';
+import { Coins } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface CoinGameProps {
   onGameEnd: (score: number) => void;
@@ -24,20 +25,10 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
   const [coins, setCoins] = useState<{id: number; x: number; y: number}[]>([]);
   const [obstacles, setObstacles] = useState<Obstacle[]>([]);
   const [gameSpeed, setGameSpeed] = useState(1);
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);
   const lastUpdateTimeRef = useRef<number>(0);
-
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      gameAreaRef.current?.requestFullscreen();
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
-    }
-  };
+  const isMobile = useIsMobile();
 
   const createObstacle = () => {
     const types: ('asteroid' | 'satellite')[] = ['asteroid', 'satellite'];
@@ -51,6 +42,9 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
   };
 
   const startGame = () => {
+    if (gameAreaRef.current) {
+      gameAreaRef.current.requestFullscreen();
+    }
     setIsPlaying(true);
     setScore(0);
     setTimeLeft(30);
@@ -63,16 +57,22 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
 
   const endGame = () => {
     setIsPlaying(false);
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    }
     onGameEnd(score);
   };
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleTouchMove = (e: TouchEvent) => {
       if (!gameAreaRef.current || !isPlaying) return;
       
+      e.preventDefault(); // Prevent scrolling
+      const touch = e.touches[0];
       const rect = gameAreaRef.current.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width) * 100;
-      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      
+      const x = ((touch.clientX - rect.left) / rect.width) * 100;
+      const y = ((touch.clientY - rect.top) / rect.height) * 100;
       
       const clampedX = Math.min(Math.max(x, 5), 95);
       const clampedY = Math.min(Math.max(y, 5), 95);
@@ -81,11 +81,11 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
     };
     
     if (isPlaying) {
-      window.addEventListener('mousemove', handleMouseMove);
+      gameAreaRef.current?.addEventListener('touchmove', handleTouchMove, { passive: false });
     }
     
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
+      gameAreaRef.current?.removeEventListener('touchmove', handleTouchMove);
     };
   }, [isPlaying]);
 
@@ -187,14 +187,21 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
   return (
     <div 
       ref={gameAreaRef} 
-      className="relative w-full h-full bg-gradient-to-b from-indigo-950 to-purple-950 overflow-hidden"
+      className="relative w-full h-full bg-gradient-to-b from-indigo-950 to-purple-950 overflow-hidden touch-none"
+      style={{ 
+        height: isMobile ? '100vh' : '100%',
+        width: isMobile ? '100vw' : '100%',
+        position: isMobile ? 'fixed' : 'relative',
+        top: isMobile ? 0 : 'auto',
+        left: isMobile ? 0 : 'auto',
+        zIndex: isMobile ? 50 : 'auto'
+      }}
     >
       {!isPlaying ? (
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <Rocket className="w-16 h-16 text-indigo-400 mb-4" />
+        <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
           <h2 className="text-2xl font-bold text-white mb-4">Uzay Madeni</h2>
-          <p className="text-gray-300 mb-6 text-center max-w-xs">
-            Uzayda uçarak coinleri topla ve puanları kazanmaya başla! Asteroidlerden ve uydulardan kaçın! 30 saniye içinde ne kadar çok coin toplayabilirsin?
+          <p className="text-gray-300 mb-6 max-w-xs">
+            Ekrana dokunarak coinleri topla ve puanları kazanmaya başla! Asteroidlerden ve uydulardan kaçın! 30 saniye içinde ne kadar çok coin toplayabilirsin?
           </p>
           <Button 
             onClick={startGame}
@@ -220,14 +227,14 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
             />
           ))}
 
-          {/* Player */}
+          {/* Player touch indicator */}
           <motion.div
-            className="absolute w-10 h-10 flex items-center justify-center"
+            className="absolute w-8 h-8 flex items-center justify-center"
             animate={{ x: `${playerPosition.x}%`, y: `${playerPosition.y}%` }}
             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-            style={{ marginLeft: '-20px', marginTop: '-20px' }}
+            style={{ marginLeft: '-16px', marginTop: '-16px' }}
           >
-            <Rocket className="w-full h-full text-indigo-400 transform rotate-180" />
+            <div className="w-full h-full rounded-full border-2 border-indigo-400 bg-indigo-400/20" />
           </motion.div>
 
           {/* Coins */}
@@ -256,7 +263,7 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
             </motion.div>
           ))}
 
-          {/* UI Elements */}
+          {/* Game UI */}
           <div className="absolute top-4 left-4 right-4 flex justify-between items-center">
             <div className="bg-gray-900/80 backdrop-blur px-4 py-1 rounded-full border border-indigo-500/30">
               <span className="text-white">Skor: {score}</span>
@@ -265,14 +272,6 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
               <span className="text-white">Süre: {timeLeft}s</span>
             </div>
           </div>
-
-          {/* Fullscreen toggle */}
-          <Button
-            onClick={toggleFullscreen}
-            className="absolute top-4 right-4 bg-gray-900/80 backdrop-blur border border-indigo-500/30 p-2"
-          >
-            {isFullscreen ? <X className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
-          </Button>
         </>
       )}
     </div>
@@ -280,3 +279,4 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
 };
 
 export default CoinGame;
+
