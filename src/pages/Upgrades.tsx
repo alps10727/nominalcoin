@@ -161,95 +161,65 @@ const Upgrades = () => {
 
   return (
     <div className="container max-w-4xl mx-auto px-4 py-6 space-y-8">
-      <div className="flex flex-col space-y-2">
-        <h1 className="text-2xl font-bold fc-gradient-text flex items-center">
-          <Gift className="mr-2 h-6 w-6 text-indigo-400" />
-          Görevler ve Ödüller
-        </h1>
-        <p className="text-gray-400">
-          Çeşitli görevleri tamamlayarak ve mini oyunları oynayarak ekstra NC coin kazanın.
-        </p>
-      </div>
-
       {showGame ? (
-        <Card className="bg-gradient-to-br from-indigo-900/30 to-purple-900/30 border border-indigo-500/30">
-          <CardContent className="p-6">
-            <CoinGame onGameEnd={onGameEnd} />
-          </CardContent>
-        </Card>
+        <CoinGame onGameEnd={onGameEnd} />
       ) : (
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {missions.map(mission => (
-              <MissionItem 
-                key={mission.id} 
-                mission={mission} 
-                onClaim={() => claimReward(mission)}
-                onConnect={mission.id === "social-twitter" ? connectTwitter : undefined}
-                isLoading={isLoading}
-              />
-            ))}
+        <>
+          <div className="flex flex-col space-y-2">
+            <h1 className="text-2xl font-bold fc-gradient-text flex items-center">
+              <Gift className="mr-2 h-6 w-6 text-indigo-400" />
+              Görevler ve Ödüller
+            </h1>
+            <p className="text-gray-400">
+              Çeşitli görevleri tamamlayarak ve mini oyunları oynayarak ekstra NC coin kazanın.
+            </p>
           </div>
 
-          <Card className="bg-gradient-to-br from-indigo-900/30 to-purple-900/30 border border-indigo-500/30">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Gamepad className="mr-2 h-5 w-5 text-purple-400" />
-                Uzay Madeni
-              </CardTitle>
-              <CardDescription>
-                Ekrana dokunarak coinleri topla ve puanları kazanmaya başla! 30 saniye içinde ne kadar çok coin toplayabilirsin?
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="bg-purple-900/20 p-2 rounded-full">
-                    <Rocket className="h-6 w-6 text-purple-400" />
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {missions.map(mission => (
+                <MissionItem 
+                  key={mission.id} 
+                  mission={mission} 
+                  onClaim={() => claimReward(mission)}
+                  onConnect={mission.id === "social-twitter" ? connectTwitter : undefined}
+                  isLoading={isLoading}
+                />
+              ))}
+            </div>
+
+            <Card className="bg-gradient-to-br from-indigo-900/30 to-purple-900/30 border border-indigo-500/30">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Gamepad className="mr-2 h-5 w-5 text-purple-400" />
+                  Uzay Madeni
+                </CardTitle>
+                <CardDescription>
+                  Ekrana dokunarak coinleri topla ve puanları kazanmaya başla! 30 saniye içinde ne kadar çok coin toplayabilirsin?
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="bg-purple-900/20 p-2 rounded-full">
+                      <Gamepad className="h-6 w-6 text-purple-400" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-200">Mini Oyun</p>
+                      <p className="text-sm text-gray-400">En yüksek skor: {gameScore}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-semibold text-gray-200">Mini Oyun</p>
-                    <p className="text-sm text-gray-400">En yüksek skor: {gameScore}</p>
-                  </div>
+                  <Button 
+                    onClick={() => setShowGame(true)}
+                    className="bg-gradient-to-r from-indigo-600 to-purple-600"
+                  >
+                    Oyna <ArrowRight className="ml-1 h-4 w-4" />
+                  </Button>
                 </div>
-                <Button 
-                  onClick={() => setShowGame(true)}
-                  className="bg-gradient-to-r from-indigo-600 to-purple-600"
-                >
-                  Oyna <ArrowRight className="ml-1 h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-gradient-to-br from-indigo-900/30 to-purple-900/30 border border-indigo-500/30">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Medal className="mr-2 h-5 w-5 text-yellow-500" />
-                Günlük Bonus
-              </CardTitle>
-              <CardDescription>
-                Her gün giriş yaparak bonus NC kazanabilirsiniz
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="bg-yellow-500/20 p-2 rounded-full">
-                    <Gift className="h-6 w-6 text-yellow-500" />
-                  </div>
-                  <div>
-                    <p className="font-semibold">+2 NC</p>
-                    <p className="text-sm text-gray-400">Günlük bonus</p>
-                  </div>
-                </div>
-                <Button className="bg-gradient-to-r from-yellow-500 to-amber-500 text-white">
-                  Talep Et <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              </CardContent>
+            </Card>
+          </div>
+        </>
       )}
     </div>
   );

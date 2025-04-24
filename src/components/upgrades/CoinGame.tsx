@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Coins, ArrowLeft } from 'lucide-react';
@@ -29,32 +30,15 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
   const lastUpdateTimeRef = useRef<number>(0);
   const isMobile = useIsMobile();
 
-  const createObstacle = () => {
-    const types: ('asteroid' | 'satellite')[] = ['asteroid', 'satellite'];
-    const newObstacle: Obstacle = {
-      id: Math.random(),
-      x: Math.random() * 90 + 5,
-      y: -10,
-      type: types[Math.floor(Math.random() * types.length)]
-    };
-    setObstacles(prev => [...prev, newObstacle]);
-  };
-
   const handleBackClick = () => {
     if (isPlaying) {
       endGame();
     } else {
-      if (document.fullscreenElement) {
-        document.exitFullscreen();
-      }
       onGameEnd(score);
     }
   };
 
   const startGame = () => {
-    if (gameAreaRef.current) {
-      gameAreaRef.current.requestFullscreen();
-    }
     setIsPlaying(true);
     setScore(0);
     setTimeLeft(30);
@@ -67,9 +51,6 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
 
   const endGame = () => {
     setIsPlaying(false);
-    if (document.fullscreenElement) {
-      document.exitFullscreen();
-    }
     onGameEnd(score);
   };
 
@@ -106,6 +87,7 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
       const deltaTime = timestamp - lastUpdateTimeRef.current;
       lastUpdateTimeRef.current = timestamp;
 
+      // Update obstacles positions and check collisions
       setObstacles(prevObstacles => {
         return prevObstacles.map(obstacle => ({
           ...obstacle,
@@ -125,6 +107,7 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
         return;
       }
 
+      // Update coins and check collection
       setCoins(prevCoins => {
         const collidedCoinId = prevCoins.find(coin => {
           const dx = Math.abs(coin.x - playerPosition.x);
@@ -146,6 +129,7 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
           .filter(coin => coin.y < 110);
       });
 
+      // Spawn new objects
       if (Math.random() < 0.02 * gameSpeed) {
         const rand = Math.random();
         if (rand < 0.7) {
@@ -156,10 +140,17 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
           };
           setCoins(prev => [...prev, newCoin]);
         } else {
-          createObstacle();
+          const newObstacle: Obstacle = {
+            id: Math.random(),
+            x: Math.random() * 90 + 5,
+            y: -10,
+            type: Math.random() > 0.5 ? 'asteroid' : 'satellite'
+          };
+          setObstacles(prev => [...prev, newObstacle]);
         }
       }
 
+      // Increase game speed over time
       if (timeLeft < 20) setGameSpeed(1.5);
       if (timeLeft < 10) setGameSpeed(2);
 
@@ -195,12 +186,12 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
       ref={gameAreaRef} 
       className="relative w-full h-full bg-gradient-to-b from-indigo-950 to-purple-950 overflow-hidden touch-none"
       style={{ 
-        height: isMobile ? '100vh' : '100%',
-        width: isMobile ? '100vw' : '100%',
-        position: isMobile ? 'fixed' : 'relative',
-        top: isMobile ? 0 : 'auto',
-        left: isMobile ? 0 : 'auto',
-        zIndex: isMobile ? 50 : 'auto'
+        height: '100vh',
+        width: '100vw',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        zIndex: 50
       }}
     >
       <Button
@@ -242,7 +233,7 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
             />
           ))}
 
-          {/* Player touch indicator */}
+          {/* Touch indicator */}
           <motion.div
             className="absolute w-12 h-12 flex items-center justify-center pointer-events-none"
             animate={{ x: `${playerPosition.x}%`, y: `${playerPosition.y}%` }}
