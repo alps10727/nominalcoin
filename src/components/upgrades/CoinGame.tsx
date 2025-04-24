@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { Coins } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Coins, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -39,6 +38,17 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
       type: types[Math.floor(Math.random() * types.length)]
     };
     setObstacles(prev => [...prev, newObstacle]);
+  };
+
+  const handleBackClick = () => {
+    if (isPlaying) {
+      endGame();
+    } else {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      }
+      onGameEnd(score);
+    }
   };
 
   const startGame = () => {
@@ -96,7 +106,6 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
       const deltaTime = timestamp - lastUpdateTimeRef.current;
       lastUpdateTimeRef.current = timestamp;
 
-      // Update obstacles
       setObstacles(prevObstacles => {
         return prevObstacles.map(obstacle => ({
           ...obstacle,
@@ -104,7 +113,6 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
         })).filter(obstacle => obstacle.y < 110);
       });
 
-      // Check collisions with obstacles
       const hasCollision = obstacles.some(obstacle => {
         const dx = Math.abs(obstacle.x - playerPosition.x);
         const dy = Math.abs(obstacle.y - playerPosition.y);
@@ -112,11 +120,11 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
       });
 
       if (hasCollision) {
-        toast.error("Çarpışma! -10 puan");
-        setScore(prevScore => Math.max(0, prevScore - 10));
+        toast.error("Oyun Bitti! Bir engele çarptınız!");
+        endGame();
+        return;
       }
 
-      // Update coins
       setCoins(prevCoins => {
         const collidedCoinId = prevCoins.find(coin => {
           const dx = Math.abs(coin.x - playerPosition.x);
@@ -126,6 +134,7 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
         
         if (collidedCoinId) {
           setScore(prevScore => prevScore + 10);
+          toast.success("+10 Puan!", { duration: 1000 });
         }
         
         return prevCoins
@@ -137,11 +146,9 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
           .filter(coin => coin.y < 110);
       });
 
-      // Spawn new elements
       if (Math.random() < 0.02 * gameSpeed) {
         const rand = Math.random();
         if (rand < 0.7) {
-          // 70% chance for coin
           const newCoin = {
             id: Math.random(),
             x: Math.random() * 90 + 5,
@@ -149,7 +156,6 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
           };
           setCoins(prev => [...prev, newCoin]);
         } else {
-          // 30% chance for obstacle
           createObstacle();
         }
       }
@@ -197,15 +203,24 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
         zIndex: isMobile ? 50 : 'auto'
       }}
     >
+      <Button
+        onClick={handleBackClick}
+        className="absolute top-4 left-4 z-50 bg-black/50 hover:bg-black/70"
+        size="sm"
+        variant="ghost"
+      >
+        <ArrowLeft className="h-5 w-5" />
+      </Button>
+
       {!isPlaying ? (
-        <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">Uzay Madeni</h2>
-          <p className="text-gray-300 mb-6 max-w-xs">
+        <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center bg-gradient-to-b from-indigo-950/90 to-purple-950/90 backdrop-blur-sm">
+          <h2 className="text-3xl font-bold text-white mb-4 animate-fade-in">Uzay Madeni</h2>
+          <p className="text-gray-300 mb-6 max-w-xs animate-fade-in delay-100">
             Ekrana dokunarak coinleri topla ve puanları kazanmaya başla! Asteroidlerden ve uydulardan kaçın! 30 saniye içinde ne kadar çok coin toplayabilirsin?
           </p>
           <Button 
             onClick={startGame}
-            className="bg-gradient-to-r from-indigo-600 to-purple-600 px-8 py-6 text-lg"
+            className="animate-fade-in delay-200 bg-gradient-to-r from-indigo-600 to-purple-600 px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all duration-300"
           >
             Oyuna Başla
           </Button>
@@ -216,60 +231,72 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
           {Array.from({ length: 50 }).map((_, i) => (
             <div
               key={i}
-              className="absolute bg-white rounded-full opacity-70"
+              className="absolute bg-white rounded-full opacity-70 animate-twinkle"
               style={{
                 width: Math.random() * 2 + 1 + 'px',
                 height: Math.random() * 2 + 1 + 'px',
                 left: Math.random() * 100 + '%',
                 top: Math.random() * 100 + '%',
-                animationDuration: Math.random() * 3 + 2 + 's',
+                animationDelay: `${Math.random() * 3}s`,
               }}
             />
           ))}
 
           {/* Player touch indicator */}
           <motion.div
-            className="absolute w-8 h-8 flex items-center justify-center"
+            className="absolute w-12 h-12 flex items-center justify-center pointer-events-none"
             animate={{ x: `${playerPosition.x}%`, y: `${playerPosition.y}%` }}
             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-            style={{ marginLeft: '-16px', marginTop: '-16px' }}
+            style={{ marginLeft: '-24px', marginTop: '-24px' }}
           >
-            <div className="w-full h-full rounded-full border-2 border-indigo-400 bg-indigo-400/20" />
+            <div className="w-full h-full rounded-full border-2 border-indigo-400 bg-indigo-400/20 animate-pulse" />
           </motion.div>
 
-          {/* Coins */}
-          {coins.map(coin => (
-            <motion.div
-              key={coin.id}
-              className="absolute w-8 h-8 flex items-center justify-center"
-              style={{ left: `${coin.x}%`, top: `${coin.y}%`, marginLeft: '-16px', marginTop: '-16px' }}
-            >
-              <Coins className="w-full h-full text-yellow-400" />
-            </motion.div>
-          ))}
+          {/* Coins with collection animation */}
+          <AnimatePresence>
+            {coins.map(coin => (
+              <motion.div
+                key={coin.id}
+                className="absolute w-10 h-10 flex items-center justify-center"
+                style={{ left: `${coin.x}%`, top: `${coin.y}%`, marginLeft: '-20px', marginTop: '-20px' }}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1, rotate: 360 }}
+                exit={{ scale: 0, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Coins className="w-full h-full text-yellow-400 animate-bounce" />
+              </motion.div>
+            ))}
+          </AnimatePresence>
 
           {/* Obstacles */}
-          {obstacles.map(obstacle => (
-            <motion.div
-              key={obstacle.id}
-              className="absolute w-8 h-8 flex items-center justify-center"
-              style={{ left: `${obstacle.x}%`, top: `${obstacle.y}%`, marginLeft: '-16px', marginTop: '-16px' }}
-            >
-              <div className={`w-full h-full ${
-                obstacle.type === 'asteroid' 
-                  ? 'bg-gray-600 rounded-full' 
-                  : 'bg-blue-400 rounded'
-              }`} />
-            </motion.div>
-          ))}
+          <AnimatePresence>
+            {obstacles.map(obstacle => (
+              <motion.div
+                key={obstacle.id}
+                className="absolute w-10 h-10 flex items-center justify-center"
+                style={{ left: `${obstacle.x}%`, top: `${obstacle.y}%`, marginLeft: '-20px', marginTop: '-20px' }}
+                initial={{ scale: 0, rotate: 0 }}
+                animate={{ scale: 1, rotate: 360 }}
+                exit={{ scale: 0, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className={`w-full h-full ${
+                  obstacle.type === 'asteroid' 
+                    ? 'bg-gradient-to-br from-gray-600 to-gray-800 rounded-full shadow-lg'
+                    : 'bg-gradient-to-br from-blue-400 to-blue-600 rounded shadow-lg'
+                }`} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
 
           {/* Game UI */}
-          <div className="absolute top-4 left-4 right-4 flex justify-between items-center">
-            <div className="bg-gray-900/80 backdrop-blur px-4 py-1 rounded-full border border-indigo-500/30">
-              <span className="text-white">Skor: {score}</span>
+          <div className="absolute top-4 right-4 left-16 flex justify-between items-center gap-2">
+            <div className="bg-black/50 backdrop-blur px-4 py-2 rounded-full border border-indigo-500/30 flex-1">
+              <span className="text-white text-sm">Skor: {score}</span>
             </div>
-            <div className="bg-gray-900/80 backdrop-blur px-4 py-1 rounded-full border border-indigo-500/30">
-              <span className="text-white">Süre: {timeLeft}s</span>
+            <div className="bg-black/50 backdrop-blur px-4 py-2 rounded-full border border-indigo-500/30 flex-1 text-center">
+              <span className="text-white text-sm">Süre: {timeLeft}s</span>
             </div>
           </div>
         </>
@@ -279,4 +306,3 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
 };
 
 export default CoinGame;
-
