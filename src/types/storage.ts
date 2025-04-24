@@ -31,4 +31,10 @@ export interface UserData {
     dailyAverage?: number;
     rank?: string;
   };
+  socialConnections?: {
+    twitter?: boolean;
+    facebook?: boolean;
+    instagram?: boolean;
+  };
+  completedMissions?: string[]; // Array of completed mission IDs
 }

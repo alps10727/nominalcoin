@@ -80,9 +80,9 @@ const Upgrades = () => {
       }
       
       // Tamamlanmış görevleri işaretle
-      if (userData.completedMissions) {
+      if (userData.completedMissions && Array.isArray(userData.completedMissions)) {
         setMissions(prevMissions => prevMissions.map(mission => {
-          if (userData.completedMissions && userData.completedMissions.includes(mission.id)) {
+          if (userData.completedMissions?.includes(mission.id)) {
             return { ...mission, claimed: true };
           }
           return mission;
@@ -147,7 +147,7 @@ const Upgrades = () => {
         const updatedMissions = userData?.completedMissions || [];
         await updateUserData({
           balance: newBalance,
-          completedMissions: [...updatedMissions, mission.id]
+          completedMissions: [...updatedMissions, mission.id] as string[]
         });
       }
       
