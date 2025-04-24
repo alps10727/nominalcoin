@@ -1,14 +1,11 @@
-
 import React, { useState } from "react";
 import { Gift, Star, Clock, Rocket } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { debugLog } from "@/utils/debugUtils";
-import CoinGame from "@/components/upgrades/CoinGame";
 import { supabase } from "@/integrations/supabase/client";
 import MissionsList from "@/components/upgrades/MissionsList";
-import GameCard from "@/components/upgrades/GameCard";
 
 export type Mission = {
   id: string;
@@ -26,8 +23,6 @@ const Upgrades = () => {
   const { t } = useLanguage();
   const { userData, currentUser, updateUserData } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [showGame, setShowGame] = useState(false);
-  const [gameScore, setGameScore] = useState<number>(0);
   
   const [missions, setMissions] = useState<Mission[]>([
     {
@@ -53,17 +48,6 @@ const Upgrades = () => {
       icon: <Clock className="h-5 w-5 text-indigo-400" />
     },
     {
-      id: "game-points",
-      title: "Oyunda 500 Puan Kazan",
-      description: "Mini oyunumuzda en az 500 puan topla ve 15 NC kazan",
-      reward: 15,
-      progress: 0,
-      total: 500,
-      completed: false,
-      claimed: false,
-      icon: <Rocket className="h-5 w-5 text-purple-400" />
-    },
-    {
       id: "referral-friend",
       title: "Arkadaşını Davet Et",
       description: "Bir arkadaşını platforma davet et ve 20 NC kazan",
@@ -75,13 +59,6 @@ const Upgrades = () => {
       icon: <Gift className="h-5 w-5 text-pink-400" />
     }
   ]);
-
-  const onGameEnd = (score: number) => {
-    setGameScore(prevScore => prevScore + score);
-    updateMissionProgress("game-points", score);
-    toast.success(`+${score} puan kazandın!`);
-    setShowGame(false);
-  };
 
   const updateMissionProgress = async (missionId: string, progressAmount: number) => {
     setMissions(prevMissions => 
@@ -157,10 +134,6 @@ const Upgrades = () => {
     }, 1500);
   };
 
-  if (showGame) {
-    return <CoinGame onGameEnd={onGameEnd} />;
-  }
-
   return (
     <div className="container max-w-4xl mx-auto px-4 py-6 space-y-8">
       <div className="flex flex-col space-y-2">
@@ -169,7 +142,7 @@ const Upgrades = () => {
           Görevler ve Ödüller
         </h1>
         <p className="text-gray-400">
-          Çeşitli görevleri tamamlayarak ve mini oyunları oynayarak ekstra NC coin kazanın.
+          Çeşitli görevleri tamamlayarak ekstra NC coin kazanın.
         </p>
       </div>
 
@@ -179,10 +152,6 @@ const Upgrades = () => {
           onClaim={claimReward}
           onConnect={connectTwitter}
           isLoading={isLoading}
-        />
-        <GameCard 
-          gameScore={gameScore}
-          onPlayClick={() => setShowGame(true)}
         />
       </div>
     </div>
