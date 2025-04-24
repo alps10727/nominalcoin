@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { Gift, Star, Clock, Rocket } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -60,6 +61,36 @@ const Upgrades = () => {
     }
   ]);
 
+  // Kullanıcı verilerine göre görevleri güncelleme
+  useEffect(() => {
+    if (userData) {
+      // Twitter görevi için kontrol - örnek implementation
+      if (userData.socialConnections?.twitter) {
+        updateMissionProgress("social-twitter", 1);
+      }
+      
+      // Madencilik süresi kontrolü
+      if (userData.miningTime && userData.miningTime >= 120) {
+        updateMissionProgress("mining-time", userData.miningTime);
+      }
+      
+      // Referral kontrolü
+      if (userData.referralCount && userData.referralCount > 0) {
+        updateMissionProgress("referral-friend", 1);
+      }
+      
+      // Tamamlanmış görevleri işaretle
+      if (userData.completedMissions) {
+        setMissions(prevMissions => prevMissions.map(mission => {
+          if (userData.completedMissions && userData.completedMissions.includes(mission.id)) {
+            return { ...mission, claimed: true };
+          }
+          return mission;
+        }));
+      }
+    }
+  }, [userData]);
+
   const updateMissionProgress = async (missionId: string, progressAmount: number) => {
     setMissions(prevMissions => 
       prevMissions.map(mission => {
@@ -87,26 +118,40 @@ const Upgrades = () => {
       return;
     }
     
+    if (mission.claimed) {
+      toast.error("Bu ödülü zaten aldınız");
+      return;
+    }
+    
     try {
       setIsLoading(true);
       
-      const currentBalance = userData?.balance || 0;
-      const newBalance = currentBalance + mission.reward;
-      
-      const { error } = await supabase.rpc('update_user_balance', {
+      // Supabase bakiye güncelleme fonksiyonunu çağırma
+      const { data, error } = await supabase.rpc('update_user_balance', {
         p_user_id: currentUser.id,
         p_amount: mission.reward,
         p_reason: `Görev tamamlandı: ${mission.title}`
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Ödül alma hatası:", error);
+        throw error;
+      }
       
+      // Yerel veriyi güncelleme
+      const currentBalance = userData?.balance || 0;
+      const newBalance = currentBalance + mission.reward;
+      
+      // userDatası güncellemesi
       if (updateUserData) {
+        const updatedMissions = userData?.completedMissions || [];
         await updateUserData({
-          balance: newBalance
+          balance: newBalance,
+          completedMissions: [...updatedMissions, mission.id]
         });
       }
       
+      // Görev durumunu güncelleme
       setMissions(prevMissions => 
         prevMissions.map(m => 
           m.id === mission.id 
