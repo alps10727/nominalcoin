@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Rocket, Star, Medal, Gift, ArrowRight, Clock } from "lucide-react";
+import { Rocket, Star, Medal, Gift, ArrowRight, Clock, Gamepad } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -29,7 +28,8 @@ const Upgrades = () => {
   const { t } = useLanguage();
   const { userData, currentUser, updateUserData } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("missions");
+  const [showGame, setShowGame] = useState(false);
+  const [gameScore, setGameScore] = useState<number>(0);
   
   const [missions, setMissions] = useState<Mission[]>([
     {
@@ -78,16 +78,13 @@ const Upgrades = () => {
     }
   ]);
 
-  const [gameScore, setGameScore] = useState<number>(0);
-  
   const onGameEnd = (score: number) => {
     setGameScore(prevScore => prevScore + score);
-    
     updateMissionProgress("game-points", score);
-    
     toast.success(`+${score} puan kazandın!`);
+    setShowGame(false);
   };
-  
+
   const updateMissionProgress = async (missionId: string, progressAmount: number) => {
     setMissions(prevMissions => 
       prevMissions.map(mission => {
@@ -103,7 +100,7 @@ const Upgrades = () => {
       })
     );
   };
-  
+
   const claimReward = async (mission: Mission) => {
     if (!currentUser) {
       toast.error("Ödül almak için giriş yapmalısınız");
@@ -174,13 +171,14 @@ const Upgrades = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="missions" className="w-full" onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-2 mb-8">
-          <TabsTrigger value="missions">Görevler</TabsTrigger>
-          <TabsTrigger value="games">Mini Oyun</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="missions" className="space-y-4">
+      {showGame ? (
+        <Card className="bg-gradient-to-br from-indigo-900/30 to-purple-900/30 border border-indigo-500/30">
+          <CardContent className="p-6">
+            <CoinGame onGameEnd={onGameEnd} />
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {missions.map(mission => (
               <MissionItem 
@@ -192,6 +190,37 @@ const Upgrades = () => {
               />
             ))}
           </div>
+
+          <Card className="bg-gradient-to-br from-indigo-900/30 to-purple-900/30 border border-indigo-500/30">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Gamepad className="mr-2 h-5 w-5 text-purple-400" />
+                Uzay Madeni
+              </CardTitle>
+              <CardDescription>
+                Ekrana dokunarak coinleri topla ve puanları kazanmaya başla! 30 saniye içinde ne kadar çok coin toplayabilirsin?
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <div className="bg-purple-900/20 p-2 rounded-full">
+                    <Rocket className="h-6 w-6 text-purple-400" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-200">Mini Oyun</p>
+                    <p className="text-sm text-gray-400">En yüksek skor: {gameScore}</p>
+                  </div>
+                </div>
+                <Button 
+                  onClick={() => setShowGame(true)}
+                  className="bg-gradient-to-r from-indigo-600 to-purple-600"
+                >
+                  Oyna <ArrowRight className="ml-1 h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
           
           <Card className="bg-gradient-to-br from-indigo-900/30 to-purple-900/30 border border-indigo-500/30">
             <CardHeader>
@@ -220,47 +249,8 @@ const Upgrades = () => {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-        
-        <TabsContent value="games" className="space-y-4">
-          <Card className="bg-gradient-to-br from-indigo-900/30 to-purple-900/30 border border-indigo-500/30">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Rocket className="mr-2 h-5 w-5 text-indigo-400" />
-                Uzay Madeni
-              </CardTitle>
-              <CardDescription>
-                Uzayda uçarak coinleri topla ve ekstra NC kazan!
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-4 flex justify-between items-center">
-                <div className="text-sm text-gray-400">
-                  Toplam Puan: <span className="text-white font-bold">{gameScore}</span>
-                </div>
-                <div className="text-sm text-gray-400">
-                  Gorev İlerlemesi: <span className="text-white font-bold">
-                    {Math.min(gameScore, 500)}/500
-                  </span>
-                </div>
-              </div>
-              
-              <Progress 
-                value={(Math.min(gameScore, 500) / 500) * 100} 
-                className="h-2 mb-6" 
-              />
-              
-              <div className="aspect-[16/9] w-full rounded-lg overflow-hidden border border-indigo-500/30">
-                <CoinGame onGameEnd={onGameEnd} />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <div className="text-center text-sm text-gray-400 mt-4">
-            <p>Daha fazla mini oyun yakında eklenecek...</p>
-          </div>
-        </TabsContent>
-      </Tabs>
+        </div>
+      )}
     </div>
   );
 };
