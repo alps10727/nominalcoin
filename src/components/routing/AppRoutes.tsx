@@ -18,7 +18,8 @@ const Tasks = lazy(() => import("@/pages/Tasks"));
 const MiningUpgrades = lazy(() => import("@/pages/MiningUpgrades"));
 const Statistics = lazy(() => import("@/pages/Statistics"));
 const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
-const Referral = lazy(() => import("@/pages/Referral")); // Added Referral page import
+const Referral = lazy(() => import("@/pages/Referral"));
+const Upgrades = lazy(() => import("@/pages/Upgrades")); // Yeni Upgrades sayfamız
 
 const AppRoutes = () => {
   // Sayfaları önceden yükle
@@ -91,6 +92,17 @@ const AppRoutes = () => {
             <Suspense fallback={<LoadingScreen message="Referans sayfası yükleniyor..." />}>
               <PageTransition>
                 <Referral />
+              </PageTransition>
+            </Suspense>
+          </PrivateRoute>
+        } />
+        
+        {/* Yeni Upgrades sayfası yönlendirmesi */}
+        <Route path="/upgrades" element={
+          <PrivateRoute>
+            <Suspense fallback={<LoadingScreen message="Görev ve Oyunlar yükleniyor..." />}>
+              <PageTransition>
+                <Upgrades />
               </PageTransition>
             </Suspense>
           </PrivateRoute>
