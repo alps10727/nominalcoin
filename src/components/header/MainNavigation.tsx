@@ -1,18 +1,19 @@
+
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { MoonIcon, SunIcon } from "@radix-ui/react-icons";
-import { useTheme } from "@/components/ui/theme-provider";
-import { Github, Discord } from "lucide-react";
+import { useTheme } from "@/contexts/ThemeContext";
+import { Github } from "lucide-react";
 import { MessageCircle } from "lucide-react";
+import { Sun, Moon } from "lucide-react";
 
-const MainNavigation = () => {
+const MainNavigation = ({ onNavigate }: { onNavigate?: () => void } = {}) => {
   const { currentUser, logout } = useAuth();
   const { t } = useLanguage();
-  const { setTheme } = useTheme();
+  const { toggleTheme, theme } = useTheme();
 
   return (
     <nav className="hidden md:flex items-center gap-6">
@@ -24,6 +25,7 @@ const MainNavigation = () => {
             isActive ? "text-primary" : "text-muted-foreground"
           )
         }
+        onClick={onNavigate}
       >
         {t("header.home")}
       </NavLink>
@@ -35,6 +37,7 @@ const MainNavigation = () => {
             isActive ? "text-primary" : "text-muted-foreground"
           )
         }
+        onClick={onNavigate}
       >
         {t("header.mining")}
       </NavLink>
@@ -46,6 +49,7 @@ const MainNavigation = () => {
             isActive ? "text-primary" : "text-muted-foreground"
           )
         }
+        onClick={onNavigate}
       >
         {t("header.leaderboard")}
       </NavLink>
@@ -57,6 +61,7 @@ const MainNavigation = () => {
             isActive ? "text-primary" : "text-muted-foreground"
           )
         }
+        onClick={onNavigate}
       >
         {t("header.referral")}
       </NavLink>
@@ -68,6 +73,7 @@ const MainNavigation = () => {
             isActive ? "text-primary" : "text-muted-foreground"
           )
         }
+        onClick={onNavigate}
       >
         {t("header.upgrades")}
       </NavLink>
@@ -85,15 +91,15 @@ const MainNavigation = () => {
         rel="noreferrer"
         className="text-sm font-medium transition-colors hover:text-primary"
       >
-        <Discord className="w-4 h-4" />
+        <MessageCircle className="w-4 h-4" />
       </a>
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => setTheme((theme) => (theme === "light" ? "dark" : "light"))}
+        onClick={toggleTheme}
       >
-        <SunIcon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-        <MoonIcon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+        <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+        <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
         <span className="sr-only">Toggle theme</span>
       </Button>
       {currentUser ? (
@@ -102,12 +108,12 @@ const MainNavigation = () => {
         </Button>
       ) : (
         <>
-          <NavLink to="/login">
+          <NavLink to="/login" onClick={onNavigate}>
             <Button variant="outline" size="sm">
               {t("header.login")}
             </Button>
           </NavLink>
-          <NavLink to="/register">
+          <NavLink to="/register" onClick={onNavigate}>
             <Button size="sm">{t("header.register")}</Button>
           </NavLink>
         </>
@@ -120,6 +126,7 @@ const MainNavigation = () => {
             isActive ? "text-primary" : "text-muted-foreground"
           )
         }
+        onClick={onNavigate}
       >
         <MessageCircle className="h-4 w-4" />
         Sohbet
