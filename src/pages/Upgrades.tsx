@@ -1,16 +1,13 @@
 import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { Rocket, Star, Medal, Gift, ArrowRight, Clock, Gamepad } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+import { Gift } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { debugLog } from "@/utils/debugUtils";
 import CoinGame from "@/components/upgrades/CoinGame";
 import { supabase } from "@/integrations/supabase/client";
-import MissionItem from "@/components/upgrades/MissionItem";
+import MissionsList from "@/components/upgrades/MissionsList";
+import GameCard from "@/components/upgrades/GameCard";
 
 export type Mission = {
   id: string;
@@ -176,48 +173,16 @@ const Upgrades = () => {
       </div>
 
       <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {missions.map(mission => (
-            <MissionItem 
-              key={mission.id} 
-              mission={mission} 
-              onClaim={() => claimReward(mission)}
-              onConnect={mission.id === "social-twitter" ? connectTwitter : undefined}
-              isLoading={isLoading}
-            />
-          ))}
-        </div>
-
-        <Card className="bg-gradient-to-br from-indigo-900/30 to-purple-900/30 border border-indigo-500/30">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Gamepad className="mr-2 h-5 w-5 text-purple-400" />
-              Uzay Madeni
-            </CardTitle>
-            <CardDescription>
-              Ekrana dokunarak coinleri topla ve puanları kazanmaya başla! 30 saniye içinde ne kadar çok coin toplayabilirsin?
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className="bg-purple-900/20 p-2 rounded-full">
-                  <Gamepad className="h-6 w-6 text-purple-400" />
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-200">Mini Oyun</p>
-                  <p className="text-sm text-gray-400">En yüksek skor: {gameScore}</p>
-                </div>
-              </div>
-              <Button 
-                onClick={() => setShowGame(true)}
-                className="bg-gradient-to-r from-indigo-600 to-purple-600"
-              >
-                Oyna <ArrowRight className="ml-1 h-4 w-4" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <MissionsList 
+          missions={missions}
+          onClaim={claimReward}
+          onConnect={connectTwitter}
+          isLoading={isLoading}
+        />
+        <GameCard 
+          gameScore={gameScore}
+          onPlayClick={() => setShowGame(true)}
+        />
       </div>
     </div>
   );
