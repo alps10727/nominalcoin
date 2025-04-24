@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Rocket, Star, Medal, Gift, ArrowRight, Clock } from "lucide-react";
@@ -22,6 +21,7 @@ export type Mission = {
   progress: number;
   total: number;
   completed: boolean;
+  claimed: boolean;
   icon: React.ReactNode;
 };
 
@@ -31,7 +31,6 @@ const Upgrades = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("missions");
   
-  // Default missions - should be loaded from database in production
   const [missions, setMissions] = useState<Mission[]>([
     {
       id: "social-twitter",
@@ -41,6 +40,7 @@ const Upgrades = () => {
       progress: 0,
       total: 1,
       completed: false,
+      claimed: false,
       icon: <Star className="h-5 w-5 text-blue-400" />
     },
     {
@@ -49,8 +49,9 @@ const Upgrades = () => {
       description: "2 saat boyunca madenciliği açık tut ve 10 NC kazan",
       reward: 10,
       progress: 0,
-      total: 120, // 120 dakika = 2 saat
+      total: 120,
       completed: false,
+      claimed: false,
       icon: <Clock className="h-5 w-5 text-indigo-400" />
     },
     {
@@ -61,6 +62,7 @@ const Upgrades = () => {
       progress: 0,
       total: 500,
       completed: false,
+      claimed: false,
       icon: <Rocket className="h-5 w-5 text-purple-400" />
     },
     {
@@ -71,6 +73,7 @@ const Upgrades = () => {
       progress: 0,
       total: 1,
       completed: false,
+      claimed: false,
       icon: <Gift className="h-5 w-5 text-pink-400" />
     }
   ]);
@@ -80,7 +83,6 @@ const Upgrades = () => {
   const onGameEnd = (score: number) => {
     setGameScore(prevScore => prevScore + score);
     
-    // Oyun görevini güncelle
     updateMissionProgress("game-points", score);
     
     toast.success(`+${score} puan kazandın!`);
@@ -116,11 +118,9 @@ const Upgrades = () => {
     try {
       setIsLoading(true);
       
-      // Mevcut bakiyeyi al
       const currentBalance = userData?.balance || 0;
       const newBalance = currentBalance + mission.reward;
       
-      // Supabase RPC ile bakiyeyi güncelle
       const { error } = await supabase.rpc('update_user_balance', {
         p_user_id: currentUser.id,
         p_amount: mission.reward,
@@ -129,14 +129,12 @@ const Upgrades = () => {
       
       if (error) throw error;
       
-      // Yerel verileri güncelle
       if (updateUserData) {
         await updateUserData({
           balance: newBalance
         });
       }
       
-      // Görevin durumunu güncelle
       setMissions(prevMissions => 
         prevMissions.map(m => 
           m.id === mission.id 
@@ -157,7 +155,6 @@ const Upgrades = () => {
   };
 
   const connectTwitter = async () => {
-    // Gerçek uygulamada Twitter OAuth entegrasyonu yapılacak
     toast.info("Twitter bağlantısı simüle ediliyor...");
     setTimeout(() => {
       updateMissionProgress("social-twitter", 1);
@@ -167,7 +164,6 @@ const Upgrades = () => {
 
   return (
     <div className="container max-w-4xl mx-auto px-4 py-6 space-y-8">
-      {/* Header */}
       <div className="flex flex-col space-y-2">
         <h1 className="text-2xl font-bold fc-gradient-text flex items-center">
           <Gift className="mr-2 h-6 w-6 text-indigo-400" />
@@ -184,7 +180,6 @@ const Upgrades = () => {
           <TabsTrigger value="games">Mini Oyun</TabsTrigger>
         </TabsList>
         
-        {/* Görevler Tab */}
         <TabsContent value="missions" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {missions.map(mission => (
@@ -227,7 +222,6 @@ const Upgrades = () => {
           </Card>
         </TabsContent>
         
-        {/* Mini Oyun Tab */}
         <TabsContent value="games" className="space-y-4">
           <Card className="bg-gradient-to-br from-indigo-900/30 to-purple-900/30 border border-indigo-500/30">
             <CardHeader>
