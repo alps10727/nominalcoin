@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Coins, Rocket } from 'lucide-react';
+import { Coins, Rocket, Maximize2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -9,47 +9,63 @@ interface CoinGameProps {
   onGameEnd: (score: number) => void;
 }
 
+interface Obstacle {
+  id: number;
+  x: number;
+  y: number;
+  type: 'asteroid' | 'satellite';
+}
+
 const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(30); // 30 saniye oyun süresi
+  const [timeLeft, setTimeLeft] = useState(30);
   const [playerPosition, setPlayerPosition] = useState({ x: 50, y: 75 });
   const [coins, setCoins] = useState<{id: number; x: number; y: number}[]>([]);
+  const [obstacles, setObstacles] = useState<Obstacle[]>([]);
   const [gameSpeed, setGameSpeed] = useState(1);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);
   const lastUpdateTimeRef = useRef<number>(0);
-  
-  // Yeni coin oluştur
-  const createCoin = () => {
-    const newCoin = {
-      id: Math.random(),
-      x: Math.random() * 90 + 5, // 5% ile 95% arasında
-      y: -10, // Ekranın üstünden başlasın
-    };
-    
-    setCoins(prev => [...prev, newCoin]);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      gameAreaRef.current?.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
   };
-  
-  // Oyunu başlat
+
+  const createObstacle = () => {
+    const types: ('asteroid' | 'satellite')[] = ['asteroid', 'satellite'];
+    const newObstacle: Obstacle = {
+      id: Math.random(),
+      x: Math.random() * 90 + 5,
+      y: -10,
+      type: types[Math.floor(Math.random() * types.length)]
+    };
+    setObstacles(prev => [...prev, newObstacle]);
+  };
+
   const startGame = () => {
     setIsPlaying(true);
     setScore(0);
     setTimeLeft(30);
     setCoins([]);
+    setObstacles([]);
     setPlayerPosition({ x: 50, y: 75 });
     setGameSpeed(1);
     lastUpdateTimeRef.current = performance.now();
   };
-  
-  // Oyunu bitir
+
   const endGame = () => {
     setIsPlaying(false);
-    // Skoru ana bileşene bildir
     onGameEnd(score);
   };
-  
-  // Fare hareketlerini yakala
+
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!gameAreaRef.current || !isPlaying) return;
@@ -58,7 +74,6 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
       const x = ((e.clientX - rect.left) / rect.width) * 100;
       const y = ((e.clientY - rect.top) / rect.height) * 100;
       
-      // Sınırları kontrol et
       const clampedX = Math.min(Math.max(x, 5), 95);
       const clampedY = Math.min(Math.max(y, 5), 95);
       
@@ -73,61 +88,78 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
       window.removeEventListener('mousemove', handleMouseMove);
     };
   }, [isPlaying]);
-  
-  // Oyun döngüsü
+
   useEffect(() => {
     if (!isPlaying) return;
-    
+
     const gameLoop = (timestamp: number) => {
-      // Zaman farkını hesapla
       const deltaTime = timestamp - lastUpdateTimeRef.current;
       lastUpdateTimeRef.current = timestamp;
-      
-      // Coinlerin hareketini güncelle
-      setCoins(prevCoins => {
-        return prevCoins.map(coin => ({
-          ...coin,
-          y: coin.y + gameSpeed * (deltaTime / 16), // 60fps'de 16ms
-        }));
+
+      // Update obstacles
+      setObstacles(prevObstacles => {
+        return prevObstacles.map(obstacle => ({
+          ...obstacle,
+          y: obstacle.y + gameSpeed * (deltaTime / 16)
+        })).filter(obstacle => obstacle.y < 110);
       });
-      
-      // Çarpışmaları kontrol et
+
+      // Check collisions with obstacles
+      const hasCollision = obstacles.some(obstacle => {
+        const dx = Math.abs(obstacle.x - playerPosition.x);
+        const dy = Math.abs(obstacle.y - playerPosition.y);
+        return dx < 8 && dy < 8;
+      });
+
+      if (hasCollision) {
+        toast.error("Çarpışma! -10 puan");
+        setScore(prevScore => Math.max(0, prevScore - 10));
+      }
+
+      // Update coins
       setCoins(prevCoins => {
         const collidedCoinId = prevCoins.find(coin => {
           const dx = Math.abs(coin.x - playerPosition.x);
           const dy = Math.abs(coin.y - playerPosition.y);
-          return dx < 8 && dy < 8; // Çarpışma algılama mesafesi
+          return dx < 8 && dy < 8;
         })?.id;
         
-        // Çarpışma varsa
         if (collidedCoinId) {
-          // Skoru arttır
           setScore(prevScore => prevScore + 10);
-          // Sesi çal veya animasyon göster
-          return prevCoins.filter(coin => coin.id !== collidedCoinId);
         }
         
-        // Ekrandan çıkan coinleri temizle
-        return prevCoins.filter(coin => coin.y < 110);
+        return prevCoins
+          .filter(coin => coin.id !== collidedCoinId)
+          .map(coin => ({
+            ...coin,
+            y: coin.y + gameSpeed * (deltaTime / 16)
+          }))
+          .filter(coin => coin.y < 110);
       });
-      
-      // Yeni coin ekleme olasılığı
+
+      // Spawn new elements
       if (Math.random() < 0.02 * gameSpeed) {
-        createCoin();
+        const rand = Math.random();
+        if (rand < 0.7) {
+          // 70% chance for coin
+          const newCoin = {
+            id: Math.random(),
+            x: Math.random() * 90 + 5,
+            y: -10
+          };
+          setCoins(prev => [...prev, newCoin]);
+        } else {
+          // 30% chance for obstacle
+          createObstacle();
+        }
       }
-      
-      // Oyun hızını zamanla arttır
-      if (timeLeft < 20) {
-        setGameSpeed(1.5);
-      }
-      if (timeLeft < 10) {
-        setGameSpeed(2);
-      }
-      
+
+      if (timeLeft < 20) setGameSpeed(1.5);
+      if (timeLeft < 10) setGameSpeed(2);
+
       animationRef.current = requestAnimationFrame(gameLoop);
     };
-    
-    // Zamanı güncelle
+
     const timer = setInterval(() => {
       setTimeLeft(prevTime => {
         if (prevTime <= 1) {
@@ -141,9 +173,9 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
         return prevTime - 1;
       });
     }, 1000);
-    
+
     animationRef.current = requestAnimationFrame(gameLoop);
-    
+
     return () => {
       clearInterval(timer);
       if (animationRef.current) {
@@ -151,7 +183,7 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
       }
     };
   }, [isPlaying, playerPosition, gameSpeed, score, timeLeft, onGameEnd]);
-  
+
   return (
     <div 
       ref={gameAreaRef} 
@@ -162,7 +194,7 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
           <Rocket className="w-16 h-16 text-indigo-400 mb-4" />
           <h2 className="text-2xl font-bold text-white mb-4">Uzay Madeni</h2>
           <p className="text-gray-300 mb-6 text-center max-w-xs">
-            Uzayda uçarak coinleri topla ve puanları kazanmaya başla! 30 saniye içinde ne kadar çok coin toplayabilirsin?
+            Uzayda uçarak coinleri topla ve puanları kazanmaya başla! Asteroidlerden ve uydulardan kaçın! 30 saniye içinde ne kadar çok coin toplayabilirsin?
           </p>
           <Button 
             onClick={startGame}
@@ -173,7 +205,7 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
         </div>
       ) : (
         <>
-          {/* Arkaplan yıldızları */}
+          {/* Background stars */}
           {Array.from({ length: 50 }).map((_, i) => (
             <div
               key={i}
@@ -187,8 +219,8 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
               }}
             />
           ))}
-          
-          {/* Oyuncu */}
+
+          {/* Player */}
           <motion.div
             className="absolute w-10 h-10 flex items-center justify-center"
             animate={{ x: `${playerPosition.x}%`, y: `${playerPosition.y}%` }}
@@ -197,8 +229,8 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
           >
             <Rocket className="w-full h-full text-indigo-400 transform rotate-180" />
           </motion.div>
-          
-          {/* Coinler */}
+
+          {/* Coins */}
           {coins.map(coin => (
             <motion.div
               key={coin.id}
@@ -208,8 +240,23 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
               <Coins className="w-full h-full text-yellow-400" />
             </motion.div>
           ))}
-          
-          {/* UI Elemanları */}
+
+          {/* Obstacles */}
+          {obstacles.map(obstacle => (
+            <motion.div
+              key={obstacle.id}
+              className="absolute w-8 h-8 flex items-center justify-center"
+              style={{ left: `${obstacle.x}%`, top: `${obstacle.y}%`, marginLeft: '-16px', marginTop: '-16px' }}
+            >
+              <div className={`w-full h-full ${
+                obstacle.type === 'asteroid' 
+                  ? 'bg-gray-600 rounded-full' 
+                  : 'bg-blue-400 rounded'
+              }`} />
+            </motion.div>
+          ))}
+
+          {/* UI Elements */}
           <div className="absolute top-4 left-4 right-4 flex justify-between items-center">
             <div className="bg-gray-900/80 backdrop-blur px-4 py-1 rounded-full border border-indigo-500/30">
               <span className="text-white">Skor: {score}</span>
@@ -218,6 +265,14 @@ const CoinGame: React.FC<CoinGameProps> = ({ onGameEnd }) => {
               <span className="text-white">Süre: {timeLeft}s</span>
             </div>
           </div>
+
+          {/* Fullscreen toggle */}
+          <Button
+            onClick={toggleFullscreen}
+            className="absolute top-4 right-4 bg-gray-900/80 backdrop-blur border border-indigo-500/30 p-2"
+          >
+            {isFullscreen ? <X className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
+          </Button>
         </>
       )}
     </div>
