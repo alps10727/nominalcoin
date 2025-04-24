@@ -1,84 +1,131 @@
-
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { 
-  Coins, 
-  User,
-  History,
-  UserPlus,
-  Award,
-  Zap
-} from "lucide-react";
+import React from "react";
+import { NavLink } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { memo } from "react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { MoonIcon, SunIcon } from "@radix-ui/react-icons";
+import { useTheme } from "@/components/ui/theme-provider";
+import { Github, Discord } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 
-interface MainNavigationProps {
-  onNavigate?: () => void;
-}
-
-// Memoized navigation items to prevent unnecessary re-renders
-const NavigationItem = memo(({ 
-  to, 
-  icon: Icon, 
-  label, 
-  onClick 
-}: { 
-  to: string; 
-  icon: React.ElementType; 
-  label: string; 
-  onClick?: () => void;
-}) => {
-  return (
-    <Link to={to} onClick={onClick}>
-      <Button 
-        variant="ghost" 
-        className="w-full justify-start text-gray-200 hover:bg-cyan-800/20 hover:text-white transition-colors"
-        tabIndex={0}
-      >
-        <Icon className="mr-2 h-5 w-5 text-cyan-400" />
-        {label}
-      </Button>
-    </Link>
-  );
-});
-
-NavigationItem.displayName = "NavigationItem";
-
-// Optimized MainNavigation component using memoization for better performance
-export const MainNavigation = memo(({ onNavigate }: MainNavigationProps) => {
+const MainNavigation = () => {
+  const { currentUser, logout } = useAuth();
   const { t } = useLanguage();
-  
-  const handleClick = () => {
-    if (onNavigate) {
-      onNavigate();
-    }
-  };
-  
-  // Navigation items configuration for easy maintenance - removed statistics item
-  const navigationItems = [
-    { to: "/", icon: Coins, label: t('mining.title') },
-    { to: "/profile", icon: User, label: t('profile.title') },
-    { to: "/history", icon: History, label: t('history.title') },
-    { to: "/referral", icon: UserPlus, label: t('referral.title') },
-    { to: "/tasks", icon: Award, label: t('tasks.title') },
-    { to: "/mining/upgrades", icon: Zap, label: t('mining.upgrades') },
-  ];
-  
-  return (
-    <div className="py-4 bg-gradient-to-b from-cyan-900/10 to-indigo-900/10 rounded-xl border border-cyan-500/20 shadow-lg mb-4">
-      <div className="flex flex-col gap-1.5 px-2">
-        {navigationItems.map((item) => (
-          <NavigationItem
-            key={item.to}
-            to={item.to}
-            icon={item.icon}
-            label={item.label}
-            onClick={handleClick}
-          />
-        ))}
-      </div>
-    </div>
-  );
-});
+  const { setTheme } = useTheme();
 
-MainNavigation.displayName = "MainNavigation";
+  return (
+    <nav className="hidden md:flex items-center gap-6">
+      <NavLink
+        to="/"
+        className={({ isActive }) =>
+          cn(
+            "text-sm font-medium transition-colors",
+            isActive ? "text-primary" : "text-muted-foreground"
+          )
+        }
+      >
+        {t("header.home")}
+      </NavLink>
+      <NavLink
+        to="/mining"
+        className={({ isActive }) =>
+          cn(
+            "text-sm font-medium transition-colors",
+            isActive ? "text-primary" : "text-muted-foreground"
+          )
+        }
+      >
+        {t("header.mining")}
+      </NavLink>
+      <NavLink
+        to="/leaderboard"
+        className={({ isActive }) =>
+          cn(
+            "text-sm font-medium transition-colors",
+            isActive ? "text-primary" : "text-muted-foreground"
+          )
+        }
+      >
+        {t("header.leaderboard")}
+      </NavLink>
+      <NavLink
+        to="/referral"
+        className={({ isActive }) =>
+          cn(
+            "text-sm font-medium transition-colors",
+            isActive ? "text-primary" : "text-muted-foreground"
+          )
+        }
+      >
+        {t("header.referral")}
+      </NavLink>
+      <NavLink
+        to="/upgrades"
+        className={({ isActive }) =>
+          cn(
+            "text-sm font-medium transition-colors",
+            isActive ? "text-primary" : "text-muted-foreground"
+          )
+        }
+      >
+        {t("header.upgrades")}
+      </NavLink>
+      <a
+        href="https://github.com/CoinNominal"
+        target="_blank"
+        rel="noreferrer"
+        className="text-sm font-medium transition-colors hover:text-primary"
+      >
+        <Github className="w-4 h-4" />
+      </a>
+      <a
+        href="https://discord.gg/coinnominal"
+        target="_blank"
+        rel="noreferrer"
+        className="text-sm font-medium transition-colors hover:text-primary"
+      >
+        <Discord className="w-4 h-4" />
+      </a>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => setTheme((theme) => (theme === "light" ? "dark" : "light"))}
+      >
+        <SunIcon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+        <MoonIcon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+        <span className="sr-only">Toggle theme</span>
+      </Button>
+      {currentUser ? (
+        <Button variant="outline" size="sm" onClick={logout}>
+          {t("header.logout")}
+        </Button>
+      ) : (
+        <>
+          <NavLink to="/login">
+            <Button variant="outline" size="sm">
+              {t("header.login")}
+            </Button>
+          </NavLink>
+          <NavLink to="/register">
+            <Button size="sm">{t("header.register")}</Button>
+          </NavLink>
+        </>
+      )}
+      <NavLink
+        to="/chat"
+        className={({ isActive }) =>
+          cn(
+            "flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary",
+            isActive ? "text-primary" : "text-muted-foreground"
+          )
+        }
+      >
+        <MessageCircle className="h-4 w-4" />
+        Sohbet
+      </NavLink>
+    </nav>
+  );
+};
+
+export default MainNavigation;
