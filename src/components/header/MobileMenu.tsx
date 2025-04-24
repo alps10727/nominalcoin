@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/sheet";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
-import MainNavigation from "./MainNavigation";  // Fixed import
+import { MainNavigation } from "./MainNavigation";
 
 export const MobileMenu = () => {
   const { t } = useLanguage();

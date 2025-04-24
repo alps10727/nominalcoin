@@ -1,3 +1,4 @@
+
 import { Suspense, lazy } from "react";
 import { Routes, Route } from "react-router-dom";
 import LoadingScreen from "../dashboard/LoadingScreen";
@@ -19,7 +20,6 @@ const Statistics = lazy(() => import("@/pages/Statistics"));
 const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
 const Referral = lazy(() => import("@/pages/Referral"));
 const Upgrades = lazy(() => import("@/pages/Upgrades")); // Yeni Upgrades sayfamız
-const Chat = lazy(() => import("@/pages/Chat")); // Yeni Chat sayfamız
 
 const AppRoutes = () => {
   // Sayfaları önceden yükle
@@ -105,12 +105,6 @@ const AppRoutes = () => {
                 <Upgrades />
               </PageTransition>
             </Suspense>
-          </PrivateRoute>
-        } />
-        
-        <Route path="/chat" element={
-          <PrivateRoute>
-            <Chat />
           </PrivateRoute>
         } />
         
