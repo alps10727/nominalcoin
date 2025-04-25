@@ -71,6 +71,7 @@ export class AdMobService implements AdMobServiceInterface {
       await this.listenerManager.setupGlobalListeners();
       this.initialized = true;
       
+      // Ensure we preload an ad right after initialization
       setTimeout(() => this.preloadRewardAd(), 1000);
     } catch (error) {
       errorLog('AdMob', 'Failed to initialize AdMob:', error);
@@ -115,6 +116,13 @@ export class AdMobService implements AdMobServiceInterface {
       await window.Admob?.prepareRewardVideoAd({
         adId: adUnitId,
       });
+      
+      // Mark ad as preloaded when successful
+      this.adPreloaded = true;
+      this.isPreloading = false;
+      this.adLoadInProgress = false;
+      
+      debugLog('AdMob', 'Reward ad preloaded successfully');
     } catch (error) {
       this.resetAdStates();
       errorLog('AdMob', 'Failed to preload reward ad:', error);
@@ -140,7 +148,10 @@ export class AdMobService implements AdMobServiceInterface {
       
       debugLog('AdMob', `Attempting to show reward ad. Preloaded: ${this.adPreloaded}`);
 
+      // If ad is not preloaded, try to load it now
       if (!this.adPreloaded && !this.isPreloading && !this.adLoadInProgress) {
+        debugLog('AdMob', 'No preloaded ad available, loading ad now');
+        
         const config = await fetchAdMobConfig();
         if (!config) return false;
 
@@ -151,13 +162,23 @@ export class AdMobService implements AdMobServiceInterface {
           adId: adUnitId,
         });
         
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Wait briefly to ensure ad is loaded
+        await new Promise(resolve => setTimeout(resolve, 2000));
       }
 
+      // Actually show the ad
+      debugLog('AdMob', 'Showing reward ad now');
       const result = await window.Admob?.showRewardVideoAd();
       this.adPreloaded = false;
       
+      // Schedule next ad preload
       setTimeout(() => this.preloadRewardAd(), 1000);
+      
+      if (result?.rewarded) {
+        debugLog('AdMob', 'User was rewarded for watching the ad');
+      } else {
+        debugLog('AdMob', 'User was not rewarded (ad may have been skipped or failed)');
+      }
       
       return result?.rewarded || false;
     } catch (error) {

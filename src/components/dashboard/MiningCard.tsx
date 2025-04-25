@@ -50,44 +50,53 @@ const MiningCard = React.memo<MiningCardProps>(({
     }
   }, [miningActive, isInitialized, pluginAvailable, preloadNextAd]);
   
-  // Only allow starting mining
+  // Button click handler with improved ad checking
   const handleButtonClick = useCallback(async () => {
-    if (!miningActive) {
-      setIsAttemptingToStart(true);
-      debugLog('MiningCard', `Handling button click. Capacitor available: ${!!window.Capacitor}, Plugin available: ${pluginAvailable}`);
-      
-      try {
-        if (typeof window !== 'undefined' && window.Capacitor && pluginAvailable) {
-          // Mobil cihazda Admob reklamını göster
-          debugLog('MiningCard', 'Attempting to show AdMob reward ad');
-          const rewarded = await showRewardAd();
-          
-          if (rewarded) {
-            debugLog('MiningCard', 'Ad reward successful, starting mining');
-            onStartMining();
-            // Preload next ad after successful view
-            setTimeout(preloadNextAd, 1000);
-          } else {
-            debugLog('MiningCard', 'Ad not rewarded');
-            toast.error("Reklam izleme tamamlanamadı. Lütfen tekrar deneyin.", {
-              duration: 3000
-            });
-          }
-        } else {
-          // Desktop'ta direkt başlat
-          debugLog('MiningCard', 'Not on mobile or plugin not available, starting mining directly');
-          onStartMining();
-        }
-      } catch (error) {
-        console.error('Error in mining start process:', error);
-        toast.error("Bir hata oluştu. Lütfen tekrar deneyin.", {
-          duration: 3000
-        });
-      } finally {
-        setIsAttemptingToStart(false);
-      }
+    if (miningActive) {
+      // If mining is already active, just stop it
+      onStopMining();
+      return;
     }
-  }, [miningActive, onStartMining, showRewardAd, preloadNextAd, pluginAvailable]);
+    
+    setIsAttemptingToStart(true);
+    debugLog('MiningCard', `Handling button click. Capacitor available: ${!!window.Capacitor}, Plugin available: ${pluginAvailable}`);
+    
+    try {
+      if (typeof window !== 'undefined' && window.Capacitor && pluginAvailable) {
+        // Check if we're on a mobile device and the AdMob plugin is available
+        debugLog('MiningCard', 'Attempting to show AdMob reward ad');
+        
+        // Important: Wait for the ad to complete
+        const rewarded = await showRewardAd();
+        
+        if (rewarded) {
+          // Only start mining if the ad was rewarded
+          debugLog('MiningCard', 'Ad reward successful, starting mining');
+          onStartMining();
+          // Preload next ad after successful view
+          setTimeout(preloadNextAd, 1000);
+        } else {
+          debugLog('MiningCard', 'Ad not rewarded or could not be shown');
+          toast.error("Reklam izleme tamamlanamadı. Lütfen tekrar deneyin.", {
+            duration: 3000
+          });
+          setIsAttemptingToStart(false);
+          return;
+        }
+      } else {
+        // On desktop or when plugin is not available, start mining directly
+        debugLog('MiningCard', 'Not on mobile or plugin not available, starting mining directly');
+        onStartMining();
+      }
+    } catch (error) {
+      console.error('Error in mining start process:', error);
+      toast.error("Bir hata oluştu. Lütfen tekrar deneyin.", {
+        duration: 3000
+      });
+    } finally {
+      setIsAttemptingToStart(false);
+    }
+  }, [miningActive, onStartMining, onStopMining, showRewardAd, preloadNextAd, pluginAvailable]);
 
   // Quick stats for display
   const hourlyRate = (miningRate * 60).toFixed(1);
