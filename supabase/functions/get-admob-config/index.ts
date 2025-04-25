@@ -12,25 +12,13 @@ serve(async (req) => {
   }
 
   try {
-    // Get the AdMob configuration from environment variables
-    const appId = Deno.env.get('ADMOB_APP_ID');
-    const rewardAdUnitId = Deno.env.get('ADMOB_REWARD_AD_UNIT_ID');
-    
-    // Log for debugging
-    console.log('AdMob config values:', { appId, rewardAdUnitId });
-    
-    if (!appId || !rewardAdUnitId) {
-      throw new Error('AdMob configuration is missing');
+    const config = {
+      appId: Deno.env.get('ADMOB_APP_ID'),
+      rewardAdUnitId: Deno.env.get('ADMOB_REWARD_AD_UNIT_ID'),
     }
 
-    // Send the configuration wrapped in a data field to match the expected format
     return new Response(
-      JSON.stringify({ 
-        data: {
-          appId, 
-          rewardAdUnitId 
-        }
-      }),
+      JSON.stringify(config),
       { 
         headers: { 
           ...corsHeaders,
@@ -39,13 +27,8 @@ serve(async (req) => {
       },
     )
   } catch (error) {
-    console.error('Error in get-admob-config:', error.message);
-    
     return new Response(
-      JSON.stringify({ 
-        error: error.message,
-        details: 'Failed to retrieve AdMob configuration'
-      }),
+      JSON.stringify({ error: error.message }),
       { 
         status: 400,
         headers: { 

@@ -5,10 +5,9 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "@/contexts/ThemeContext";
 import { MiningButton } from "./mining/MiningButton";
 import { MiningProgressBar } from "./mining/MiningProgressBar";
-import { Diamond, Zap, Clock, BarChart, AlertCircle } from "lucide-react";
+import { Diamond, Zap, Clock, BarChart } from "lucide-react";
 import { MiningParticles } from "./mining/MiningParticles";
 import { useAdMob } from '@/hooks/useAdMob';
-import { toast } from 'sonner';
 
 interface MiningCardProps {
   miningActive: boolean;
@@ -33,54 +32,21 @@ const MiningCard = React.memo<MiningCardProps>(({
   const { isDarkMode } = useTheme();
   const { showRewardAd, isLoading: adLoading } = useAdMob();
   
-  // Handle button click with better error handling
+  // Only allow starting mining
   const handleButtonClick = React.useCallback(async () => {
-    if (miningActive || adLoading) {
-      console.log("Mining is already active or ad is loading, ignoring click");
-      return;
-    }
-    
-    try {
-      console.log("Mining button clicked, showing ad if on mobile");
-      
+    if (!miningActive) {
       if (typeof window !== 'undefined' && window.Capacitor) {
-        // Show loading toast
-        toast.info("Reklam yükleniyor, lütfen bekleyin...", {
-          duration: 3000,
-          id: 'loading-ad'
-        });
-        
-        console.log("On mobile device, showing AdMob reward ad");
+        // Mobil cihazda Admob reklamını göster
         const rewarded = await showRewardAd();
-        console.log("Ad result:", rewarded);
-        
         if (rewarded) {
-          console.log("Ad was viewed, starting mining");
           onStartMining();
-          toast.success("Madencilik başladı!", {
-            id: 'mining-started'
-          });
-        } else {
-          console.log("Ad was not viewed or failed to show");
-          toast.error("Reklam gösterilemedi veya tamamlanmadı. Lütfen tekrar deneyin.", {
-            id: 'ad-failed',
-            icon: <AlertCircle className="h-4 w-4" />
-          });
         }
       } else {
-        // On desktop, start directly
-        console.log("On desktop, starting mining directly");
+        // Desktop'ta direkt başlat
         onStartMining();
-        toast.success("Madencilik başladı!");
       }
-    } catch (error) {
-      console.error("Error during mining start process:", error);
-      toast.error("Bir hata oluştu, lütfen tekrar deneyin.", {
-        id: 'mining-error',
-        description: error instanceof Error ? error.message : 'Bilinmeyen hata'
-      });
     }
-  }, [miningActive, onStartMining, showRewardAd, adLoading]);
+  }, [miningActive, onStartMining, showRewardAd]);
 
   // Quick stats for display
   const hourlyRate = (miningRate * 60).toFixed(1);
@@ -124,14 +90,6 @@ const MiningCard = React.memo<MiningCardProps>(({
               Active
             </div>
           )}
-          
-          {adLoading && (
-            <div className="flex items-center bg-amber-900/30 text-amber-300 text-xs px-2 py-1 rounded-full 
-                         border border-amber-800/20 animate-pulse-slow shadow-inner">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mr-1.5 animate-pulse"></span>
-              Reklam Yükleniyor
-            </div>
-          )}
         </div>
         
         {/* Mining info with enhanced styling */}
@@ -139,9 +97,7 @@ const MiningCard = React.memo<MiningCardProps>(({
           <p className="text-purple-400/80 text-sm">
             {miningActive 
               ? `Mining at ${hourlyRate} FC/hour` 
-              : adLoading 
-                ? "Reklam yükleniyor, lütfen bekleyin..." 
-                : "Start mining to earn Future Coin"}
+              : "Start mining to earn Future Coin"}
           </p>
           
           {/* Progress bar - only shown when active */}
@@ -154,7 +110,6 @@ const MiningCard = React.memo<MiningCardProps>(({
             miningActive={miningActive}
             miningTime={miningTime}
             onButtonClick={handleButtonClick}
-            adLoading={adLoading}
           />
         </div>
       
@@ -185,19 +140,10 @@ const MiningCard = React.memo<MiningCardProps>(({
         )}
         
         {/* Enhanced inactive state description */}
-        {!miningActive && !adLoading && (
+        {!miningActive && (
           <div className="mt-4 text-center">
             <p className="text-xs text-purple-400/60 max-w-xs mx-auto leading-relaxed">
               Madenciliği başlatmak için butona tıklayın. 6 saat boyunca FC kazanacaksınız.
-            </p>
-          </div>
-        )}
-        
-        {/* Ad loading state */}
-        {adLoading && (
-          <div className="mt-4 text-center">
-            <p className="text-xs text-amber-400/80 max-w-xs mx-auto leading-relaxed animate-pulse">
-              Reklam yükleniyor, lütfen bekleyin...
             </p>
           </div>
         )}
