@@ -1,3 +1,4 @@
+
 interface AdmobPlugin {
   initialize(options: { 
     appId: string; 

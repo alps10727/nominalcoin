@@ -46,13 +46,27 @@ export class AdMobService implements AdMobServiceInterface {
       const platform = window.Capacitor.getPlatform();
       const appId = platform === 'ios' ? (config.iOSAppId || config.appId) : config.appId;
       
+      // Improved initialization with proper test device configuration
       await window.Admob?.initialize({
         appId: appId,
-        testingDevices: ['TEST-DEVICE-ID'],
+        // Use a proper device ID format for test devices
+        testingDevices: ['EMULATOR'],
         initializeForTesting: true,
       });
 
-      debugLog('AdMob', `AdMob initialized successfully on platform: ${platform}`);
+      debugLog('AdMob', `AdMob initialized successfully on platform: ${platform} with appId: ${appId}`);
+
+      // Set consent for GDPR compliance if needed
+      if (window.Admob?.setConsent) {
+        await window.Admob.setConsent({ status: 'PERSONALIZED' });
+        debugLog('AdMob', 'AdMob consent set to PERSONALIZED');
+      }
+
+      // Request tracking authorization on iOS
+      if (platform === 'ios' && window.Admob?.requestTrackingAuthorization) {
+        const { status } = await window.Admob.requestTrackingAuthorization();
+        debugLog('AdMob', `iOS tracking authorization status: ${status}`);
+      }
 
       await this.listenerManager.setupGlobalListeners();
       this.initialized = true;

@@ -47,11 +47,9 @@ const config: CapacitorConfig = {
   android: {
     captureInput: true,
     webViewUserAgentTemplate: 'NominalCoin Android App',
-    // Android izinleri için AndroidManifest eklemeleri
-    androidXEnabled: true,
     backgroundColor: "#073042",
     allowMixedContent: true,
-    // Android için otomatik izin talepleri
+    // Android için otomatik izin talepleri - internet izni eklendi
     permissions: [
       "android.permission.CAMERA",
       "android.permission.READ_EXTERNAL_STORAGE",
@@ -60,16 +58,15 @@ const config: CapacitorConfig = {
       "android.permission.ACCESS_NETWORK_STATE",
       "android.permission.INTERNET"
     ],
-    // AdMob için gerekli meta-data'lar
+    // AndroidManifest.xml'e eklenecek meta-data'lar için yapılandırma
     appendUserAgent: "NominalCoin",
-    // AndroidManifest.xml'e eklenecek meta-data'lar
+    // AdMob meta-data'ları AndroidManifest.xml'e otomatik olarak eklenecek
     includePlugins: ["@capacitor/admob"],
     buildOptions: {
       keystorePath: "nominalcoin.keystore",
       keystoreAlias: "nominalalias",
     }
   },
-  // Capacitor plugin'leri için yapılandırmalar
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
@@ -86,13 +83,17 @@ const config: CapacitorConfig = {
       smallIcon: "ic_stat_notification",
       iconColor: "#488AFF"
     },
-    // AdMob konfigürasyonu
+    // AdMob konfigürasyonu güncellendi
     Admob: {
       android: {
         initialize: true,
+        // Android meta-data için yapılandırma
+        applicationId: "ca-app-pub-3940256099942544~3347511713" // Test App ID (Android)
       },
       ios: {
         initialize: true,
+        // iOS meta-data için yapılandırma
+        applicationId: "ca-app-pub-3940256099942544~1458002511" // Test App ID (iOS)
       },
     },
     // Belirtik AdMob plugin yapılandırması
@@ -100,7 +101,7 @@ const config: CapacitorConfig = {
       // Initialize automatically
       initialize: true,
       // Test mode for development
-      testingDevices: ["DEVICE_ID_HERE"],
+      testingDevices: ["EMULATOR"], // This will include emulators as test devices
       initializeForTesting: true
     }
   }

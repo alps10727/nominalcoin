@@ -1,7 +1,5 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAdMob } from '@/hooks/useAdMob';
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
