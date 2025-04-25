@@ -1,3 +1,4 @@
+
 import React, { useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -34,7 +35,7 @@ const MiningCard = React.memo<MiningCardProps>(({
   // Only allow starting mining
   const handleButtonClick = React.useCallback(async () => {
     if (!miningActive) {
-      if (window.Capacitor) {
+      if (typeof window !== 'undefined' && window.Capacitor) {
         // Mobil cihazda Admob reklamını göster
         const rewarded = await showRewardAd();
         if (rewarded) {

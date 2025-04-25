@@ -13,8 +13,8 @@ serve(async (req) => {
 
   try {
     const config = {
-      ADMOB_APP_ID: Deno.env.get('ADMOB_APP_ID'),
-      ADMOB_REWARD_AD_UNIT_ID: Deno.env.get('ADMOB_REWARD_AD_UNIT_ID'),
+      appId: Deno.env.get('ADMOB_APP_ID'),
+      rewardAdUnitId: Deno.env.get('ADMOB_REWARD_AD_UNIT_ID'),
     }
 
     return new Response(

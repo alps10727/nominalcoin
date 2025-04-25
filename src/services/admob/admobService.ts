@@ -28,11 +28,16 @@ export class AdMobService {
         return;
       }
 
-      const { data: { ADMOB_APP_ID, ADMOB_REWARD_AD_UNIT_ID } } = await supabase.functions.invoke<AdMobConfig>('get-admob-config');
+      const { data } = await supabase.functions.invoke<{data: AdMobConfig}>('get-admob-config');
+      
+      if (!data || !data.appId) {
+        console.error('Failed to retrieve AdMob config');
+        return;
+      }
       
       // @ts-ignore - Admob plugin exists in Capacitor
-      await window.Admob.initialize({
-        appId: ADMOB_APP_ID,
+      await window.Admob?.initialize({
+        appId: data.appId,
       });
 
       this.initialized = true;
@@ -53,14 +58,19 @@ export class AdMobService {
         return false;
       }
 
-      const { data: { ADMOB_REWARD_AD_UNIT_ID } } = await supabase.functions.invoke<AdMobConfig>('get-admob-config');
+      const { data } = await supabase.functions.invoke<{data: AdMobConfig}>('get-admob-config');
+      
+      if (!data || !data.rewardAdUnitId) {
+        console.error('Failed to retrieve AdMob reward ad unit ID');
+        return false;
+      }
 
       // @ts-ignore - Admob plugin exists in Capacitor
-      const result = await window.Admob.showRewardVideo({
-        adId: ADMOB_REWARD_AD_UNIT_ID,
+      const result = await window.Admob?.showRewardVideo({
+        adId: data.rewardAdUnitId,
       });
 
-      return result.rewarded || false;
+      return result?.rewarded || false;
     } catch (error) {
       console.error('Failed to show reward ad:', error);
       return false;
