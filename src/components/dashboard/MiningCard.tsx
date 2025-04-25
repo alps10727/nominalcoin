@@ -2,14 +2,15 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useTheme } from "@/contexts/ThemeContext";
-import { MiningButton } from "./mining/MiningButton";
-import { MiningProgressBar } from "./mining/MiningProgressBar";
-import { Diamond, Zap, Clock, BarChart } from "lucide-react";
-import { MiningParticles } from "./mining/MiningParticles";
 import { useAdMob } from '@/hooks/useAdMob';
 import { toast } from "sonner";
 import { debugLog } from "@/utils/debugUtils";
+import { MiningButton } from "./mining/MiningButton";
+import { MiningProgressBar } from "./mining/MiningProgressBar";
+import { MiningParticles } from "./mining/MiningParticles";
+import { MiningHeader } from "./mining/MiningCardHeader";
+import { MiningStats } from "./mining/MiningStats";
+import { MiningBackground } from "./mining/MiningBackground";
 
 interface MiningCardProps {
   miningActive: boolean;
@@ -31,7 +32,6 @@ const MiningCard = React.memo<MiningCardProps>(({
   onStopMining
 }) => {
   const isMobile = useIsMobile();
-  const { isDarkMode } = useTheme();
   const { 
     showRewardAd, 
     isLoading: adLoading, 
@@ -53,7 +53,6 @@ const MiningCard = React.memo<MiningCardProps>(({
   // Button click handler with improved ad checking
   const handleButtonClick = useCallback(async () => {
     if (miningActive) {
-      // If mining is already active, just stop it
       onStopMining();
       return;
     }
@@ -63,17 +62,13 @@ const MiningCard = React.memo<MiningCardProps>(({
     
     try {
       if (typeof window !== 'undefined' && window.Capacitor && pluginAvailable) {
-        // Check if we're on a mobile device and the AdMob plugin is available
         debugLog('MiningCard', 'Attempting to show AdMob reward ad');
         
-        // Important: Wait for the ad to complete
         const rewarded = await showRewardAd();
         
         if (rewarded) {
-          // Only start mining if the ad was rewarded
           debugLog('MiningCard', 'Ad reward successful, starting mining');
           onStartMining();
-          // Preload next ad after successful view
           setTimeout(preloadNextAd, 1000);
         } else {
           debugLog('MiningCard', 'Ad not rewarded or could not be shown');
@@ -84,7 +79,6 @@ const MiningCard = React.memo<MiningCardProps>(({
           return;
         }
       } else {
-        // On desktop or when plugin is not available, start mining directly
         debugLog('MiningCard', 'Not on mobile or plugin not available, starting mining directly');
         onStartMining();
       }
@@ -100,58 +94,22 @@ const MiningCard = React.memo<MiningCardProps>(({
 
   // Quick stats for display
   const hourlyRate = (miningRate * 60).toFixed(1);
-  
-  // Debug mobile status
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const isMobile = !!window.Capacitor;
-      const platform = window.Capacitor?.getPlatform() || 'unknown';
-      const pluginSupport = pluginAvailable ? 'available' : 'unavailable';
-      
-      debugLog('MiningCard', `Mobile: ${isMobile ? 'true' : 'false'}, Platform: ${platform}, AdMob plugin: ${pluginSupport}`);
-    }
-  }, [pluginAvailable]);
 
   return (
     <Card className="border-0 overflow-hidden shadow-lg transition-all duration-300 relative rounded-xl backdrop-blur-sm group
                   bg-gradient-to-b from-navy-950 via-darkPurple-950 to-navy-950 
                   hover:shadow-deep-glow hover:from-navy-950 hover:via-darkPurple-950 hover:to-navy-950
                   border border-purple-950/30">
-      {/* Enhanced background effects */}
-      <div className="absolute inset-0 bg-galaxy opacity-10"></div>
-      <div className="absolute top-0 left-0 w-full h-full fc-deep-nebula opacity-20"></div>
-      <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-purple-800/5 rounded-full blur-3xl transform translate-x-1/4 -translate-y-1/4"></div>
-      <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-indigo-800/5 rounded-full blur-2xl transform -translate-x-1/4 translate-y-1/4"></div>
+      <MiningBackground />
       
       {/* Animated particles when mining */}
       <MiningParticles miningActive={miningActive} />
       
-      {/* Hexagon grid pattern overlay */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-[0.02]"></div>
-      
-      {/* Subtle top border glow */}
-      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-purple-800/25 to-transparent"></div>
-      
-      {/* Content */}
       <CardContent className={`relative z-10 ${isMobile ? "px-4 py-5" : "px-6 py-6"}`}>
-        {/* Header with info */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-2">
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-darkPurple-900/20 to-navy-900/20 
-                         border border-darkPurple-800/20 shadow-inner">
-              <Zap className="text-purple-400 h-4 w-4" />
-            </div>
-            <span className="text-lg font-medium text-white">FC Mining</span>
-          </div>
-          
-          {miningActive && (
-            <div className="flex items-center bg-purple-900/30 text-purple-300 text-xs px-2 py-1 rounded-full 
-                         border border-purple-800/20 animate-pulse-slow shadow-inner">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-400 mr-1.5 animate-pulse"></span>
-              Active
-            </div>
-          )}
-        </div>
+        <MiningHeader 
+          miningActive={miningActive}
+          isMobile={isMobile}
+        />
         
         {/* Mining info with enhanced styling */}
         <div className="mb-6">
@@ -183,28 +141,10 @@ const MiningCard = React.memo<MiningCardProps>(({
       
         {/* Live mining stats */}
         {miningActive && (
-          <div className="mt-8 grid grid-cols-2 gap-3">
-            <div className="bg-darkPurple-950/60 p-3 rounded-lg border border-purple-900/15 backdrop-blur-sm 
-                        hover:bg-darkPurple-950/80 transition-all duration-300 group">
-              <div className="flex items-center text-xs text-purple-400/80 mb-1">
-                <Clock className="h-3 w-3 mr-1 group-hover:text-purple-300 transition-colors" />
-                Kalan Süre
-              </div>
-              <div className="text-sm font-semibold text-white">
-                {Math.floor(miningTime / 60)}m {miningTime % 60}s
-              </div>
-            </div>
-            <div className="bg-navy-950/60 p-3 rounded-lg border border-purple-900/15 backdrop-blur-sm 
-                        hover:bg-navy-950/80 transition-all duration-300 group">
-              <div className="flex items-center text-xs text-purple-400/80 mb-1">
-                <Diamond className="h-3 w-3 mr-1 group-hover:text-purple-300 transition-colors" />
-                Kazanılan
-              </div>
-              <div className="text-sm font-semibold text-white">
-                +{miningSession.toFixed(2)} FC
-              </div>
-            </div>
-          </div>
+          <MiningStats 
+            miningTime={miningTime}
+            miningSession={miningSession}
+          />
         )}
         
         {/* Enhanced inactive state description */}

@@ -1,9 +1,6 @@
 
 import React from "react";
 
-/**
- * Simplified background component for the mining card with minimal effects
- */
 export const MiningBackground = React.memo(() => {
   return (
     <>
