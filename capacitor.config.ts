@@ -3,7 +3,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'app.lovable.9a24b2dbd35a4f6fb98b43e035a57e11',
-  appName: 'Future Coin',
+  appName: 'Nominal Coin',
   webDir: 'dist',
   server: {
     url: 'https://9a24b2db-d35a-4f6f-b98b-43e035a57e11.lovableproject.com?forceHideBadge=true',
@@ -13,7 +13,7 @@ const config: CapacitorConfig = {
   // Mobil görünüm için ek yapılandırmalar
   ios: {
     contentInset: 'always',
-    scheme: 'futurecoin',
+    scheme: 'nominalcoin',
     limitsNavigationsToAppBoundDomains: true,
     // iOS splash screen'in ortalanması için ek yapılandırma
     backgroundColor: "#073042",
@@ -26,12 +26,21 @@ const config: CapacitorConfig = {
       NSLocationWhenInUseUsageDescription: "Size yakın etkinlikleri ve fırsatları göstermek için konum erişimi gereklidir.",
       NSFaceIDUsageDescription: "Güvenli giriş için FaceID kullanımına izin verin.",
       CFBundleLocalizations: ["tr", "en"],
-      CFBundleDevelopmentRegion: "tr"
+      CFBundleDevelopmentRegion: "tr",
+      // GDPR ve COPPA uyumlu kullanım için eklenir
+      NSUserTrackingUsageDescription: "Bu izin, size kişiselleştirilmiş reklamlar sunmak için kullanılacaktır.",
+      // AdMob için gerekli ek bilgiler
+      GADApplicationIdentifier: "ca-app-pub-3940256099942544~3347511713", // Test App ID
+      SKAdNetworkItems: [
+        {
+          SKAdNetworkIdentifier: "cstr6suwn9.skadnetwork"
+        }
+      ]
     }
   },
   android: {
     captureInput: true,
-    webViewUserAgentTemplate: 'FutureCoin Android App',
+    webViewUserAgentTemplate: 'NominalCoin Android App',
     // Android izinleri için AndroidManifest eklemeleri
     androidXEnabled: true,
     backgroundColor: "#073042",
@@ -41,8 +50,18 @@ const config: CapacitorConfig = {
       "android.permission.CAMERA",
       "android.permission.READ_EXTERNAL_STORAGE",
       "android.permission.WRITE_EXTERNAL_STORAGE",
-      "android.permission.ACCESS_FINE_LOCATION"
-    ]
+      "android.permission.ACCESS_FINE_LOCATION",
+      "android.permission.ACCESS_NETWORK_STATE",
+      "android.permission.INTERNET"
+    ],
+    // AdMob için gerekli meta-data'lar
+    appendUserAgent: "NominalCoin",
+    // AndroidManifest.xml'e eklenecek meta-data'lar
+    includePlugins: ["@capacitor/admob"],
+    buildOptions: {
+      keystorePath: "nominalcoin.keystore",
+      keystoreAlias: "nominalalias",
+    }
   },
   // Capacitor plugin'leri için yapılandırmalar
   plugins: {
@@ -51,7 +70,6 @@ const config: CapacitorConfig = {
       backgroundColor: "#073042",
       spinnerStyle: "large",
       spinnerColor: "#ffffff",
-      // Splash screen görüntüsünün ortalanması için
       iosSpinnerStyle: "large",
       androidSpinnerStyle: "large",
       showSpinner: true,
@@ -61,6 +79,15 @@ const config: CapacitorConfig = {
     LocalNotifications: {
       smallIcon: "ic_stat_notification",
       iconColor: "#488AFF"
+    },
+    // AdMob konfigürasyonu
+    Admob: {
+      android: {
+        initialize: true,
+      },
+      ios: {
+        initialize: true,
+      },
     }
   }
 };

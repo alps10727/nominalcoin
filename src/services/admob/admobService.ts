@@ -33,14 +33,22 @@ export class AdMobService {
 
       const { data, error } = await supabase.functions.invoke<{data: AdMobConfig}>('get-admob-config');
       
-      if (error || !data || !data.data || !data.data.appId) {
+      if (error || !data) {
         errorLog('AdMob', 'Failed to retrieve AdMob config', error);
         return;
       }
       
+      const config = data.data;
+      if (!config || !config.appId) {
+        errorLog('AdMob', 'Invalid AdMob config: missing appId', null);
+        return;
+      }
+
+      debugLog('AdMob', `Initializing with appId: ${config.appId}`);
+      
       // @ts-ignore - Admob plugin exists in Capacitor
       await window.Admob?.initialize({
-        appId: data.data.appId,
+        appId: config.appId,
         testingDevices: ['TEST-DEVICE-ID'],
         initializeForTesting: true, // Use test ads
       });
@@ -73,15 +81,24 @@ export class AdMobService {
 
       const { data, error } = await supabase.functions.invoke<{data: AdMobConfig}>('get-admob-config');
       
-      if (error || !data || !data.data || !data.data.rewardAdUnitId) {
-        errorLog('AdMob', 'Failed to retrieve AdMob reward ad unit ID', error);
+      if (error || !data) {
+        errorLog('AdMob', 'Failed to retrieve AdMob config', error);
+        this.isPreloading = false;
+        return;
+      }
+      
+      const config = data.data;
+      if (!config || !config.rewardAdUnitId) {
+        errorLog('AdMob', 'Invalid AdMob config: missing rewardAdUnitId', null);
         this.isPreloading = false;
         return;
       }
 
+      debugLog('AdMob', `Preloading reward ad with ID: ${config.rewardAdUnitId}`);
+
       // @ts-ignore - Admob plugin exists in Capacitor
       await window.Admob?.prepareRewardVideoAd({
-        adId: data.data.rewardAdUnitId,
+        adId: config.rewardAdUnitId,
       });
       
       this.adPreloaded = true;
@@ -111,14 +128,22 @@ export class AdMobService {
         
         const { data, error } = await supabase.functions.invoke<{data: AdMobConfig}>('get-admob-config');
         
-        if (error || !data || !data.data || !data.data.rewardAdUnitId) {
-          errorLog('AdMob', 'Failed to retrieve AdMob reward ad unit ID', error);
+        if (error || !data) {
+          errorLog('AdMob', 'Failed to retrieve AdMob config', error);
+          return false;
+        }
+        
+        const config = data.data;
+        if (!config || !config.rewardAdUnitId) {
+          errorLog('AdMob', 'Invalid AdMob config: missing rewardAdUnitId', null);
           return false;
         }
 
+        debugLog('AdMob', `Loading reward ad on demand with ID: ${config.rewardAdUnitId}`);
+
         // @ts-ignore - Admob plugin exists in Capacitor
         await window.Admob?.prepareRewardVideoAd({
-          adId: data.data.rewardAdUnitId,
+          adId: config.rewardAdUnitId,
         });
       }
 
