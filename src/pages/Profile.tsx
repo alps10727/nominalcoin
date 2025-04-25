@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+
+import React from 'react';
 import { useAdMob } from '@/hooks/useAdMob';
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
