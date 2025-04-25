@@ -1,3 +1,4 @@
+
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
@@ -86,7 +87,7 @@ const config: CapacitorConfig = {
     },
     AdMob: {
       initialize: true,
-      testingDevices: ["EMULATOR"],
+      testingDevices: ['EMULATOR'],
       initializeForTesting: true
     }
   }
