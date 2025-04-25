@@ -6,6 +6,7 @@ import { MiningButton } from "./mining/MiningButton";
 import { MiningProgressBar } from "./mining/MiningProgressBar";
 import { Diamond, Zap, Clock, BarChart } from "lucide-react";
 import { MiningParticles } from "./mining/MiningParticles";
+import { useAdMob } from '@/hooks/useAdMob';
 
 interface MiningCardProps {
   miningActive: boolean;
@@ -14,7 +15,7 @@ interface MiningCardProps {
   miningSession: number;
   miningTime: number;
   onStartMining: () => void;
-  onStopMining: () => void; // This prop is still received but won't be used
+  onStopMining: () => void;
 }
 
 const MiningCard = React.memo<MiningCardProps>(({
@@ -24,17 +25,27 @@ const MiningCard = React.memo<MiningCardProps>(({
   miningSession,
   miningTime,
   onStartMining,
-  onStopMining // This prop is still received but won't be used
+  onStopMining
 }) => {
   const isMobile = useIsMobile();
   const { isDarkMode } = useTheme();
+  const { showRewardAd, isLoading: adLoading } = useAdMob();
   
   // Only allow starting mining
-  const handleButtonClick = React.useCallback(() => {
+  const handleButtonClick = React.useCallback(async () => {
     if (!miningActive) {
-      onStartMining();
+      if (window.Capacitor) {
+        // Mobil cihazda Admob reklamını göster
+        const rewarded = await showRewardAd();
+        if (rewarded) {
+          onStartMining();
+        }
+      } else {
+        // Desktop'ta direkt başlat
+        onStartMining();
+      }
     }
-  }, [miningActive, onStartMining]);
+  }, [miningActive, onStartMining, showRewardAd]);
 
   // Quick stats for display
   const hourlyRate = (miningRate * 60).toFixed(1);
