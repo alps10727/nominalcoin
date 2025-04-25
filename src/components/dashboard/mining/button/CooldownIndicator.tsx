@@ -5,10 +5,6 @@ interface CooldownIndicatorProps {
   visible: boolean;
 }
 
-/**
- * Visual feedback component for button cooldown state
- * Updated to show a more noticeable indicator for slower mining rate
- */
 export const CooldownIndicator: React.FC<CooldownIndicatorProps> = ({ visible }) => {
   if (!visible) return null;
   
