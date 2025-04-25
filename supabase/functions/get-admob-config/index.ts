@@ -18,7 +18,7 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify(config),
+      JSON.stringify({ data: config }),
       { 
         headers: { 
           ...corsHeaders,

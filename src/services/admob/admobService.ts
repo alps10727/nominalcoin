@@ -23,7 +23,7 @@ export class AdMobService {
     if (this.initialized) return;
 
     try {
-      if (!window.Capacitor) {
+      if (typeof window === 'undefined' || !window.Capacitor) {
         console.log('AdMob: Not running on mobile device');
         return;
       }
@@ -53,7 +53,7 @@ export class AdMobService {
     }
 
     try {
-      if (!window.Capacitor) {
+      if (typeof window === 'undefined' || !window.Capacitor) {
         console.log('AdMob: Not running on mobile device');
         return false;
       }
