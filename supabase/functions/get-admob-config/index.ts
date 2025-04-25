@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const corsHeaders = {
@@ -17,7 +18,7 @@ serve(async (req) => {
       // Android App ID
       appId: "ca-app-pub-2373579046576398~2384328016",
       
-      // Android Ad Unit IDs (please replace with your actual ad unit IDs)
+      // Android Ad Unit IDs (please replace with your ACTUAL ad unit IDs)
       rewardAdUnitId: isTestMode
         ? 'ca-app-pub-3940256099942544/5224354917'
         : Deno.env.get('ADMOB_REWARD_AD_UNIT_ID'),
@@ -72,3 +73,4 @@ serve(async (req) => {
     )
   }
 })
+
