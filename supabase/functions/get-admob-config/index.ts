@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const isTestMode = true; // Set to true to use test ads
+    const isTestMode = false; // Set to false to use real ads
 
     const config = {
       // Android App ID
@@ -24,7 +24,7 @@ serve(async (req) => {
       interstitialAdUnitId: isTestMode ? 'ca-app-pub-3940256099942544/1033173712' : 'ca-app-pub-2373579046576398/1765155572',
       
       // iOS App ID and Ad Unit IDs
-      iOSAppId: 'ca-app-pub-3940256099942544~1458002511', // Test iOS App ID
+      iOSAppId: 'ca-app-pub-3940256099942544~1458002511',
       iOSRewardAdUnitId: isTestMode ? 'ca-app-pub-3940256099942544/1712485313' : 'your-ios-reward-ad-id',
       iOSBannerAdUnitId: isTestMode ? 'ca-app-pub-3940256099942544/2934735716' : 'your-ios-banner-ad-id',
       iOSInterstitialAdUnitId: isTestMode ? 'ca-app-pub-3940256099942544/4411468910' : 'ca-app-pub-2373579046576398/1765155572',
@@ -54,3 +54,4 @@ serve(async (req) => {
     )
   }
 })
+
