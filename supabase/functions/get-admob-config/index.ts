@@ -23,11 +23,13 @@ serve(async (req) => {
       throw new Error('AdMob configuration is missing');
     }
 
-    // Send the configuration directly without nesting it in a data field
+    // Send the configuration wrapped in a data field to match the expected format
     return new Response(
       JSON.stringify({ 
-        appId, 
-        rewardAdUnitId 
+        data: {
+          appId, 
+          rewardAdUnitId 
+        }
       }),
       { 
         headers: { 

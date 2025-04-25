@@ -15,6 +15,8 @@ interface AdMobResponse {
 export class AdMobService {
   private static instance: AdMobService;
   private initialized = false;
+  // Cache the config to avoid multiple API calls
+  private config: AdMobConfig | null = null;
 
   private constructor() {}
 
@@ -23,6 +25,35 @@ export class AdMobService {
       AdMobService.instance = new AdMobService();
     }
     return AdMobService.instance;
+  }
+
+  // Fetch AdMob configuration from Supabase
+  private async fetchConfig(): Promise<AdMobConfig | null> {
+    try {
+      // Return cached config if available
+      if (this.config) {
+        return this.config;
+      }
+
+      const { data, error } = await supabase.functions.invoke<AdMobResponse>('get-admob-config');
+      
+      if (error) {
+        console.error('Error fetching AdMob config:', error);
+        return null;
+      }
+      
+      if (!data || !data.data || !data.data.appId || !data.data.rewardAdUnitId) {
+        console.error('Failed to retrieve AdMob config, invalid data structure:', data);
+        return null;
+      }
+      
+      // Cache the config
+      this.config = data.data;
+      return this.config;
+    } catch (error) {
+      console.error('Failed to fetch AdMob config:', error);
+      return null;
+    }
   }
 
   async initialize(): Promise<void> {
@@ -35,21 +66,16 @@ export class AdMobService {
       }
 
       // Fetch the AdMob configuration from Supabase
-      const { data, error } = await supabase.functions.invoke<AdMobResponse>('get-admob-config');
+      const config = await this.fetchConfig();
       
-      if (error) {
-        console.error('Error fetching AdMob config:', error);
-        return;
-      }
-      
-      if (!data || !data.appId || !data.rewardAdUnitId) {
-        console.error('Failed to retrieve AdMob config, invalid data structure:', data);
+      if (!config) {
+        console.error('Failed to initialize AdMob: config not available');
         return;
       }
       
       // @ts-ignore - Admob plugin exists in Capacitor
       await window.Admob?.initialize({
-        appId: data.appId,
+        appId: config.appId,
       });
 
       this.initialized = true;
@@ -71,22 +97,17 @@ export class AdMobService {
         return true;
       }
 
-      // Fetch the AdMob reward ad unit ID from Supabase
-      const { data, error } = await supabase.functions.invoke<AdMobResponse>('get-admob-config');
+      // Fetch the AdMob config
+      const config = await this.fetchConfig();
       
-      if (error) {
-        console.error('Error fetching AdMob reward ad unit ID:', error);
-        return false;
-      }
-      
-      if (!data || !data.appId || !data.rewardAdUnitId) {
-        console.error('Failed to retrieve AdMob reward ad unit ID, invalid data structure:', data);
+      if (!config) {
+        console.error('Failed to show reward ad: config not available');
         return false;
       }
 
       // @ts-ignore - Admob plugin exists in Capacitor
       const result = await window.Admob?.showRewardVideo({
-        adId: data.rewardAdUnitId,
+        adId: config.rewardAdUnitId,
       });
 
       console.log('AdMob reward video result:', result);

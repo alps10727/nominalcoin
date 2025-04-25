@@ -23,6 +23,12 @@ export function useAdMob() {
       const rewarded = await admobService.showRewardAd();
       console.log('Ad completed with result:', rewarded);
       
+      if (rewarded) {
+        toast.success('Reklam başarıyla gösterildi!');
+      } else {
+        toast.error('Reklam tamamlanmadı veya gösterilemedi');
+      }
+      
       setIsLoading(false);
       return rewarded;
     } catch (error) {
