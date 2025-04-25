@@ -7,6 +7,8 @@ interface AdmobPlugin {
   }): Promise<void>;
   showRewardVideoAd(options?: any): Promise<{ rewarded: boolean }>;
   prepareRewardVideoAd(options: { adId: string }): Promise<void>;
+  prepareInterstitial(options: { adId: string }): Promise<void>; // Add this line
+  showInterstitial(): Promise<void>; // Add this line
   addListener(eventName: string, listenerFunc: (info: any) => void): Promise<any>;
   removeAllListeners(): Promise<void>;
   showBanner(options: { adId: string; position?: string; margin?: number }): Promise<void>;

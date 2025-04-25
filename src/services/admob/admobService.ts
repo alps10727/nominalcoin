@@ -53,6 +53,13 @@ export class AdMobService implements AdMobServiceInterface {
     return adDisplayService.hideBannerAd();
   }
 
+  async showInterstitialAd(): Promise<boolean> {
+    if (!admobInitService.isInitialized()) {
+      await this.initialize();
+    }
+    return adDisplayService.showInterstitialAd();
+  }
+
   isAvailable(): boolean {
     return window.Capacitor?.isPluginAvailable('AdMob') || false;
   }

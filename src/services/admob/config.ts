@@ -1,48 +1,43 @@
-
-import { debugLog, errorLog } from "@/utils/debugUtils";
-import { supabase } from "@/integrations/supabase/client";
-import type { AdMobConfig } from "./types";
-
-export async function fetchAdMobConfig(): Promise<AdMobConfig | null> {
+export async function fetchAdMobConfig(): Promise<any | null> {
   try {
-    const { data: responseData, error } = await supabase.functions.invoke<{data: AdMobConfig}>('get-admob-config');
-    
-    if (error || !responseData) {
-      errorLog('AdMob Config', 'Failed to retrieve AdMob config', error);
+    const response = await fetch('/functions/get-admob-config');
+    if (!response.ok) {
+      console.error('Failed to fetch AdMob config:', response.status, response.statusText);
       return null;
     }
-    
-    const config = responseData.data;
-    if (!config || !config.appId) {
-      errorLog('AdMob Config', 'Invalid AdMob config: missing appId', null);
-      return null;
-    }
-    
-    return config;
+    const data = await response.json();
+    return data.data;
   } catch (error) {
-    errorLog('AdMob Config', 'Error fetching config:', error);
+    console.error('Error fetching AdMob config:', error);
     return null;
   }
 }
 
-export function getPlatformSpecificAdUnit(config: AdMobConfig, platform: string, type: 'reward' | 'banner' | 'interstitial'): string {
-  if (platform === 'ios') {
-    switch (type) {
-      case 'reward':
-        return config.iOSRewardAdUnitId || config.rewardAdUnitId;
-      case 'banner':
-        return config.iOSBannerAdUnitId || config.bannerAdUnitId || '';
-      case 'interstitial':
-        return config.iOSInterstitialAdUnitId || config.interstitialAdUnitId || '';
-    }
-  }
+export function getPlatformSpecificAdUnit(config: any, platform: string, adType: 'reward' | 'banner' | 'interstitial'): string {
+  if (!config) return '';
   
-  switch (type) {
-    case 'reward':
-      return config.rewardAdUnitId;
-    case 'banner':
-      return config.bannerAdUnitId || '';
-    case 'interstitial':
-      return config.interstitialAdUnitId || '';
+  if (platform === 'ios') {
+    switch (adType) {
+      case 'reward':
+        return config.iOSRewardAdUnitId || '';
+      case 'banner':
+        return config.iOSBannerAdUnitId || '';
+      case 'interstitial':
+        return config.iOSInterstitialAdUnitId || '';
+      default:
+        return '';
+    }
+  } else {
+    // Default to Android
+    switch (adType) {
+      case 'reward':
+        return config.rewardAdUnitId || '';
+      case 'banner':
+        return config.bannerAdUnitId || '';
+      case 'interstitial':
+        return config.interstitialAdUnitId || '';
+      default:
+        return '';
+    }
   }
 }
