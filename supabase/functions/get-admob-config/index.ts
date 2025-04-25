@@ -12,13 +12,21 @@ serve(async (req) => {
   }
 
   try {
+    // Use test ad unit IDs for development
+    const isTestMode = true;
+    
     const config = {
-      appId: Deno.env.get('ADMOB_APP_ID'),
-      rewardAdUnitId: Deno.env.get('ADMOB_REWARD_AD_UNIT_ID'),
+      appId: isTestMode 
+        ? 'ca-app-pub-3940256099942544~3347511713' // Test App ID
+        : Deno.env.get('ADMOB_APP_ID'),
+      
+      rewardAdUnitId: isTestMode
+        ? 'ca-app-pub-3940256099942544/5224354917' // Test Reward Ad Unit ID
+        : Deno.env.get('ADMOB_REWARD_AD_UNIT_ID'),
     }
 
     return new Response(
-      JSON.stringify(config),
+      JSON.stringify({ data: config }),
       { 
         headers: { 
           ...corsHeaders,

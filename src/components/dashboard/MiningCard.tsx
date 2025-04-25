@@ -1,5 +1,5 @@
 
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -30,23 +30,32 @@ const MiningCard = React.memo<MiningCardProps>(({
 }) => {
   const isMobile = useIsMobile();
   const { isDarkMode } = useTheme();
-  const { showRewardAd, isLoading: adLoading } = useAdMob();
+  const { showRewardAd, isLoading: adLoading, preloadNextAd, isInitialized } = useAdMob();
+  
+  // Preload ad when component mounts
+  useEffect(() => {
+    if (!miningActive && isInitialized) {
+      preloadNextAd();
+    }
+  }, [miningActive, isInitialized, preloadNextAd]);
   
   // Only allow starting mining
-  const handleButtonClick = React.useCallback(async () => {
+  const handleButtonClick = useCallback(async () => {
     if (!miningActive) {
       if (typeof window !== 'undefined' && window.Capacitor) {
         // Mobil cihazda Admob reklamını göster
         const rewarded = await showRewardAd();
         if (rewarded) {
           onStartMining();
+          // Preload next ad after successful view
+          setTimeout(preloadNextAd, 1000);
         }
       } else {
         // Desktop'ta direkt başlat
         onStartMining();
       }
     }
-  }, [miningActive, onStartMining, showRewardAd]);
+  }, [miningActive, onStartMining, showRewardAd, preloadNextAd]);
 
   // Quick stats for display
   const hourlyRate = (miningRate * 60).toFixed(1);
@@ -143,7 +152,9 @@ const MiningCard = React.memo<MiningCardProps>(({
         {!miningActive && (
           <div className="mt-4 text-center">
             <p className="text-xs text-purple-400/60 max-w-xs mx-auto leading-relaxed">
-              Madenciliği başlatmak için butona tıklayın. 6 saat boyunca FC kazanacaksınız.
+              {adLoading 
+                ? "Reklam yükleniyor, lütfen bekleyin..." 
+                : "Madenciliği başlatmak için butona tıklayın. 6 saat boyunca FC kazanacaksınız."}
             </p>
           </div>
         )}

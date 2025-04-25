@@ -1,7 +1,8 @@
 
 interface AdmobPlugin {
-  initialize(options: { appId: string }): Promise<void>;
-  showRewardVideo(options: { adId: string }): Promise<{ rewarded: boolean }>;
+  initialize(options: { appId: string; testingDevices?: string[]; initializeForTesting?: boolean }): Promise<void>;
+  showRewardVideo(options?: { adId: string }): Promise<{ rewarded: boolean }>;
+  prepareRewardVideoAd(options: { adId: string }): Promise<void>;
 }
 
 interface CapacitorInterface {
