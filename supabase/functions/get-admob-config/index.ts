@@ -18,16 +18,16 @@ serve(async (req) => {
       // Android App ID
       appId: "ca-app-pub-2373579046576398~2384328016",
       
-      // Android Ad Unit IDs (Test Mode)
-      rewardAdUnitId: 'ca-app-pub-3940256099942544/5224354917', // Test Reward Ad Unit ID (Android)
-      bannerAdUnitId: 'ca-app-pub-3940256099942544/6300978111', // Test Banner Ad Unit ID (Android)
-      interstitialAdUnitId: 'ca-app-pub-3940256099942544/1033173712', // Test Interstitial Ad Unit ID (Android)
+      // Android Ad Unit IDs
+      rewardAdUnitId: isTestMode ? 'ca-app-pub-3940256099942544/5224354917' : 'your-reward-ad-id',
+      bannerAdUnitId: isTestMode ? 'ca-app-pub-3940256099942544/6300978111' : 'your-banner-ad-id', 
+      interstitialAdUnitId: isTestMode ? 'ca-app-pub-3940256099942544/1033173712' : 'ca-app-pub-2373579046576398/1765155572',
       
-      // iOS App ID and Ad Unit IDs (Test Mode)
+      // iOS App ID and Ad Unit IDs
       iOSAppId: 'ca-app-pub-3940256099942544~1458002511', // Test iOS App ID
-      iOSRewardAdUnitId: 'ca-app-pub-3940256099942544/1712485313', // Test iOS Reward Ad Unit ID
-      iOSBannerAdUnitId: 'ca-app-pub-3940256099942544/2934735716', // Test iOS Banner Ad Unit ID
-      iOSInterstitialAdUnitId: 'ca-app-pub-3940256099942544/4411468910', // Test iOS Interstitial Ad Unit ID
+      iOSRewardAdUnitId: isTestMode ? 'ca-app-pub-3940256099942544/1712485313' : 'your-ios-reward-ad-id',
+      iOSBannerAdUnitId: isTestMode ? 'ca-app-pub-3940256099942544/2934735716' : 'your-ios-banner-ad-id',
+      iOSInterstitialAdUnitId: isTestMode ? 'ca-app-pub-3940256099942544/4411468910' : 'ca-app-pub-2373579046576398/1765155572',
     }
 
     return new Response(

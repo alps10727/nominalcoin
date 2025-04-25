@@ -31,6 +31,7 @@ export function useAdMob() {
         
         setTimeout(() => {
           admobService.preloadRewardAd();
+          admobService.preloadInterstitialAd();
         }, 1500);
       } catch (error) {
         console.error('Failed to initialize AdMob:', error);
@@ -171,6 +172,8 @@ export function useAdMob() {
   }, [pluginAvailable]);
 
   const showInterstitialAd = useCallback(async () => {
+    debugLog('AdMob Hook', 'showInterstitialAd called');
+    
     if (!window.Capacitor || !pluginAvailable) {
       debugLog('AdMob Hook', 'Plugin not available, simulating interstitial ad');
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -179,10 +182,15 @@ export function useAdMob() {
     
     try {
       if (!isInitialized) {
+        debugLog('AdMob Hook', 'Initializing AdMob before showing interstitial');
         await admobService.initialize();
+        setIsInitialized(true);
       }
       
-      return await admobService.showInterstitialAd();
+      debugLog('AdMob Hook', 'Attempting to show interstitial ad via service');
+      const result = await admobService.showInterstitialAd();
+      debugLog('AdMob Hook', `Interstitial ad result: ${result}`);
+      return result;
     } catch (error) {
       console.error('Error showing interstitial ad:', error);
       return false;

@@ -1,3 +1,4 @@
+
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { fetchAdMobConfig, getPlatformSpecificAdUnit } from "../config";
 import { adLoadingService } from "./adLoadingService";
@@ -122,6 +123,8 @@ export class AdDisplayService {
       const platform = window.Capacitor.getPlatform();
       const adUnitId = getPlatformSpecificAdUnit(config, platform, 'interstitial');
       
+      debugLog('AdMob', `Using interstitial ad unit: ${adUnitId}`);
+      
       if (!this.interstitialAdLoaded) {
         debugLog('AdMob', 'Preparing interstitial ad before showing');
         
@@ -131,9 +134,11 @@ export class AdDisplayService {
         
         // Short delay to ensure the ad is ready
         await new Promise(resolve => setTimeout(resolve, 1000));
+        this.interstitialAdLoaded = true;
       }
       
       // Show the ad
+      debugLog('AdMob', 'Showing interstitial ad now');
       await window.Admob?.showInterstitial();
       this.interstitialAdLoaded = false;
       
@@ -161,6 +166,8 @@ export class AdDisplayService {
         const platform = window.Capacitor.getPlatform();
         adUnitId = getPlatformSpecificAdUnit(config, platform, 'interstitial');
       }
+      
+      debugLog('AdMob', `Preloading interstitial ad with ID: ${adUnitId}`);
       
       await window.Admob?.prepareInterstitial({
         adId: adUnitId,

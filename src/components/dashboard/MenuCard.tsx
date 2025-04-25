@@ -1,3 +1,4 @@
+
 import { Card } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { LucideIcon } from "lucide-react";
@@ -23,10 +24,13 @@ const MenuCard = ({ title, icon: Icon, to, showAd }: MenuCardProps) => {
       e.preventDefault();
       
       try {
-        await showInterstitialAd();
+        debugger;
+        const success = await showInterstitialAd();
+        console.log("Ad display result:", success);
+        // Use window.location.href to ensure the redirect happens after the ad
         window.location.href = to;
       } catch (error) {
-        console.error('Reklam gösterilirken hata:', error);
+        console.error('Ad display error:', error);
         toast.error("Reklam yüklenemedi, devam ediliyor...");
         window.location.href = to;
       }

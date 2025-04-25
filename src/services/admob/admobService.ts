@@ -24,7 +24,10 @@ export class AdMobService implements AdMobServiceInterface {
     await admobInitService.initialize();
     if (admobInitService.isInitialized()) {
       await this.listenerManager.setupGlobalListeners();
-      setTimeout(() => this.preloadRewardAd(), 1000);
+      setTimeout(() => {
+        this.preloadRewardAd();
+        this.preloadInterstitialAd(); // Add preloading interstitial ads on initialization
+      }, 1000);
     }
   }
 
@@ -58,6 +61,13 @@ export class AdMobService implements AdMobServiceInterface {
       await this.initialize();
     }
     return adDisplayService.showInterstitialAd();
+  }
+
+  async preloadInterstitialAd(): Promise<void> {
+    if (!admobInitService.isInitialized()) {
+      await this.initialize();
+    }
+    return adDisplayService.preloadInterstitialAd();
   }
 
   isAvailable(): boolean {

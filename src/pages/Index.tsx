@@ -150,11 +150,10 @@ const Index = () => {
                 Mining Hub
               </h2>
               
-              {/* Boosts butonuna showAd prop'unu ekledik */}
               <MenuCard
                 title="Boosts"
                 icon={ChevronRight}
-                to="/boosts"
+                to="/upgrades"
                 showAd={true}
               />
             </div>
