@@ -8,6 +8,7 @@ import { MiningProgressBar } from "./mining/MiningProgressBar";
 import { Diamond, Zap, Clock, BarChart } from "lucide-react";
 import { MiningParticles } from "./mining/MiningParticles";
 import { useAdMob } from '@/hooks/useAdMob';
+import { toast } from 'sonner';
 
 interface MiningCardProps {
   miningActive: boolean;
@@ -32,21 +33,43 @@ const MiningCard = React.memo<MiningCardProps>(({
   const { isDarkMode } = useTheme();
   const { showRewardAd, isLoading: adLoading } = useAdMob();
   
-  // Only allow starting mining
+  // Handle button click with better error handling
   const handleButtonClick = React.useCallback(async () => {
-    if (!miningActive) {
+    if (miningActive || adLoading) {
+      console.log("Mining is already active or ad is loading, ignoring click");
+      return;
+    }
+    
+    try {
+      console.log("Mining button clicked, showing ad if on mobile");
+      
       if (typeof window !== 'undefined' && window.Capacitor) {
         // Mobil cihazda Admob reklamını göster
+        console.log("On mobile device, showing AdMob reward ad");
+        toast.info("Reklam yükleniyor...");
+        
         const rewarded = await showRewardAd();
+        console.log("Ad result:", rewarded);
+        
         if (rewarded) {
+          console.log("Ad was viewed, starting mining");
           onStartMining();
+          toast.success("Madencilik başladı!");
+        } else {
+          console.log("Ad was not viewed or failed to show");
+          toast.error("Reklam gösterilemedi veya tamamlanmadı. Lütfen tekrar deneyin.");
         }
       } else {
         // Desktop'ta direkt başlat
+        console.log("On desktop, starting mining directly");
         onStartMining();
+        toast.success("Madencilik başladı!");
       }
+    } catch (error) {
+      console.error("Error during mining start process:", error);
+      toast.error("Bir hata oluştu, lütfen tekrar deneyin.");
     }
-  }, [miningActive, onStartMining, showRewardAd]);
+  }, [miningActive, onStartMining, showRewardAd, adLoading]);
 
   // Quick stats for display
   const hourlyRate = (miningRate * 60).toFixed(1);

@@ -12,14 +12,23 @@ serve(async (req) => {
   }
 
   try {
-    // Make sure the config structure matches our TypeScript interface
-    const config = {
-      appId: Deno.env.get('ADMOB_APP_ID'),
-      rewardAdUnitId: Deno.env.get('ADMOB_REWARD_AD_UNIT_ID'),
+    // Get the AdMob configuration from environment variables
+    const appId = Deno.env.get('ADMOB_APP_ID');
+    const rewardAdUnitId = Deno.env.get('ADMOB_REWARD_AD_UNIT_ID');
+    
+    // Log for debugging
+    console.log('AdMob config values:', { appId, rewardAdUnitId });
+    
+    if (!appId || !rewardAdUnitId) {
+      throw new Error('AdMob configuration is missing');
     }
 
+    // Send the configuration directly without nesting it in a data field
     return new Response(
-      JSON.stringify({ data: config }),
+      JSON.stringify({ 
+        appId, 
+        rewardAdUnitId 
+      }),
       { 
         headers: { 
           ...corsHeaders,
@@ -28,8 +37,13 @@ serve(async (req) => {
       },
     )
   } catch (error) {
+    console.error('Error in get-admob-config:', error.message);
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: 'Failed to retrieve AdMob configuration'
+      }),
       { 
         status: 400,
         headers: { 

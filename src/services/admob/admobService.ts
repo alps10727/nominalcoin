@@ -35,16 +35,21 @@ export class AdMobService {
       }
 
       // Fetch the AdMob configuration from Supabase
-      const response = await supabase.functions.invoke<AdMobResponse>('get-admob-config');
+      const { data, error } = await supabase.functions.invoke<AdMobResponse>('get-admob-config');
       
-      if (!response || !response.data || !response.data.data || !response.data.data.appId) {
-        console.error('Failed to retrieve AdMob config');
+      if (error) {
+        console.error('Error fetching AdMob config:', error);
+        return;
+      }
+      
+      if (!data || !data.appId || !data.rewardAdUnitId) {
+        console.error('Failed to retrieve AdMob config, invalid data structure:', data);
         return;
       }
       
       // @ts-ignore - Admob plugin exists in Capacitor
       await window.Admob?.initialize({
-        appId: response.data.data.appId,
+        appId: data.appId,
       });
 
       this.initialized = true;
@@ -62,22 +67,29 @@ export class AdMobService {
     try {
       if (typeof window === 'undefined' || !window.Capacitor) {
         console.log('AdMob: Not running on mobile device');
-        return false;
+        // For testing in browser, simulate success
+        return true;
       }
 
       // Fetch the AdMob reward ad unit ID from Supabase
-      const response = await supabase.functions.invoke<AdMobResponse>('get-admob-config');
+      const { data, error } = await supabase.functions.invoke<AdMobResponse>('get-admob-config');
       
-      if (!response || !response.data || !response.data.data || !response.data.data.rewardAdUnitId) {
-        console.error('Failed to retrieve AdMob reward ad unit ID');
+      if (error) {
+        console.error('Error fetching AdMob reward ad unit ID:', error);
+        return false;
+      }
+      
+      if (!data || !data.appId || !data.rewardAdUnitId) {
+        console.error('Failed to retrieve AdMob reward ad unit ID, invalid data structure:', data);
         return false;
       }
 
       // @ts-ignore - Admob plugin exists in Capacitor
       const result = await window.Admob?.showRewardVideo({
-        adId: response.data.data.rewardAdUnitId,
+        adId: data.rewardAdUnitId,
       });
 
+      console.log('AdMob reward video result:', result);
       return result?.rewarded || false;
     } catch (error) {
       console.error('Failed to show reward ad:', error);
