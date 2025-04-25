@@ -1,3 +1,4 @@
+
 import React, { useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -30,28 +31,58 @@ const MiningCard = React.memo<MiningCardProps>(({
 }) => {
   const isMobile = useIsMobile();
   const { isDarkMode } = useTheme();
-  const { showRewardAd } = useAdMob();
+  const { showRewardAd, isLoading: adLoading } = useAdMob();
   
+  // Handle button click with better error handling
   const handleButtonClick = React.useCallback(async () => {
-    if (miningActive) {
-      console.log("Mining is already active, ignoring click");
+    if (miningActive || adLoading) {
+      console.log("Mining is already active or ad is loading, ignoring click");
       return;
     }
     
     try {
+      console.log("Mining button clicked, showing ad if on mobile");
+      
       if (typeof window !== 'undefined' && window.Capacitor) {
+        // Show loading toast
+        toast.info("Reklam yükleniyor, lütfen bekleyin...", {
+          duration: 3000,
+          id: 'loading-ad'
+        });
+        
+        console.log("On mobile device, showing AdMob reward ad");
         const rewarded = await showRewardAd();
+        console.log("Ad result:", rewarded);
+        
         if (rewarded) {
+          console.log("Ad was viewed, starting mining");
           onStartMining();
+          toast.success("Madencilik başladı!", {
+            id: 'mining-started'
+          });
+        } else {
+          console.log("Ad was not viewed or failed to show");
+          toast.error("Reklam gösterilemedi veya tamamlanmadı. Lütfen tekrar deneyin.", {
+            id: 'ad-failed',
+            icon: <AlertCircle className="h-4 w-4" />
+          });
         }
       } else {
+        // On desktop, start directly
+        console.log("On desktop, starting mining directly");
         onStartMining();
+        toast.success("Madencilik başladı!");
       }
     } catch (error) {
       console.error("Error during mining start process:", error);
+      toast.error("Bir hata oluştu, lütfen tekrar deneyin.", {
+        id: 'mining-error',
+        description: error instanceof Error ? error.message : 'Bilinmeyen hata'
+      });
     }
-  }, [miningActive, onStartMining, showRewardAd]);
+  }, [miningActive, onStartMining, showRewardAd, adLoading]);
 
+  // Quick stats for display
   const hourlyRate = (miningRate * 60).toFixed(1);
 
   return (
@@ -59,18 +90,24 @@ const MiningCard = React.memo<MiningCardProps>(({
                   bg-gradient-to-b from-navy-950 via-darkPurple-950 to-navy-950 
                   hover:shadow-deep-glow hover:from-navy-950 hover:via-darkPurple-950 hover:to-navy-950
                   border border-purple-950/30">
+      {/* Enhanced background effects */}
       <div className="absolute inset-0 bg-galaxy opacity-10"></div>
       <div className="absolute top-0 left-0 w-full h-full fc-deep-nebula opacity-20"></div>
       <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-purple-800/5 rounded-full blur-3xl transform translate-x-1/4 -translate-y-1/4"></div>
       <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-indigo-800/5 rounded-full blur-2xl transform -translate-x-1/4 translate-y-1/4"></div>
       
+      {/* Animated particles when mining */}
       <MiningParticles miningActive={miningActive} />
       
+      {/* Hexagon grid pattern overlay */}
       <div className="absolute inset-0 bg-grid-pattern opacity-[0.02]"></div>
       
+      {/* Subtle top border glow */}
       <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-purple-800/25 to-transparent"></div>
       
+      {/* Content */}
       <CardContent className={`relative z-10 ${isMobile ? "px-4 py-5" : "px-6 py-6"}`}>
+        {/* Header with info */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-darkPurple-900/20 to-navy-900/20 
@@ -87,26 +124,41 @@ const MiningCard = React.memo<MiningCardProps>(({
               Active
             </div>
           )}
+          
+          {adLoading && (
+            <div className="flex items-center bg-amber-900/30 text-amber-300 text-xs px-2 py-1 rounded-full 
+                         border border-amber-800/20 animate-pulse-slow shadow-inner">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mr-1.5 animate-pulse"></span>
+              Reklam Yükleniyor
+            </div>
+          )}
         </div>
         
+        {/* Mining info with enhanced styling */}
         <div className="mb-6">
           <p className="text-purple-400/80 text-sm">
             {miningActive 
               ? `Mining at ${hourlyRate} FC/hour` 
-              : "Start mining to earn Future Coin"}
+              : adLoading 
+                ? "Reklam yükleniyor, lütfen bekleyin..." 
+                : "Start mining to earn Future Coin"}
           </p>
           
+          {/* Progress bar - only shown when active */}
           {miningActive && <MiningProgressBar progress={progress} miningActive={miningActive} />}
         </div>
       
+        {/* Mining button - main interaction point */}
         <div className="text-center my-6 perspective-1000">
           <MiningButton 
             miningActive={miningActive}
             miningTime={miningTime}
             onButtonClick={handleButtonClick}
+            adLoading={adLoading}
           />
         </div>
       
+        {/* Live mining stats */}
         {miningActive && (
           <div className="mt-8 grid grid-cols-2 gap-3">
             <div className="bg-darkPurple-950/60 p-3 rounded-lg border border-purple-900/15 backdrop-blur-sm 
@@ -132,10 +184,20 @@ const MiningCard = React.memo<MiningCardProps>(({
           </div>
         )}
         
-        {!miningActive && (
+        {/* Enhanced inactive state description */}
+        {!miningActive && !adLoading && (
           <div className="mt-4 text-center">
             <p className="text-xs text-purple-400/60 max-w-xs mx-auto leading-relaxed">
               Madenciliği başlatmak için butona tıklayın. 6 saat boyunca FC kazanacaksınız.
+            </p>
+          </div>
+        )}
+        
+        {/* Ad loading state */}
+        {adLoading && (
+          <div className="mt-4 text-center">
+            <p className="text-xs text-amber-400/80 max-w-xs mx-auto leading-relaxed animate-pulse">
+              Reklam yükleniyor, lütfen bekleyin...
             </p>
           </div>
         )}

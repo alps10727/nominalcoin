@@ -9,17 +9,17 @@ import { usePagePreloading } from "@/hooks/routing/usePagePreloading";
 import SignIn from "@/pages/SignIn"; // Direct import
 import Index from "@/pages/Index"; // Direct import instead of lazy loading
 import SignUp from "@/pages/SignUp"; // Direct import instead of lazy loading
-import Profile from "@/pages/Profile"; // Direct import for Profile page
 
 // Lazy-loaded pages with reduced loading timeout
 const NotFound = lazy(() => import("@/pages/NotFound"));
+const Profile = lazy(() => import("@/pages/Profile"));
 const History = lazy(() => import("@/pages/History"));
 const Tasks = lazy(() => import("@/pages/Tasks"));
 const MiningUpgrades = lazy(() => import("@/pages/MiningUpgrades"));
 const Statistics = lazy(() => import("@/pages/Statistics"));
 const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
 const Referral = lazy(() => import("@/pages/Referral"));
-const Upgrades = lazy(() => import("@/pages/Upgrades"));
+const Upgrades = lazy(() => import("@/pages/Upgrades")); // Yeni Upgrades sayfamız
 
 const AppRoutes = () => {
   // Sayfaları önceden yükle
@@ -38,9 +38,11 @@ const AppRoutes = () => {
         
         <Route path="/profile" element={
           <PrivateRoute>
-            <PageTransition>
-              <Profile />
-            </PageTransition>
+            <Suspense fallback={<LoadingScreen message="Profil yükleniyor..." />}>
+              <PageTransition>
+                <Profile />
+              </PageTransition>
+            </Suspense>
           </PrivateRoute>
         } />
         
@@ -84,6 +86,7 @@ const AppRoutes = () => {
           </PrivateRoute>
         } />
         
+        {/* Add Referral Route */}
         <Route path="/referral" element={
           <PrivateRoute>
             <Suspense fallback={<LoadingScreen message="Referans sayfası yükleniyor..." />}>
@@ -94,6 +97,7 @@ const AppRoutes = () => {
           </PrivateRoute>
         } />
         
+        {/* Yeni Upgrades sayfası yönlendirmesi */}
         <Route path="/upgrades" element={
           <PrivateRoute>
             <Suspense fallback={<LoadingScreen message="Görev ve Oyunlar yükleniyor..." />}>
@@ -124,6 +128,7 @@ const AppRoutes = () => {
           </Suspense>
         } />
         
+        {/* Fallback redirect for undefined routes */}
         <Route path="*" element={
           <Suspense fallback={<LoadingScreen message="Sayfa yükleniyor..." />}>
             <PageTransition>

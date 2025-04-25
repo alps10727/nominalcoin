@@ -6,17 +6,20 @@ import { ButtonBackground } from "./button/ButtonBackground";
 import { ButtonContent } from "./button/ButtonContent";
 import { MiningButtonBase } from "./button/MiningButtonBase";
 import { formatTimeDisplay } from "@/utils/miningUtils";
+import { Loader2 } from "lucide-react";
 
 interface MiningButtonProps {
   miningActive: boolean;
   miningTime: number;
   onButtonClick: () => void;
+  adLoading?: boolean;
 }
 
 export const MiningButton: React.FC<MiningButtonProps> = ({ 
   miningActive, 
   miningTime, 
   onButtonClick,
+  adLoading = false
 }) => {
   const [displayTime, setDisplayTime] = useState("");
   const [buttonHovered, setButtonHovered] = useState(false);
@@ -28,10 +31,10 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
   
   // Only allow starting mining, not stopping
   const handleClick = useCallback(() => {
-    if (!miningActive) {
+    if (!miningActive && !adLoading) {
       onButtonClick();
     }
-  }, [miningActive, onButtonClick]);
+  }, [miningActive, adLoading, onButtonClick]);
   
   // Optimized hover handlers with useCallback
   const handleMouseEnter = useCallback(() => {
@@ -44,30 +47,56 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
 
   return (
     <div className="relative perspective-800">
-      {buttonHovered && !miningActive && (
+      {/* Enhanced button glow effect when hovered */}
+      {buttonHovered && !miningActive && !adLoading && (
         <div className="absolute inset-0 bg-purple-500/10 rounded-full blur-3xl animate-pulse-slow"></div>
       )}
       
+      {/* Particle floating effects */}
       <ParticleEffects miningActive={miningActive} />
+      
+      {/* Orbital rotating elements */}
       <OrbitalEffects miningActive={miningActive} />
       
+      {/* Button with all its layers */}
       <MiningButtonBase 
         miningActive={miningActive} 
         onClick={handleClick}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        disabled={miningActive}
+        disabled={miningActive || adLoading} // Button is disabled when mining is active or ad is loading
+        className={adLoading ? "animate-pulse" : ""}
       >
-        <ButtonBackground miningActive={miningActive} />
-        <ButtonContent 
-          miningActive={miningActive} 
-          displayTime={displayTime} 
-        />
+        {/* Background layers */}
+        <ButtonBackground miningActive={miningActive} adLoading={adLoading} />
+        
+        {/* Content (text, icon) */}
+        {adLoading ? (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-purple-200 text-center">
+              <Loader2 className="animate-spin h-8 w-8 mx-auto mb-2" />
+              <div className="text-sm">Yükleniyor...</div>
+            </div>
+          </div>
+        ) : (
+          <ButtonContent 
+            miningActive={miningActive} 
+            displayTime={displayTime} 
+          />
+        )}
       </MiningButtonBase>
       
+      {/* Info text when mining is active */}
       {miningActive && (
         <div className="absolute top-full left-0 right-0 text-xs text-purple-400/80 text-center mt-2">
           Madencilik işlemi devam ediyor. 6 saat sonunda otomatik olarak duracak.
+        </div>
+      )}
+      
+      {/* Info text when ad is loading */}
+      {adLoading && (
+        <div className="absolute top-full left-0 right-0 text-xs text-amber-400/80 text-center mt-2">
+          Reklam yükleniyor, lütfen bekleyin...
         </div>
       )}
     </div>

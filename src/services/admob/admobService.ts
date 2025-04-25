@@ -7,7 +7,7 @@ interface AdMobConfig {
   rewardAdUnitId: string;
 }
 
-// Response type for the Supabase function with correct nesting
+// Response type for the Supabase function
 interface AdMobResponse {
   data: {
     appId: string;
@@ -21,8 +21,6 @@ export class AdMobService {
   // Cache the config to avoid multiple API calls
   private config: AdMobConfig | null = null;
   private initializationPromise: Promise<void> | null = null;
-  private lastFetchTime: number = 0;
-  private fetchConfigPromise: Promise<AdMobConfig | null> | null = null;
 
   private constructor() {}
 
@@ -33,61 +31,34 @@ export class AdMobService {
     return AdMobService.instance;
   }
 
-  // Fetch AdMob configuration from Supabase with improved error handling and caching
+  // Fetch AdMob configuration from Supabase
   private async fetchConfig(): Promise<AdMobConfig | null> {
     try {
-      // Return cached config if available and recently fetched (less than 5 minutes ago)
-      const now = Date.now();
-      if (this.config && (now - this.lastFetchTime < 300000)) {
-        console.log('Using cached AdMob config');
+      // Return cached config if available
+      if (this.config) {
         return this.config;
       }
 
-      // If there's already a fetch in progress, return that promise
-      if (this.fetchConfigPromise) {
-        return this.fetchConfigPromise;
-      }
-
-      // Create new fetch promise
-      this.fetchConfigPromise = this._fetchConfigFromSupabase();
-      const config = await this.fetchConfigPromise;
-      this.fetchConfigPromise = null;
-      return config;
-    } catch (error) {
-      console.error('Failed to fetch AdMob config:', error);
-      this.fetchConfigPromise = null;
-      return null;
-    }
-  }
-
-  private async _fetchConfigFromSupabase(): Promise<AdMobConfig | null> {
-    console.log('Fetching AdMob config from Supabase');
-    
-    try {
-      const { data, error } = await supabase.functions.invoke<AdMobResponse>('get-admob-config');
+      console.log('Fetching AdMob config from Supabase');
+      const { data, error } = await supabase.functions.invoke<{data: AdMobConfig}>('get-admob-config');
       
       if (error) {
-        console.error('Supabase function error:', error);
+        console.error('Error fetching AdMob config:', error);
         return null;
       }
       
       if (!data || !data.data || !data.data.appId || !data.data.rewardAdUnitId) {
-        console.error('Invalid AdMob config data structure:', data);
+        console.error('Failed to retrieve AdMob config, invalid data structure:', data);
         return null;
       }
       
-      console.log('Successfully retrieved AdMob config with appId:', data.data.appId.substring(0, 5) + '...');
+      console.log('Successfully retrieved AdMob config:', data.data);
       
-      // Update cache
-      this.config = {
-        appId: data.data.appId,
-        rewardAdUnitId: data.data.rewardAdUnitId
-      };
-      this.lastFetchTime = Date.now();
-      
+      // Cache the config
+      this.config = data.data;
       return this.config;
     } catch (error) {
-      console.error('Exception fetching AdMob config:', error);
+      console.error('Failed to fetch AdMob config:', error);
       return null;
     }
   }
@@ -100,13 +71,7 @@ export class AdMobService {
 
     // Create new initialization promise
     this.initializationPromise = this._initialize();
-    try {
-      await this.initializationPromise;
-    } catch (error) {
-      console.error('AdMob initialization failed:', error);
-    } finally {
-      this.initializationPromise = null;
-    }
+    return this.initializationPromise;
   }
 
   private async _initialize(): Promise<void> {
@@ -116,14 +81,8 @@ export class AdMobService {
     }
 
     try {
-      if (typeof window === 'undefined') {
-        console.log('AdMob: Not running in browser environment');
-        this.initialized = true; // Mark as initialized even on non-browser platforms
-        return;
-      }
-
-      if (!window.Capacitor) {
-        console.log('AdMob: Not running on mobile device with Capacitor');
+      if (typeof window === 'undefined' || !window.Capacitor) {
+        console.log('AdMob: Not running on mobile device');
         this.initialized = true; // Mark as initialized even on non-mobile platforms
         return;
       }
@@ -136,53 +95,35 @@ export class AdMobService {
         return;
       }
       
-      console.log('Initializing AdMob with appId:', config.appId.substring(0, 5) + '...');
+      console.log('Initializing AdMob with appId:', config.appId);
       
       // @ts-ignore - Admob plugin exists in Capacitor
-      if (!window.Admob) {
-        console.error('AdMob plugin not found in Capacitor');
-        return;
-      }
-      
-      try {
-        // @ts-ignore - Admob plugin exists in Capacitor
-        await window.Admob.initialize({
-          appId: config.appId,
-        });
-        console.log('AdMob initialized successfully');
-        this.initialized = true;
-      } catch (initError) {
-        console.error('AdMob initialization plugin error:', initError);
-        throw initError;
-      }
+      await window.Admob?.initialize({
+        appId: config.appId,
+      });
+
+      console.log('AdMob initialized successfully');
+      this.initialized = true;
     } catch (error) {
       console.error('Failed to initialize AdMob:', error);
+      // Reset initialization state so it can be tried again
+      this.initializationPromise = null;
       throw error;
+    } finally {
+      // Clear the initialization promise reference
+      this.initializationPromise = null;
     }
   }
 
   async showRewardAd(): Promise<boolean> {
-    console.log('showRewardAd: Starting to show reward ad');
-    
     if (!this.initialized) {
       console.log('AdMob not initialized, initializing now');
-      try {
-        await this.initialize();
-      } catch (error) {
-        console.error('Failed to initialize AdMob before showing ad:', error);
-        return false;
-      }
+      await this.initialize();
     }
 
     try {
-      if (typeof window === 'undefined') {
-        console.log('AdMob: Not running in browser environment');
-        // For testing in server environment, simulate success
-        return true;
-      }
-
-      if (!window.Capacitor) {
-        console.log('AdMob: Not running on mobile device with Capacitor');
+      if (typeof window === 'undefined' || !window.Capacitor) {
+        console.log('AdMob: Not running on mobile device');
         // For testing in browser, simulate success
         return true;
       }
@@ -195,46 +136,17 @@ export class AdMobService {
         return false;
       }
 
-      console.log('Showing reward ad with adId:', config.rewardAdUnitId.substring(0, 5) + '...');
+      console.log('Showing reward ad with adId:', config.rewardAdUnitId);
       
       // @ts-ignore - Admob plugin exists in Capacitor
-      if (!window.Admob) {
-        console.error('AdMob plugin not found in Capacitor');
-        
-        // For development/testing, return true to allow functionality without ads
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Development mode: simulating successful ad view');
-          return true;
-        }
-        return false;
-      }
-      
-      try {
-        // @ts-ignore - Admob plugin exists in Capacitor
-        const result = await window.Admob.showRewardVideo({
-          adId: config.rewardAdUnitId,
-        });
+      const result = await window.Admob?.showRewardVideo({
+        adId: config.rewardAdUnitId,
+      });
 
-        console.log('AdMob reward video result:', result);
-        return result?.rewarded || false;
-      } catch (adError) {
-        console.error('AdMob showRewardVideo plugin error:', adError);
-        
-        // For development/testing, return true to allow functionality without ads
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Development mode: simulating successful ad view despite error');
-          return true;
-        }
-        return false;
-      }
+      console.log('AdMob reward video result:', result);
+      return result?.rewarded || false;
     } catch (error) {
-      console.error('General error showing reward ad:', error);
-      
-      // For development/testing, return true to allow functionality without ads
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Development mode: simulating successful ad view despite error');
-        return true;
-      }
+      console.error('Failed to show reward ad:', error);
       return false;
     }
   }

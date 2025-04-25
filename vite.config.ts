@@ -28,18 +28,5 @@ export default defineConfig(({ mode }) => ({
     outDir: 'dist',
     assetsDir: 'assets',
     emptyOutDir: true,
-    chunkSizeWarningLimit: 1000, // Increase chunk size warning limit
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          // Group certain packages together to optimize chunk splitting
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          ui: ['@/components/ui'],
-        },
-      },
-    },
-  },
-  optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom'],
   }
 }));
