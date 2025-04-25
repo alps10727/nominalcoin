@@ -1,4 +1,3 @@
-
 interface AdmobPlugin {
   initialize(options: { 
     appId: string; 
@@ -9,6 +8,8 @@ interface AdmobPlugin {
   prepareRewardVideoAd(options: { adId: string }): Promise<void>;
   addListener(eventName: string, listenerFunc: (info: any) => void): Promise<any>;
   removeAllListeners(): Promise<void>;
+  showBanner(options: { adId: string; position?: string; margin?: number }): Promise<void>;
+  hideBanner(): Promise<void>;
   // GDPR ve veri koruma için ek metodlar
   requestTrackingAuthorization?(): Promise<{ status: number }>;
   setConsent?(options: { status: string }): Promise<void>;

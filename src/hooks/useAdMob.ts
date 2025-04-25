@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { admobService } from '@/services/admob/admobService';
 import { toast } from 'sonner';
@@ -11,7 +10,6 @@ export function useAdMob() {
   const [pluginAvailable, setPluginAvailable] = useState(false);
   const initializationAttempted = useRef(false);
 
-  // Check if the plugin is available
   useEffect(() => {
     if (typeof window !== 'undefined' && window.Capacitor) {
       const available = window.Capacitor.isPluginAvailable('AdMob');
@@ -20,7 +18,6 @@ export function useAdMob() {
     }
   }, []);
 
-  // Initialize AdMob when the hook is first used
   useEffect(() => {
     const initAdMob = async () => {
       if (initializationAttempted.current) return;
@@ -31,7 +28,6 @@ export function useAdMob() {
         await admobService.initialize();
         setIsInitialized(true);
         
-        // Start preloading the first ad
         admobService.preloadRewardAd();
       } catch (error) {
         console.error('Failed to initialize AdMob:', error);
@@ -43,11 +39,9 @@ export function useAdMob() {
       initAdMob();
     }
     
-    // Cleanup listeners when component unmounts
     return () => {
       if (window.Capacitor && window.Admob) {
         try {
-          // @ts-ignore - Admob plugin exists in Capacitor
           window.Admob.removeAllListeners().catch(console.error);
         } catch (e) {
           console.error("Error removing AdMob listeners:", e);
@@ -56,18 +50,15 @@ export function useAdMob() {
     };
   }, [isInitialized, pluginAvailable]);
 
-  // Set up event listeners for AdMob events
   useEffect(() => {
     const setupListeners = async () => {
       if (!window.Capacitor || !window.Admob || !isInitialized) return;
 
       try {
-        // @ts-ignore - Admob plugin exists in Capacitor
         await window.Admob.addListener('onAdLoaded', () => {
           debugLog('AdMob Hook', 'Ad loaded successfully');
         });
         
-        // @ts-ignore - Admob plugin exists in Capacitor
         await window.Admob.addListener('onAdFailedToLoad', (info) => {
           const errorMessage = info?.message || 'Unknown error';
           const errorCode = info?.code || 'unknown';
@@ -75,24 +66,18 @@ export function useAdMob() {
           debugLog('AdMob Hook', `Ad failed to load: ${errorCode} - ${errorMessage}`);
           setAdErrorCount(prev => prev + 1);
           
-          // Try to preload another ad after a delay
           setTimeout(() => admobService.preloadRewardAd(), 5000);
         });
         
-        // Listen for reward events
-        // @ts-ignore - Admob plugin exists in Capacitor
         await window.Admob.addListener('onRewardedVideoAdFailedToLoad', (info) => {
           debugLog('AdMob Hook', `Rewarded video failed to load: ${JSON.stringify(info)}`);
           setAdErrorCount(prev => prev + 1);
         });
         
-        // @ts-ignore - Admob plugin exists in Capacitor
         await window.Admob.addListener('onRewardedVideoAdClosed', () => {
           debugLog('AdMob Hook', 'Rewarded video ad closed');
-          // Preload next ad when current one is closed
           setTimeout(() => admobService.preloadRewardAd(), 1000);
         });
-        
       } catch (error) {
         console.error('Failed to set up AdMob listeners:', error);
       }
@@ -111,7 +96,7 @@ export function useAdMob() {
       if (!pluginAvailable) {
         debugLog('AdMob Hook', 'Plugin not available, simulating reward');
         setIsLoading(false);
-        return true; // Simulate success in development
+        return true;
       }
       
       const rewarded = await admobService.showRewardAd();
@@ -143,12 +128,35 @@ export function useAdMob() {
     }
   }, [isInitialized, pluginAvailable]);
 
+  const showBannerAd = useCallback(async () => {
+    if (!pluginAvailable) return;
+    
+    try {
+      await admobService.showBannerAd();
+    } catch (error) {
+      console.error('Error showing banner ad:', error);
+      toast.error('Banner reklam gösterilirken bir hata oluştu');
+    }
+  }, [pluginAvailable]);
+
+  const hideBannerAd = useCallback(async () => {
+    if (!pluginAvailable) return;
+    
+    try {
+      await admobService.hideBannerAd();
+    } catch (error) {
+      console.error('Error hiding banner ad:', error);
+    }
+  }, [pluginAvailable]);
+
   return {
     showRewardAd,
     isLoading,
     preloadNextAd,
     isInitialized,
     pluginAvailable,
-    adErrorCount
+    adErrorCount,
+    showBannerAd,
+    hideBannerAd
   };
 }

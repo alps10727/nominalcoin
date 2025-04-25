@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 
@@ -16,6 +15,7 @@ export class AdMobService {
   private initialized = false;
   private isPreloading = false;
   private adPreloaded = false;
+  private bannerAdLoaded = false;
   private adLoadInProgress = false;
   private lastAdLoadAttempt = 0;
   private adLoadRetryCount = 0;
@@ -260,6 +260,66 @@ export class AdMobService {
       // Try to preload again after error
       setTimeout(() => this.preloadRewardAd(), 3000);
       return false;
+    }
+  }
+
+  async showBannerAd(): Promise<void> {
+    try {
+      if (!this.initialized) {
+        await this.initialize();
+      }
+
+      if (!window.Capacitor || !window.Admob) {
+        debugLog('AdMob', 'Not running on mobile device, skipping banner ad');
+        return;
+      }
+
+      const { data: responseData, error } = await supabase.functions.invoke<{data: AdMobConfig}>('get-admob-config');
+      
+      if (error || !responseData?.data) {
+        errorLog('AdMob', 'Failed to retrieve AdMob config', error);
+        return;
+      }
+      
+      const config = responseData.data;
+      if (!config.bannerAdUnitId) {
+        errorLog('AdMob', 'Invalid AdMob config: missing bannerAdUnitId', null);
+        return;
+      }
+
+      // Platform-specific ad unit ID
+      const platform = window.Capacitor.getPlatform();
+      const adUnitId = platform === 'ios' 
+        ? (config.iOSBannerAdUnitId || config.bannerAdUnitId) 
+        : config.bannerAdUnitId;
+
+      debugLog('AdMob', `Showing banner ad with ID: ${adUnitId}`);
+
+      // @ts-ignore - Admob plugin exists in Capacitor
+      await window.Admob?.showBanner({
+        adId: adUnitId,
+        position: 'BOTTOM_CENTER',
+        margin: 0,
+      });
+
+      this.bannerAdLoaded = true;
+      debugLog('AdMob', 'Banner ad shown successfully');
+    } catch (error) {
+      errorLog('AdMob', 'Failed to show banner ad:', error);
+      this.bannerAdLoaded = false;
+    }
+  }
+
+  async hideBannerAd(): Promise<void> {
+    try {
+      if (!window.Capacitor || !window.Admob || !this.bannerAdLoaded) return;
+
+      // @ts-ignore - Admob plugin exists in Capacitor
+      await window.Admob?.hideBanner();
+      this.bannerAdLoaded = false;
+      debugLog('AdMob', 'Banner ad hidden successfully');
+    } catch (error) {
+      errorLog('AdMob', 'Failed to hide banner ad:', error);
     }
   }
 
