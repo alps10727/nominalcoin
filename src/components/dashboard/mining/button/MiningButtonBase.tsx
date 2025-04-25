@@ -9,6 +9,7 @@ interface MiningButtonBaseProps {
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
   disabled?: boolean;
+  className?: string;
   children: React.ReactNode;
 }
 
@@ -18,6 +19,7 @@ export const MiningButtonBase = React.memo<MiningButtonBaseProps>(({
   onMouseEnter,
   onMouseLeave,
   disabled = false,
+  className = "",
   children 
 }) => {
   // Use the extracted click handler logic
@@ -33,7 +35,7 @@ export const MiningButtonBase = React.memo<MiningButtonBaseProps>(({
       <button 
         className={`relative w-36 h-36 rounded-full flex items-center justify-center z-10 transform transition-all duration-500 ${
           miningActive ? 'scale-110 opacity-80' : 'scale-100 hover:scale-105'
-        } ${isDisabled ? 'opacity-80 cursor-not-allowed' : 'cursor-pointer'}`}
+        } ${isDisabled ? 'opacity-80 cursor-not-allowed' : 'cursor-pointer'} ${className}`}
         onClick={handleClick}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}

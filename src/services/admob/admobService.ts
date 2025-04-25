@@ -9,7 +9,10 @@ interface AdMobConfig {
 
 // Response type for the Supabase function
 interface AdMobResponse {
-  data: AdMobConfig;
+  data: {
+    appId: string;
+    rewardAdUnitId: string;
+  };
 }
 
 export class AdMobService {
@@ -17,6 +20,7 @@ export class AdMobService {
   private initialized = false;
   // Cache the config to avoid multiple API calls
   private config: AdMobConfig | null = null;
+  private initializationPromise: Promise<void> | null = null;
 
   private constructor() {}
 
@@ -35,7 +39,8 @@ export class AdMobService {
         return this.config;
       }
 
-      const { data, error } = await supabase.functions.invoke<AdMobResponse>('get-admob-config');
+      console.log('Fetching AdMob config from Supabase');
+      const { data, error } = await supabase.functions.invoke<{data: AdMobConfig}>('get-admob-config');
       
       if (error) {
         console.error('Error fetching AdMob config:', error);
@@ -47,6 +52,8 @@ export class AdMobService {
         return null;
       }
       
+      console.log('Successfully retrieved AdMob config:', data.data);
+      
       // Cache the config
       this.config = data.data;
       return this.config;
@@ -57,11 +64,26 @@ export class AdMobService {
   }
 
   async initialize(): Promise<void> {
-    if (this.initialized) return;
+    // Return existing initialization promise if one is in progress
+    if (this.initializationPromise) {
+      return this.initializationPromise;
+    }
+
+    // Create new initialization promise
+    this.initializationPromise = this._initialize();
+    return this.initializationPromise;
+  }
+
+  private async _initialize(): Promise<void> {
+    if (this.initialized) {
+      console.log('AdMob already initialized, skipping initialization');
+      return;
+    }
 
     try {
       if (typeof window === 'undefined' || !window.Capacitor) {
         console.log('AdMob: Not running on mobile device');
+        this.initialized = true; // Mark as initialized even on non-mobile platforms
         return;
       }
 
@@ -73,20 +95,29 @@ export class AdMobService {
         return;
       }
       
+      console.log('Initializing AdMob with appId:', config.appId);
+      
       // @ts-ignore - Admob plugin exists in Capacitor
       await window.Admob?.initialize({
         appId: config.appId,
       });
 
-      this.initialized = true;
       console.log('AdMob initialized successfully');
+      this.initialized = true;
     } catch (error) {
       console.error('Failed to initialize AdMob:', error);
+      // Reset initialization state so it can be tried again
+      this.initializationPromise = null;
+      throw error;
+    } finally {
+      // Clear the initialization promise reference
+      this.initializationPromise = null;
     }
   }
 
   async showRewardAd(): Promise<boolean> {
     if (!this.initialized) {
+      console.log('AdMob not initialized, initializing now');
       await this.initialize();
     }
 
@@ -105,6 +136,8 @@ export class AdMobService {
         return false;
       }
 
+      console.log('Showing reward ad with adId:', config.rewardAdUnitId);
+      
       // @ts-ignore - Admob plugin exists in Capacitor
       const result = await window.Admob?.showRewardVideo({
         adId: config.rewardAdUnitId,
