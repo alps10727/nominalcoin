@@ -37,14 +37,14 @@ export class AdMobService {
       // Fetch the AdMob configuration from Supabase
       const response = await supabase.functions.invoke<AdMobResponse>('get-admob-config');
       
-      if (!response || !response.data || !response.data.appId) {
+      if (!response || !response.data || !response.data.data || !response.data.data.appId) {
         console.error('Failed to retrieve AdMob config');
         return;
       }
       
       // @ts-ignore - Admob plugin exists in Capacitor
       await window.Admob?.initialize({
-        appId: response.data.appId,
+        appId: response.data.data.appId,
       });
 
       this.initialized = true;
@@ -68,14 +68,14 @@ export class AdMobService {
       // Fetch the AdMob reward ad unit ID from Supabase
       const response = await supabase.functions.invoke<AdMobResponse>('get-admob-config');
       
-      if (!response || !response.data || !response.data.rewardAdUnitId) {
+      if (!response || !response.data || !response.data.data || !response.data.data.rewardAdUnitId) {
         console.error('Failed to retrieve AdMob reward ad unit ID');
         return false;
       }
 
       // @ts-ignore - Admob plugin exists in Capacitor
       const result = await window.Admob?.showRewardVideo({
-        adId: response.data.rewardAdUnitId,
+        adId: response.data.data.rewardAdUnitId,
       });
 
       return result?.rewarded || false;
