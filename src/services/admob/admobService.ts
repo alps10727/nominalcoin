@@ -1,9 +1,15 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
+// Updated interface to match the expected response structure
 interface AdMobConfig {
   appId: string;
   rewardAdUnitId: string;
+}
+
+// Response type for the Supabase function
+interface AdMobResponse {
+  data: AdMobConfig;
 }
 
 export class AdMobService {
@@ -28,7 +34,8 @@ export class AdMobService {
         return;
       }
 
-      const response = await supabase.functions.invoke<{data: AdMobConfig}>('get-admob-config');
+      // Updated to use the correct response type
+      const response = await supabase.functions.invoke<AdMobResponse>('get-admob-config');
       
       if (!response || !response.data || !response.data.appId) {
         console.error('Failed to retrieve AdMob config');
@@ -58,7 +65,8 @@ export class AdMobService {
         return false;
       }
 
-      const response = await supabase.functions.invoke<{data: AdMobConfig}>('get-admob-config');
+      // Updated to use the correct response type
+      const response = await supabase.functions.invoke<AdMobResponse>('get-admob-config');
       
       if (!response || !response.data || !response.data.rewardAdUnitId) {
         console.error('Failed to retrieve AdMob reward ad unit ID');

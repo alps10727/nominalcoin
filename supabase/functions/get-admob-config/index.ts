@@ -12,6 +12,7 @@ serve(async (req) => {
   }
 
   try {
+    // Make sure the config structure matches our TypeScript interface
     const config = {
       appId: Deno.env.get('ADMOB_APP_ID'),
       rewardAdUnitId: Deno.env.get('ADMOB_REWARD_AD_UNIT_ID'),
