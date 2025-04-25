@@ -7,6 +7,7 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests properly
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -16,14 +17,18 @@ serve(async (req) => {
     const appId = Deno.env.get('ADMOB_APP_ID');
     const rewardAdUnitId = Deno.env.get('ADMOB_REWARD_AD_UNIT_ID');
     
-    // Log for debugging
-    console.log('AdMob config values:', { appId, rewardAdUnitId });
+    // Enhanced logging for debugging
+    console.log('AdMob config request received');
+    console.log('Environment variables loaded:', { 
+      appId: appId ? 'Present' : 'Missing', 
+      rewardAdUnitId: rewardAdUnitId ? 'Present' : 'Missing' 
+    });
     
     if (!appId || !rewardAdUnitId) {
-      throw new Error('AdMob configuration is missing');
+      throw new Error('AdMob configuration is missing from environment variables');
     }
 
-    // Send the configuration wrapped in a data field to match the expected format
+    // Ensure we're sending the correct response format with proper data structure
     return new Response(
       JSON.stringify({ 
         data: {
@@ -36,6 +41,7 @@ serve(async (req) => {
           ...corsHeaders,
           'Content-Type': 'application/json',
         },
+        status: 200
       },
     )
   } catch (error) {

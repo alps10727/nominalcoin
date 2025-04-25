@@ -1,11 +1,24 @@
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { admobService } from '@/services/admob/admobService';
 import { toast } from 'sonner';
 
 export function useAdMob() {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const loadingTimeoutRef = useRef<number | null>(null);
+  const mounted = useRef(true);
+
+  // Clean up on unmount
+  useEffect(() => {
+    return () => {
+      mounted.current = false;
+      if (loadingTimeoutRef.current) {
+        window.clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   const showRewardAd = useCallback(async () => {
     if (isLoading) {
@@ -13,6 +26,8 @@ export function useAdMob() {
       return false;
     }
     
+    // Reset error state
+    setError(null);
     setIsLoading(true);
     console.log('Starting to load reward ad');
     
@@ -22,12 +37,13 @@ export function useAdMob() {
     }
     
     loadingTimeoutRef.current = window.setTimeout(() => {
-      if (isLoading) {
+      if (mounted.current && isLoading) {
         console.log('Ad loading timeout, resetting loading state');
         setIsLoading(false);
+        setError('Zaman aşımı oluştu');
         toast.error('Reklam yüklenirken zaman aşımı oluştu. Lütfen tekrar deneyin.');
       }
-    }, 30000); // 30 seconds timeout
+    }, 15000); // 15 seconds timeout (reduced from 30)
     
     try {
       // Initialize AdMob if not already initialized
@@ -37,30 +53,39 @@ export function useAdMob() {
       const rewarded = await admobService.showRewardAd();
       console.log('Ad completed with result:', rewarded);
       
-      // Clear timeout since we got a response
-      if (loadingTimeoutRef.current) {
-        window.clearTimeout(loadingTimeoutRef.current);
-        loadingTimeoutRef.current = null;
+      // Only update state if component is still mounted
+      if (mounted.current) {
+        // Clear timeout since we got a response
+        if (loadingTimeoutRef.current) {
+          window.clearTimeout(loadingTimeoutRef.current);
+          loadingTimeoutRef.current = null;
+        }
+        
+        if (rewarded) {
+          toast.success('Reklam başarıyla gösterildi!');
+        } else {
+          setError('Reklam tamamlanmadı');
+          toast.error('Reklam tamamlanmadı veya gösterilemedi. Lütfen tekrar deneyin.');
+        }
+        
+        setIsLoading(false);
       }
       
-      if (rewarded) {
-        toast.success('Reklam başarıyla gösterildi!');
-      } else {
-        toast.error('Reklam tamamlanmadı veya gösterilemedi. Lütfen tekrar deneyin.');
-      }
-      
-      setIsLoading(false);
       return rewarded;
     } catch (error) {
-      // Clear timeout since we got an error
-      if (loadingTimeoutRef.current) {
-        window.clearTimeout(loadingTimeoutRef.current);
-        loadingTimeoutRef.current = null;
+      // Only update state if component is still mounted
+      if (mounted.current) {
+        // Clear timeout since we got an error
+        if (loadingTimeoutRef.current) {
+          window.clearTimeout(loadingTimeoutRef.current);
+          loadingTimeoutRef.current = null;
+        }
+        
+        console.error('Error showing reward ad:', error);
+        setError('Reklam gösterilirken hata oluştu');
+        toast.error('Reklam gösterilirken bir hata oluştu. Lütfen tekrar deneyin.');
+        setIsLoading(false);
       }
-      
-      console.error('Error showing reward ad:', error);
-      toast.error('Reklam gösterilirken bir hata oluştu. Lütfen tekrar deneyin.');
-      setIsLoading(false);
       
       // For development/testing, return true to allow functionality without ads
       if (process.env.NODE_ENV === 'development') {
@@ -72,17 +97,9 @@ export function useAdMob() {
     }
   }, [isLoading]);
 
-  // Clean up timeout on unmount
-  useCallback(() => {
-    return () => {
-      if (loadingTimeoutRef.current) {
-        window.clearTimeout(loadingTimeoutRef.current);
-      }
-    };
-  }, []);
-
   return {
     showRewardAd,
-    isLoading
+    isLoading,
+    error
   };
 }

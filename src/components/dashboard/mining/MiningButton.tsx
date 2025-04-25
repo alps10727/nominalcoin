@@ -6,7 +6,6 @@ import { ButtonBackground } from "./button/ButtonBackground";
 import { ButtonContent } from "./button/ButtonContent";
 import { MiningButtonBase } from "./button/MiningButtonBase";
 import { formatTimeDisplay } from "@/utils/miningUtils";
-import { Loader2 } from "lucide-react";
 
 interface MiningButtonProps {
   miningActive: boolean;
@@ -71,19 +70,11 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
         <ButtonBackground miningActive={miningActive} adLoading={adLoading} />
         
         {/* Content (text, icon) */}
-        {adLoading ? (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-purple-200 text-center">
-              <Loader2 className="animate-spin h-8 w-8 mx-auto mb-2" />
-              <div className="text-sm">Yükleniyor...</div>
-            </div>
-          </div>
-        ) : (
-          <ButtonContent 
-            miningActive={miningActive} 
-            displayTime={displayTime} 
-          />
-        )}
+        <ButtonContent 
+          miningActive={miningActive} 
+          displayTime={displayTime} 
+          adLoading={adLoading}
+        />
       </MiningButtonBase>
       
       {/* Info text when mining is active */}
@@ -95,7 +86,7 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
       
       {/* Info text when ad is loading */}
       {adLoading && (
-        <div className="absolute top-full left-0 right-0 text-xs text-amber-400/80 text-center mt-2">
+        <div className="absolute top-full left-0 right-0 text-xs text-amber-400/80 text-center mt-2 animate-pulse">
           Reklam yükleniyor, lütfen bekleyin...
         </div>
       )}
