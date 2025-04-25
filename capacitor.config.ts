@@ -1,4 +1,3 @@
-
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
@@ -10,16 +9,13 @@ const config: CapacitorConfig = {
     cleartext: true
   },
   bundledWebRuntime: false,
-  // Mobil görünüm için ek yapılandırmalar
   ios: {
     contentInset: 'always',
     scheme: 'nominalcoin',
     limitsNavigationsToAppBoundDomains: true,
-    // iOS splash screen'in ortalanması için ek yapılandırma
     backgroundColor: "#073042",
     preferredContentMode: "mobile",
-    splashScreenDelay: 3000, // Splash ekranının gösterilme süresi (ms)
-    // iOS izinleri için Info.plist eklemeleri
+    splashScreenDelay: 3000,
     infoPlist: {
       NSCameraUsageDescription: "QR kodları taramak ve profil resmi çekmek için kamera erişimi gereklidir.",
       NSPhotoLibraryUsageDescription: "Profil resmi seçmek için fotoğraf kütüphanesi erişimi gereklidir.",
@@ -27,10 +23,8 @@ const config: CapacitorConfig = {
       NSFaceIDUsageDescription: "Güvenli giriş için FaceID kullanımına izin verin.",
       CFBundleLocalizations: ["tr", "en"],
       CFBundleDevelopmentRegion: "tr",
-      // GDPR ve COPPA uyumlu kullanım için eklenir
       NSUserTrackingUsageDescription: "Bu izin, size kişiselleştirilmiş reklamlar sunmak için kullanılacaktır.",
-      // AdMob için gerekli ek bilgiler
-      GADApplicationIdentifier: "ca-app-pub-3940256099942544~1458002511", // Test App ID (iOS)
+      GADApplicationIdentifier: "ca-app-pub-3940256099942544~1458002511",
       SKAdNetworkItems: [
         {
           SKAdNetworkIdentifier: "cstr6suwn9.skadnetwork"
@@ -49,7 +43,6 @@ const config: CapacitorConfig = {
     webViewUserAgentTemplate: 'NominalCoin Android App',
     backgroundColor: "#073042",
     allowMixedContent: true,
-    // Android için otomatik izin talepleri - internet izni eklendi
     permissions: [
       "android.permission.CAMERA",
       "android.permission.READ_EXTERNAL_STORAGE",
@@ -58,9 +51,7 @@ const config: CapacitorConfig = {
       "android.permission.ACCESS_NETWORK_STATE",
       "android.permission.INTERNET"
     ],
-    // AndroidManifest.xml'e eklenecek meta-data'lar için yapılandırma
     appendUserAgent: "NominalCoin",
-    // AdMob meta-data'ları AndroidManifest.xml'e otomatik olarak eklenecek
     includePlugins: ["@capacitor/admob"],
     buildOptions: {
       keystorePath: "nominalcoin.keystore",
@@ -83,25 +74,19 @@ const config: CapacitorConfig = {
       smallIcon: "ic_stat_notification",
       iconColor: "#488AFF"
     },
-    // AdMob konfigürasyonu güncellendi
     Admob: {
       android: {
         initialize: true,
-        // Android meta-data için yapılandırma
-        applicationId: "ca-app-pub-3940256099942544~3347511713" // Test App ID (Android)
+        applicationId: "ca-app-pub-2373579046576398~2384328016"
       },
       ios: {
         initialize: true,
-        // iOS meta-data için yapılandırma
-        applicationId: "ca-app-pub-3940256099942544~1458002511" // Test App ID (iOS)
+        applicationId: "ca-app-pub-2373579046576398~2384328016"
       },
     },
-    // Belirtik AdMob plugin yapılandırması
     AdMob: {
-      // Initialize automatically
       initialize: true,
-      // Test mode for development
-      testingDevices: ["EMULATOR"], // This will include emulators as test devices
+      testingDevices: ["EMULATOR"],
       initializeForTesting: true
     }
   }

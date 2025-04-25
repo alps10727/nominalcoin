@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const corsHeaders = {
@@ -12,19 +11,15 @@ serve(async (req) => {
   }
 
   try {
-    // Use test ad unit IDs for development
-    const isTestMode = true;
+    const isTestMode = false; // Change to false since we're using a real app ID
     
-    // Test for standard Google AdMob test IDs
     const config = {
       // Android App ID
-      appId: isTestMode 
-        ? 'ca-app-pub-3940256099942544~3347511713' // Test App ID (Android)
-        : Deno.env.get('ADMOB_APP_ID'),
+      appId: "ca-app-pub-2373579046576398~2384328016",
       
-      // Android Ad Unit IDs
+      // Android Ad Unit IDs (please replace with your actual ad unit IDs)
       rewardAdUnitId: isTestMode
-        ? 'ca-app-pub-3940256099942544/5224354917' // Test Reward Ad Unit ID (Android)
+        ? 'ca-app-pub-3940256099942544/5224354917'
         : Deno.env.get('ADMOB_REWARD_AD_UNIT_ID'),
         
       bannerAdUnitId: isTestMode 
@@ -52,8 +47,6 @@ serve(async (req) => {
         ? 'ca-app-pub-3940256099942544/4411468910' // Test iOS Interstitial Ad Unit ID
         : Deno.env.get('ADMOB_IOS_INTERSTITIAL_AD_UNIT_ID'),
     }
-
-    console.log("Sending AdMob config:", JSON.stringify(config));
 
     return new Response(
       JSON.stringify({ data: config }),
