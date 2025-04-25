@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { admobService } from '@/services/admob/admobService';
 import { toast } from 'sonner';
@@ -12,7 +11,6 @@ export function useAdMob() {
   const initializationAttempted = useRef(false);
   const adLoadTimeoutRef = useRef<number | null>(null);
 
-  // Check if AdMob plugin is available
   useEffect(() => {
     if (typeof window !== 'undefined' && window.Capacitor) {
       const available = window.Capacitor.isPluginAvailable('AdMob');
@@ -21,7 +19,6 @@ export function useAdMob() {
     }
   }, []);
 
-  // Initialize AdMob service
   useEffect(() => {
     const initAdMob = async () => {
       if (initializationAttempted.current) return;
@@ -32,7 +29,6 @@ export function useAdMob() {
         await admobService.initialize();
         setIsInitialized(true);
         
-        // Preload an ad after initialization
         setTimeout(() => {
           admobService.preloadRewardAd();
         }, 1500);
@@ -61,7 +57,6 @@ export function useAdMob() {
     };
   }, [isInitialized, pluginAvailable]);
 
-  // Set up event listeners
   useEffect(() => {
     const setupListeners = async () => {
       if (!window.Capacitor || !window.Admob || !isInitialized) return;
@@ -78,7 +73,6 @@ export function useAdMob() {
           debugLog('AdMob Hook', `Ad failed to load: ${errorCode} - ${errorMessage}`);
           setAdErrorCount(prev => prev + 1);
           
-          // Retry loading ad after a delay
           adLoadTimeoutRef.current = window.setTimeout(() => {
             admobService.preloadRewardAd();
           }, 5000);
@@ -88,7 +82,6 @@ export function useAdMob() {
           debugLog('AdMob Hook', `Rewarded video failed to load: ${JSON.stringify(info)}`);
           setAdErrorCount(prev => prev + 1);
           
-          // Retry loading ad after a delay
           adLoadTimeoutRef.current = window.setTimeout(() => {
             admobService.preloadRewardAd();
           }, 5000);
@@ -97,7 +90,6 @@ export function useAdMob() {
         await window.Admob.addListener('onRewardedVideoAdClosed', () => {
           debugLog('AdMob Hook', 'Rewarded video ad closed');
           
-          // Preload next ad after current one is closed
           adLoadTimeoutRef.current = window.setTimeout(() => {
             admobService.preloadRewardAd();
           }, 1000);
@@ -112,7 +104,6 @@ export function useAdMob() {
     }
   }, [isInitialized, pluginAvailable]);
 
-  // Show reward ad function with improved error handling
   const showRewardAd = useCallback(async () => {
     setIsLoading(true);
     debugLog('AdMob Hook', 'Attempting to show reward ad');
@@ -120,17 +111,15 @@ export function useAdMob() {
     try {
       if (!window.Capacitor || !pluginAvailable) {
         debugLog('AdMob Hook', 'Plugin not available, simulating reward');
-        await new Promise(resolve => setTimeout(resolve, 500)); // Short delay to simulate ad
+        await new Promise(resolve => setTimeout(resolve, 500));
         setIsLoading(false);
         return true;
       }
       
-      // Double check we're initialized
       if (!isInitialized) {
         await admobService.initialize();
       }
       
-      // Show the ad and get reward status
       const rewarded = await admobService.showRewardAd();
       setIsLoading(false);
       
@@ -153,7 +142,6 @@ export function useAdMob() {
     }
   }, [pluginAvailable, isInitialized]);
 
-  // Manual preload function
   const preloadNextAd = useCallback(() => {
     if (isInitialized && pluginAvailable) {
       debugLog('AdMob Hook', 'Manually preloading next ad');
@@ -182,6 +170,25 @@ export function useAdMob() {
     }
   }, [pluginAvailable]);
 
+  const showInterstitialAd = useCallback(async () => {
+    if (!window.Capacitor || !pluginAvailable) {
+      debugLog('AdMob Hook', 'Plugin not available, simulating interstitial ad');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return true;
+    }
+    
+    try {
+      if (!isInitialized) {
+        await admobService.initialize();
+      }
+      
+      return await admobService.showInterstitialAd();
+    } catch (error) {
+      console.error('Error showing interstitial ad:', error);
+      return false;
+    }
+  }, [pluginAvailable, isInitialized]);
+
   return {
     showRewardAd,
     isLoading,
@@ -190,6 +197,7 @@ export function useAdMob() {
     pluginAvailable,
     adErrorCount,
     showBannerAd,
-    hideBannerAd
+    hideBannerAd,
+    showInterstitialAd
   };
 }

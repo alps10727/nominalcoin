@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { loadUserData } from "@/utils/storage";
 import { debugLog } from "@/utils/debugUtils";
 import { QueryCacheManager } from "@/services/optimizationService";
+import MenuCard from "@/components/dashboard/MenuCard";
 
 const Index = () => {
   const {
@@ -149,9 +150,13 @@ const Index = () => {
                 Mining Hub
               </h2>
               
-              <Button variant="link" size="sm" className="text-purple-400 hover:text-purple-300 -mr-2">
-                Boosts <ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
+              {/* Boosts butonuna showAd prop'unu ekledik */}
+              <MenuCard
+                title="Boosts"
+                icon={ChevronRight}
+                to="/boosts"
+                showAd={true}
+              />
             </div>
             
             {isLoading ? (
