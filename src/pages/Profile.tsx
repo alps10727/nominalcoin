@@ -1,4 +1,5 @@
-
+import React, { useEffect } from 'react';
+import { useAdMob } from '@/hooks/useAdMob';
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -13,6 +14,12 @@ import ProfileInformationCard from "@/components/profile/cards/ProfileInformatio
 import AccountManagementCard from "@/components/profile/cards/AccountManagementCard";
 
 const Profile = () => {
+  const { showBannerAd } = useAdMob();
+
+  useEffect(() => {
+    showBannerAd();
+  }, [showBannerAd]);
+
   const [loading, setLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const navigate = useNavigate();
