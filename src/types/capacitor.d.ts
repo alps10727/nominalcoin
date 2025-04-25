@@ -22,4 +22,7 @@ interface CapacitorInterface {
 interface Window {
   Capacitor?: CapacitorInterface;
   Admob?: AdmobPlugin;
+  EdgeRuntime?: {
+    userAgent: string;
+  };
 }

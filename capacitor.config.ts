@@ -30,10 +30,16 @@ const config: CapacitorConfig = {
       // GDPR ve COPPA uyumlu kullanım için eklenir
       NSUserTrackingUsageDescription: "Bu izin, size kişiselleştirilmiş reklamlar sunmak için kullanılacaktır.",
       // AdMob için gerekli ek bilgiler
-      GADApplicationIdentifier: "ca-app-pub-3940256099942544~3347511713", // Test App ID
+      GADApplicationIdentifier: "ca-app-pub-3940256099942544~1458002511", // Test App ID (iOS)
       SKAdNetworkItems: [
         {
           SKAdNetworkIdentifier: "cstr6suwn9.skadnetwork"
+        },
+        {
+          SKAdNetworkIdentifier: "4pfyvq9l8r.skadnetwork"
+        },
+        {
+          SKAdNetworkIdentifier: "2fnua5tdw4.skadnetwork"
         }
       ]
     }
@@ -88,6 +94,14 @@ const config: CapacitorConfig = {
       ios: {
         initialize: true,
       },
+    },
+    // Belirtik AdMob plugin yapılandırması
+    AdMob: {
+      // Initialize automatically
+      initialize: true,
+      // Test mode for development
+      testingDevices: ["DEVICE_ID_HERE"],
+      initializeForTesting: true
     }
   }
 };
