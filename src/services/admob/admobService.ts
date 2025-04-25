@@ -1,18 +1,11 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { debugLog, errorLog } from "@/utils/debugUtils";
+import { AdMobListenerManager } from "./listenerManager";
+import { fetchAdMobConfig, getPlatformSpecificAdUnit } from "./config";
+import type { AdMobServiceInterface } from "./types";
 
-interface AdMobConfig {
-  appId: string;
-  rewardAdUnitId: string;
-  iOSAppId?: string;
-  iOSRewardAdUnitId?: string;
-  bannerAdUnitId?: string;
-  iOSBannerAdUnitId?: string;
-  interstitialAdUnitId?: string;
-  iOSInterstitialAdUnitId?: string;
-}
-
-export class AdMobService {
+export class AdMobService implements AdMobServiceInterface {
   private static instance: AdMobService;
   private initialized = false;
   private isPreloading = false;
@@ -20,11 +13,11 @@ export class AdMobService {
   private bannerAdLoaded = false;
   private adLoadInProgress = false;
   private lastAdLoadAttempt = 0;
-  private adLoadRetryCount = 0;
-  private readonly MAX_RETRY_COUNT = 3;
-  private readonly RETRY_DELAY = 5000; // 5 seconds
+  private listenerManager: AdMobListenerManager;
 
-  private constructor() {}
+  private constructor() {
+    this.listenerManager = new AdMobListenerManager(() => this.preloadRewardAd());
+  }
 
   static getInstance(): AdMobService {
     if (!AdMobService.instance) {
@@ -47,75 +40,26 @@ export class AdMobService {
         return;
       }
 
-      const { data: responseData, error } = await supabase.functions.invoke<{data: AdMobConfig}>('get-admob-config');
-      
-      if (error || !responseData) {
-        errorLog('AdMob', 'Failed to retrieve AdMob config', error);
-        return;
-      }
-      
-      const config = responseData.data;
-      if (!config || !config.appId) {
-        errorLog('AdMob', 'Invalid AdMob config: missing appId', null);
-        return;
-      }
+      const config = await fetchAdMobConfig();
+      if (!config) return;
 
-      debugLog('AdMob', `Initializing with appId: ${config.appId}`);
-      
       const platform = window.Capacitor.getPlatform();
       const appId = platform === 'ios' ? (config.iOSAppId || config.appId) : config.appId;
       
       await window.Admob?.initialize({
         appId: appId,
         testingDevices: ['TEST-DEVICE-ID'],
-        initializeForTesting: true, // Use test ads
+        initializeForTesting: true,
       });
 
-      debugLog('AdMob', `AdMob initialized successfully on platform: ${platform} with appId: ${appId}`);
+      debugLog('AdMob', `AdMob initialized successfully on platform: ${platform}`);
 
-      this.setupGlobalErrorListeners();
-
+      await this.listenerManager.setupGlobalListeners();
       this.initialized = true;
       
       setTimeout(() => this.preloadRewardAd(), 1000);
     } catch (error) {
       errorLog('AdMob', 'Failed to initialize AdMob:', error);
-    }
-  }
-
-  private setupGlobalErrorListeners(): void {
-    if (!window.Capacitor || !window.Admob) return;
-
-    try {
-      window.Admob.addListener('onAdFailedToLoad', (info) => {
-        const errorMessage = info?.message || 'Unknown error';
-        const errorCode = info?.code || 'unknown';
-        
-        errorLog('AdMob', `Ad failed to load with error code: ${errorCode}, message: ${errorMessage}`, null);
-        
-        this.adPreloaded = false;
-        this.isPreloading = false;
-        this.adLoadInProgress = false;
-        this.adLoadRetryCount++;
-        
-        if (this.adLoadRetryCount <= this.MAX_RETRY_COUNT) {
-          const delay = this.RETRY_DELAY * Math.pow(2, this.adLoadRetryCount - 1);
-          debugLog('AdMob', `Will retry loading ad in ${delay}ms (attempt ${this.adLoadRetryCount})`);
-          setTimeout(() => this.preloadRewardAd(), delay);
-        }
-      });
-      
-      window.Admob.addListener('onAdLoaded', () => {
-        debugLog('AdMob', 'Ad loaded successfully');
-        this.adPreloaded = true;
-        this.isPreloading = false;
-        this.adLoadInProgress = false;
-        this.adLoadRetryCount = 0;
-      });
-      
-      debugLog('AdMob', 'Global error listeners set up');
-    } catch (error) {
-      errorLog('AdMob', 'Failed to set up global error listeners', error);
     }
   }
 
@@ -143,41 +87,30 @@ export class AdMobService {
       
       debugLog('AdMob', 'Started preloading reward ad');
 
-      const { data: responseData, error } = await supabase.functions.invoke<{data: AdMobConfig}>('get-admob-config');
-      
-      if (error || !responseData) {
-        errorLog('AdMob', 'Failed to retrieve AdMob config', error);
-        this.isPreloading = false;
-        this.adLoadInProgress = false;
-        return;
-      }
-      
-      const config = responseData.data;
-      if (!config || !config.rewardAdUnitId) {
-        errorLog('AdMob', 'Invalid AdMob config: missing rewardAdUnitId', null);
-        this.isPreloading = false;
-        this.adLoadInProgress = false;
+      const config = await fetchAdMobConfig();
+      if (!config) {
+        this.resetAdStates();
         return;
       }
 
       const platform = window.Capacitor.getPlatform();
-      const adUnitId = platform === 'ios' 
-        ? (config.iOSRewardAdUnitId || config.rewardAdUnitId) 
-        : config.rewardAdUnitId;
+      const adUnitId = getPlatformSpecificAdUnit(config, platform, 'reward');
       
-      debugLog('AdMob', `Preloading reward ad with ID: ${adUnitId} for platform: ${platform}`);
+      debugLog('AdMob', `Preloading reward ad with ID: ${adUnitId}`);
 
       await window.Admob?.prepareRewardVideoAd({
         adId: adUnitId,
       });
-      
-      debugLog('AdMob', 'Reward ad preload request sent');
     } catch (error) {
-      this.adPreloaded = false;
-      this.isPreloading = false;
-      this.adLoadInProgress = false;
+      this.resetAdStates();
       errorLog('AdMob', 'Failed to preload reward ad:', error);
     }
+  }
+
+  private resetAdStates(): void {
+    this.adPreloaded = false;
+    this.isPreloading = false;
+    this.adLoadInProgress = false;
   }
 
   async showRewardAd(): Promise<boolean> {
@@ -194,28 +127,12 @@ export class AdMobService {
       debugLog('AdMob', `Attempting to show reward ad. Preloaded: ${this.adPreloaded}`);
 
       if (!this.adPreloaded && !this.isPreloading && !this.adLoadInProgress) {
-        debugLog('AdMob', 'No preloaded ad available, loading on demand');
-        
-        const { data: responseData, error } = await supabase.functions.invoke<{data: AdMobConfig}>('get-admob-config');
-        
-        if (error || !responseData) {
-          errorLog('AdMob', 'Failed to retrieve AdMob config', error);
-          return false;
-        }
-        
-        const config = responseData.data;
-        if (!config || !config.rewardAdUnitId) {
-          errorLog('AdMob', 'Invalid AdMob config: missing rewardAdUnitId', null);
-          return false;
-        }
+        const config = await fetchAdMobConfig();
+        if (!config) return false;
 
         const platform = window.Capacitor.getPlatform();
-        const adUnitId = platform === 'ios' 
-          ? (config.iOSRewardAdUnitId || config.rewardAdUnitId) 
-          : config.rewardAdUnitId;
-
-        debugLog('AdMob', `Loading reward ad on demand with ID: ${adUnitId}`);
-
+        const adUnitId = getPlatformSpecificAdUnit(config, platform, 'reward');
+        
         await window.Admob?.prepareRewardVideoAd({
           adId: adUnitId,
         });
@@ -223,22 +140,15 @@ export class AdMobService {
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
-      debugLog('AdMob', 'Showing reward ad');
       const result = await window.Admob?.showRewardVideoAd();
-      
-      debugLog('AdMob', `Show reward ad result: ${JSON.stringify(result)}`);
-      
       this.adPreloaded = false;
       
       setTimeout(() => this.preloadRewardAd(), 1000);
       
-      const rewarded = result?.rewarded || false;
-      debugLog('AdMob', `Reward ad result: ${rewarded ? 'rewarded' : 'not rewarded'}`);
-      return rewarded;
+      return result?.rewarded || false;
     } catch (error) {
       errorLog('AdMob', 'Failed to show reward ad:', error);
       this.adPreloaded = false;
-      
       setTimeout(() => this.preloadRewardAd(), 3000);
       return false;
     }
@@ -255,23 +165,16 @@ export class AdMobService {
         return;
       }
 
-      const { data: responseData, error } = await supabase.functions.invoke<{data: AdMobConfig}>('get-admob-config');
+      const config = await fetchAdMobConfig();
+      if (!config) return;
       
-      if (error || !responseData?.data) {
-        errorLog('AdMob', 'Failed to retrieve AdMob config', error);
-        return;
-      }
-      
-      const config = responseData.data;
-      if (!config.bannerAdUnitId) {
-        errorLog('AdMob', 'Invalid AdMob config: missing bannerAdUnitId', null);
-        return;
-      }
-
       const platform = window.Capacitor.getPlatform();
-      const adUnitId = platform === 'ios' 
-        ? (config.iOSBannerAdUnitId || config.bannerAdUnitId) 
-        : config.bannerAdUnitId;
+      const adUnitId = getPlatformSpecificAdUnit(config, platform, 'banner');
+      
+      if (!adUnitId) {
+        errorLog('AdMob', 'No banner ad unit ID available', null);
+        return;
+      }
 
       debugLog('AdMob', `Showing banner ad with ID: ${adUnitId}`);
 
@@ -282,7 +185,6 @@ export class AdMobService {
       });
 
       this.bannerAdLoaded = true;
-      debugLog('AdMob', 'Banner ad shown successfully');
     } catch (error) {
       errorLog('AdMob', 'Failed to show banner ad:', error);
       this.bannerAdLoaded = false;
