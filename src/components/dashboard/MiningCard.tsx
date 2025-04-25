@@ -8,7 +8,7 @@ import { debugLog } from "@/utils/debugUtils";
 import { MiningButton } from "./mining/MiningButton";
 import { MiningProgressBar } from "./mining/MiningProgressBar";
 import { MiningParticles } from "./mining/MiningParticles";
-import { MiningHeader } from "./mining/MiningCardHeader";
+import { MiningCardHeader } from "./mining/MiningCardHeader";
 import { MiningStats } from "./mining/MiningStats";
 import { MiningBackground } from "./mining/MiningBackground";
 
@@ -106,7 +106,7 @@ const MiningCard = React.memo<MiningCardProps>(({
       <MiningParticles miningActive={miningActive} />
       
       <CardContent className={`relative z-10 ${isMobile ? "px-4 py-5" : "px-6 py-6"}`}>
-        <MiningHeader 
+        <MiningCardHeader 
           miningActive={miningActive}
           isMobile={isMobile}
         />
