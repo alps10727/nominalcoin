@@ -1,4 +1,3 @@
-
 import { MobileMenu } from "./header/MobileMenu";
 import { Logo } from "./header/Logo";
 import { LanguageSwitcher } from "./header/LanguageSwitcher";
@@ -11,7 +10,6 @@ import { Link } from "react-router-dom";
 const Header = memo(() => {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
-  // Monitor internet connection
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
     const handleOffline = () => setIsOffline(true);
@@ -25,14 +23,12 @@ const Header = memo(() => {
     };
   }, []);
   
-  // Page refresh function
   const refreshPage = () => {
     window.location.reload();
   };
 
   return (
     <header className="bg-gradient-to-b from-darkPurple-950/95 to-darkPurple-900/95 backdrop-blur-xl pt-safe p-4 flex justify-between items-center sticky top-0 z-50 border-b border-purple-700/20 shadow-md">
-      {/* Offline warning */}
       {isOffline && (
         <div className="absolute bottom-0 left-0 right-0 bg-red-800/90 text-white text-xs py-1 text-center flex items-center justify-center">
           <WifiOff className="h-3 w-3 mr-1" />
@@ -54,7 +50,6 @@ const Header = memo(() => {
       </div>
 
       <div className="flex items-center gap-3 relative z-10">
-        {/* Special offers button */}
         <Button 
           variant="ghost" 
           size="sm"
@@ -76,7 +71,6 @@ const Header = memo(() => {
   );
 });
 
-// DisplayName for easier debugging
 Header.displayName = "Header";
 
 export default Header;
