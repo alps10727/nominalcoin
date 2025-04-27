@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -11,29 +10,28 @@ import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, Pagi
 import { useState } from "react";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { useTasks } from "@/contexts/TasksContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Tasks = () => {
   const { t } = useLanguage();
   const { theme } = useTheme();
   const { dailyTasks, badges, claimReward, loading: tasksDataLoading } = useTasksData();
   const { error: tasksError, loading: tasksContextLoading } = useTasks();
+  const { currentUser } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 3;
   
-  // Mevcut görevleri sayfalandırma için bölme
   const indexOfLastTask = currentPage * itemsPerPage;
   const indexOfFirstTask = indexOfLastTask - itemsPerPage;
   const currentTasks = dailyTasks.slice(indexOfFirstTask, indexOfLastTask);
   const totalPages = Math.ceil(dailyTasks.length / itemsPerPage);
 
-  // Sayfa değiştirme fonksiyonları
   const goToPage = (pageNumber: number) => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
     }
   };
 
-  // Yükleniyor durumu
   const isLoading = tasksDataLoading || tasksContextLoading;
 
   return (
@@ -43,7 +41,8 @@ const Tasks = () => {
           <h1 className="text-2xl font-bold text-white">{t('tasks.title')}</h1>
         </div>
 
-        {/* Hata durumunu göster */}
+        {currentUser?.is_admin && <AdminTaskForm />}
+
         {tasksError && (
           <div className="bg-red-500/10 border border-red-500/30 text-red-200 p-4 mb-6 rounded-lg flex items-start">
             <AlertCircle className="h-5 w-5 mr-2 shrink-0 mt-0.5" />
@@ -64,7 +63,6 @@ const Tasks = () => {
           </div>
         )}
 
-        {/* Yükleniyor durumunu göster */}
         {isLoading && (
           <div className="flex items-center justify-center p-8">
             <Loader2 className="h-8 w-8 animate-spin text-teal-400" />
@@ -105,7 +103,6 @@ const Tasks = () => {
                   </Card>
                 )}
                 
-                {/* Sayfalandırma bileşeni */}
                 {totalPages > 1 && (
                   <Pagination className="mt-6">
                     <PaginationContent>
