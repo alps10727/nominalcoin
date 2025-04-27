@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { useAuth } from '@/contexts/AuthContext';
 
 const AdminTaskForm = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, userData } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -20,7 +20,7 @@ const AdminTaskForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!currentUser?.is_admin) {
+    if (!userData?.isAdmin) {
       toast.error('Bu işlem için yetkiniz yok');
       return;
     }
@@ -52,7 +52,7 @@ const AdminTaskForm = () => {
     }
   };
 
-  if (!currentUser?.is_admin) {
+  if (!userData?.isAdmin) {
     return null;
   }
 

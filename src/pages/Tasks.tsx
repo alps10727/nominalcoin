@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -11,13 +12,14 @@ import { useState } from "react";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { useTasks } from "@/contexts/TasksContext";
 import { useAuth } from "@/contexts/AuthContext";
+import AdminTaskForm from "@/components/admin/AdminTaskForm";
 
 const Tasks = () => {
   const { t } = useLanguage();
   const { theme } = useTheme();
   const { dailyTasks, badges, claimReward, loading: tasksDataLoading } = useTasksData();
   const { error: tasksError, loading: tasksContextLoading } = useTasks();
-  const { currentUser } = useAuth();
+  const { currentUser, userData } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 3;
   
@@ -41,7 +43,7 @@ const Tasks = () => {
           <h1 className="text-2xl font-bold text-white">{t('tasks.title')}</h1>
         </div>
 
-        {currentUser?.is_admin && <AdminTaskForm />}
+        {userData?.isAdmin && <AdminTaskForm />}
 
         {tasksError && (
           <div className="bg-red-500/10 border border-red-500/30 text-red-200 p-4 mb-6 rounded-lg flex items-start">
