@@ -4,10 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
-import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { debugLog, errorLog } from "@/utils/debugUtils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import ProfileInformationCard from "@/components/profile/cards/ProfileInformationCard";
 import AccountManagementCard from "@/components/profile/cards/AccountManagementCard";
@@ -30,7 +26,6 @@ const Profile = () => {
   useEffect(() => {
     if (userData) {
       setName(userData.name || "");
-      debugLog("Profile", "userData updated:", userData);
     }
   }, [userData]);
 
@@ -80,20 +75,6 @@ const Profile = () => {
       setLoading(false);
     }
   };
-  
-  const handleRefresh = async () => {
-    setLoading(true);
-    try {
-      debugLog("Profile", "Refreshing page...");
-      await supabase.auth.refreshSession();
-      window.location.reload();
-    } catch (error) {
-      toast.error(t("auth.refreshError"));
-      errorLog("Profile", "Refresh error:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading) {
     return <LoadingScreen />;
@@ -103,14 +84,6 @@ const Profile = () => {
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">{t("profile.title")}</h1>
-        <Button 
-          variant="outline"
-          size="sm"
-          onClick={handleRefresh}
-        >
-          <RefreshCw className="w-4 h-4 mr-2" />
-          {t("profile.refresh")}
-        </Button>
       </div>
       
       {isOffline && (
