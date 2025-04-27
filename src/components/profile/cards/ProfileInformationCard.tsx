@@ -1,9 +1,7 @@
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Save } from "lucide-react";
 import ProfileAvatar from "../ProfileAvatar";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -13,8 +11,6 @@ interface ProfileInformationCardProps {
   avatarUrl: string | null;
   setAvatarUrl: (url: string | null) => void;
   currentUser: any;
-  handleSaveProfile: () => void;
-  isSaving: boolean;
 }
 
 const ProfileInformationCard = ({
@@ -22,9 +18,7 @@ const ProfileInformationCard = ({
   setName,
   avatarUrl,
   setAvatarUrl,
-  currentUser,
-  handleSaveProfile,
-  isSaving
+  currentUser
 }: ProfileInformationCardProps) => {
   const { t } = useLanguage();
   
@@ -68,24 +62,6 @@ const ProfileInformationCard = ({
               className="bg-gray-100 dark:bg-gray-800 font-mono text-sm"
             />
           </div>
-          
-          <Button 
-            onClick={handleSaveProfile} 
-            className="w-full"
-            disabled={isSaving}
-          >
-            {isSaving ? (
-              <>
-                <div className="animate-spin h-4 w-4 mr-2 border-2 border-white rounded-full border-t-transparent" />
-                {t("profile.saving")}
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4 mr-2" />
-                {t("profile.saveProfile")}
-              </>
-            )}
-          </Button>
         </div>
       </CardContent>
     </Card>

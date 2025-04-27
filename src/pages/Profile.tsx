@@ -20,9 +20,8 @@ const Profile = () => {
   }, [showBannerAd]);
 
   const [loading, setLoading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const navigate = useNavigate();
-  const { logout, currentUser, userData, updateUserData, isOffline } = useAuth();
+  const { logout, currentUser, userData, isOffline } = useAuth();
   const { t } = useLanguage();
   
   const [name, setName] = useState("");
@@ -95,25 +94,6 @@ const Profile = () => {
       setLoading(false);
     }
   };
-  
-  const handleSaveProfile = async () => {
-    if (!updateUserData) return;
-    
-    setIsSaving(true);
-    
-    try {
-      await updateUserData({
-        name,
-      });
-      
-      toast.success(t("profile.updateSuccess"));
-    } catch (error) {
-      toast.error(t("profile.updateError"));
-      errorLog("Profile", "Profile update error:", error);
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   if (loading) {
     return <LoadingScreen />;
@@ -147,8 +127,6 @@ const Profile = () => {
           avatarUrl={avatarUrl}
           setAvatarUrl={setAvatarUrl}
           currentUser={currentUser}
-          handleSaveProfile={handleSaveProfile}
-          isSaving={isSaving}
         />
         
         <AccountManagementCard
