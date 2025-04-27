@@ -19,7 +19,7 @@ export const MiningCardHeader = React.memo<MiningCardHeaderProps>(({
                      border border-darkPurple-800/20 shadow-inner">
           <Zap className="text-purple-400 h-4 w-4" />
         </div>
-        <span className="text-lg font-medium text-white">FC Mining</span>
+        <span className="text-lg font-medium text-white">NC Mining</span>
       </div>
       
       {miningActive && (
