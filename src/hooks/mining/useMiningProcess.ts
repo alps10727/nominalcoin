@@ -1,10 +1,11 @@
+
 import { useCallback, useRef } from 'react';
 import { MiningState } from '@/types/mining';
 import { getCurrentTime } from '@/utils/miningUtils';
 import { useIntervalManager, saveMiningStateOnCleanup } from '@/hooks/mining/useIntervalManager';
 import { processMiningUpdate } from './useMiningStateUpdate';
-import { supabase } from '@/utils/supabase';
-import { toast } from 'react-toastify';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from "sonner";
 
 /**
  * Hook for handling the mining process with local storage only
