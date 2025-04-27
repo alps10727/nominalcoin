@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Bell, Check, Clock, Star } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -66,44 +67,44 @@ const Notifications = () => {
 
   return (
     <div className="min-h-screen flex items-start justify-center pt-4">
-      <div className="w-full max-w-2xl px-4">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">{t("notifications.title") || "Bildirimler"}</h1>
-          <Bell className="h-6 w-6 text-purple-400" />
+      <div className="w-full max-w-lg px-4">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-xl font-semibold">{t("notifications.title") || "Bildirimler"}</h1>
+          <Bell className="h-5 w-5 text-purple-400" />
         </div>
 
-        <ScrollArea className="h-[calc(100vh-8rem)] rounded-lg border border-purple-700/20 bg-purple-900/10 backdrop-blur-sm">
-          <div className="p-4">
+        <ScrollArea className="h-[calc(100vh-8rem)] rounded-lg border border-purple-700/20 bg-purple-900/5 backdrop-blur-sm">
+          <div className="p-2">
             {notifications.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-6 text-gray-500 text-sm">
                 {t("notifications.empty") || "Bildirim bulunmuyor"}
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-2">
                 {notifications.map((notification) => (
                   <div
                     key={notification.id}
-                    className={`p-4 rounded-lg transition-all ${
+                    className={`p-3 rounded-lg transition-all ${
                       notification.read 
-                        ? "bg-purple-900/30" 
-                        : "bg-purple-800/40 border border-purple-500/30"
+                        ? "bg-purple-900/20" 
+                        : "bg-purple-800/30 border border-purple-500/20"
                     }`}
                   >
-                    <div className="flex items-start gap-4">
-                      <div className="p-2 rounded-full bg-purple-900/50">
+                    <div className="flex items-start gap-3">
+                      <div className="p-1.5 rounded-full bg-purple-900/40">
                         {getNotificationIcon(notification.type)}
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-semibold text-lg">{notification.title}</h3>
-                        <p className="text-gray-300 mt-1">{notification.message}</p>
+                        <h3 className="font-medium text-base">{notification.title}</h3>
+                        <p className="text-gray-300 text-sm mt-0.5">{notification.message}</p>
                         <div className="flex justify-between items-center mt-2">
-                          <span className="text-sm text-gray-400">{notification.time}</span>
+                          <span className="text-xs text-gray-400">{notification.time}</span>
                           {!notification.read && (
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => markAsRead(notification.id)}
-                              className="text-purple-400 hover:text-purple-300"
+                              className="text-purple-400 hover:text-purple-300 text-xs py-1 h-7"
                             >
                               Okundu olarak işaretle
                             </Button>
