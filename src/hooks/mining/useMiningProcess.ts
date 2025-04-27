@@ -1,9 +1,10 @@
-
 import { useCallback, useRef } from 'react';
 import { MiningState } from '@/types/mining';
 import { getCurrentTime } from '@/utils/miningUtils';
 import { useIntervalManager, saveMiningStateOnCleanup } from '@/hooks/mining/useIntervalManager';
 import { processMiningUpdate } from './useMiningStateUpdate';
+import { supabase } from '@/utils/supabase';
+import { toast } from 'react-toastify';
 
 /**
  * Hook for handling the mining process with local storage only
@@ -17,6 +18,23 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
   const lastVisitTimeRef = useRef<number>(getCurrentTime());
   const isProcessingRef = useRef<boolean>(false);
   
+  const createMiningCompletionNotification = async () => {
+    try {
+      await supabase.from('notifications').insert({
+        title: 'Madencilik Tamamlandı',
+        message: 'Başarıyla 6 saatlik madencilik süreniz tamamlandı.',
+        type: 'success',
+        user_id: state.userId
+      });
+
+      toast.success('Madencilik tamamlandı!', {
+        description: '6 saatlik madencilik süreniz bitti.'
+      });
+    } catch (error) {
+      console.error('Bildirim oluşturulurken hata:', error);
+    }
+  };
+
   // Process one update cycle of the mining timer
   const processMiningInterval = useCallback(() => {
     processMiningUpdate(
@@ -27,6 +45,11 @@ export function useMiningProcess(state: MiningState, setState: React.Dispatch<Re
       lastVisitTimeRef, 
       isProcessingRef
     );
+
+    // Madencilik süresi bittiğinde bildirim oluştur
+    if (state.miningActive && state.miningTime <= 0) {
+      createMiningCompletionNotification();
+    }
   }, [setState, state]);
   
   // Define cleanup function for the interval

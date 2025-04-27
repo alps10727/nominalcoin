@@ -1,56 +1,72 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Bell, Check, Clock, Star } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 interface Notification {
-  id: number;
+  id: string;
   title: string;
   message: string;
-  type: "info" | "success" | "warning";
-  time: string;
+  type: "success" | "info" | "warning";
+  created_at: string;
   read: boolean;
 }
 
 const Notifications = () => {
   const { t } = useLanguage();
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: 1,
-      title: "Madencilik Tamamlandı",
-      message: "Başarıyla 0.5 NC kazandınız!",
-      type: "success",
-      time: "5 dakika önce",
-      read: false
-    },
-    {
-      id: 2,
-      title: "Günlük Bonus",
-      message: "Günlük bonusunuzu almayı unutmayın!",
-      type: "info",
-      time: "2 saat önce",
-      read: false
-    },
-    {
-      id: 3,
-      title: "Yeni Görev",
-      message: "Yeni bir görev mevcut: 10 madencilik yap",
-      type: "warning",
-      time: "1 gün önce",
-      read: true
-    }
-  ]);
+  const { currentUser } = useAuth();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const markAsRead = (notificationId: number) => {
-    setNotifications(prev =>
-      prev.map(notif =>
-        notif.id === notificationId
-          ? { ...notif, read: true }
-          : notif
-      )
-    );
+  useEffect(() => {
+    if (currentUser) {
+      loadNotifications();
+    }
+  }, [currentUser]);
+
+  const loadNotifications = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setNotifications(data || []);
+    } catch (error) {
+      console.error('Bildirimler yüklenirken hata:', error);
+      toast.error('Bildirimler yüklenemedi');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const markAsRead = async (notificationId: string) => {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('id', notificationId);
+
+      if (error) throw error;
+
+      setNotifications(prev =>
+        prev.map(notif =>
+          notif.id === notificationId
+            ? { ...notif, read: true }
+            : notif
+        )
+      );
+    } catch (error) {
+      console.error('Bildirim güncellenirken hata:', error);
+      toast.error('Bildirim güncellenemedi');
+    }
   };
 
   const getNotificationIcon = (type: string) => {
@@ -64,6 +80,21 @@ const Notifications = () => {
         return <Star className="h-5 w-5 text-blue-500" />;
     }
   };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return new Intl.RelativeTimeFormat('tr', { numeric: 'auto' })
+      .format(Math.ceil((date.getTime() - Date.now()) / (1000 * 60)), 'minute')
+      .replace('-', '');
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-purple-400">Yükleniyor...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-start justify-center pt-4">
@@ -98,7 +129,7 @@ const Notifications = () => {
                         <h3 className="font-medium text-base">{notification.title}</h3>
                         <p className="text-gray-300 text-sm mt-0.5">{notification.message}</p>
                         <div className="flex justify-between items-center mt-2">
-                          <span className="text-xs text-gray-400">{notification.time}</span>
+                          <span className="text-xs text-gray-400">{formatDate(notification.created_at)}</span>
                           {!notification.read && (
                             <Button
                               variant="ghost"
