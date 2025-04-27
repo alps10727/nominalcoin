@@ -1,4 +1,3 @@
-
 import React, { useCallback, useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -42,7 +41,6 @@ const MiningCard = React.memo<MiningCardProps>(({
   
   const [isAttemptingToStart, setIsAttemptingToStart] = useState(false);
   
-  // Preload ad when component mounts
   useEffect(() => {
     if (!miningActive && isInitialized && pluginAvailable) {
       debugLog('MiningCard', 'Preloading ad on component mount');
@@ -50,7 +48,6 @@ const MiningCard = React.memo<MiningCardProps>(({
     }
   }, [miningActive, isInitialized, pluginAvailable, preloadNextAd]);
   
-  // Button click handler with improved ad checking
   const handleButtonClick = useCallback(async () => {
     if (miningActive) {
       onStopMining();
@@ -92,7 +89,6 @@ const MiningCard = React.memo<MiningCardProps>(({
     }
   }, [miningActive, onStartMining, onStopMining, showRewardAd, preloadNextAd, pluginAvailable]);
 
-  // Quick stats for display
   const hourlyRate = (miningRate * 60).toFixed(1);
 
   return (
@@ -102,7 +98,6 @@ const MiningCard = React.memo<MiningCardProps>(({
                   border border-purple-950/30">
       <MiningBackground />
       
-      {/* Animated particles when mining */}
       <MiningParticles miningActive={miningActive} />
       
       <CardContent className={`relative z-10 ${isMobile ? "px-4 py-5" : "px-6 py-6"}`}>
@@ -111,19 +106,16 @@ const MiningCard = React.memo<MiningCardProps>(({
           isMobile={isMobile}
         />
         
-        {/* Mining info with enhanced styling */}
         <div className="mb-6">
           <p className="text-purple-400/80 text-sm">
             {miningActive 
-              ? `Mining at ${hourlyRate} FC/hour` 
-              : "Start mining to earn Future Coin"}
+              ? `Mining at ${hourlyRate} NC/hour` 
+              : "Start mining to earn Nominal Coin"}
           </p>
           
-          {/* Progress bar - only shown when active */}
           {miningActive && <MiningProgressBar progress={progress} miningActive={miningActive} />}
         </div>
       
-        {/* Mining button - main interaction point */}
         <div className="text-center my-6 perspective-1000">
           <MiningButton 
             miningActive={miningActive}
@@ -131,7 +123,6 @@ const MiningCard = React.memo<MiningCardProps>(({
             onButtonClick={handleButtonClick}
           />
           
-          {/* Loading or error state message */}
           {(!miningActive && (adLoading || isAttemptingToStart)) && (
             <div className="mt-2 text-sm text-purple-300 animate-pulse">
               Reklam yükleniyor, lütfen bekleyin...
@@ -139,7 +130,6 @@ const MiningCard = React.memo<MiningCardProps>(({
           )}
         </div>
       
-        {/* Live mining stats */}
         {miningActive && (
           <MiningStats 
             miningTime={miningTime}
@@ -147,13 +137,12 @@ const MiningCard = React.memo<MiningCardProps>(({
           />
         )}
         
-        {/* Enhanced inactive state description */}
         {!miningActive && !adLoading && !isAttemptingToStart && (
           <div className="mt-4 text-center">
             <p className="text-xs text-purple-400/60 max-w-xs mx-auto leading-relaxed">
               {window.Capacitor
-                ? "Madenciliği başlatmak için butona tıklayın ve reklamı izleyin. 6 saat boyunca FC kazanacaksınız." 
-                : "Madenciliği başlatmak için butona tıklayın. 6 saat boyunca FC kazanacaksınız."}
+                ? "Madenciliği başlatmak için butona tıklayın ve reklamı izleyin. 6 saat boyunca NC kazanacaksınız." 
+                : "Madenciliği başlatmak için butona tıklayın. 6 saat boyunca NC kazanacaksınız."}
             </p>
           </div>
         )}

@@ -1,4 +1,3 @@
-
 export const tr = {
   "app.title": "NOMINAL Coin",
   "app.offlineMode": "Çevrimdışı mod - Sınırlı fonksiyonellik sunuluyor",
@@ -9,12 +8,12 @@ export const tr = {
   "mining.active": "DURDUR",
   "mining.inactive": "BAŞLAT",
   "mining.activeminers": "Aktif Madenciler",
-  "mining.rate": "Madencilik Hızı",
-  "mining.baseRate": "Temel Hız",
+  "mining.rate": "Madencilik Oranı",
+  "mining.baseRate": "Temel Oran",
   "mining.referralBonus": "Referans Bonusu",
-  "mining.total": "Toplam",
-  "mining.upgradeHint": "Madencilik hızını artırmak için yükseltme satın alın",
-  "mining.referralHint": "veya arkadaşlarınızı davet edin",
+  "mining.total": "Toplam Oran",
+  "mining.upgradeHint": "Madencilik hızınızı artırmak için yükseltme yapın",
+  "mining.referralHint": "Arkadaşlarınızı davet ederek madencilik oranınızı artırın",
   "mining.power": "Mining Power",
   "mining.rewards": "Ödüller",
   "mining.hourly": "Saatlik",

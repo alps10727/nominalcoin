@@ -1,4 +1,3 @@
-
 export const en = {
   "app.title": "NOMINAL Coin",
   "app.offlineMode": "Offline mode - Limited functionality is available",
@@ -12,9 +11,9 @@ export const en = {
   "mining.rate": "Mining Rate",
   "mining.baseRate": "Base Rate",
   "mining.referralBonus": "Referral Bonus",
-  "mining.total": "Total",
-  "mining.upgradeHint": "Purchase upgrades to increase your mining rate",
-  "mining.referralHint": "or invite your friends",
+  "mining.total": "Total Rate",
+  "mining.upgradeHint": "Upgrade your mining speed to earn more NC",
+  "mining.referralHint": "Invite friends to boost your mining rate",
   "mining.power": "Mining Power",
   "mining.rewards": "Rewards",
   "mining.hourly": "Hourly",
