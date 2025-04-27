@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAdMob } from '@/hooks/useAdMob';
 import { useNavigate } from "react-router-dom";
@@ -5,6 +6,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { debugLog, errorLog } from "@/utils/debugUtils";
 import ProfileInformationCard from "@/components/profile/cards/ProfileInformationCard";
 import AccountManagementCard from "@/components/profile/cards/AccountManagementCard";
 
@@ -26,6 +28,7 @@ const Profile = () => {
   useEffect(() => {
     if (userData) {
       setName(userData.name || "");
+      debugLog("Profile", "userData updated:", userData);
     }
   }, [userData]);
 
