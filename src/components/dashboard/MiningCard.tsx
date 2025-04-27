@@ -141,8 +141,8 @@ const MiningCard = React.memo<MiningCardProps>(({
           <div className="mt-4 text-center">
             <p className="text-xs text-purple-400/60 max-w-xs mx-auto leading-relaxed">
               {window.Capacitor
-                ? "Madenciliği başlatmak için butona tıklayın ve reklamı izleyin. 6 saat boyunca NC kazanacaksınız." 
-                : "Madenciliği başlatmak için butona tıklayın. 6 saat boyunca NC kazanacaksınız."}
+                ? "Start mining by clicking the button and watching an ad. You will earn NC for 6 hours." 
+                : "Start mining by clicking the button. You will earn NC for 6 hours."}
             </p>
           </div>
         )}
