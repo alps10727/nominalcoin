@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { UserData } from "@/types/storage";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { saveUserData as saveUserDataToLocal } from "@/utils/storage";
+import { toast } from "sonner";
 
 /**
  * Save user data to Supabase
@@ -18,7 +19,8 @@ export async function saveUserDataToSupabase(userId: string, userData: UserData)
       id: userId, 
       balance: userData.balance,
       miningActive: userData.miningActive,
-      referralCount: userData.referralCount
+      referralCount: userData.referralCount,
+      name: userData.name || ""
     });
 
     // Get the referral code from userData or localStorage
@@ -28,9 +30,13 @@ export async function saveUserDataToSupabase(userId: string, userData: UserData)
     try {
       const { data: existingData, error: fetchError } = await supabase
         .from('profiles')
-        .select('balance')
+        .select('balance, id')
         .eq('id', userId)
         .maybeSingle();
+      
+      if (fetchError) {
+        errorLog("saveUserDataService", "Error checking existing user data:", fetchError);
+      }
       
       if (!fetchError && existingData && existingData.balance > userData.balance) {
         // Eğer sunucudaki bakiye daha yüksekse, sunucudaki değeri kullan
@@ -81,6 +87,7 @@ export async function saveUserDataToSupabase(userId: string, userData: UserData)
         
       if (checkError && !checkError.message.includes('No rows found')) {
         errorLog("saveUserDataService", "Error checking existing user:", checkError);
+        toast.error("Kullanıcı verileri kontrol edilirken hata oluştu");
         return false;
       }
       
@@ -89,12 +96,14 @@ export async function saveUserDataToSupabase(userId: string, userData: UserData)
       // Update or insert based on whether user exists
       if (existingUser) {
         // Update existing user
+        debugLog("saveUserDataService", "Updating existing user profile", userId);
         result = await supabase
           .from('profiles')
           .update(profileData)
           .eq('id', userId);
       } else {
         // Insert new user
+        debugLog("saveUserDataService", "Creating new user profile", userId);
         result = await supabase
           .from('profiles')
           .insert([profileData]);
@@ -102,10 +111,14 @@ export async function saveUserDataToSupabase(userId: string, userData: UserData)
       
       if (result.error) {
         errorLog("saveUserDataService", "Error saving user data:", result.error);
+        toast.error("Kullanıcı verileri kaydedilemedi: " + result.error.message);
         return false;
       }
+      
+      debugLog("saveUserDataService", "User data saved successfully!");
     } catch (error) {
       errorLog("saveUserDataService", "Database error in user data save:", error);
+      toast.error("Veritabanı hatası: Kullanıcı verileri kaydedilemedi");
       return false;
     }
     
@@ -118,6 +131,7 @@ export async function saveUserDataToSupabase(userId: string, userData: UserData)
     return true;
   } catch (error) {
     errorLog("saveUserDataService", "Error in saveUserDataToSupabase:", error);
+    toast.error("Kullanıcı verileri kaydedilirken beklenmeyen bir hata oluştu");
     return false;
   }
 }

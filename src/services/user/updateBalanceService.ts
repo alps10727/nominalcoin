@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { UserData } from "@/types/storage";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { loadUserDataFromSupabase } from "./userDataLoaderService";
+import { toast } from "sonner";
 
 /**
  * Update user coin balance in Supabase with optimistic update
@@ -16,12 +17,18 @@ export async function updateUserCoinBalance(
   try {
     debugLog("updateBalanceService", "Updating balance for user:", { userId, newBalance });
     
+    if (!userId) {
+      errorLog("updateBalanceService", "Invalid userId provided");
+      return false;
+    }
+    
     if (!localData) {
       localData = await loadUserDataFromSupabase(userId);
     }
     
     if (!localData) {
       errorLog("updateBalanceService", "No user data found to update balance");
+      toast.error("Kullanıcı verileri bulunamadığı için bakiye güncellenemedi");
       return false;
     }
     
@@ -34,6 +41,8 @@ export async function updateUserCoinBalance(
       return true;
     }
     
+    debugLog("updateBalanceService", `Updating balance from ${currentBalance} to ${newBalance} (difference: ${balanceDifference})`);
+    
     // Call the stored procedure through RPC with proper typing
     try {
       const { data, error } = await supabase.rpc('update_user_balance', {
@@ -44,6 +53,7 @@ export async function updateUserCoinBalance(
       
       if (error) {
         errorLog("updateBalanceService", "Error updating balance with stored procedure:", error);
+        toast.error("Bakiye güncellenirken bir hata oluştu");
         return false;
       }
       
@@ -51,9 +61,15 @@ export async function updateUserCoinBalance(
       localData.balance = newBalance;
       localData.lastSaved = Date.now();
       
+      // Save updated data to local storage
+      const localStorageKey = `fcMinerUserData_${userId}_v1.0`;
+      localStorage.setItem(localStorageKey, JSON.stringify(localData));
+      
+      debugLog("updateBalanceService", "Balance updated successfully:", newBalance);
       return true;
     } catch (error) {
       errorLog("updateBalanceService", "Exception in update_user_balance RPC:", error);
+      toast.error("Bakiye güncellenirken beklenmeyen bir hata oluştu");
       return false;
     }
   } catch (error) {

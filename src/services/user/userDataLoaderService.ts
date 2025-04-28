@@ -3,11 +3,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { UserData } from "@/types/storage";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { generateDeterministicCode } from "@/utils/referral/generateReferralCode";
+import { toast } from "sonner";
 
 /**
  * Load user data from Supabase
  */
 export async function loadUserDataFromSupabase(userId: string): Promise<UserData | null> {
+  if (!userId) {
+    errorLog("userDataLoaderService", "Called with invalid userId");
+    return null;
+  }
+
   try {
     debugLog("userDataLoaderService", "Loading user data from Supabase:", userId);
     
@@ -19,18 +25,23 @@ export async function loadUserDataFromSupabase(userId: string): Promise<UserData
     if (localData) {
       try {
         localUserData = JSON.parse(localData);
-        debugLog("userDataLoaderService", "Found local data first:", { balance: localUserData?.balance });
+        debugLog("userDataLoaderService", "Found local data first:", { 
+          balance: localUserData?.balance,
+          name: localUserData?.name,
+          referralCode: localUserData?.referralCode
+        });
       } catch (e) {
         errorLog("userDataLoaderService", "Error parsing local data:", e);
       }
     }
     
     // Supabase'den verileri yükle
+    debugLog("userDataLoaderService", "Fetching data from Supabase for user:", userId);
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
       
     if (error) {
       errorLog("userDataLoaderService", "Error loading user data:", error);
@@ -46,13 +57,78 @@ export async function loadUserDataFromSupabase(userId: string): Promise<UserData
     if (!data) {
       debugLog("userDataLoaderService", "No user data found for:", userId);
       
-      // Veri bulunamadıysa yerel veriyi kullan
+      // Eğer kullanıcı verisi yoksa yeni oluştur
+      const newUserData = {
+        userId,
+        balance: 0,
+        miningRate: 0.003,
+        lastSaved: Date.now(),
+        miningActive: false,
+        miningTime: 0,
+        miningSession: 0,
+        miningPeriod: 21600,
+        name: "",
+        emailAddress: "",
+        isAdmin: false,
+        referralCode: generateDeterministicCode(userId),
+        referralCount: 0,
+        referrals: []
+      };
+      
+      debugLog("userDataLoaderService", "Creating new user profile with data:", {
+        userId,
+        balance: newUserData.balance,
+        referralCode: newUserData.referralCode
+      });
+      
+      try {
+        // Yeni kullanıcı profili oluştur
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert([{
+            id: userId,
+            balance: newUserData.balance,
+            mining_rate: newUserData.miningRate,
+            last_saved: newUserData.lastSaved,
+            mining_active: newUserData.miningActive,
+            mining_time: newUserData.miningTime,
+            mining_session: newUserData.miningSession,
+            mining_period: newUserData.miningPeriod,
+            name: newUserData.name,
+            email: newUserData.emailAddress,
+            is_admin: newUserData.isAdmin,
+            referral_code: newUserData.referralCode,
+            referral_count: newUserData.referralCount,
+            referrals: newUserData.referrals
+          }]);
+          
+        if (insertError) {
+          errorLog("userDataLoaderService", "Error creating new user profile:", insertError);
+          toast.error("Yeni profil oluşturulurken hata oluştu");
+        } else {
+          debugLog("userDataLoaderService", "New user profile created successfully!");
+          toast.success("Yeni kullanıcı profili oluşturuldu");
+        }
+      } catch (err) {
+        errorLog("userDataLoaderService", "Exception creating new user profile:", err);
+      }
+      
+      // Veri bulunamadıysa yerel veriyi kullan veya yeni oluştur
       if (localUserData) {
         debugLog("userDataLoaderService", "Using local data because no server data found");
         return localUserData;
       }
-      return null;
+      
+      return newUserData;
     }
+    
+    debugLog("userDataLoaderService", "Successfully loaded data from Supabase:", { 
+      userId,
+      balance: data.balance,
+      name: data.name,
+      email: data.email, 
+      referralCode: data.referral_code
+    });
     
     // Get or generate a stable referral code
     let referralCode = data.referral_code;
@@ -132,6 +208,7 @@ export async function loadUserDataFromSupabase(userId: string): Promise<UserData
     return userData;
   } catch (error) {
     errorLog("userDataLoaderService", "Error in loadUserDataFromSupabase:", error);
+    toast.error("Kullanıcı verileri yüklenirken bir hata oluştu");
     
     // Hata durumunda yerel verileri dene
     try {

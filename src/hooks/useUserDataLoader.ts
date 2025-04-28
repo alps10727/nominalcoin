@@ -9,6 +9,8 @@ import { UserData, saveUserData, clearUserData } from "@/utils/storage";
 import { useLocalDataLoader } from "@/hooks/user/useLocalDataLoader";
 import { useSupabaseLoader } from "@/hooks/user/useSupabaseLoader";
 import { useUserDataValidator } from "@/hooks/user/useUserDataValidator";
+import { generateDeterministicCode } from "@/utils/referral/generateReferralCode";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface UserDataState {
   userData: UserData | null;
@@ -73,6 +75,63 @@ export function useUserDataLoader(
     }
   }, [currentUser, currentUserId, authInitialized]);
 
+  // Function to ensure user profile exists in Supabase
+  const ensureUserProfile = async (userId: string): Promise<void> => {
+    if (!userId) return;
+  
+    try {
+      // Check if profile exists
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', userId)
+        .maybeSingle();
+  
+      if (error && !error.message.includes('No rows found')) {
+        errorLog("useUserDataLoader", "Error checking for user profile:", error);
+        return;
+      }
+  
+      // If profile not found, create it
+      if (!data) {
+        debugLog("useUserDataLoader", "Profile not found, creating new one");
+        const referralCode = generateDeterministicCode(userId);
+        
+        const profileData = {
+          id: userId,
+          name: currentUser?.user_metadata?.name || "",
+          email: currentUser?.email || "",
+          balance: 0,
+          mining_rate: 0.003,
+          last_saved: Date.now(),
+          mining_active: false,
+          mining_time: 0,
+          mining_session: 0,
+          mining_period: 21600,
+          progress: 0,
+          is_admin: false,
+          referral_code: referralCode,
+          referral_count: 0,
+          referrals: []
+        };
+  
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert([profileData]);
+  
+        if (insertError) {
+          errorLog("useUserDataLoader", "Error creating profile:", insertError);
+          toast.error("Kullanıcı profili oluşturulurken hata oluştu");
+        } else {
+          debugLog("useUserDataLoader", "Successfully created new profile");
+          localStorage.setItem('userReferralCode', referralCode);
+        }
+      }
+    } catch (error) {
+      errorLog("useUserDataLoader", "Error in ensureUserProfile:", error);
+    }
+  };
+
   // Main function to load user data
   const loadUserData = useCallback(async () => {
     if (!authInitialized) return;
@@ -95,6 +154,9 @@ export function useUserDataLoader(
           { storedId: localData.userId, currentId: currentUser.id });
         clearUserData(true); // Clear ALL user data
       }
+      
+      // Ensure user has a profile in Supabase
+      await ensureUserProfile(currentUser.id);
       
       // Start fresh - No local data
       setLoading(true);

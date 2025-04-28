@@ -7,6 +7,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useAdMob } from "@/hooks/useAdMob";
 import { useCallback } from "react";
 import { toast } from "sonner";
+import { debugLog } from "@/utils/debugUtils";
 
 interface MenuCardProps {
   title: string;
@@ -24,10 +25,14 @@ const MenuCard = ({ title, icon: Icon, to, showAd }: MenuCardProps) => {
       e.preventDefault();
       
       try {
+        debugLog("MenuCard", `Displaying interstitial ad before navigating to ${to}`);
         const success = await showInterstitialAd();
-        console.log("Ad display result:", success);
-        // Use window.location.href to ensure the redirect happens after the ad
-        window.location.href = to;
+        debugLog("MenuCard", "Ad display result:", success);
+        // Using a small timeout to ensure ad has time to complete
+        setTimeout(() => {
+          debugLog("MenuCard", `Navigating to ${to} after ad`);
+          window.location.href = to;
+        }, 300);
       } catch (error) {
         console.error('Ad display error:', error);
         toast.error("Reklam yüklenemedi, devam ediliyor...");
