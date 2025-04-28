@@ -17,6 +17,7 @@ serve(async (req) => {
     const config = {
       // Android App ID
       appId: "ca-app-pub-2373579046576398~2384328016",
+      isTestMode: isTestMode,
       
       // Android Ad Unit IDs
       rewardAdUnitId: isTestMode ? 'ca-app-pub-3940256099942544/5224354917' : 'ca-app-pub-2373579046576398/7924796812',

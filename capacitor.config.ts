@@ -88,7 +88,7 @@ const config: CapacitorConfig = {
     AdMob: {
       initialize: true,
       testingDevices: ['EMULATOR'],
-      initializeForTesting: true // Test modunu etkinleştir (normalde false)
+      initializeForTesting: true // Test modunu etkinleştir
     }
   }
 };
