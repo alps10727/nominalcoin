@@ -2,19 +2,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { fetchAdMobConfig, getPlatformSpecificAdUnit } from '@/services/admob/config';
 import { debugLog, errorLog } from "@/utils/debugUtils";
-import { AdmobPlugin } from '@/types/capacitor';
-import { admobInitService } from '@/services/admob/services/initializationService';
+import { admobService } from '@/services/admob/admobService';
 import { toast } from "sonner";
-
-declare global {
-  interface Window {
-    Capacitor?: {
-      isPluginAvailable: (name: string) => boolean;
-      getPlatform: () => string;
-    };
-    Admob?: AdmobPlugin;
-  }
-}
 
 export function useAdMob() {
   const [isLoading, setIsLoading] = useState(false);
@@ -35,7 +24,7 @@ export function useAdMob() {
 
         try {
           // AdMob servisini başlat
-          await admobInitService.initialize();
+          await admobService.initialize();
           setIsInitialized(true);
           
           // Konfigürasyonu yükle
@@ -56,7 +45,7 @@ export function useAdMob() {
 
   // Bir sonraki reklamı önceden yükle
   const preloadNextAd = useCallback(async () => {
-    if (!pluginAvailable || !window.Admob) {
+    if (!pluginAvailable) {
       return;
     }
 
@@ -64,22 +53,8 @@ export function useAdMob() {
     
     try {
       debugLog("AdMob Hook", "Preloading next ad");
-      
-      const adConfig = await fetchAdMobConfig();
-      
-      if (!adConfig) {
-        setIsLoading(false);
-        return;
-      }
-      
-      const platform = window.Capacitor?.getPlatform() || 'android';
-      const adUnitId = getPlatformSpecificAdUnit(adConfig, platform, 'reward');
-      
-      await window.Admob.prepareRewardVideoAd({
-        adId: adUnitId,
-      });
-      
-      debugLog("AdMob Hook", `Reward ad prepared with ID: ${adUnitId}`);
+      await admobService.preloadRewardAd();
+      debugLog("AdMob Hook", "Reward ad preloaded successfully");
     } catch (error) {
       errorLog("AdMob Hook", "Error preloading ad:", error);
       toast.error("Reklam yüklenirken bir hata oluştu", {
@@ -92,7 +67,7 @@ export function useAdMob() {
 
   // Ödüllü reklamı göster
   const showRewardAd = useCallback(async (): Promise<boolean> => {
-    if (!pluginAvailable || !window.Admob) {
+    if (!pluginAvailable) {
       debugLog("AdMob Hook", "Plugin not available, skipping ad");
       return false;
     }
@@ -100,48 +75,97 @@ export function useAdMob() {
     setIsLoading(true);
     
     try {
-      const adConfig = await fetchAdMobConfig();
-      
-      if (!adConfig) {
-        setIsLoading(false);
-        return false;
-      }
-      
-      const platform = window.Capacitor?.getPlatform() || 'android';
-      const adUnitId = getPlatformSpecificAdUnit(adConfig, platform, 'reward');
-      
-      debugLog("AdMob Hook", `Showing reward ad with ID: ${adUnitId}`);
+      debugLog("AdMob Hook", "Showing reward ad");
       
       // Test modunda daha iyi debug için bildirim göster
-      if (adConfig.isTestMode) {
+      if (config?.isTestMode) {
         toast.info("Test modu: Reklam gösteriliyor", { 
-          description: `Reklam ID: ${adUnitId}`,
+          description: "Test reklam yükleniyor",
           duration: 3000
         });
       }
       
-      const result = await window.Admob.showRewardVideoAd({
-        adId: adUnitId,
-      });
+      const rewarded = await admobService.showRewardAd();
       
-      debugLog("AdMob Hook", "Reward ad result:", result);
+      debugLog("AdMob Hook", "Reward ad result:", rewarded);
       
       setIsLoading(false);
-      
-      if (result && result.type === "earned") {
-        return true;
-      }
-      return false;
+      return rewarded;
     } catch (error) {
       errorLog("AdMob Hook", "Error showing reward ad:", error);
       toast.error("Reklam gösterilirken bir hata oluştu");
       setIsLoading(false);
       return false;
     }
+  }, [pluginAvailable, config]);
+
+  // Banner reklamı göster
+  const showBannerAd = useCallback(async (): Promise<void> => {
+    if (!pluginAvailable) {
+      debugLog("AdMob Hook", "Plugin not available, skipping banner ad");
+      return;
+    }
+    
+    try {
+      debugLog("AdMob Hook", "Showing banner ad");
+      await admobService.showBannerAd();
+    } catch (error) {
+      errorLog("AdMob Hook", "Error showing banner ad:", error);
+    }
   }, [pluginAvailable]);
+
+  // Banner reklamı gizle
+  const hideBannerAd = useCallback(async (): Promise<void> => {
+    if (!pluginAvailable) {
+      return;
+    }
+    
+    try {
+      debugLog("AdMob Hook", "Hiding banner ad");
+      await admobService.hideBannerAd();
+    } catch (error) {
+      errorLog("AdMob Hook", "Error hiding banner ad:", error);
+    }
+  }, [pluginAvailable]);
+
+  // Interstitial reklam göster
+  const showInterstitialAd = useCallback(async (): Promise<boolean> => {
+    if (!pluginAvailable) {
+      debugLog("AdMob Hook", "Plugin not available, simulating interstitial ad");
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return true;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      debugLog("AdMob Hook", "Showing interstitial ad");
+      
+      // Test modunda daha iyi debug için bildirim göster
+      if (config?.isTestMode) {
+        toast.info("Test modu: Interstitial reklam gösteriliyor", { 
+          duration: 3000
+        });
+      }
+      
+      const result = await admobService.showInterstitialAd();
+      
+      debugLog("AdMob Hook", "Interstitial ad result:", result);
+      setIsLoading(false);
+      return result;
+    } catch (error) {
+      errorLog("AdMob Hook", "Error showing interstitial ad:", error);
+      toast.error("Reklam gösterilirken bir hata oluştu");
+      setIsLoading(false);
+      return false;
+    }
+  }, [pluginAvailable, config]);
 
   return {
     showRewardAd,
+    showInterstitialAd,
+    showBannerAd,
+    hideBannerAd,
     isLoading,
     config,
     preloadNextAd,

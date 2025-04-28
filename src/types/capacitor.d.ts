@@ -1,5 +1,5 @@
 
-interface AdmobPlugin {
+export interface AdmobPlugin {
   initialize(options: { 
     appId: string; 
     testingDevices?: string[]; 
@@ -7,8 +7,8 @@ interface AdmobPlugin {
   }): Promise<void>;
   showRewardVideoAd(options?: any): Promise<{ rewarded: boolean }>;
   prepareRewardVideoAd(options: { adId: string }): Promise<void>;
-  prepareInterstitial(options: { adId: string }): Promise<void>; // Add this line
-  showInterstitial(): Promise<void>; // Add this line
+  prepareInterstitial(options: { adId: string }): Promise<void>;
+  showInterstitial(): Promise<void>;
   addListener(eventName: string, listenerFunc: (info: any) => void): Promise<any>;
   removeAllListeners(): Promise<void>;
   showBanner(options: { adId: string; position?: string; margin?: number }): Promise<void>;
@@ -18,15 +18,17 @@ interface AdmobPlugin {
   setConsent?(options: { status: string }): Promise<void>;
 }
 
-interface CapacitorInterface {
+export interface CapacitorInterface {
   getPlatform(): string;
   isPluginAvailable(name: string): boolean;
 }
 
-interface Window {
-  Capacitor?: CapacitorInterface;
-  Admob?: AdmobPlugin;
-  EdgeRuntime?: {
-    userAgent: string;
-  };
+declare global {
+  interface Window {
+    Capacitor?: CapacitorInterface;
+    Admob?: AdmobPlugin;
+    EdgeRuntime?: {
+      userAgent: string;
+    };
+  }
 }
