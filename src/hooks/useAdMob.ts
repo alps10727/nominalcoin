@@ -1,7 +1,8 @@
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { admobService } from '@/services/admob/admobService';
 import { toast } from 'sonner';
-import { debugLog } from '@/utils/debugUtils';
+import { debugLog, errorLog } from '@/utils/debugUtils';
 
 export function useAdMob() {
   const [isLoading, setIsLoading] = useState(false);
@@ -16,6 +17,10 @@ export function useAdMob() {
       const available = window.Capacitor.isPluginAvailable('AdMob');
       setPluginAvailable(available);
       debugLog('AdMob Hook', `AdMob plugin available: ${available}`);
+      
+      if (!available) {
+        console.warn('AdMob plugin is not available. Please check capacitor config and plugin installation.');
+      }
     }
   }, []);
 
@@ -29,12 +34,17 @@ export function useAdMob() {
         await admobService.initialize();
         setIsInitialized(true);
         
+        console.log('AdMob successfully initialized!');
+        toast.success('AdMob başarıyla başlatıldı', { duration: 2000 });
+        
         setTimeout(() => {
           admobService.preloadRewardAd();
           admobService.preloadInterstitialAd();
         }, 1500);
       } catch (error) {
         console.error('Failed to initialize AdMob:', error);
+        errorLog('AdMob Hook', 'AdMob initialization failed', error);
+        toast.error('AdMob başlatılamadı, lütfen internet bağlantınızı kontrol edin', { duration: 3000 });
         setAdErrorCount(prev => prev + 1);
       }
     };
@@ -65,6 +75,7 @@ export function useAdMob() {
       try {
         await window.Admob.addListener('onAdLoaded', () => {
           debugLog('AdMob Hook', 'Ad loaded successfully');
+          console.log('AdMob: Ad loaded successfully');
         });
         
         await window.Admob.addListener('onAdFailedToLoad', (info) => {
@@ -72,6 +83,9 @@ export function useAdMob() {
           const errorCode = info?.code || 'unknown';
           
           debugLog('AdMob Hook', `Ad failed to load: ${errorCode} - ${errorMessage}`);
+          console.error(`AdMob load error: ${errorCode} - ${errorMessage}`);
+          toast.error(`Reklam yüklenemedi: ${errorMessage}`, { duration: 3000 });
+          
           setAdErrorCount(prev => prev + 1);
           
           adLoadTimeoutRef.current = window.setTimeout(() => {
@@ -81,6 +95,9 @@ export function useAdMob() {
         
         await window.Admob.addListener('onRewardedVideoAdFailedToLoad', (info) => {
           debugLog('AdMob Hook', `Rewarded video failed to load: ${JSON.stringify(info)}`);
+          console.error('Rewarded video failed to load:', info);
+          toast.error('Ödüllü video yüklenemedi', { duration: 3000 });
+          
           setAdErrorCount(prev => prev + 1);
           
           adLoadTimeoutRef.current = window.setTimeout(() => {
@@ -90,6 +107,7 @@ export function useAdMob() {
         
         await window.Admob.addListener('onRewardedVideoAdClosed', () => {
           debugLog('AdMob Hook', 'Rewarded video ad closed');
+          console.log('AdMob: Rewarded video ad closed');
           
           adLoadTimeoutRef.current = window.setTimeout(() => {
             admobService.preloadRewardAd();
@@ -97,6 +115,7 @@ export function useAdMob() {
         });
       } catch (error) {
         console.error('Failed to set up AdMob listeners:', error);
+        errorLog('AdMob Hook', 'Failed to set up AdMob listeners', error);
       }
     };
     
@@ -108,6 +127,7 @@ export function useAdMob() {
   const showRewardAd = useCallback(async () => {
     setIsLoading(true);
     debugLog('AdMob Hook', 'Attempting to show reward ad');
+    console.log('AdMob: Attempting to show reward ad');
     
     try {
       if (!window.Capacitor || !pluginAvailable) {
@@ -118,7 +138,9 @@ export function useAdMob() {
       }
       
       if (!isInitialized) {
+        console.log('AdMob not initialized, initializing now...');
         await admobService.initialize();
+        setIsInitialized(true);
       }
       
       const rewarded = await admobService.showRewardAd();
@@ -126,8 +148,10 @@ export function useAdMob() {
       
       if (rewarded) {
         debugLog('AdMob Hook', 'User was rewarded');
+        console.log('AdMob: User was rewarded');
       } else {
         debugLog('AdMob Hook', 'User was not rewarded');
+        console.log('AdMob: User was not rewarded');
         if (window.Capacitor && pluginAvailable) {
           toast.error('Reklam tamamlanamadı, lütfen tekrar deneyin');
         }
@@ -136,6 +160,7 @@ export function useAdMob() {
       return rewarded;
     } catch (error) {
       console.error('Error showing reward ad:', error);
+      errorLog('AdMob Hook', 'Error showing reward ad', error);
       toast.error('Reklam gösterilirken bir hata oluştu, lütfen tekrar deneyin');
       setIsLoading(false);
       setAdErrorCount(prev => prev + 1);
@@ -146,6 +171,7 @@ export function useAdMob() {
   const preloadNextAd = useCallback(() => {
     if (isInitialized && pluginAvailable) {
       debugLog('AdMob Hook', 'Manually preloading next ad');
+      console.log('AdMob: Manually preloading next ad');
       admobService.preloadRewardAd();
     }
   }, [isInitialized, pluginAvailable]);
@@ -155,8 +181,10 @@ export function useAdMob() {
     
     try {
       await admobService.showBannerAd();
+      console.log('AdMob: Banner ad displayed');
     } catch (error) {
       console.error('Error showing banner ad:', error);
+      errorLog('AdMob Hook', 'Error showing banner ad', error);
       toast.error('Banner reklam gösterilirken bir hata oluştu');
     }
   }, [pluginAvailable]);
@@ -166,13 +194,16 @@ export function useAdMob() {
     
     try {
       await admobService.hideBannerAd();
+      console.log('AdMob: Banner ad hidden');
     } catch (error) {
       console.error('Error hiding banner ad:', error);
+      errorLog('AdMob Hook', 'Error hiding banner ad', error);
     }
   }, [pluginAvailable]);
 
   const showInterstitialAd = useCallback(async () => {
     debugLog('AdMob Hook', 'showInterstitialAd called');
+    console.log('AdMob: showInterstitialAd called');
     
     if (!window.Capacitor || !pluginAvailable) {
       debugLog('AdMob Hook', 'Plugin not available, simulating interstitial ad');
@@ -183,16 +214,21 @@ export function useAdMob() {
     try {
       if (!isInitialized) {
         debugLog('AdMob Hook', 'Initializing AdMob before showing interstitial');
+        console.log('AdMob: Initializing before showing interstitial');
         await admobService.initialize();
         setIsInitialized(true);
       }
       
       debugLog('AdMob Hook', 'Attempting to show interstitial ad via service');
+      console.log('AdMob: Attempting to show interstitial ad');
       const result = await admobService.showInterstitialAd();
       debugLog('AdMob Hook', `Interstitial ad result: ${result}`);
+      console.log(`AdMob: Interstitial ad result: ${result}`);
       return result;
     } catch (error) {
       console.error('Error showing interstitial ad:', error);
+      errorLog('AdMob Hook', 'Error showing interstitial ad', error);
+      toast.error('Interstitial reklam gösterilirken hata oluştu');
       return false;
     }
   }, [pluginAvailable, isInitialized]);

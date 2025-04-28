@@ -1,11 +1,14 @@
+
 export async function fetchAdMobConfig(): Promise<any | null> {
   try {
+    console.log('AdMob: Fetching AdMob config...');
     const response = await fetch('/functions/get-admob-config');
     if (!response.ok) {
       console.error('Failed to fetch AdMob config:', response.status, response.statusText);
       return null;
     }
     const data = await response.json();
+    console.log('AdMob: Config fetched successfully:', data.data);
     return data.data;
   } catch (error) {
     console.error('Error fetching AdMob config:', error);
@@ -16,28 +19,39 @@ export async function fetchAdMobConfig(): Promise<any | null> {
 export function getPlatformSpecificAdUnit(config: any, platform: string, adType: 'reward' | 'banner' | 'interstitial'): string {
   if (!config) return '';
   
+  let adUnitId = '';
+  
   if (platform === 'ios') {
     switch (adType) {
       case 'reward':
-        return config.iOSRewardAdUnitId || '';
+        adUnitId = config.iOSRewardAdUnitId || '';
+        break;
       case 'banner':
-        return config.iOSBannerAdUnitId || '';
+        adUnitId = config.iOSBannerAdUnitId || '';
+        break;
       case 'interstitial':
-        return config.iOSInterstitialAdUnitId || '';
+        adUnitId = config.iOSInterstitialAdUnitId || '';
+        break;
       default:
-        return '';
+        adUnitId = '';
     }
   } else {
     // Default to Android
     switch (adType) {
       case 'reward':
-        return config.rewardAdUnitId || '';
+        adUnitId = config.rewardAdUnitId || '';
+        break;
       case 'banner':
-        return config.bannerAdUnitId || '';
+        adUnitId = config.bannerAdUnitId || '';
+        break;
       case 'interstitial':
-        return config.interstitialAdUnitId || '';
+        adUnitId = config.interstitialAdUnitId || '';
+        break;
       default:
-        return '';
+        adUnitId = '';
     }
   }
+  
+  console.log(`AdMob: Using ${adType} ad unit for ${platform}: ${adUnitId}`);
+  return adUnitId;
 }

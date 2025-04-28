@@ -88,10 +88,9 @@ const config: CapacitorConfig = {
     AdMob: {
       initialize: true,
       testingDevices: ['EMULATOR'],
-      initializeForTesting: false // Set to false to use real ads
+      initializeForTesting: true // Test modunu etkinleştir (normalde false)
     }
   }
 };
 
 export default config;
-

@@ -1,3 +1,4 @@
+
 import React, { useCallback, useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -61,12 +62,16 @@ const MiningCard = React.memo<MiningCardProps>(({
       if (typeof window !== 'undefined' && window.Capacitor && pluginAvailable) {
         debugLog('MiningCard', 'Attempting to show AdMob reward ad');
         
+        // Görünürlük için bir bildirim ekleyelim
+        toast.info("Reklam yükleniyor...", { duration: 3000 });
+        
         const rewarded = await showRewardAd();
         
         if (rewarded) {
           debugLog('MiningCard', 'Ad reward successful, starting mining');
           onStartMining();
           setTimeout(preloadNextAd, 1000);
+          toast.success("Reklam başarıyla tamamlandı", { duration: 2000 });
         } else {
           debugLog('MiningCard', 'Ad not rewarded or could not be shown');
           toast.error("Reklam izleme tamamlanamadı. Lütfen tekrar deneyin.", {
@@ -76,12 +81,14 @@ const MiningCard = React.memo<MiningCardProps>(({
           return;
         }
       } else {
+        // Capacitor/AdMob olmadığında direkt başlat (Development modunda)
         debugLog('MiningCard', 'Not on mobile or plugin not available, starting mining directly');
+        toast.info("Geliştirme modunda - reklamsız başlatılıyor", { duration: 2000 });
         onStartMining();
       }
     } catch (error) {
       console.error('Error in mining start process:', error);
-      toast.error("Bir hata oluştu. Lütfen tekrar deneyin.", {
+      toast.error("Reklam gösterilirken bir hata oluştu. Lütfen tekrar deneyin.", {
         duration: 3000
       });
     } finally {
@@ -137,8 +144,9 @@ const MiningCard = React.memo<MiningCardProps>(({
           />
         )}
         
-        {!miningActive && !adLoading && !isAttemptingToStart && (
+        {!miningActive && !adLoading && !isAttemptingToStart && pluginAvailable && (
           <div className="mt-4 text-center">
+            <p className="text-xs text-purple-300/70">Madenciliğe başlamak için reklam izlemeniz gerekiyor</p>
           </div>
         )}
       </CardContent>
