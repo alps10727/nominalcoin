@@ -4,6 +4,7 @@ import { UserData } from "@/types/storage";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { saveUserData as saveUserDataToLocal } from "@/utils/storage";
 import { toast } from "sonner";
+import { REFERRAL_BONUS_RATE } from "@/utils/referral/bonusCalculator";
 
 /**
  * Save user data to Supabase
@@ -30,7 +31,7 @@ export async function saveUserDataToSupabase(userId: string, userData: UserData)
     try {
       const { data: existingData, error: fetchError } = await supabase
         .from('profiles')
-        .select('balance, id')
+        .select('balance, id, referral_count, referrals, mining_rate')
         .eq('id', userId)
         .maybeSingle();
       
@@ -38,11 +39,27 @@ export async function saveUserDataToSupabase(userId: string, userData: UserData)
         errorLog("saveUserDataService", "Error checking existing user data:", fetchError);
       }
       
-      if (!fetchError && existingData && existingData.balance > userData.balance) {
-        // Eğer sunucudaki bakiye daha yüksekse, sunucudaki değeri kullan
-        // Bu şekilde veriler senkron olmadığında bakiye kaybı olmaz
-        debugLog("saveUserDataService", `Using higher balance from server: ${existingData.balance} vs ${userData.balance}`);
-        userData.balance = existingData.balance;
+      if (!fetchError && existingData) {
+        // Ensure referral count data is preserved
+        if ((existingData.referral_count || 0) > (userData.referralCount || 0)) {
+          debugLog("saveUserDataService", 
+            `Using higher referral count from server: ${existingData.referral_count} vs ${userData.referralCount}`);
+          userData.referralCount = existingData.referral_count;
+          userData.referrals = existingData.referrals || [];
+          
+          // Recalculate mining rate based on restored referrals
+          const baseRate = 0.003;
+          const referralBonus = userData.referralCount * REFERRAL_BONUS_RATE;
+          userData.miningRate = parseFloat((baseRate + referralBonus).toFixed(4));
+          
+          debugLog("saveUserDataService", `Mining rate restored to: ${userData.miningRate} based on ${userData.referralCount} referrals`);
+        }
+        
+        // Protect balance from decreasing unexpectedly
+        if (existingData.balance > userData.balance) {
+          debugLog("saveUserDataService", `Using higher balance from server: ${existingData.balance} vs ${userData.balance}`);
+          userData.balance = existingData.balance;
+        }
       }
     } catch (error) {
       errorLog("saveUserDataService", "Error checking existing balance:", error);
@@ -74,7 +91,9 @@ export async function saveUserDataToSupabase(userId: string, userData: UserData)
     // Save to local storage first for offline support
     saveUserDataToLocal({
       ...userData,
-      balance: profileData.balance // Güncellenmiş bakiye varsa onu da yerel depolamaya kaydet
+      balance: profileData.balance, // Güncellenmiş bakiye varsa onu da yerel depolamaya kaydet
+      referralCount: profileData.referral_count,
+      referrals: profileData.referrals
     });
     
     // Check if user already exists

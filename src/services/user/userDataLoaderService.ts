@@ -4,6 +4,7 @@ import { UserData } from "@/types/storage";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { generateDeterministicCode } from "@/utils/referral/generateReferralCode";
 import { toast } from "sonner";
+import { REFERRAL_BONUS_RATE } from "@/utils/referral/bonusCalculator";
 
 /**
  * Load user data from Supabase
@@ -28,7 +29,9 @@ export async function loadUserDataFromSupabase(userId: string): Promise<UserData
         debugLog("userDataLoaderService", "Found local data first:", { 
           balance: localUserData?.balance,
           name: localUserData?.name,
-          referralCode: localUserData?.referralCode
+          referralCode: localUserData?.referralCode,
+          referralCount: localUserData?.referralCount,
+          miningRate: localUserData?.miningRate
         });
       } catch (e) {
         errorLog("userDataLoaderService", "Error parsing local data:", e);
@@ -53,6 +56,62 @@ export async function loadUserDataFromSupabase(userId: string): Promise<UserData
       }
       return null;
     }
+    
+    // Check referral audit as backup for referral data
+    const verifyReferrals = async (userId: string, profileData: any) => {
+      // Only verify if referrals seem missing
+      if (profileData && (
+          !profileData.referral_count || 
+          profileData.referral_count === 0 || 
+          !profileData.referrals || 
+          profileData.referrals.length === 0
+        )) {
+        debugLog("userDataLoaderService", "Checking referral audit for lost referrals");
+        
+        const { data: auditData, error: auditError } = await supabase
+          .from('referral_audit')
+          .select('invitee_id')
+          .eq('referrer_id', userId);
+          
+        if (!auditError && auditData && auditData.length > 0) {
+          // Found referrals in audit log
+          const referralCount = auditData.length;
+          const referrals = auditData.map(entry => entry.invitee_id);
+          
+          debugLog("userDataLoaderService", "Found referrals in audit:", referralCount);
+          
+          // Calculate mining rate with referrals
+          const baseRate = 0.003;
+          const referralBonus = referralCount * REFERRAL_BONUS_RATE;
+          const miningRate = parseFloat((baseRate + referralBonus).toFixed(4));
+          
+          // Update profile with recovered data
+          try {
+            await supabase
+              .from('profiles')
+              .update({
+                referral_count: referralCount,
+                referrals: referrals,
+                mining_rate: miningRate
+              })
+              .eq('id', userId);
+              
+            debugLog("userDataLoaderService", "Updated profile with recovered referral data");
+            
+            // Update the data object directly
+            profileData.referral_count = referralCount;
+            profileData.referrals = referrals;
+            profileData.mining_rate = miningRate;
+            
+            toast.success("Referans verileriniz kurtarıldı");
+          } catch (updateError) {
+            errorLog("userDataLoaderService", "Failed to update profile with recovered referrals:", updateError);
+          }
+        }
+      }
+      
+      return profileData;
+    };
     
     if (!data) {
       debugLog("userDataLoaderService", "No user data found for:", userId);
@@ -122,16 +181,22 @@ export async function loadUserDataFromSupabase(userId: string): Promise<UserData
       return newUserData;
     }
     
+    // Verify and potentially fix referral data
+    const checkedData = await verifyReferrals(userId, data);
+    
     debugLog("userDataLoaderService", "Successfully loaded data from Supabase:", { 
       userId,
-      balance: data.balance,
-      name: data.name,
-      email: data.email, 
-      referralCode: data.referral_code
+      balance: checkedData.balance,
+      name: checkedData.name,
+      email: checkedData.email, 
+      referralCode: checkedData.referral_code,
+      referralCount: checkedData.referral_count,
+      referrals: checkedData.referrals ? checkedData.referrals.length : 0,
+      miningRate: checkedData.mining_rate
     });
     
     // Get or generate a stable referral code
-    let referralCode = data.referral_code;
+    let referralCode = checkedData.referral_code;
     
     // If no code in database, check localStorage
     if (!referralCode) {
@@ -156,26 +221,51 @@ export async function loadUserDataFromSupabase(userId: string): Promise<UserData
       }
     }
     
+    // Check if mining rate is correct based on referral count
+    const expectedReferralBonus = (checkedData.referral_count || 0) * REFERRAL_BONUS_RATE;
+    const baseRate = 0.003;
+    const expectedMiningRate = parseFloat((baseRate + expectedReferralBonus).toFixed(4));
+    
+    // If mining rate is incorrect, fix it
+    if (checkedData.mining_rate !== expectedMiningRate && checkedData.referral_count > 0) {
+      debugLog("userDataLoaderService", 
+        `Mining rate incorrect. Expected: ${expectedMiningRate}, Found: ${checkedData.mining_rate}`);
+      
+      // Update mining rate
+      try {
+        await supabase
+          .from('profiles')
+          .update({ mining_rate: expectedMiningRate })
+          .eq('id', userId);
+          
+        checkedData.mining_rate = expectedMiningRate;
+        debugLog("userDataLoaderService", "Mining rate corrected to:", expectedMiningRate);
+        toast.success("Kazım hızı güncellendi");
+      } catch (err) {
+        errorLog("userDataLoaderService", "Error updating mining rate:", err);
+      }
+    }
+    
     // Map Supabase profile data to our UserData interface
     const userData: UserData = {
-      userId: data.id,
-      balance: data.balance || 0,
-      miningRate: data.mining_rate || 0.003,
-      lastSaved: data.last_saved || Date.now(),
-      miningActive: data.mining_active || false,
-      miningTime: data.mining_time || 0,
-      miningSession: data.mining_session || 0,
-      miningPeriod: data.mining_period || 21600,
-      miningEndTime: data.mining_end_time,
-      miningStartTime: data.mining_start_time,
-      progress: data.progress || 0,
-      name: data.name || "",
-      emailAddress: data.email,
-      isAdmin: data.is_admin || false,
+      userId: checkedData.id,
+      balance: checkedData.balance || 0,
+      miningRate: checkedData.mining_rate || 0.003,
+      lastSaved: checkedData.last_saved || Date.now(),
+      miningActive: checkedData.mining_active || false,
+      miningTime: checkedData.mining_time || 0,
+      miningSession: checkedData.mining_session || 0,
+      miningPeriod: checkedData.mining_period || 21600,
+      miningEndTime: checkedData.mining_end_time,
+      miningStartTime: checkedData.mining_start_time,
+      progress: checkedData.progress || 0,
+      name: checkedData.name || "",
+      emailAddress: checkedData.email,
+      isAdmin: checkedData.is_admin || false,
       referralCode: referralCode,
-      referralCount: data.referral_count || 0,
-      referrals: data.referrals || [],
-      invitedBy: data.invited_by
+      referralCount: checkedData.referral_count || 0,
+      referrals: checkedData.referrals || [],
+      invitedBy: checkedData.invited_by
     };
     
     // Bakiye karşılaştırması - yerel veri varsa ve bakiye daha yüksekse onu kullan

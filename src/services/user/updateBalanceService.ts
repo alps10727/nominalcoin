@@ -54,7 +54,24 @@ export async function updateUserCoinBalance(
       if (error) {
         errorLog("updateBalanceService", "Error updating balance with stored procedure:", error);
         toast.error("Bakiye güncellenirken bir hata oluştu");
-        return false;
+        
+        // Fallback to direct update if RPC fails
+        try {
+          const { error: directError } = await supabase
+            .from('profiles')
+            .update({ balance: newBalance })
+            .eq('id', userId);
+            
+          if (directError) {
+            errorLog("updateBalanceService", "Fallback direct update also failed:", directError);
+            return false;
+          } else {
+            debugLog("updateBalanceService", "Balance updated through fallback direct update");
+          }
+        } catch (fallbackError) {
+          errorLog("updateBalanceService", "Exception in fallback update:", fallbackError);
+          return false;
+        }
       }
       
       // Optimistically update local data

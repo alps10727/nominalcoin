@@ -10,6 +10,7 @@ import { AuthContext } from "./AuthContext";
 import { useProfileRealtime } from "@/hooks/auth/useProfileRealtime";
 import { useUserDataCleanup } from "@/hooks/auth/useUserDataCleanup";
 import { useInitialUserData } from "@/hooks/auth/useInitialUserData";
+import { useReferralRecovery } from "@/hooks/auth/useReferralRecovery";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const authState = (() => {
@@ -108,6 +109,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       };
     }
   })();
+  
+  // Use the referral recovery hook to fix missing referral data
+  useReferralRecovery(currentUser, userData, updateUserData);
 
   const value = {
     currentUser,
