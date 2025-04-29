@@ -1,3 +1,4 @@
+
 import { Suspense, lazy } from "react";
 import { Routes, Route } from "react-router-dom";
 import LoadingScreen from "../dashboard/LoadingScreen";
@@ -8,6 +9,7 @@ import { usePagePreloading } from "@/hooks/routing/usePagePreloading";
 import SignIn from "@/pages/SignIn";
 import Index from "@/pages/Index";
 import SignUp from "@/pages/SignUp";
+import Upgrades from "@/pages/Upgrades"; // Direct import to avoid lazy-loading issues
 
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const Profile = lazy(() => import("@/pages/Profile"));
@@ -17,7 +19,6 @@ const MiningUpgrades = lazy(() => import("@/pages/MiningUpgrades"));
 const Statistics = lazy(() => import("@/pages/Statistics"));
 const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
 const Referral = lazy(() => import("@/pages/Referral"));
-const Upgrades = lazy(() => import("@/pages/Upgrades"));
 const Notifications = lazy(() => import("@/pages/Notifications"));
 
 const AppRoutes = () => {
@@ -96,11 +97,10 @@ const AppRoutes = () => {
         
         <Route path="/upgrades" element={
           <PrivateRoute>
-            <Suspense fallback={<LoadingScreen message="Görev ve Oyunlar yükleniyor..." />}>
-              <PageTransition>
-                <Upgrades />
-              </PageTransition>
-            </Suspense>
+            {/* Doğrudan içe aktarma, lazy loading olmadan */}
+            <PageTransition>
+              <Upgrades />
+            </PageTransition>
           </PrivateRoute>
         } />
         
