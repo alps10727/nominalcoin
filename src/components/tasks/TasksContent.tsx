@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DailyTaskItem from "@/components/tasks/DailyTaskItem";
 import BadgeItem from "@/components/tasks/BadgeItem";
 import { TasksPagination } from "./TasksPagination";
+import BannerAdContainer from "@/components/ads/BannerAdContainer";
 
 interface TasksContentProps {
   dailyTasks: Task[];
@@ -45,6 +46,9 @@ export const TasksContent = ({
         </TabsTrigger>
       </TabsList>
 
+      {/* Banner Ad Container */}
+      <BannerAdContainer />
+
       <TabsContent value="daily">
         <div className="space-y-4">
           {currentTasks.length > 0 ? (
@@ -76,6 +80,9 @@ export const TasksContent = ({
           ))}
         </div>
       </TabsContent>
+
+      {/* Banner Ad Container at the bottom too */}
+      <BannerAdContainer className="mt-6" />
     </Tabs>
   );
 };

@@ -109,10 +109,17 @@ export function useAdMob() {
     try {
       debugLog("AdMob Hook", "Showing banner ad");
       await admobService.showBannerAd();
+      
+      // Test modunda daha iyi debug için bildirim göster
+      if (config?.isTestMode) {
+        toast.info("Test modu: Banner reklam gösteriliyor", { 
+          duration: 2000
+        });
+      }
     } catch (error) {
       errorLog("AdMob Hook", "Error showing banner ad:", error);
     }
-  }, [pluginAvailable]);
+  }, [pluginAvailable, config]);
 
   // Banner reklamı gizle
   const hideBannerAd = useCallback(async (): Promise<void> => {
