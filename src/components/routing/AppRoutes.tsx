@@ -10,12 +10,12 @@ import SignIn from "@/pages/SignIn";
 import Index from "@/pages/Index";
 import SignUp from "@/pages/SignUp";
 import Upgrades from "@/pages/Upgrades"; // Direct import to avoid lazy-loading issues
+import MiningUpgrades from "@/pages/MiningUpgrades"; // Direct import to fix loading issues
 
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const Profile = lazy(() => import("@/pages/Profile"));
 const History = lazy(() => import("@/pages/History"));
 const Tasks = lazy(() => import("@/pages/Tasks"));
-const MiningUpgrades = lazy(() => import("@/pages/MiningUpgrades"));
 const Statistics = lazy(() => import("@/pages/Statistics"));
 const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
 const Referral = lazy(() => import("@/pages/Referral"));
@@ -67,11 +67,10 @@ const AppRoutes = () => {
         
         <Route path="/mining/upgrades" element={
           <PrivateRoute>
-            <Suspense fallback={<LoadingScreen message="Yükseltmeler yükleniyor..." />}>
-              <PageTransition>
-                <MiningUpgrades />
-              </PageTransition>
-            </Suspense>
+            {/* Doğrudan içe aktarma, lazy loading olmadan */}
+            <PageTransition>
+              <MiningUpgrades />
+            </PageTransition>
           </PrivateRoute>
         } />
         
