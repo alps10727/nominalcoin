@@ -1,0 +1,30 @@
+
+{
+  "project_info": {
+    "project_number": "000000000000",
+    "project_id": "nominal-coin",
+    "storage_bucket": "nominal-coin.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:000000000000:android:0000000000000000",
+        "android_client_info": {
+          "package_name": "app.lovable.9a24b2dbd35a4f6fb98b43e035a57e11"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "your-api-key"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
