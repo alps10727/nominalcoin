@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    // Her zaman test modunda olacak
+    // Always use test mode
     const isTestMode = true;
 
     const config = {

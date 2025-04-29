@@ -30,6 +30,11 @@ export function useAdMob() {
           // Konfigürasyonu yükle
           const adMobConfig = await fetchAdMobConfig();
           setConfig(adMobConfig);
+          
+          // Preload a reward ad for immediate use
+          setTimeout(() => {
+            preloadNextAd();
+          }, 2000);
         } catch (error) {
           errorLog("AdMob Hook", "AdMob initialization error:", error);
         }
@@ -68,8 +73,9 @@ export function useAdMob() {
   // Ödüllü reklamı göster
   const showRewardAd = useCallback(async (): Promise<boolean> => {
     if (!pluginAvailable) {
-      debugLog("AdMob Hook", "Plugin not available, skipping ad");
-      return false;
+      debugLog("AdMob Hook", "Plugin not available, simulating reward in development");
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return true; // Development modunda başarılı gibi davran
     }
     
     setIsLoading(true);
@@ -89,6 +95,9 @@ export function useAdMob() {
       
       debugLog("AdMob Hook", "Reward ad result:", rewarded);
       
+      // Hemen bir sonraki reklamı önceden yükle
+      setTimeout(() => preloadNextAd(), 1000);
+      
       setIsLoading(false);
       return rewarded;
     } catch (error) {
@@ -97,7 +106,7 @@ export function useAdMob() {
       setIsLoading(false);
       return false;
     }
-  }, [pluginAvailable, config]);
+  }, [pluginAvailable, config, preloadNextAd]);
 
   // Banner reklamı göster
   const showBannerAd = useCallback(async (): Promise<void> => {

@@ -5,7 +5,7 @@ import MissionItem from './MissionItem';
 
 interface MissionsListProps {
   missions: Mission[];
-  onClaim: (mission: Mission) => void;
+  onClaim: (mission: Mission, byAdReward?: boolean) => void;
   onConnect?: (missionId: string) => void;
   isLoading: boolean;
 }
@@ -17,7 +17,7 @@ const MissionsList = ({ missions, onClaim, onConnect, isLoading }: MissionsListP
         <MissionItem 
           key={mission.id} 
           mission={mission} 
-          onClaim={() => onClaim(mission)}
+          onClaim={onClaim}
           onConnect={mission.id === "social-twitter" ? () => onConnect?.("social-twitter") : undefined}
           isLoading={isLoading}
         />

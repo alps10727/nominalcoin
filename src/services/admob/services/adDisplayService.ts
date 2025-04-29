@@ -19,6 +19,7 @@ export class AdDisplayService {
     try {
       if (!window.Capacitor || !window.Admob) {
         debugLog('AdMob', 'Not running on mobile device, simulating reward');
+        await new Promise(resolve => setTimeout(resolve, 1000));
         return true;
       }
       

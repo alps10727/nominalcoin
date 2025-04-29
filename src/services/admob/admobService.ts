@@ -26,7 +26,7 @@ export class AdMobService implements AdMobServiceInterface {
       await this.listenerManager.setupGlobalListeners();
       setTimeout(() => {
         this.preloadRewardAd();
-        this.preloadInterstitialAd(); // Add preloading interstitial ads on initialization
+        this.preloadInterstitialAd(); // Preload interstitial ads on initialization
       }, 1000);
     }
   }

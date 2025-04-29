@@ -7,6 +7,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { debugLog } from "@/utils/debugUtils";
 import { supabase } from "@/integrations/supabase/client";
 import MissionsList from "@/components/upgrades/MissionsList";
+import BannerAdContainer from "@/components/ads/BannerAdContainer";
 
 export type Mission = {
   id: string;
@@ -40,8 +41,8 @@ const Upgrades = () => {
     {
       id: "mining-time",
       title: "2 Saat Madencilik Yap",
-      description: "2 saat boyunca madenciliği açık tut ve 10 NC kazan",
-      reward: 10,
+      description: "2 saat boyunca madenciliği açık tut ve madencilik hızını artır",
+      reward: 0, // This is now a mining rate boost instead of NC
       progress: 0,
       total: 120,
       completed: false,
@@ -107,7 +108,7 @@ const Upgrades = () => {
     );
   };
 
-  const claimReward = async (mission: Mission) => {
+  const claimReward = async (mission: Mission, byAdReward = false) => {
     if (!currentUser) {
       toast.error("Ödül almak için giriş yapmalısınız");
       return;
@@ -126,7 +127,37 @@ const Upgrades = () => {
     try {
       setIsLoading(true);
       
-      // Supabase bakiye güncelleme fonksiyonunu çağırma
+      // Handle mining rate increase from ad reward
+      if (mission.id === "mining-time" && byAdReward) {
+        // Get current mining rate
+        const currentRate = userData?.miningRate || 0.003;
+        const newRate = parseFloat((currentRate + 0.001).toFixed(4));
+        
+        debugLog("Upgrades", `Increasing mining rate from ${currentRate} to ${newRate}`);
+        
+        // Update user data with new mining rate
+        if (updateUserData) {
+          const updatedMissions = userData?.completedMissions || [];
+          await updateUserData({
+            miningRate: newRate,
+            completedMissions: [...updatedMissions, mission.id] as string[]
+          });
+        }
+        
+        // Update mission state
+        setMissions(prevMissions => 
+          prevMissions.map(m => 
+            m.id === mission.id 
+              ? { ...m, completed: true, claimed: true } 
+              : m
+          )
+        );
+        
+        toast.success(`Tebrikler! Madencilik hızınız artırıldı`);
+        return;
+      }
+      
+      // Standard NC reward process
       const { data, error } = await supabase.rpc('update_user_balance', {
         p_user_id: currentUser.id,
         p_amount: mission.reward,
@@ -187,9 +218,12 @@ const Upgrades = () => {
           Görevler ve Ödüller
         </h1>
         <p className="text-gray-400">
-          Çeşitli görevleri tamamlayarak ekstra NC coin kazanın.
+          Çeşitli görevleri tamamlayarak ekstra ödüller kazanın.
         </p>
       </div>
+
+      {/* Banner ad at the top */}
+      <BannerAdContainer />
 
       <div className="space-y-4">
         <MissionsList 
@@ -199,6 +233,9 @@ const Upgrades = () => {
           isLoading={isLoading}
         />
       </div>
+
+      {/* Banner ad at the bottom */}
+      <BannerAdContainer className="mt-6" />
     </div>
   );
 };
