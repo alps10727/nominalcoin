@@ -25,7 +25,7 @@ const config: CapacitorConfig = {
       CFBundleLocalizations: ["tr", "en"],
       CFBundleDevelopmentRegion: "tr",
       NSUserTrackingUsageDescription: "Bu izin, size kişiselleştirilmiş reklamlar sunmak için kullanılacaktır.",
-      GADApplicationIdentifier: "ca-app-pub-2373579046576398~2384328016", // Updated with your App ID
+      GADApplicationIdentifier: "ca-app-pub-3940256099942544~1458002511", // Test App ID for iOS
       SKAdNetworkItems: [
         {
           SKAdNetworkIdentifier: "cstr6suwn9.skadnetwork"
@@ -78,17 +78,17 @@ const config: CapacitorConfig = {
     Admob: {
       android: {
         initialize: true,
-        applicationId: "ca-app-pub-2373579046576398~2384328016" // Your Android app ID
+        applicationId: "ca-app-pub-3940256099942544~3347511713" // Test App ID for Android
       },
       ios: {
         initialize: true,
-        applicationId: "ca-app-pub-2373579046576398~2384328016" // Your iOS app ID
+        applicationId: "ca-app-pub-3940256099942544~1458002511" // Test App ID for iOS
       },
     },
     AdMob: {
       initialize: true,
       testingDevices: ['EMULATOR'],
-      initializeForTesting: true // Test modunu etkinleştir
+      initializeForTesting: true
     }
   }
 };

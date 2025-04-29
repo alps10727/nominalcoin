@@ -12,23 +12,24 @@ serve(async (req) => {
   }
 
   try {
-    const isTestMode = true; // Set to true to use test ads
+    // Her zaman test modunda olacak
+    const isTestMode = true;
 
     const config = {
-      // Android App ID
-      appId: "ca-app-pub-2373579046576398~2384328016",
+      // Test App ID - Android
+      appId: "ca-app-pub-3940256099942544~3347511713",
       isTestMode: isTestMode,
       
-      // Android Ad Unit IDs
-      rewardAdUnitId: isTestMode ? 'ca-app-pub-3940256099942544/5224354917' : 'ca-app-pub-2373579046576398/7924796812',
-      bannerAdUnitId: isTestMode ? 'ca-app-pub-3940256099942544/6300978111' : 'ca-app-pub-2373579046576398/3298628159', 
-      interstitialAdUnitId: isTestMode ? 'ca-app-pub-3940256099942544/1033173712' : 'ca-app-pub-2373579046576398/1765155572',
+      // Android Test Ad Unit IDs
+      rewardAdUnitId: "ca-app-pub-3940256099942544/5224354917",
+      bannerAdUnitId: "ca-app-pub-3940256099942544/6300978111",
+      interstitialAdUnitId: "ca-app-pub-3940256099942544/1033173712",
       
-      // iOS App ID and Ad Unit IDs
-      iOSAppId: 'ca-app-pub-3940256099942544~1458002511',
-      iOSRewardAdUnitId: isTestMode ? 'ca-app-pub-3940256099942544/1712485313' : 'ca-app-pub-2373579046576398/7924796812',
-      iOSBannerAdUnitId: isTestMode ? 'ca-app-pub-3940256099942544/2934735716' : 'ca-app-pub-2373579046576398/3298628159',
-      iOSInterstitialAdUnitId: isTestMode ? 'ca-app-pub-3940256099942544/4411468910' : 'ca-app-pub-2373579046576398/1765155572',
+      // iOS Test App ID ve Ad Unit IDs
+      iOSAppId: "ca-app-pub-3940256099942544~1458002511",
+      iOSRewardAdUnitId: "ca-app-pub-3940256099942544/1712485313",
+      iOSBannerAdUnitId: "ca-app-pub-3940256099942544/2934735716",
+      iOSInterstitialAdUnitId: "ca-app-pub-3940256099942544/4411468910",
     }
 
     return new Response(

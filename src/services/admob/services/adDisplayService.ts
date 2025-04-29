@@ -27,11 +27,11 @@ export class AdDisplayService {
       if (!adLoadingService.isAdPreloaded()) {
         debugLog('AdMob', 'No preloaded ad available, loading ad now');
         
-        const config = await fetchAdMobConfig();
-        if (!config) return false;
-
+        // Always use test ad IDs
         const platform = window.Capacitor.getPlatform();
-        const adUnitId = getPlatformSpecificAdUnit(config, platform, 'reward');
+        const adUnitId = platform === 'ios' 
+          ? 'ca-app-pub-3940256099942544/1712485313' // iOS test reward ad
+          : 'ca-app-pub-3940256099942544/5224354917'; // Android test reward ad
         
         await window.Admob?.prepareRewardVideoAd({
           adId: adUnitId,
@@ -68,11 +68,11 @@ export class AdDisplayService {
         return;
       }
 
-      const config = await fetchAdMobConfig();
-      if (!config) return;
-      
+      // Always use test ad IDs
       const platform = window.Capacitor.getPlatform();
-      const adUnitId = getPlatformSpecificAdUnit(config, platform, 'banner');
+      const adUnitId = platform === 'ios' 
+        ? 'ca-app-pub-3940256099942544/2934735716' // iOS test banner ad
+        : 'ca-app-pub-3940256099942544/6300978111'; // Android test banner ad
       
       if (!adUnitId) {
         errorLog('AdMob', 'No banner ad unit ID available', null);
@@ -116,12 +116,11 @@ export class AdDisplayService {
       
       debugLog('AdMob', 'Attempting to show interstitial ad');
       
-      // Get the config and prepare the ad if not already loaded
-      const config = await fetchAdMobConfig();
-      if (!config) return false;
-      
+      // Always use test ad IDs
       const platform = window.Capacitor.getPlatform();
-      const adUnitId = getPlatformSpecificAdUnit(config, platform, 'interstitial');
+      const adUnitId = platform === 'ios' 
+        ? 'ca-app-pub-3940256099942544/4411468910' // iOS test interstitial ad
+        : 'ca-app-pub-3940256099942544/1033173712'; // Android test interstitial ad
       
       debugLog('AdMob', `Using interstitial ad unit: ${adUnitId}`);
       
@@ -160,11 +159,11 @@ export class AdDisplayService {
       if (!window.Capacitor || !window.Admob) return;
       
       if (!adUnitId) {
-        const config = await fetchAdMobConfig();
-        if (!config) return;
-        
+        // Always use test ad IDs
         const platform = window.Capacitor.getPlatform();
-        adUnitId = getPlatformSpecificAdUnit(config, platform, 'interstitial');
+        adUnitId = platform === 'ios' 
+          ? 'ca-app-pub-3940256099942544/4411468910' // iOS test interstitial ad
+          : 'ca-app-pub-3940256099942544/1033173712'; // Android test interstitial ad
       }
       
       debugLog('AdMob', `Preloading interstitial ad with ID: ${adUnitId}`);

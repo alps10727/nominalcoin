@@ -1,6 +1,5 @@
 
 import { debugLog, errorLog } from "@/utils/debugUtils";
-import { fetchAdMobConfig, getPlatformSpecificAdUnit } from "../config";
 
 export class AdLoadingService {
   private static instance: AdLoadingService;
@@ -36,14 +35,11 @@ export class AdLoadingService {
       
       debugLog('AdMob', 'Started preloading reward ad');
 
-      const config = await fetchAdMobConfig();
-      if (!config) {
-        this.resetAdStates();
-        return;
-      }
-
+      // Always use test ad IDs
       const platform = window.Capacitor.getPlatform();
-      const adUnitId = getPlatformSpecificAdUnit(config, platform, 'reward');
+      const adUnitId = platform === 'ios' 
+        ? 'ca-app-pub-3940256099942544/1712485313' // iOS test reward ad
+        : 'ca-app-pub-3940256099942544/5224354917'; // Android test reward ad
       
       debugLog('AdMob', `Preloading reward ad with ID: ${adUnitId}`);
 
