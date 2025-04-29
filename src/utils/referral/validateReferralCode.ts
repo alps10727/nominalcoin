@@ -8,9 +8,9 @@ import { debugLog, errorLog } from "@/utils/debugUtils";
 export async function checkReferralCode(
   code: string, 
   currentUserId?: string
-): Promise<{valid: boolean, ownerId?: string}> {
+): Promise<{valid: boolean, ownerId?: string, error?: string}> {
   if (!code || code.length !== 6) {
-    return { valid: false };
+    return { valid: false, error: "Referans kodu 6 karakter olmalıdır" };
   }
   
   try {
@@ -27,12 +27,12 @@ export async function checkReferralCode(
     
     if (ownerError) {
       errorLog("validateReferralCode", "Error checking referral code:", ownerError);
-      return { valid: false };
+      return { valid: false, error: "Referans kodu kontrol edilirken hata oluştu" };
     }
     
     if (!ownerData) {
       debugLog("validateReferralCode", "No user found with this referral code");
-      return { valid: false };
+      return { valid: false, error: "Geçersiz referans kodu" };
     }
     
     const ownerId = ownerData.id;
@@ -40,7 +40,7 @@ export async function checkReferralCode(
     // Prevent self-referral
     if (currentUserId && ownerId === currentUserId) {
       debugLog("validateReferralCode", "Self-referral prevented");
-      return { valid: false };
+      return { valid: false, error: "Kendi referans kodunuzu kullanamazsınız" };
     }
     
     // Check if the current user already used this code
@@ -53,7 +53,7 @@ export async function checkReferralCode(
       
       if (!auditError && referralAudit) {
         debugLog("validateReferralCode", "User already used a referral code");
-        return { valid: false };
+        return { valid: false, error: "Zaten bir referans kodu kullanmışsınız" };
       }
     }
     
@@ -62,6 +62,6 @@ export async function checkReferralCode(
     
   } catch (error) {
     errorLog("validateReferralCode", "Error checking referral code:", error);
-    return { valid: false };
+    return { valid: false, error: "Referans kodu doğrulanırken beklenmeyen bir hata oluştu" };
   }
 }

@@ -46,16 +46,16 @@ const SignUp = () => {
           }
           
           // Then check with backend
-          const { valid, error: validationError } = await checkReferralCode(initialReferralCode);
+          const { valid, error: validationErrorMsg } = await checkReferralCode(initialReferralCode);
           setIsValidReferralCode(valid);
           
           if (!valid) {
             debugLog("SignUp", "Invalid referral code detected", { 
               code: initialReferralCode, 
-              error: validationError 
+              error: validationErrorMsg 
             });
-            setValidationError(validationError || "Geçersiz referans kodu");
-            toast.error(validationError || "Geçersiz referans kodu");
+            setValidationError(validationErrorMsg || "Geçersiz referans kodu");
+            toast.error(validationErrorMsg || "Geçersiz referans kodu");
           } else {
             debugLog("SignUp", "Valid referral code detected", { code: initialReferralCode });
             toast.success("Geçerli referans kodu! Kayıt olduğunuzda 10 NC Token kazanacaksınız.");
@@ -100,18 +100,18 @@ const SignUp = () => {
       
       // Validate referral code if provided
       let validReferral = true;
-      let validationError = null;
+      let validationErrorMsg = null;
       
       if (normalizedCode) {
         const result = await checkReferralCode(normalizedCode);
         validReferral = result.valid;
-        validationError = result.error;
+        validationErrorMsg = result.error;
         
         if (!validReferral) {
-          toast.error(validationError || "Geçersiz referans kodu. Kayıt işlemi referans kodu olmadan devam edecek.");
+          toast.error(validationErrorMsg || "Geçersiz referans kodu. Kayıt işlemi referans kodu olmadan devam edecek.");
           debugLog("SignUp", "Invalid referral code on signup attempt", { 
             code: normalizedCode, 
-            error: validationError 
+            error: validationErrorMsg 
           });
           normalizedCode = null;
         }
