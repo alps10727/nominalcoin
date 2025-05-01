@@ -1,5 +1,5 @@
 
-package app.lovable.9a24b2dbd35a4f6fb98b43e035a57e11;
+package app.lovable.a9a24b2dbd35a4f6fb98b43e035a57e11;
 
 import android.os.Bundle;
 import com.getcapacitor.BridgeActivity;

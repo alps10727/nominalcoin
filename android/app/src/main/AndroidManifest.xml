@@ -17,7 +17,7 @@
 
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
-            android:name="app.lovable.9a24b2dbd35a4f6fb98b43e035a57e11.MainActivity"
+            android:name="app.lovable.a9a24b2dbd35a4f6fb98b43e035a57e11.MainActivity"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBarLaunch"
             android:launchMode="singleTask"

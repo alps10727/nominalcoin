@@ -14,34 +14,46 @@ export function useAdMob() {
   // AdMob plugininin kullanılabilir olup olmadığını kontrol et
   useEffect(() => {
     const checkAvailability = async () => {
-      if (
-        typeof window !== 'undefined' && 
-        window.Capacitor && 
-        window.Capacitor.isPluginAvailable('AdMob')
-      ) {
-        setPluginAvailable(true);
-        debugLog("AdMob Hook", "AdMob plugin available: true");
-
-        try {
-          // AdMob servisini başlat
-          await admobService.initialize();
-          setIsInitialized(true);
-          
-          // Konfigürasyonu yükle
-          const adMobConfig = await fetchAdMobConfig();
-          setConfig(adMobConfig);
-          
-          // Preload a reward ad for immediate use
-          setTimeout(() => {
-            preloadNextAd();
-          }, 2000);
-        } catch (error) {
-          errorLog("AdMob Hook", "AdMob initialization error:", error);
+      try {
+        // Önce Capacitor'un varlığını kontrol et
+        if (
+          typeof window === 'undefined' || 
+          !window.Capacitor
+        ) {
+          setPluginAvailable(false);
+          debugLog("AdMob Hook", "Capacitor not available");
+          return;
         }
-      } else {
+        
+        // Sonra plugin'in varlığını kontrol et
+        if (window.Capacitor.isPluginAvailable('AdMob')) {
+          setPluginAvailable(true);
+          debugLog("AdMob Hook", "AdMob plugin available: true");
+
+          try {
+            // AdMob servisini başlat
+            await admobService.initialize();
+            setIsInitialized(true);
+            
+            // Konfigürasyonu yükle
+            const adMobConfig = await fetchAdMobConfig();
+            setConfig(adMobConfig);
+            
+            // Preload a reward ad for immediate use
+            setTimeout(() => {
+              preloadNextAd();
+            }, 2000);
+          } catch (error) {
+            errorLog("AdMob Hook", "AdMob initialization error:", error);
+          }
+        } else {
+          setPluginAvailable(false);
+          debugLog("AdMob Hook", "AdMob plugin available: false");
+          console.warn("AdMob plugin is not available. Please check capacitor config and plugin installation.");
+        }
+      } catch (error) {
         setPluginAvailable(false);
-        debugLog("AdMob Hook", "AdMob plugin available: false");
-        console.warn("AdMob plugin is not available. Please check capacitor config and plugin installation.");
+        errorLog("AdMob Hook", "Error checking plugin availability:", error);
       }
     };
     

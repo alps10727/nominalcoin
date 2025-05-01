@@ -7,13 +7,23 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // OPTIONS isteği için CORS yanıtı
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    // Always use test mode
+    // Daima test modu kullanılıyor
     const isTestMode = true;
+
+    // Platform kontrolü için platform bilgisini almaya çalış
+    let platform = 'android'; // Varsayılan platform
+    try {
+      const url = new URL(req.url);
+      platform = url.searchParams.get('platform') || 'android';
+    } catch (e) {
+      console.error("URL parsing error:", e);
+    }
 
     const config = {
       // Test App ID - Android
@@ -30,22 +40,36 @@ serve(async (req) => {
       iOSRewardAdUnitId: "ca-app-pub-3940256099942544/1712485313",
       iOSBannerAdUnitId: "ca-app-pub-3940256099942544/2934735716",
       iOSInterstitialAdUnitId: "ca-app-pub-3940256099942544/4411468910",
+      
+      // Talep edilen platform bilgisi
+      requestedPlatform: platform
     }
 
+    // Başarılı yanıt
     return new Response(
-      JSON.stringify({ data: config }),
+      JSON.stringify({ 
+        data: config,
+        success: true,
+        timestamp: new Date().toISOString() 
+      }),
       { 
         headers: { 
           ...corsHeaders,
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
         },
       },
     )
   } catch (error) {
     console.error("Error in get-admob-config:", error.message);
     
+    // Hata yanıtı
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        success: false,
+        timestamp: new Date().toISOString() 
+      }),
       { 
         status: 400,
         headers: { 

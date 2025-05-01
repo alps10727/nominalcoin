@@ -2,7 +2,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.9a24b2dbd35a4f6fb98b43e035a57e11',
+  appId: 'app.lovable.a9a24b2dbd35a4f6fb98b43e035a57e11',
   appName: 'Nominal Coin',
   webDir: 'dist',
   server: {
