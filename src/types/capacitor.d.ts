@@ -13,6 +13,23 @@ export interface CapacitorAdMobPlugin {
   removeAllListeners(): Promise<void>;
 }
 
+// Admob eklentisi için arayüz ekliyoruz
+export interface AdmobPlugin {
+  initialize(options: { appId: string; testingDevices?: string[]; initializeForTesting?: boolean }): Promise<void>;
+  setConsent(options: { status: string }): Promise<void>;
+  showBanner(options: { adId: string; position?: string; margin?: number }): Promise<void>;
+  hideBanner(): Promise<void>;
+  resumeBanner(): Promise<void>;
+  removeBanner(): Promise<void>;
+  prepareRewardVideoAd(options: { adId: string }): Promise<void>;
+  showRewardVideoAd(): Promise<{ rewarded: boolean }>;
+  prepareInterstitial(options: { adId: string }): Promise<void>;
+  showInterstitial(): Promise<void>;
+  addListener(eventName: string, listenerFunc: (info: any) => void): Promise<any>;
+  removeAllListeners(): Promise<void>;
+  requestTrackingAuthorization?(): Promise<{ status: string }>;
+}
+
 export interface CapacitorInterface {
   getPlatform(): string;
   isPluginAvailable(name: string): boolean;
@@ -22,5 +39,6 @@ declare global {
   interface Window {
     Capacitor?: CapacitorInterface;
     CapacitorAdMob?: CapacitorAdMobPlugin;
+    Admob?: AdmobPlugin; // Admob eklentisi için global tanım
   }
 }
