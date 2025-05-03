@@ -8,7 +8,8 @@ import './index.css';
 console.log("Capacitor mevcut mu:", typeof window !== 'undefined' && !!window.Capacitor);
 if (typeof window !== 'undefined' && window.Capacitor) {
   console.log("Capacitor platform:", window.Capacitor.getPlatform());
-  console.log("AdMob plugin mevcut mu:", window.Capacitor.isPluginAvailable('AdMob'));
+  console.log("@capacitor-community/admob plugin mevcut mu:", 
+             window.Capacitor.isPluginAvailable('@capacitor-community/admob'));
 }
 
 // Uygulamayı daha güvenli bir şekilde başlatmak için try-catch ekleyelim

@@ -53,7 +53,7 @@ const config: CapacitorConfig = {
       "android.permission.INTERNET"
     ],
     appendUserAgent: "NominalCoin",
-    includePlugins: ["@capacitor/admob"],
+    includePlugins: ["@capacitor/app", "@capacitor-community/admob"],
     buildOptions: {
       keystorePath: "nominalcoin.keystore",
       keystoreAlias: "nominalalias",
@@ -75,20 +75,17 @@ const config: CapacitorConfig = {
       smallIcon: "ic_stat_notification",
       iconColor: "#488AFF"
     },
-    Admob: {
-      android: {
-        initialize: true,
-        applicationId: "ca-app-pub-3940256099942544~3347511713" // Test App ID for Android
+    CapacitorAdMob: {
+      appId: {
+        android: "ca-app-pub-3940256099942544~3347511713", // Test App ID for Android
+        ios: "ca-app-pub-3940256099942544~1458002511" // Test App ID for iOS
       },
-      ios: {
-        initialize: true,
-        applicationId: "ca-app-pub-3940256099942544~1458002511" // Test App ID for iOS
-      },
-    },
-    AdMob: {
-      initialize: true,
-      testingDevices: ['EMULATOR'],
-      initializeForTesting: true
+      publisherId: "",
+      hasUserConsent: true,
+      childDirected: false,
+      useBrowserKit: false,
+      testingDevices: ["EMULATOR"],
+      manualInit: false
     }
   }
 };

@@ -42,20 +42,21 @@ const MiningCard = React.memo<MiningCardProps>(({
   
   const [isAttemptingToStart, setIsAttemptingToStart] = useState(false);
   
-  // Capacitor ve AdMob durumunu kontrol et
   useEffect(() => {
-    console.log("MiningCard komponentinde AdMob testi:");
-    console.log("window.Capacitor mevcut mu:", typeof window !== 'undefined' && !!window.Capacitor);
+    console.log("MiningCard - AdMob bilgileri:");
+    console.log("- Capacitor mevcut mu:", typeof window !== 'undefined' && !!window.Capacitor);
     if (typeof window !== 'undefined' && window.Capacitor) {
-      console.log("Capacitor platform:", window.Capacitor.getPlatform());
-      console.log("AdMob plugin mevcut mu:", window.Capacitor.isPluginAvailable('AdMob'));
-      console.log("Plugin durumu (hook içinden):", pluginAvailable);
+      console.log("- Capacitor platform:", window.Capacitor.getPlatform());
+      console.log("- @capacitor-community/admob plugin mevcut mu:", 
+                 window.Capacitor.isPluginAvailable('@capacitor-community/admob'));
+      console.log("- Plugin durumu (hook içinden):", pluginAvailable);
+      console.log("- AdMob initialized:", isInitialized);
     }
-  }, [pluginAvailable]);
+  }, [pluginAvailable, isInitialized]);
   
   useEffect(() => {
     if (!miningActive && isInitialized && pluginAvailable) {
-      debugLog('MiningCard', 'Preloading ad on component mount');
+      debugLog('MiningCard', 'Başlangıçta reklam önyükleniyor');
       preloadNextAd();
     }
   }, [miningActive, isInitialized, pluginAvailable, preloadNextAd]);
@@ -67,14 +68,11 @@ const MiningCard = React.memo<MiningCardProps>(({
     }
     
     setIsAttemptingToStart(true);
-    console.log('MiningButton tıklandı! Capacitor mevcut mu:', typeof window !== 'undefined' && !!window.Capacitor);
-    console.log('Plugin mevcut mi:', pluginAvailable);
-    debugLog('MiningCard', `Handling button click. Capacitor available: ${!!window.Capacitor}, Plugin available: ${pluginAvailable}`);
+    debugLog('MiningCard', `Buton tıklaması işleniyor. Capacitor mevcut: ${!!window.Capacitor}, Plugin mevcut: ${pluginAvailable}`);
     
     try {
       if (typeof window !== 'undefined' && window.Capacitor && pluginAvailable) {
         debugLog('MiningCard', 'AdMob ödül reklamı göstermeye çalışıyor');
-        console.log('AdMob reklamı göstermeye çalışıyor...');
         
         // Görünürlük için bir bildirim ekleyelim
         toast.info("Reklam yükleniyor...", { duration: 3000 });
@@ -111,8 +109,6 @@ const MiningCard = React.memo<MiningCardProps>(({
       setIsAttemptingToStart(false);
     }
   }, [miningActive, onStartMining, onStopMining, showRewardAd, preloadNextAd, pluginAvailable]);
-
-  const hourlyRate = (miningRate * 60).toFixed(1);
 
   return (
     <Card className="border-0 overflow-hidden shadow-lg transition-all duration-300 relative rounded-xl backdrop-blur-sm group

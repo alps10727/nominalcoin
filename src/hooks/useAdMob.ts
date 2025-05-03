@@ -1,79 +1,100 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { fetchAdMobConfig, getPlatformSpecificAdUnit } from '@/services/admob/config';
 import { debugLog, errorLog } from "@/utils/debugUtils";
-import { admobService } from '@/services/admob/admobService';
 import { toast } from "sonner";
+
+// Sabit test ID'leri - Fetch etmeye gerek kalmadı
+const TEST_CONFIG = {
+  isTestMode: true,
+  android: {
+    appId: "ca-app-pub-3940256099942544~3347511713",
+    rewardAdUnitId: "ca-app-pub-3940256099942544/5224354917",
+    bannerAdUnitId: "ca-app-pub-3940256099942544/6300978111", 
+    interstitialAdUnitId: "ca-app-pub-3940256099942544/1033173712"
+  },
+  ios: {
+    appId: "ca-app-pub-3940256099942544~1458002511",
+    rewardAdUnitId: "ca-app-pub-3940256099942544/1712485313",
+    bannerAdUnitId: "ca-app-pub-3940256099942544/2934735716",
+    interstitialAdUnitId: "ca-app-pub-3940256099942544/4411468910"
+  }
+};
 
 export function useAdMob() {
   const [isLoading, setIsLoading] = useState(false);
-  const [config, setConfig] = useState<any>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [pluginAvailable, setPluginAvailable] = useState(false);
+  const [adPreloaded, setAdPreloaded] = useState(false);
 
-  // AdMob plugininin kullanılabilir olup olmadığını kontrol et
+  // Plugin kullanılabilirliğini kontrol et
   useEffect(() => {
     const checkAvailability = async () => {
       try {
-        // Önce Capacitor'un varlığını kontrol et
-        if (
-          typeof window === 'undefined' || 
-          !window.Capacitor
-        ) {
+        // Capacitor'un mevcut olup olmadığını kontrol et
+        if (typeof window === 'undefined' || !window.Capacitor) {
           setPluginAvailable(false);
-          debugLog("AdMob Hook", "Capacitor not available");
+          debugLog("AdMob", "Capacitor kullanılamıyor");
           return;
         }
-        
-        // Sonra plugin'in varlığını kontrol et
-        if (window.Capacitor.isPluginAvailable('AdMob')) {
-          setPluginAvailable(true);
-          debugLog("AdMob Hook", "AdMob plugin available: true");
 
+        // Plugin varlığını kontrol et - Yeni plugin ismi ile
+        const isAvailable = window.Capacitor.isPluginAvailable('@capacitor-community/admob');
+        setPluginAvailable(isAvailable);
+        debugLog("AdMob", `Plugin kullanılabilir: ${isAvailable}`);
+        
+        if (isAvailable) {
           try {
-            // AdMob servisini başlat
-            await admobService.initialize();
-            setIsInitialized(true);
-            
-            // Konfigürasyonu yükle
-            const adMobConfig = await fetchAdMobConfig();
-            setConfig(adMobConfig);
-            
-            // Preload a reward ad for immediate use
-            setTimeout(() => {
-              preloadNextAd();
-            }, 2000);
+            // AdMob plugin'ini başlat
+            if (window.CapacitorAdMob) {
+              await window.CapacitorAdMob.initialize();
+              setIsInitialized(true);
+              debugLog("AdMob", "AdMob başarıyla başlatıldı");
+              
+              // İlk reklamı yükle
+              setTimeout(() => preloadNextAd(), 2000);
+            } else {
+              errorLog("AdMob", "CapacitorAdMob objesi bulunamadı", null);
+            }
           } catch (error) {
-            errorLog("AdMob Hook", "AdMob initialization error:", error);
+            errorLog("AdMob", "AdMob başlatma hatası:", error);
+            toast.error("AdMob başlatılamadı");
           }
         } else {
-          setPluginAvailable(false);
-          debugLog("AdMob Hook", "AdMob plugin available: false");
-          console.warn("AdMob plugin is not available. Please check capacitor config and plugin installation.");
+          console.log("@capacitor-community/admob eklentisi bulunamadı");
         }
       } catch (error) {
         setPluginAvailable(false);
-        errorLog("AdMob Hook", "Error checking plugin availability:", error);
+        errorLog("AdMob", "Plugin kullanılabilirlik kontrolü hatası:", error);
       }
     };
     
     checkAvailability();
   }, []);
 
-  // Bir sonraki reklamı önceden yükle
+  // Bir sonraki ödüllü reklamı önceden yükle
   const preloadNextAd = useCallback(async () => {
-    if (!pluginAvailable) {
+    if (!pluginAvailable || !window.CapacitorAdMob) {
       return;
     }
 
     setIsLoading(true);
     
     try {
-      debugLog("AdMob Hook", "Preloading next ad");
-      await admobService.preloadRewardAd();
-      debugLog("AdMob Hook", "Reward ad preloaded successfully");
+      debugLog("AdMob", "Sonraki ödül reklamı yükleniyor");
+      
+      const platform = window.Capacitor.getPlatform();
+      const adUnitId = platform === 'ios' 
+        ? TEST_CONFIG.ios.rewardAdUnitId 
+        : TEST_CONFIG.android.rewardAdUnitId;
+      
+      await window.CapacitorAdMob.prepareRewardVideoAd({
+        adId: adUnitId
+      });
+      
+      setAdPreloaded(true);
+      debugLog("AdMob", "Ödül reklamı başarıyla yüklendi");
     } catch (error) {
-      errorLog("AdMob Hook", "Error preloading ad:", error);
+      errorLog("AdMob", "Reklam yükleme hatası:", error);
       toast.error("Reklam yüklenirken bir hata oluştu", {
         duration: 3000,
       });
@@ -82,84 +103,106 @@ export function useAdMob() {
     }
   }, [pluginAvailable]);
 
-  // Ödüllü reklamı göster
+  // Ödüllü reklam göster
   const showRewardAd = useCallback(async (): Promise<boolean> => {
-    if (!pluginAvailable) {
-      debugLog("AdMob Hook", "Plugin not available, simulating reward in development");
+    if (!pluginAvailable || !window.CapacitorAdMob) {
+      debugLog("AdMob", "Plugin mevcut değil, geliştirme modunda ödül simüle ediliyor");
       await new Promise(resolve => setTimeout(resolve, 1000));
-      return true; // Development modunda başarılı gibi davran
+      return true; // Geliştirme modunda başarılı olarak kabul et
     }
     
     setIsLoading(true);
     
     try {
-      debugLog("AdMob Hook", "Showing reward ad");
+      debugLog("AdMob", "Ödül reklamı gösteriliyor");
       
-      // Test modunda daha iyi debug için bildirim göster
-      if (config?.isTestMode) {
+      if (TEST_CONFIG.isTestMode) {
         toast.info("Test modu: Reklam gösteriliyor", { 
-          description: "Test reklam yükleniyor",
           duration: 3000
         });
       }
       
-      const rewarded = await admobService.showRewardAd();
+      // Reklam daha önce yüklenmediyse yükle
+      if (!adPreloaded) {
+        const platform = window.Capacitor.getPlatform();
+        const adUnitId = platform === 'ios' 
+          ? TEST_CONFIG.ios.rewardAdUnitId 
+          : TEST_CONFIG.android.rewardAdUnitId;
+          
+        await window.CapacitorAdMob.prepareRewardVideoAd({
+          adId: adUnitId
+        });
+        
+        // Reklamın yüklenmesi için kısa bir bekleme süresi
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
       
-      debugLog("AdMob Hook", "Reward ad result:", rewarded);
+      // Reklamı göster
+      const result = await window.CapacitorAdMob.showRewardVideoAd();
+      setAdPreloaded(false);
       
-      // Hemen bir sonraki reklamı önceden yükle
+      // Sonraki reklamı yükle
       setTimeout(() => preloadNextAd(), 1000);
       
-      setIsLoading(false);
-      return rewarded;
+      debugLog("AdMob", "Reklam sonucu:", result);
+      return result?.value || false;
     } catch (error) {
-      errorLog("AdMob Hook", "Error showing reward ad:", error);
+      errorLog("AdMob", "Ödül reklamı gösterme hatası:", error);
       toast.error("Reklam gösterilirken bir hata oluştu");
-      setIsLoading(false);
       return false;
+    } finally {
+      setIsLoading(false);
     }
-  }, [pluginAvailable, config, preloadNextAd]);
+  }, [pluginAvailable, adPreloaded, preloadNextAd]);
 
   // Banner reklamı göster
   const showBannerAd = useCallback(async (): Promise<void> => {
-    if (!pluginAvailable) {
-      debugLog("AdMob Hook", "Plugin not available, skipping banner ad");
+    if (!pluginAvailable || !window.CapacitorAdMob) {
+      debugLog("AdMob", "Plugin mevcut değil, banner reklamı atlanıyor");
       return;
     }
     
     try {
-      debugLog("AdMob Hook", "Showing banner ad");
-      await admobService.showBannerAd();
+      debugLog("AdMob", "Banner reklamı gösteriliyor");
       
-      // Test modunda daha iyi debug için bildirim göster
-      if (config?.isTestMode) {
+      const platform = window.Capacitor.getPlatform();
+      const adUnitId = platform === 'ios' 
+        ? TEST_CONFIG.ios.bannerAdUnitId 
+        : TEST_CONFIG.android.bannerAdUnitId;
+      
+      await window.CapacitorAdMob.showBanner({
+        adId: adUnitId,
+        position: 'BOTTOM_CENTER',
+      });
+      
+      if (TEST_CONFIG.isTestMode) {
         toast.info("Test modu: Banner reklam gösteriliyor", { 
           duration: 2000
         });
       }
     } catch (error) {
-      errorLog("AdMob Hook", "Error showing banner ad:", error);
+      errorLog("AdMob", "Banner reklamı gösterme hatası:", error);
     }
-  }, [pluginAvailable, config]);
+  }, [pluginAvailable]);
 
   // Banner reklamı gizle
   const hideBannerAd = useCallback(async (): Promise<void> => {
-    if (!pluginAvailable) {
+    if (!pluginAvailable || !window.CapacitorAdMob) {
       return;
     }
     
     try {
-      debugLog("AdMob Hook", "Hiding banner ad");
-      await admobService.hideBannerAd();
+      debugLog("AdMob", "Banner reklamı gizleniyor");
+      await window.CapacitorAdMob.hideBanner();
     } catch (error) {
-      errorLog("AdMob Hook", "Error hiding banner ad:", error);
+      errorLog("AdMob", "Banner reklamı gizleme hatası:", error);
     }
   }, [pluginAvailable]);
 
-  // Interstitial reklam göster
+  // Interstitial reklamı göster
   const showInterstitialAd = useCallback(async (): Promise<boolean> => {
-    if (!pluginAvailable) {
-      debugLog("AdMob Hook", "Plugin not available, simulating interstitial ad");
+    if (!pluginAvailable || !window.CapacitorAdMob) {
+      debugLog("AdMob", "Plugin mevcut değil, geçiş reklamı simüle ediliyor");
       await new Promise(resolve => setTimeout(resolve, 500));
       return true;
     }
@@ -167,27 +210,39 @@ export function useAdMob() {
     setIsLoading(true);
     
     try {
-      debugLog("AdMob Hook", "Showing interstitial ad");
+      debugLog("AdMob", "Geçiş reklamı gösteriliyor");
       
-      // Test modunda daha iyi debug için bildirim göster
-      if (config?.isTestMode) {
-        toast.info("Test modu: Interstitial reklam gösteriliyor", { 
+      const platform = window.Capacitor.getPlatform();
+      const adUnitId = platform === 'ios' 
+        ? TEST_CONFIG.ios.interstitialAdUnitId 
+        : TEST_CONFIG.android.interstitialAdUnitId;
+      
+      // Önce reklamı hazırla
+      await window.CapacitorAdMob.prepareInterstitial({
+        adId: adUnitId
+      });
+      
+      // Kısa bir bekleme süresi
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Reklamı göster
+      await window.CapacitorAdMob.showInterstitial();
+      
+      if (TEST_CONFIG.isTestMode) {
+        toast.info("Test modu: Geçiş reklamı gösteriliyor", { 
           duration: 3000
         });
       }
       
-      const result = await admobService.showInterstitialAd();
-      
-      debugLog("AdMob Hook", "Interstitial ad result:", result);
-      setIsLoading(false);
-      return result;
+      return true;
     } catch (error) {
-      errorLog("AdMob Hook", "Error showing interstitial ad:", error);
+      errorLog("AdMob", "Geçiş reklamı gösterme hatası:", error);
       toast.error("Reklam gösterilirken bir hata oluştu");
-      setIsLoading(false);
       return false;
+    } finally {
+      setIsLoading(false);
     }
-  }, [pluginAvailable, config]);
+  }, [pluginAvailable]);
 
   return {
     showRewardAd,
@@ -195,7 +250,6 @@ export function useAdMob() {
     showBannerAd,
     hideBannerAd,
     isLoading,
-    config,
     preloadNextAd,
     isInitialized,
     pluginAvailable,
