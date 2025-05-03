@@ -4,6 +4,13 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 
+// AdMob ve Capacitor durumunu kontrol et
+console.log("Capacitor mevcut mu:", typeof window !== 'undefined' && !!window.Capacitor);
+if (typeof window !== 'undefined' && window.Capacitor) {
+  console.log("Capacitor platform:", window.Capacitor.getPlatform());
+  console.log("AdMob plugin mevcut mu:", window.Capacitor.isPluginAvailable('AdMob'));
+}
+
 // Uygulamayı daha güvenli bir şekilde başlatmak için try-catch ekleyelim
 try {
   const rootElement = document.getElementById('root');
