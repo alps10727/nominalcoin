@@ -12,12 +12,18 @@ import android.widget.RelativeLayout;
 import com.getcapacitor.Bridge;
 import com.getcapacitor.BridgeWebViewClient;
 
+// Import AdMob plugin
+import com.getcapacitor.community.admob.AdMob;
+
 public class MainActivity extends BridgeActivity {
   private static final String TAG = "MainActivity";
   private AdView mAdView;
   
   @Override
   public void onCreate(Bundle savedInstanceState) {
+    // Register the AdMob plugin with Capacitor
+    registerPlugin(AdMob.class);
+    
     super.onCreate(savedInstanceState);
     
     // Google AdMob SDK'yı başlat

@@ -9,7 +9,7 @@ console.log("Capacitor mevcut mu:", typeof window !== 'undefined' && !!window.Ca
 if (typeof window !== 'undefined' && window.Capacitor) {
   console.log("Capacitor platform:", window.Capacitor.getPlatform());
   console.log("@capacitor-community/admob plugin mevcut mu:", 
-             window.Capacitor.isPluginAvailable('AdMob'));
+             window.Capacitor.isPluginAvailable('@capacitor-community/admob'));
   
   // Global Admob nesnesini kontrol et
   console.log("Admob nesnesi mevcut mu:", typeof window !== 'undefined' && !!window.Admob);
