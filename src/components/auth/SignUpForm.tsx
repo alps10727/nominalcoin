@@ -50,7 +50,7 @@ export default function SignUpForm({
         <SignUpButton 
           loading={loading} 
           isOffline={isOffline}
-          disabled={!isFormValid || loading} 
+          disabled={!isFormValid} 
         />
       </form>
     </Form>

@@ -46,7 +46,7 @@ const SignUpFormFields = ({
       
       <ReferralCodeInput
         value={watch("referralCode")}
-        onChange={(value) => setValue("referralCode", value)}
+        onChange={(value) => setValue("referralCode", value, { shouldValidate: true })}
         disabled={loading}
         initialReferralCode={initialReferralCode}
       />
@@ -54,7 +54,7 @@ const SignUpFormFields = ({
       <TermsAgreement 
         checked={watch("agreedToTerms") === true} 
         onCheckedChange={(checked) => {
-          setValue("agreedToTerms", checked ? true : undefined, { shouldValidate: true })
+          setValue("agreedToTerms", checked ? true : false, { shouldValidate: true })
         }}
         disabled={loading}
       />

@@ -24,7 +24,7 @@ export const useSignUpForm = ({ onSubmit, initialReferralCode = '' }: UseSignUpF
       password: "",
       confirmPassword: "",
       referralCode: initialReferralCode || "",
-      agreedToTerms: undefined as any,
+      agreedToTerms: false as any,
     },
     mode: "onChange"
   });
@@ -40,12 +40,13 @@ export const useSignUpForm = ({ onSubmit, initialReferralCode = '' }: UseSignUpF
     };
   }, []);
   
+  // Bu değişiklik, formun geçerliliğini daha doğru şekilde izlememizi sağlar
   const isFormValid = form.formState.isValid && 
                      !!form.watch("name")?.trim() && 
                      !!form.watch("email")?.trim() && 
                      !!form.watch("password")?.trim() && 
                      form.watch("confirmPassword") === form.watch("password") &&
-                     form.watch("agreedToTerms");
+                     form.watch("agreedToTerms") === true;
 
   const handleSubmit = async (values: SignUpFormValues) => {
     setFormError(null);
