@@ -11,9 +11,12 @@ interface MissionsListProps {
 }
 
 const MissionsList = ({ missions, onClaim, onConnect, isLoading }: MissionsListProps) => {
+  // Add safety check to ensure missions is always an array
+  const safeMissions = Array.isArray(missions) ? missions : [];
+  
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {missions.map(mission => (
+      {safeMissions.map(mission => (
         <MissionItem 
           key={mission.id} 
           mission={mission} 

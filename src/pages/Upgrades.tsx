@@ -26,6 +26,7 @@ const Upgrades = () => {
   const { userData, currentUser, updateUserData } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   
+  // Initialize missions with a default empty array
   const [missions, setMissions] = useState<Mission[]>([
     {
       id: "social-twitter",
@@ -92,7 +93,7 @@ const Upgrades = () => {
     }
   }, [userData]);
 
-  const updateMissionProgress = async (missionId: string, progressAmount: number) => {
+  const updateMissionProgress = (missionId: string, progressAmount: number) => {
     setMissions(prevMissions => 
       prevMissions.map(mission => {
         if (mission.id === missionId) {
@@ -140,7 +141,7 @@ const Upgrades = () => {
           const updatedMissions = userData?.completedMissions || [];
           await updateUserData({
             miningRate: newRate,
-            completedMissions: [...updatedMissions, mission.id] as string[]
+            completedMissions: [...updatedMissions, mission.id]
           });
         }
         
@@ -178,7 +179,7 @@ const Upgrades = () => {
         const updatedMissions = userData?.completedMissions || [];
         await updateUserData({
           balance: newBalance,
-          completedMissions: [...updatedMissions, mission.id] as string[]
+          completedMissions: [...updatedMissions, mission.id]
         });
       }
       
