@@ -9,9 +9,12 @@ interface UpgradesGridProps {
 }
 
 const UpgradesGrid = ({ upgrades, balance, onPurchase }: UpgradesGridProps) => {
+  // Add a safety check to ensure upgrades is always an array
+  const safeUpgrades = Array.isArray(upgrades) ? upgrades : [];
+  
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {upgrades.map(upgrade => (
+      {safeUpgrades.map(upgrade => (
         <UpgradeCard 
           key={upgrade.id} 
           upgrade={upgrade} 

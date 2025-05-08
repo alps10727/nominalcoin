@@ -9,9 +9,12 @@ import { usePagePreloading } from "@/hooks/routing/usePagePreloading";
 import SignIn from "@/pages/SignIn";
 import Index from "@/pages/Index";
 import SignUp from "@/pages/SignUp";
-import Upgrades from "@/pages/Upgrades"; // Direct import to avoid lazy-loading issues
-import MiningUpgrades from "@/pages/MiningUpgrades"; // Direct import to fix loading issues
 
+// Import critical pages directly to avoid dynamic import issues
+import Upgrades from "@/pages/Upgrades";
+import MiningUpgrades from "@/pages/MiningUpgrades";
+
+// Lazy loaded pages
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const Profile = lazy(() => import("@/pages/Profile"));
 const History = lazy(() => import("@/pages/History"));
@@ -67,7 +70,7 @@ const AppRoutes = () => {
         
         <Route path="/mining/upgrades" element={
           <PrivateRoute>
-            {/* Doğrudan içe aktarma, lazy loading olmadan */}
+            {/* Direct import without Suspense to avoid lazy loading issues */}
             <PageTransition>
               <MiningUpgrades />
             </PageTransition>
@@ -96,7 +99,7 @@ const AppRoutes = () => {
         
         <Route path="/upgrades" element={
           <PrivateRoute>
-            {/* Doğrudan içe aktarma, lazy loading olmadan */}
+            {/* Direct import without Suspense wrapper to prevent dynamic import issues */}
             <PageTransition>
               <Upgrades />
             </PageTransition>
