@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { 
@@ -13,13 +14,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, AlertCircle, ArrowLeft, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
-import { sendPasswordResetEmail } from "@/services/firebaseService";
+import { sendPasswordResetEmail } from "@/services/passwordService";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useLanguage();
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,24 +30,24 @@ const ForgotPassword = () => {
     setLoading(true);
     
     try {
-      console.log("Şifre sıfırlama e-postası gönderiliyor:", email);
+      console.log("Sending password reset email:", email);
       await sendPasswordResetEmail(email);
-      toast.success("Şifre sıfırlama bağlantısı e-posta adresinize gönderildi");
+      toast.success(t("auth.passwordResetSent") || "Password reset link has been sent to your email");
       setSent(true);
     } catch (error) {
-      console.error("Şifre sıfırlama hatası:", error);
+      console.error("Password reset error:", error);
       const errorMessage = (error as Error).message;
       
       if (errorMessage.includes("user-not-found")) {
-        setError("Bu e-posta adresi ile kayıtlı bir kullanıcı bulunamadı.");
+        setError(t("auth.userNotFound") || "No user found with this email address.");
       } else if (errorMessage.includes("invalid-email")) {
-        setError("Geçersiz e-posta adresi.");
+        setError(t("auth.invalidEmail") || "Invalid email address.");
       } else if (errorMessage.includes("network-request-failed") || errorMessage.includes("timeout")) {
-        setError("Bağlantı sorunu. İnternet bağlantınızı kontrol edin.");
+        setError(t("auth.connectionIssue") || "Connection issue. Please check your internet connection.");
       } else {
-        setError("İşlem başarısız: " + errorMessage);
+        setError((t("auth.operationFailed") || "Operation failed: ") + errorMessage);
       }
-      toast.error("Şifre sıfırlama bağlantısı gönderilemedi");
+      toast.error(t("auth.passwordResetFailed") || "Failed to send password reset link");
     } finally {
       setLoading(false);
     }
@@ -60,16 +63,16 @@ const ForgotPassword = () => {
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20 mb-2">
                   <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
                 </div>
-                <CardTitle className="text-2xl font-bold">E-posta Gönderildi</CardTitle>
+                <CardTitle className="text-2xl font-bold">{t("auth.emailSent") || "Email Sent"}</CardTitle>
                 <CardDescription>
-                  Şifre sıfırlama bağlantısı e-posta adresinize gönderildi
+                  {t("auth.passwordResetEmailSent") || "Password reset link has been sent to your email"}
                 </CardDescription>
               </>
             ) : (
               <>
-                <CardTitle className="text-2xl font-bold">Şifremi Unuttum</CardTitle>
+                <CardTitle className="text-2xl font-bold">{t("auth.forgotPassword") || "Forgot Password"}</CardTitle>
                 <CardDescription>
-                  Şifre sıfırlama bağlantısı için e-posta adresinizi girin
+                  {t("auth.enterEmailForReset") || "Enter your email address to get a password reset link"}
                 </CardDescription>
               </>
             )}
@@ -92,7 +95,7 @@ const ForgotPassword = () => {
                       <Input
                         id="email"
                         type="email"
-                        placeholder="Email adresinizi girin"
+                        placeholder={t("auth.enterYourEmail") || "Enter your email address"}
                         className="pl-10"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -105,10 +108,10 @@ const ForgotPassword = () => {
                     {loading ? (
                       <div className="flex items-center justify-center">
                         <div className="h-4 w-4 border-2 border-current border-t-transparent animate-spin rounded-full mr-2" />
-                        Gönderiliyor...
+                        {t("auth.sending") || "Sending..."}
                       </div>
                     ) : (
-                      "Şifre Sıfırlama Bağlantısı Gönder"
+                      t("auth.sendPasswordResetLink") || "Send Password Reset Link"
                     )}
                   </Button>
                 </form>
@@ -116,14 +119,14 @@ const ForgotPassword = () => {
             ) : (
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  E-postanızı kontrol edin ve şifrenizi sıfırlamak için gelen bağlantıya tıklayın. Spam klasörünüzü de kontrol etmeyi unutmayın.
+                  {t("auth.checkEmailForInstructions") || "Check your email and click the link to reset your password. Don't forget to check your spam folder."}
                 </p>
                 <Button 
                   variant="outline" 
                   className="w-full"
                   onClick={() => setSent(false)}
                 >
-                  Tekrar Dene
+                  {t("auth.tryAgain") || "Try Again"}
                 </Button>
               </div>
             )}
@@ -132,7 +135,7 @@ const ForgotPassword = () => {
             <div className="text-center text-sm">
               <Link to="/sign-in" className="inline-flex items-center text-primary hover:underline">
                 <ArrowLeft className="h-4 w-4 mr-1" />
-                Giriş sayfasına dön
+                {t("auth.backToLogin") || "Back to login page"}
               </Link>
             </div>
           </CardFooter>

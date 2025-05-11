@@ -3,22 +3,22 @@ import { supabase } from "@/integrations/supabase/client";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 
 /**
- * Şifre sıfırlama e-postası gönderme
+ * Send password reset email
  */
 export async function sendPasswordResetEmail(email: string): Promise<void> {
   try {
-    debugLog("passwordService", "Şifre sıfırlama e-postası gönderiliyor:", email);
+    debugLog("passwordService", "Sending password reset email:", email);
     
-    // Şifre sıfırlama işlemi
+    // Password reset process
     const { error } = await supabase.auth.resetPasswordForEmail(email);
     
     if (error) {
       throw error;
     }
     
-    debugLog("passwordService", "Şifre sıfırlama e-postası gönderildi");
+    debugLog("passwordService", "Password reset email sent");
   } catch (err) {
-    errorLog("passwordService", "Şifre sıfırlama hatası:", err);
-    throw err; // Hataları üst katmana ilet
+    errorLog("passwordService", "Password reset error:", err);
+    throw err; // Pass errors to upper layer
   }
 }

@@ -1,5 +1,6 @@
 
 import { Checkbox } from "@/components/ui/checkbox";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface RememberMeCheckboxProps {
   checked: boolean;
@@ -12,6 +13,8 @@ const RememberMeCheckbox = ({
   onCheckedChange, 
   disabled = false 
 }: RememberMeCheckboxProps) => {
+  const { t } = useLanguage();
+  
   return (
     <div className="flex items-center space-x-2">
       <Checkbox
@@ -26,7 +29,7 @@ const RememberMeCheckbox = ({
         htmlFor="remember"
         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
       >
-        Beni hatırla
+        {t("auth.rememberMe") || "Remember me"}
       </label>
     </div>
   );

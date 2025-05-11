@@ -40,8 +40,8 @@ const Notifications = () => {
       if (error) throw error;
       setNotifications(data || []);
     } catch (error) {
-      console.error('Bildirimler yüklenirken hata:', error);
-      toast.error('Bildirimler yüklenemedi');
+      console.error('Error loading notifications:', error);
+      toast.error(t('notifications.loadError') || 'Failed to load notifications');
     } finally {
       setLoading(false);
     }
@@ -64,8 +64,8 @@ const Notifications = () => {
         )
       );
     } catch (error) {
-      console.error('Bildirim güncellenirken hata:', error);
-      toast.error('Bildirim güncellenemedi');
+      console.error('Error updating notification:', error);
+      toast.error(t('notifications.updateError') || 'Failed to update notification');
     }
   };
 
@@ -83,7 +83,7 @@ const Notifications = () => {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return new Intl.RelativeTimeFormat('tr', { numeric: 'auto' })
+    return new Intl.RelativeTimeFormat(useLanguage().language, { numeric: 'auto' })
       .format(Math.ceil((date.getTime() - Date.now()) / (1000 * 60)), 'minute')
       .replace('-', '');
   };
@@ -91,7 +91,7 @@ const Notifications = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-purple-400">Yükleniyor...</div>
+        <div className="animate-pulse text-purple-400">{t("app.loading") || "Loading..."}</div>
       </div>
     );
   }
@@ -100,7 +100,7 @@ const Notifications = () => {
     <div className="min-h-screen flex items-start justify-center pt-4">
       <div className="w-full max-w-lg px-4">
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-xl font-semibold">{t("notifications.title") || "Bildirimler"}</h1>
+          <h1 className="text-xl font-semibold">{t("notifications.title") || "Notifications"}</h1>
           <Bell className="h-5 w-5 text-purple-400" />
         </div>
 
@@ -108,7 +108,7 @@ const Notifications = () => {
           <div className="p-2">
             {notifications.length === 0 ? (
               <div className="text-center py-6 text-gray-500 text-sm">
-                {t("notifications.empty") || "Bildirim bulunmuyor"}
+                {t("notifications.empty") || "No notifications found"}
               </div>
             ) : (
               <div className="space-y-2">
@@ -137,7 +137,7 @@ const Notifications = () => {
                               onClick={() => markAsRead(notification.id)}
                               className="text-purple-400 hover:text-purple-300 text-xs py-1 h-7"
                             >
-                              Okundu olarak işaretle
+                              {t("notifications.markAsRead") || "Mark as read"}
                             </Button>
                           )}
                         </div>

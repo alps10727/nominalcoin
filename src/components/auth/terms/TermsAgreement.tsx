@@ -1,6 +1,7 @@
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TermsAgreementProps {
   checked: boolean;
@@ -9,6 +10,8 @@ interface TermsAgreementProps {
 }
 
 const TermsAgreement = ({ checked, onCheckedChange, disabled = false }: TermsAgreementProps) => {
+  const { t } = useLanguage();
+  
   return (
     <div className="flex items-center space-x-2">
       <Checkbox
@@ -24,13 +27,13 @@ const TermsAgreement = ({ checked, onCheckedChange, disabled = false }: TermsAgr
         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
       >
         <Link to="/terms" className="text-primary hover:underline">
-          Kullanım şartlarını
+          {t("auth.termsOfService") || "Terms of Service"}
         </Link>{" "}
-        ve{" "}
+        {t("auth.and") || "and"}{" "}
         <Link to="/privacy" className="text-primary hover:underline">
-          gizlilik politikasını
+          {t("auth.privacyPolicy") || "Privacy Policy"}
         </Link>{" "}
-        kabul ediyorum
+        {t("auth.iAccept") || "I accept"}
       </label>
     </div>
   );
