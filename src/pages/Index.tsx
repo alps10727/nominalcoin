@@ -1,3 +1,4 @@
+
 import { Diamond, Activity, Zap, ChevronRight } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -121,14 +122,14 @@ const Index = () => {
   }, [showBannerAd]);
 
   return (
-    <div className="min-h-screen flex flex-col relative pb-20">
+    <div className="min-h-[100dvh] w-full flex flex-col relative pb-20">
       {showOfflineIndicator && (
         <div className="bg-orange-500/80 text-white text-center text-sm py-1.5 px-2 shadow-sm">
           Çevrimdışı moddasınız. Senkronizasyon internet bağlantısıyla yeniden sağlanacak.
         </div>
       )}
       
-      <main className={`flex-1 ${isMobile ? 'px-4 py-4' : 'px-6 py-6'} max-w-3xl mx-auto w-full relative z-10`}>
+      <main className={`flex-1 ${isMobile ? 'px-4 py-4' : 'px-6 py-6'} w-full mx-auto relative z-10`}>
         <div className="mt-2 mb-6">
           <h1 className="text-2xl font-bold text-purple-300">NOMINAL Coin Dashboard</h1>
           <p className="text-purple-300/80 text-sm mt-1">

@@ -12,7 +12,7 @@ const MiningUpgrades = () => {
   const balance = userData?.balance || 0;
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-4xl">
+    <div className="w-full min-h-[100dvh] px-4 py-6 relative">
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 rounded-lg bg-gradient-to-br from-indigo-900/40 to-purple-900/40 border border-indigo-500/30">
           <Zap className="h-6 w-6 text-indigo-400" />

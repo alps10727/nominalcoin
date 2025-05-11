@@ -212,7 +212,7 @@ const Upgrades = () => {
   };
 
   return (
-    <div className="container max-w-4xl mx-auto px-4 py-6 space-y-8">
+    <div className="w-full min-h-[100dvh] px-4 py-6 relative">
       <div className="flex flex-col space-y-2">
         <h1 className="text-2xl font-bold fc-gradient-text flex items-center">
           <Gift className="mr-2 h-6 w-6 text-indigo-400" />
@@ -226,7 +226,7 @@ const Upgrades = () => {
       {/* Banner ad at the top */}
       <BannerAdContainer />
 
-      <div className="space-y-4">
+      <div className="space-y-4 mt-4">
         <MissionsList 
           missions={missions}
           onClaim={claimReward}

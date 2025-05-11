@@ -13,7 +13,7 @@ interface AppLayoutProps {
 const AppLayout = ({ children }: AppLayoutProps) => {
   return (
     <TooltipProvider>
-      <div className="flex flex-col min-h-screen relative overflow-hidden">
+      <div className="flex flex-col min-h-[100dvh] h-[100dvh] w-[100vw] max-w-[100vw] relative overflow-hidden">
         {/* Enhanced space background with visible colors */}
         <div className="absolute inset-0 pointer-events-none z-0">
           {/* Base gradient with lighter colors */}
@@ -59,7 +59,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         
         <Header />
         
-        <main className="flex-1 relative z-10">
+        <main className="flex-1 relative z-10 w-full overflow-y-auto">
           <Suspense fallback={<LoadingScreen message="Sayfa yükleniyor..." />}>
             {children}
           </Suspense>
