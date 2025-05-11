@@ -1,7 +1,6 @@
 
 import { debugLog, errorLog } from "@/utils/debugUtils";
 import { checkReferralCode } from "./validateReferralCode";
-import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { REFERRAL_BONUS_RATE } from "./bonusCalculator";
 
@@ -32,12 +31,10 @@ export async function processReferralCode(code: string, newUserId: string): Prom
       
       if (error) {
         errorLog("processReferral", "Error calling process_referral function:", error);
-        toast.error("Referans kodu işlenirken bir hata oluştu");
         return false;
       }
       
       if (data) {
-        toast.success("Referans ödülleri başarıyla verildi!");
         return true;
       }
       
@@ -48,7 +45,6 @@ export async function processReferralCode(code: string, newUserId: string): Prom
     }
   } catch (error) {
     errorLog("processReferral", "Error processing referral code:", error);
-    toast.error("Referans kodu işlenirken bir hata oluştu");
     return false;
   }
 }

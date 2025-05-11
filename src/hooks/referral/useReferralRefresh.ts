@@ -1,6 +1,5 @@
 
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
 import { useProfileDataFetch } from "./useProfileDataFetch";
 import { useUserDataUpdate } from "./useUserDataUpdate";
 import { useState, useRef } from "react";
@@ -35,21 +34,6 @@ export const useReferralRefresh = (
       isRefreshingRef.current = true;
       setIsRefreshing(true);
       
-      // Clear any existing toasts with these IDs before showing new ones
-      toast.dismiss("referral-loading-toast");
-      toast.dismiss("referral-error-toast");
-      toast.dismiss("referral-update-success-toast");
-      toast.dismiss("referral-update-error-toast");
-      
-      // Only show toast on manual refresh (not on auto-refresh)
-      if (!toastShown) {
-        toast("Referans bilgileri yükleniyor...", {
-          id: "referral-loading-toast",
-          duration: 2000, // Even shorter duration
-        });
-        setToastShown(true);
-      }
-      
       const profileData = await fetchProfileData(currentUser.id);
       
       if (profileData) {
@@ -73,11 +57,6 @@ export const useReferralRefresh = (
       setTimeout(() => setToastShown(false), 3000);
     } catch (error) {
       console.error("Error in refreshUserData:", error);
-      // Show an error toast
-      toast.error("Verileri yüklerken bir hata oluştu", {
-        id: "refresh-error-toast", 
-        duration: 3000
-      });
     } finally {
       setIsRefreshing(false);
       setIsLoading(false);

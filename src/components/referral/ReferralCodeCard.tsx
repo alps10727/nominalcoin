@@ -3,9 +3,8 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Share2, Copy, CheckCircle2 } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
-import { debugLog } from "@/utils/debugUtils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { debugLog } from "@/utils/debugUtils";
 
 interface ReferralCodeCardProps {
   referralCode: string;
@@ -18,47 +17,19 @@ const ReferralCodeCard = ({ referralCode }: ReferralCodeCardProps) => {
   const referralLink = referralCode ? `https://app.nominalcoin.com/signup?ref=${referralCode}` : '';
 
   const handleCopy = async () => {
-    if (!referralCode) {
-      toast({
-        title: t("common.error"),
-        description: t("referral.codeNotAvailable"),
-        variant: "destructive",
-        duration: 3000
-      });
-      return;
-    }
+    if (!referralCode) return;
     
     try {
       await navigator.clipboard.writeText(referralCode);
       setCopied(true);
-      toast({
-        title: t("common.success"),
-        description: t("referral.codeCopied"),
-        duration: 3000
-      });
-      
       setTimeout(() => setCopied(false), 3000);
     } catch (err) {
-      toast({
-        title: t("common.error"),
-        description: t("referral.copyFailed"),
-        variant: "destructive",
-        duration: 3000
-      });
       debugLog("Referral", "Copy failed:", err);
     }
   };
 
   const handleShare = async () => {
-    if (!referralCode) {
-      toast({
-        title: t("common.error"),
-        description: t("referral.codeNotAvailable"),
-        variant: "destructive",
-        duration: 3000
-      });
-      return;
-    }
+    if (!referralCode) return;
     
     if (navigator.share) {
       try {
@@ -67,19 +38,8 @@ const ReferralCodeCard = ({ referralCode }: ReferralCodeCardProps) => {
           text: t("referral.inviteText"),
           url: referralLink
         });
-        toast({
-          title: t("common.success"),
-          description: t("referral.shareSuccess"),
-          duration: 3000
-        });
       } catch (err) {
         if ((err as Error).name !== 'AbortError') {
-          toast({
-            title: t("common.error"),
-            description: t("referral.shareFailed"),
-            variant: "destructive",
-            duration: 3000
-          });
           debugLog("Referral", "Share failed:", err);
         }
       }
