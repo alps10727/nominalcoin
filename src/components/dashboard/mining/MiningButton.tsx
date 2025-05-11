@@ -6,6 +6,7 @@ import { ButtonBackground } from "./button/ButtonBackground";
 import { ButtonContent } from "./button/ButtonContent";
 import { MiningButtonBase } from "./button/MiningButtonBase";
 import { formatTimeDisplay } from "@/utils/miningUtils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface MiningButtonProps {
   miningActive: boolean;
@@ -20,6 +21,7 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
 }) => {
   const [displayTime, setDisplayTime] = useState("");
   const [buttonHovered, setButtonHovered] = useState(false);
+  const { t } = useLanguage();
   
   // Format and update time display
   React.useEffect(() => {
@@ -76,7 +78,7 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
       {/* Info text when mining is active */}
       {miningActive && (
         <div className="absolute top-full left-0 right-0 text-xs text-purple-400/80 text-center mt-2">
-          Madencilik işlemi devam ediyor. 6 saat sonunda otomatik olarak duracak.
+          {t("mining.activeInfo") || "Mining process is ongoing. It will automatically stop after 6 hours."}
         </div>
       )}
     </div>

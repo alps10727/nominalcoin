@@ -30,8 +30,8 @@ const Upgrades = () => {
   const [missions, setMissions] = useState<Mission[]>([
     {
       id: "social-twitter",
-      title: "Twitter'da Bizi Takip Et",
-      description: "Twitter hesabımızı takip ederek 5 NC kazan",
+      title: t("missions.followTwitter") || "Follow Us on Twitter",
+      description: t("missions.followTwitterDesc") || "Follow our Twitter account to earn 5 NC",
       reward: 5,
       progress: 0,
       total: 1,
@@ -41,8 +41,8 @@ const Upgrades = () => {
     },
     {
       id: "mining-time",
-      title: "2 Saat Madencilik Yap",
-      description: "2 saat boyunca madenciliği açık tut ve madencilik hızını artır",
+      title: t("missions.miningTime") || "Mine for 2 Hours",
+      description: t("missions.miningTimeDesc") || "Keep mining active for 2 hours to increase mining speed",
       reward: 0, // This is now a mining rate boost instead of NC
       progress: 0,
       total: 120,
@@ -52,8 +52,8 @@ const Upgrades = () => {
     },
     {
       id: "referral-friend",
-      title: "Arkadaşını Davet Et",
-      description: "Bir arkadaşını platforma davet et ve 20 NC kazan",
+      title: t("missions.inviteFriend") || "Invite a Friend",
+      description: t("missions.inviteFriendDesc") || "Invite a friend to the platform and earn 20 NC",
       reward: 20,
       progress: 0,
       total: 1,
@@ -63,25 +63,51 @@ const Upgrades = () => {
     }
   ]);
 
-  // Kullanıcı verilerine göre görevleri güncelleme
+  // Update missions when language changes
+  useEffect(() => {
+    setMissions(prevMissions => prevMissions.map(mission => {
+      if (mission.id === "social-twitter") {
+        return {
+          ...mission,
+          title: t("missions.followTwitter") || mission.title,
+          description: t("missions.followTwitterDesc") || mission.description
+        };
+      } else if (mission.id === "mining-time") {
+        return {
+          ...mission,
+          title: t("missions.miningTime") || mission.title,
+          description: t("missions.miningTimeDesc") || mission.description
+        };
+      } else if (mission.id === "referral-friend") {
+        return {
+          ...mission,
+          title: t("missions.inviteFriend") || mission.title,
+          description: t("missions.inviteFriendDesc") || mission.description
+        };
+      }
+      return mission;
+    }));
+  }, [t]);
+
+  // User data based mission updates
   useEffect(() => {
     if (userData) {
-      // Twitter görevi için kontrol - örnek implementation
+      // Twitter mission check - example implementation
       if (userData.socialConnections?.twitter) {
         updateMissionProgress("social-twitter", 1);
       }
       
-      // Madencilik süresi kontrolü
+      // Mining time check
       if (userData.miningTime && userData.miningTime >= 120) {
         updateMissionProgress("mining-time", userData.miningTime);
       }
       
-      // Referral kontrolü
+      // Referral check
       if (userData.referralCount && userData.referralCount > 0) {
         updateMissionProgress("referral-friend", 1);
       }
       
-      // Tamamlanmış görevleri işaretle
+      // Mark completed missions
       if (userData.completedMissions && Array.isArray(userData.completedMissions)) {
         setMissions(prevMissions => prevMissions.map(mission => {
           if (userData.completedMissions?.includes(mission.id)) {
@@ -111,17 +137,17 @@ const Upgrades = () => {
 
   const claimReward = async (mission: Mission, byAdReward = false) => {
     if (!currentUser) {
-      toast.error("Ödül almak için giriş yapmalısınız");
+      toast.error(t("tasks.loginRequired"));
       return;
     }
     
     if (!mission.completed || mission.progress < mission.total) {
-      toast.error("Bu görevi henüz tamamlamadınız");
+      toast.error(t("tasks.incompleteTask"));
       return;
     }
     
     if (mission.claimed) {
-      toast.error("Bu ödülü zaten aldınız");
+      toast.error(t("tasks.alreadyClaimed"));
       return;
     }
     
@@ -154,7 +180,7 @@ const Upgrades = () => {
           )
         );
         
-        toast.success(`Tebrikler! Madencilik hızınız artırıldı`);
+        toast.success(t("mining.speedIncreased") || "Congratulations! Your mining speed has been increased");
         return;
       }
       
@@ -162,19 +188,19 @@ const Upgrades = () => {
       const { data, error } = await supabase.rpc('update_user_balance', {
         p_user_id: currentUser.id,
         p_amount: mission.reward,
-        p_reason: `Görev tamamlandı: ${mission.title}`
+        p_reason: `${t("tasks.rewardClaimed")}: ${mission.title}`
       });
       
       if (error) {
-        console.error("Ödül alma hatası:", error);
+        console.error("Error claiming reward:", error);
         throw error;
       }
       
-      // Yerel veriyi güncelleme
+      // Update local data
       const currentBalance = userData?.balance || 0;
       const newBalance = currentBalance + mission.reward;
       
-      // userDatası güncellemesi
+      // Update userData
       if (updateUserData) {
         const updatedMissions = userData?.completedMissions || [];
         await updateUserData({
@@ -183,7 +209,7 @@ const Upgrades = () => {
         });
       }
       
-      // Görev durumunu güncelleme
+      // Update mission status
       setMissions(prevMissions => 
         prevMissions.map(m => 
           m.id === mission.id 
@@ -192,11 +218,11 @@ const Upgrades = () => {
         )
       );
       
-      toast.success(`Tebrikler! ${mission.reward} NC kazandınız`);
-      debugLog("Upgrades", `Görev ödülü verildi: ${mission.id}, miktar: ${mission.reward}`);
+      toast.success(t("tasks.rewardClaimedDesc", mission.reward.toString(), mission.title));
+      debugLog("Upgrades", `Mission reward given: ${mission.id}, amount: ${mission.reward}`);
       
     } catch (error) {
-      toast.error("Ödül alınırken bir hata oluştu");
+      toast.error(t("tasks.claimError"));
       console.error("Claim error:", error);
     } finally {
       setIsLoading(false);
@@ -204,10 +230,10 @@ const Upgrades = () => {
   };
 
   const connectTwitter = async () => {
-    toast.info("Twitter bağlantısı simüle ediliyor...");
+    toast.info(t("missions.connectingTwitter") || "Connecting to Twitter...");
     setTimeout(() => {
       updateMissionProgress("social-twitter", 1);
-      toast.success("Twitter hesabınız bağlandı!");
+      toast.success(t("missions.twitterConnected") || "Your Twitter account has been connected!");
     }, 1500);
   };
 
@@ -216,10 +242,10 @@ const Upgrades = () => {
       <div className="flex flex-col space-y-2">
         <h1 className="text-2xl font-bold fc-gradient-text flex items-center">
           <Gift className="mr-2 h-6 w-6 text-indigo-400" />
-          Görevler ve Ödüller
+          {t("missions.title")}
         </h1>
         <p className="text-gray-400">
-          Çeşitli görevleri tamamlayarak ekstra ödüller kazanın.
+          {t("missions.subtitle")}
         </p>
       </div>
 

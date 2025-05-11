@@ -4,27 +4,29 @@ import { UserData } from '@/types/storage'; // Changed from @/utils/storage to @
 import { useAuth } from '@/contexts/AuthContext';
 import { debugLog, errorLog } from '@/utils/debugUtils';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export function useMiningActions(
   state: MiningState, 
   setState: React.Dispatch<React.SetStateAction<MiningState>>
 ) {
   const { userData, currentUser, updateUserData } = useAuth();
+  const { t } = useLanguage();
   
   const handleStartMining = async () => {
     if (state.isLoading) {
-      debugLog("useMiningActions", "Yükleme sırasında madencilik başlatma isteği engellendi");
+      debugLog("useMiningActions", "Mining start request blocked during loading");
       return;
     }
     
     try {
-      const miningPeriod = 6 * 60 * 60; // 6 saat = 21600 saniye
+      const miningPeriod = 6 * 60 * 60; // 6 hours = 21600 seconds
       const now = Date.now();
-      const miningEndTime = now + miningPeriod * 1000; // Bitiş zamanını mutlak olarak ayarla
+      const miningEndTime = now + miningPeriod * 1000; // Set end time as absolute
       
-      debugLog("useMiningActions", `Mining başlatılıyor: ${now}, bitiş: ${miningEndTime}, fark: ${miningPeriod}s`);
+      debugLog("useMiningActions", `Starting mining: ${now}, end: ${miningEndTime}, difference: ${miningPeriod}s`);
       
-      // State'i güncelle
+      // Update state
       setState(prev => ({
         ...prev,
         miningActive: true,
@@ -36,7 +38,7 @@ export function useMiningActions(
         miningStartTime: now // Add start time for better tracking
       }));
       
-      // Kullanıcı oturum açmışsa, Firebase'e kaydet
+      // If user is logged in, save to Firebase
       if (currentUser && updateUserData) {
         try {
           const updates: Partial<UserData> = {
@@ -50,36 +52,36 @@ export function useMiningActions(
           };
           
           await updateUserData(updates);
-          debugLog("useMiningActions", "Mining durumu Firebase'e kaydedildi");
+          debugLog("useMiningActions", "Mining status saved to Firebase");
         } catch (error) {
-          // İnternet bağlantısı yoksa çevrimdışı modda devam et
-          errorLog("useMiningActions", "Firebase'e kaydetme başarısız, yerel modda devam ediliyor:", error);
+          // Continue in offline mode if no internet
+          errorLog("useMiningActions", "Firebase save failed, continuing in local mode:", error);
         }
       }
       
       // Success notification
-      toast.success("Madencilik başlatıldı", {
-        description: "6 saatlik madencilik süreci başladı",
+      toast.success(t("mining.started") || "Mining started", {
+        description: t("mining.startedDescription") || "6-hour mining process has started",
         duration: 3000
       });
     } catch (error) {
-      errorLog("useMiningActions", "Mining başlatılırken hata:", error);
-      toast.error("Mining başlatılırken bir hata oluştu");
+      errorLog("useMiningActions", "Error starting mining:", error);
+      toast.error(t("mining.startError") || "Error starting mining");
     }
   };
   
   const handleStopMining = async () => {
     if (state.isLoading) {
-      debugLog("useMiningActions", "Yükleme sırasında madencilik durdurma isteği engellendi");
+      debugLog("useMiningActions", "Mining stop request blocked during loading");
       return;
     }
     
     try {
-      // Kazanılan bakiyeyi hesapla
+      // Calculate earned balance
       const currentBalance = state.balance || 0;
       const miningSession = state.miningSession || 0;
       
-      // State'i güncelle
+      // Update state
       setState(prev => ({
         ...prev,
         miningActive: false,
@@ -89,19 +91,19 @@ export function useMiningActions(
         miningStartTime: undefined // Clear start time
       }));
       
-      // Kazanılan miktar görünümü
+      // Earned amount view
       if (miningSession > 0) {
-        toast.success(`+${miningSession.toFixed(3)} coin kazandınız!`, {
+        toast.success(t("mining.earnedCoins", miningSession.toFixed(3)) || `+${miningSession.toFixed(3)} coins earned!`, {
           duration: 4000
         });
       }
       
-      debugLog("useMiningActions", "Mining durduruldu", { 
+      debugLog("useMiningActions", "Mining stopped", { 
         currentBalance, 
         earnedInSession: miningSession 
       });
       
-      // Kullanıcı oturum açmışsa, Firebase'e kaydet
+      // If user is logged in, save to Firebase
       if (currentUser && updateUserData) {
         try {
           const updates: Partial<UserData> = {
@@ -114,15 +116,15 @@ export function useMiningActions(
           };
           
           await updateUserData(updates);
-          debugLog("useMiningActions", "Mining durumu Firebase'e kaydedildi");
+          debugLog("useMiningActions", "Mining status saved to Firebase");
         } catch (error) {
-          // İnternet bağlantısı yoksa çevrimdışı modda devam et
-          errorLog("useMiningActions", "Firebase'e kaydetme başarısız, yerel modda devam ediliyor:", error);
+          // Continue in offline mode if no internet
+          errorLog("useMiningActions", "Firebase save failed, continuing in local mode:", error);
         }
       }
     } catch (error) {
-      errorLog("useMiningActions", "Mining durdurulurken hata:", error);
-      toast.error("Mining durdurulurken bir hata oluştu");
+      errorLog("useMiningActions", "Error stopping mining:", error);
+      toast.error(t("mining.stopError") || "Error stopping mining");
     }
   };
   

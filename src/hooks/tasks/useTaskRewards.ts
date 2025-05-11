@@ -33,7 +33,7 @@ export function useTaskRewards(
             currentUserId,
             task.reward,
             'task_reward',
-            `Task completed: ${task.title}`
+            `${t("tasks.completed")}: ${task.title}`
           );
           
           // Update task completion status
@@ -63,11 +63,11 @@ export function useTaskRewards(
             description: t("tasks.rewardClaimedDesc", rewardString, task.title)
           });
           
-          debugLog("useTaskRewards", `${task.reward} ödül kazanıldı, yeni bakiye: ${updatedUserData.balance}`);
+          debugLog("useTaskRewards", `${task.reward} reward earned, new balance: ${updatedUserData.balance}`);
           
         } catch (error) {
           toast.error(t("tasks.claimError"));
-          debugLog("useTaskRewards", "Ödül verme hatası:", error);
+          debugLog("useTaskRewards", "Reward giving error:", error);
         }
       } else if (task.completed) {
         toast.error(t("tasks.alreadyClaimed"), {

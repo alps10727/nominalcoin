@@ -8,6 +8,7 @@ import { Mission } from '@/pages/Upgrades';
 import { useAdMob } from '@/hooks/useAdMob';
 import { toast } from 'sonner';
 import { debugLog } from '@/utils/debugUtils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface MissionItemProps {
   mission: Mission;
@@ -21,6 +22,7 @@ const MissionItem = ({ mission, onClaim, onConnect, isLoading }: MissionItemProp
   const isCompleted = mission.progress >= mission.total;
   const [isAdLoading, setIsAdLoading] = useState(false);
   const { showRewardAd, isInitialized } = useAdMob();
+  const { t } = useLanguage();
   
   // Mining Speed Mission - Add special handling for showing reward ad
   const isMiningSpeedMission = mission.id === "mining-time";
@@ -28,7 +30,7 @@ const MissionItem = ({ mission, onClaim, onConnect, isLoading }: MissionItemProp
   // For handling ad-based claim
   const handleAdRewardClaim = async () => {
     if (!isInitialized) {
-      toast.error("Reklam servisi henüz hazır değil");
+      toast.error(t("mining.adServiceNotReady") || "Ad service is not ready yet");
       return;
     }
     
@@ -41,13 +43,13 @@ const MissionItem = ({ mission, onClaim, onConnect, isLoading }: MissionItemProp
         debugLog('MissionItem', 'Ad reward successful');
         // Pass true as second parameter to indicate this is an ad-based reward
         onClaim(mission, true);
-        toast.success("Madencilik hızı artırıldı!");
+        toast.success(t("mining.speedIncreased") || "Mining speed increased!");
       } else {
-        toast.error("Reklam tamamlanamadı. Lütfen tekrar deneyin.");
+        toast.error(t("mining.adFailed") || "Failed to complete ad viewing. Please try again.");
       }
     } catch (error) {
       debugLog('MissionItem', 'Error showing reward ad', error);
-      toast.error("Reklam gösterilirken bir hata oluştu");
+      toast.error(t("mining.adError") || "Error showing advertisement. Please try again.");
     } finally {
       setIsAdLoading(false);
     }
@@ -73,7 +75,7 @@ const MissionItem = ({ mission, onClaim, onConnect, isLoading }: MissionItemProp
         
         <div className="mt-3">
           <div className="flex justify-between text-xs text-gray-400 mb-1">
-            <span>İlerleme</span>
+            <span>{t("missions.progress")}</span>
             <span>{mission.progress}/{mission.total}</span>
           </div>
           <Progress value={progressPercentage} className="h-2 bg-gray-700" />
@@ -81,9 +83,9 @@ const MissionItem = ({ mission, onClaim, onConnect, isLoading }: MissionItemProp
         
         <div className="mt-4 flex justify-between items-center">
           <div className="text-sm">
-            <span className="text-gray-400">Ödül:</span> 
+            <span className="text-gray-400">{t("missions.reward")} </span> 
             <span className="text-indigo-400 font-semibold">
-              {isMiningSpeedMission ? '+0.001 Hız' : `${mission.reward} NC`}
+              {isMiningSpeedMission ? t("missions.speedBoost") : `${mission.reward} NC`}
             </span>
           </div>
           
@@ -95,7 +97,7 @@ const MissionItem = ({ mission, onClaim, onConnect, isLoading }: MissionItemProp
                 size="sm" 
                 className={`${mission.claimed ? 'bg-green-900/50' : 'bg-gradient-to-r from-indigo-600 to-purple-600'} h-8`}
               >
-                {mission.claimed ? 'Alındı' : isAdLoading ? 'Yükleniyor...' : 'Ödülü Al'} 
+                {mission.claimed ? t("missions.claimed") : isAdLoading ? t("missions.loading") : t("missions.claim")} 
                 {!mission.claimed && !isAdLoading && <ArrowRight className="ml-1 h-3 w-3" />}
               </Button>
             ) : (
@@ -105,7 +107,7 @@ const MissionItem = ({ mission, onClaim, onConnect, isLoading }: MissionItemProp
                 size="sm" 
                 className={`${mission.claimed ? 'bg-green-900/50' : 'bg-gradient-to-r from-indigo-600 to-purple-600'} h-8`}
               >
-                {mission.claimed ? 'Alındı' : 'Ödülü Al'} {!mission.claimed && <ArrowRight className="ml-1 h-3 w-3" />}
+                {mission.claimed ? t("missions.claimed") : t("missions.claim")} {!mission.claimed && <ArrowRight className="ml-1 h-3 w-3" />}
               </Button>
             )
           ) : mission.id === 'social-twitter' ? (
@@ -114,7 +116,7 @@ const MissionItem = ({ mission, onClaim, onConnect, isLoading }: MissionItemProp
               size="sm"
               className="bg-blue-600 hover:bg-blue-700 h-8"
             >
-              Bağlan <ArrowRight className="ml-1 h-3 w-3" />
+              {t("missions.connect")} <ArrowRight className="ml-1 h-3 w-3" />
             </Button>
           ) : (
             <Button
@@ -123,7 +125,7 @@ const MissionItem = ({ mission, onClaim, onConnect, isLoading }: MissionItemProp
               className="border-gray-700 text-gray-400 h-8"
               disabled
             >
-              Devam Ediyor
+              {t("missions.inProgress")}
             </Button>
           )}
         </div>

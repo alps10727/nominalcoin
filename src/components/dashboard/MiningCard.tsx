@@ -11,6 +11,7 @@ import { MiningParticles } from "./mining/MiningParticles";
 import { MiningCardHeader } from "./mining/MiningCardHeader";
 import { MiningStats } from "./mining/MiningStats";
 import { MiningBackground } from "./mining/MiningBackground";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface MiningCardProps {
   miningActive: boolean;
@@ -32,6 +33,7 @@ const MiningCard = React.memo<MiningCardProps>(({
   onStopMining
 }) => {
   const isMobile = useIsMobile();
+  const { t } = useLanguage();
   const { 
     showRewardAd, 
     isLoading: adLoading, 
@@ -43,20 +45,20 @@ const MiningCard = React.memo<MiningCardProps>(({
   const [isAttemptingToStart, setIsAttemptingToStart] = useState(false);
   
   useEffect(() => {
-    console.log("MiningCard - AdMob bilgileri:");
-    console.log("- Capacitor mevcut mu:", typeof window !== 'undefined' && !!window.Capacitor);
+    console.log("MiningCard - AdMob info:");
+    console.log("- Is Capacitor available:", typeof window !== 'undefined' && !!window.Capacitor);
     if (typeof window !== 'undefined' && window.Capacitor) {
       console.log("- Capacitor platform:", window.Capacitor.getPlatform());
-      console.log("- @capacitor-community/admob plugin mevcut mu:", 
+      console.log("- Is @capacitor-community/admob plugin available:", 
                  window.Capacitor.isPluginAvailable('@capacitor-community/admob'));
-      console.log("- Plugin durumu (hook içinden):", pluginAvailable);
+      console.log("- Plugin status (from hook):", pluginAvailable);
       console.log("- AdMob initialized:", isInitialized);
     }
   }, [pluginAvailable, isInitialized]);
   
   useEffect(() => {
     if (!miningActive && isInitialized && pluginAvailable) {
-      debugLog('MiningCard', 'Başlangıçta reklam önyükleniyor');
+      debugLog('MiningCard', 'Preloading ad initially');
       preloadNextAd();
     }
   }, [miningActive, isInitialized, pluginAvailable, preloadNextAd]);
@@ -68,47 +70,47 @@ const MiningCard = React.memo<MiningCardProps>(({
     }
     
     setIsAttemptingToStart(true);
-    debugLog('MiningCard', `Buton tıklaması işleniyor. Capacitor mevcut: ${!!window.Capacitor}, Plugin mevcut: ${pluginAvailable}`);
+    debugLog('MiningCard', `Handling button click. Capacitor available: ${!!window.Capacitor}, Plugin available: ${pluginAvailable}`);
     
     try {
       if (typeof window !== 'undefined' && window.Capacitor && pluginAvailable) {
-        debugLog('MiningCard', 'AdMob ödül reklamı göstermeye çalışıyor');
+        debugLog('MiningCard', 'Attempting to show AdMob reward ad');
         
-        // Görünürlük için bir bildirim ekleyelim
-        toast.info("Reklam yükleniyor...", { duration: 3000 });
+        // Add a notification for visibility
+        toast.info(t("mining.adLoading") || "Loading advertisement...", { duration: 3000 });
         
         const rewarded = await showRewardAd();
-        console.log('Reklam gösterme sonucu:', rewarded);
+        console.log('Ad display result:', rewarded);
         
         if (rewarded) {
-          debugLog('MiningCard', 'Reklam başarılı, madencilik başlatılıyor');
+          debugLog('MiningCard', 'Ad successful, starting mining');
           onStartMining();
           setTimeout(preloadNextAd, 1000);
-          toast.success("Reklam başarıyla tamamlandı", { duration: 2000 });
+          toast.success(t("mining.adCompleted") || "Advertisement completed successfully", { duration: 2000 });
         } else {
-          debugLog('MiningCard', 'Reklam ödüllendirilmedi veya gösterilemedi');
-          toast.error("Reklam izleme tamamlanamadı. Lütfen tekrar deneyin.", {
+          debugLog('MiningCard', 'Ad was not rewarded or could not be displayed');
+          toast.error(t("mining.adFailed") || "Failed to complete ad viewing. Please try again.", {
             duration: 3000
           });
           setIsAttemptingToStart(false);
           return;
         }
       } else {
-        // Capacitor/AdMob olmadığında direkt başlat (Development modunda)
-        debugLog('MiningCard', 'Mobilde değil veya plugin mevcut değil, madencilik direkt başlatılıyor');
-        console.log('Development modunda - reklamsız başlatılıyor');
-        toast.info("Geliştirme modunda - reklamsız başlatılıyor", { duration: 2000 });
+        // Start directly when no Capacitor/AdMob (Development mode)
+        debugLog('MiningCard', 'Not mobile or plugin not available, starting mining directly');
+        console.log('Development mode - starting without ads');
+        toast.info(t("mining.devModeStart") || "Development mode - starting without ads", { duration: 2000 });
         onStartMining();
       }
     } catch (error) {
-      console.error('Madencilik başlatma sürecinde hata:', error);
-      toast.error("Reklam gösterilirken bir hata oluştu. Lütfen tekrar deneyin.", {
+      console.error('Error in mining start process:', error);
+      toast.error(t("mining.adError") || "Error showing advertisement. Please try again.", {
         duration: 3000
       });
     } finally {
       setIsAttemptingToStart(false);
     }
-  }, [miningActive, onStartMining, onStopMining, showRewardAd, preloadNextAd, pluginAvailable]);
+  }, [miningActive, onStartMining, onStopMining, showRewardAd, preloadNextAd, pluginAvailable, t]);
 
   return (
     <Card className="border-0 overflow-hidden shadow-lg transition-all duration-300 relative rounded-xl backdrop-blur-sm group
@@ -128,8 +130,8 @@ const MiningCard = React.memo<MiningCardProps>(({
         <div className="mb-6">
           <p className="text-purple-400/80 text-sm">
             {miningActive 
-              ? `Mining at ${(miningRate * 60).toFixed(1)} NC/hour` 
-              : "Start mining to earn Nominal Coin"}
+              ? t("mining.miningRate", (miningRate * 60).toFixed(1)) || `Mining at ${(miningRate * 60).toFixed(1)} NC/hour` 
+              : t("mining.startPrompt") || "Start mining to earn Nominal Coin"}
           </p>
           
           {miningActive && <MiningProgressBar progress={progress} miningActive={miningActive} />}
@@ -144,7 +146,7 @@ const MiningCard = React.memo<MiningCardProps>(({
           
           {(!miningActive && (adLoading || isAttemptingToStart)) && (
             <div className="mt-2 text-sm text-purple-300 animate-pulse">
-              Reklam yükleniyor, lütfen bekleyin...
+              {t("mining.adLoadingWait") || "Loading advertisement, please wait..."}
             </div>
           )}
         </div>
@@ -158,7 +160,9 @@ const MiningCard = React.memo<MiningCardProps>(({
         
         {!miningActive && !adLoading && !isAttemptingToStart && pluginAvailable && (
           <div className="mt-4 text-center">
-            <p className="text-xs text-purple-300/70">Madenciliğe başlamak için reklam izlemeniz gerekiyor</p>
+            <p className="text-xs text-purple-300/70">
+              {t("mining.adRequirement") || "You need to watch an ad to start mining"}
+            </p>
           </div>
         )}
       </CardContent>
