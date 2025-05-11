@@ -5,6 +5,7 @@ import LoadingScreen from "../dashboard/LoadingScreen";
 import { debugLog } from "@/utils/debugUtils";
 import OfflineIndicator from "../dashboard/OfflineIndicator";
 import { loadUserData } from "@/utils/storage";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface AppInitializerProps {
   children: React.ReactNode;
@@ -17,6 +18,7 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
   const [initialLoadAttempted, setInitialLoadAttempted] = useState(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [loadingError, setLoadingError] = useState<Error | null>(null);
+  const { t } = useLanguage();
   
   // Mining timer recovery check
   useEffect(() => {
@@ -34,16 +36,16 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
             
             // Notify only if significant time remains (more than 1 minute)
             if (remainingTimeMinutes > 1) {
-              toast.info(`Madencilik devam ediyor`, {
-                description: `Kalan süre: ${remainingTimeMinutes} dakika`,
+              toast.info(t("mining.stillActive"), {
+                description: t("mining.remainingTime", remainingTimeMinutes.toString()),
                 duration: 4000
               });
               debugLog("AppInitializer", `Recovered active mining: ${remainingTimeMinutes} minutes remaining`);
             }
           } else if (localData.miningActive) {
             // Mining period completed during downtime
-            toast.success(`Madencilik tamamlandı`, {
-              description: "Uygulama kapalıyken madencilik süresi doldu",
+            toast.success(t("mining.completed"), {
+              description: t("mining.completedWhileAway"),
               duration: 4000
             });
             debugLog("AppInitializer", "Mining period completed while app was closed");
@@ -53,15 +55,15 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
         console.error("Mining recovery check error:", error);
       }
     }
-  }, [ready]);
+  }, [ready, t]);
   
-  // Global hata yakalayıcı
+  // Global error handler
   useEffect(() => {
     const handleGlobalError = (event: ErrorEvent) => {
-      console.error("Kritik uygulama hatası:", event.error);
+      console.error("Critical application error:", event.error);
       setLoadingError(event.error);
       
-      // Sayfayı otomatik yenileme - daha verimli hale getirildi
+      // Auto-refresh page - more efficient
       window.location.reload();
     };
     
@@ -70,24 +72,24 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
   }, []);
   
   useEffect(() => {
-    console.log("AppInitializer başlatılıyor...");
+    console.log("AppInitializer starting...");
     
     const handleOnline = () => {
-      debugLog("AppInitializer", "İnternet bağlantısı kuruldu");
+      debugLog("AppInitializer", "Internet connection established");
       setIsOffline(false);
       
-      // Yeniden bağlanma durumunda toast göster
+      // Show toast on reconnection
       if (reconnecting) {
-        toast.success("İnternet bağlantısı yeniden kuruldu.");
+        toast.success(t("connection.restored"));
       }
     };
     
     const handleOffline = () => {
-      debugLog("AppInitializer", "İnternet bağlantısı kesildi");
+      debugLog("AppInitializer", "Internet connection lost");
       setIsOffline(true);
       setReconnecting(true);
       
-      toast.warning("İnternet bağlantınız kesildi. Çevrimdışı modda çalışmaya devam edilecek.", {
+      toast.warning(t("connection.lost"), {
         duration: 5000
       });
     };
@@ -95,21 +97,21 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     
-    // Uygulama ilk yükleme - gereksiz bekleme kaldırıldı
+    // App initial load - unnecessary waiting removed
     const initializeApp = () => {
       try {
         const startTime = performance.now();
         
-        // İlk yükleme - gereksiz setTimeout kaldırıldı
+        // Initial load - unnecessary setTimeout removed
         if (!initialLoadAttempted || loadAttempt < 3) {
           setInitialLoadAttempted(true);
           setReady(true);
           const loadTime = performance.now() - startTime;
-          debugLog("AppInitializer", `Uygulama ${loadTime.toFixed(0)}ms içinde başlatıldı`);
+          debugLog("AppInitializer", `App initialized in ${loadTime.toFixed(0)}ms`);
         }
       } catch (error) {
-        console.error("Uygulama başlatma hatası:", error);
-        // Hatayı kaydet ama yine de uygulamayı başlatmaya çalış
+        console.error("App initialization error:", error);
+        // Log the error but still try to start the app
         setReady(true);
       }
     };
@@ -117,34 +119,34 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
     initializeApp();
     
     return () => {
-      window.addEventListener('online', handleOnline);
-      window.addEventListener('offline', handleOffline);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
     };
-  }, [reconnecting, initialLoadAttempted, loadAttempt, isOffline]);
+  }, [reconnecting, initialLoadAttempted, loadAttempt, isOffline, t]);
   
-  // Yükleme başarısız olursa hızlıca tekrar dene - gereksiz bekleme kaldırıldı
+  // Quickly retry if loading fails - unnecessary waiting removed
   useEffect(() => {
     if (initialLoadAttempted && !ready && loadAttempt < 3) {
-      debugLog("AppInitializer", `Yükleme denemesi ${loadAttempt + 1}/3 başlatılıyor...`);
+      debugLog("AppInitializer", `Loading attempt ${loadAttempt + 1}/3 starting...`);
       setLoadAttempt(prev => prev + 1);
     }
   }, [initialLoadAttempted, ready, loadAttempt]);
   
-  // Hata durumunda
+  // Error state
   if (loadingError) {
     return (
       <LoadingScreen 
-        message="Bir hata oluştu, sayfa yeniden yükleniyor..." 
+        message={t("errors.reloading")} 
         forceOffline={isOffline} 
       />
     );
   }
   
-  // Yükleme ekranı - gereksiz bekleme kaldırıldı
+  // Loading screen - unnecessary waiting removed
   if (!ready) {
     return (
       <LoadingScreen 
-        message={loadAttempt > 0 ? "Yükleme yeniden deneniyor..." : "Uygulama başlatılıyor..."} 
+        message={loadAttempt > 0 ? t("app.retryingLoad") : t("app.starting")} 
         forceOffline={isOffline} 
       />
     );

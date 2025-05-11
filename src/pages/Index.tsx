@@ -48,6 +48,7 @@ const Index = () => {
   
   const { userData, loading: authLoading, isOffline: authOffline } = useAuth();
   const [isInitialized, setIsInitialized] = useState(!!loadUserData());
+  const { t } = useLanguage();
   
   useEffect(() => {
     if (!isFirstRender.current && !miningLoading && miningBalance > 0) {
@@ -92,7 +93,6 @@ const Index = () => {
   }, [isInitialized]);
 
   const isMobile = useIsMobile();
-  const { t } = useLanguage();
   const { theme } = useTheme();
 
   const isLoading = !isInitialized && authLoading;
@@ -125,7 +125,7 @@ const Index = () => {
     <div className="min-h-[100dvh] w-full flex flex-col relative pb-20">
       {showOfflineIndicator && (
         <div className="bg-orange-500/80 text-white text-center text-sm py-1.5 px-2 shadow-sm">
-          Çevrimdışı moddasınız. Senkronizasyon internet bağlantısıyla yeniden sağlanacak.
+          {t("app.offlineMessage")}
         </div>
       )}
       
@@ -133,7 +133,7 @@ const Index = () => {
         <div className="mt-2 mb-6">
           <h1 className="text-2xl font-bold text-purple-300">NOMINAL Coin Dashboard</h1>
           <p className="text-purple-300/80 text-sm mt-1">
-            Welcome to the NC mining hub - Earn cryptocurrency by mining!
+            {t("dashboard.welcomeMessage")}
           </p>
         </div>
         
@@ -148,11 +148,11 @@ const Index = () => {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-purple-200 flex items-center">
                 <Zap className="h-5 w-5 mr-1.5 text-purple-400" />
-                Mining Hub
+                {t("dashboard.miningHub")}
               </h2>
               
               <MenuCard
-                title="Boosts"
+                title={t("dashboard.boosts")}
                 icon={ChevronRight}
                 to="/upgrades"
                 showAd={true}

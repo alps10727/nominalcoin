@@ -1,67 +1,68 @@
 
 import { errorLog, debugLog } from "@/utils/debugUtils";
 import { toast } from "sonner";
+import { translate } from "@/utils/translationUtils";
 
 /**
- * Firebase veri kaydetme hatalarını işleyen yardımcı fonksiyon
+ * Helper function for handling Firebase data saving errors
  * 
- * @param error Firebase hatası
- * @param context Hata bağlam bilgisi ("Bakiye", "Kullanıcı verileri" vb.)
- * @param retryCallback İsteğe bağlı yeniden deneme fonksiyonu
+ * @param error Firebase error
+ * @param context Error context information ("Balance", "User data", etc.)
+ * @param retryCallback Optional retry function
  */
 export function handleDataSavingError(
   error: any, 
-  context: string = "Veri", 
+  context: string = "Data", 
   retryCallback?: () => void
 ): void {
-  errorLog("errorHandling", `Firebase'e ${context.toLowerCase()} kaydetme hatası:`, error);
+  errorLog("errorHandling", `Error saving ${context.toLowerCase()} to Firebase:`, error);
   
-  // Offline durumu veya zaman aşımı kontrolü
-  if ((error?.code === 'unavailable' || error?.message?.includes('zaman aşımı') || 
-       error?.message?.includes('network error') || error?.message?.includes('timeout'))) {
-    debugLog("errorHandling", "Cihaz çevrimdışı veya bağlantı zaman aşımına uğradı, veriler yerel olarak kaydedildi");
-    toast.warning("Çevrimdışı moddasınız. Verileriniz yerel olarak kaydedildi.", {
+  // Check for offline condition or timeout
+  if ((error?.code === 'unavailable' || error?.message?.includes('timeout') || 
+       error?.message?.includes('network error'))) {
+    debugLog("errorHandling", "Device is offline or connection timed out, data saved locally");
+    toast.warning(translate("errors.offlineSaving"), {
       id: "offline-toast",
       duration: 4000
     });
     
-    // Verilerin yerel depoya zaten kaydedilmiş olduğunu varsayıyoruz
-    return; // İşlemi sonlandır ve hata fırlatma
+    // We assume that data has already been saved to local storage
+    return; // End execution and don't throw error
   } 
   
-  // Kimlik doğrulama hatası
+  // Authentication error
   else if (error?.code === 'permission-denied' || error?.code === 'unauthenticated') {
-    toast.error("Oturum süresi dolmuş olabilir. Lütfen yeniden giriş yapın.", {
+    toast.error(translate("errors.sessionExpired"), {
       id: "auth-error-toast",
       duration: 5000
     });
   } 
   
-  // Sunucu hatası
+  // Server error
   else if (error?.code?.startsWith('5')) {
-    toast.error(`Sunucu hatası. Lütfen daha sonra tekrar deneyin. ${retryCallback ? 'Otomatik olarak yeniden denenecek.' : ''}`, {
+    toast.error(translate("errors.serverError", retryCallback ? translate("errors.autoRetry") : ""), {
       id: "server-error-toast",
       duration: 4000
     });
     
-    // Yeniden deneme mekanizması
+    // Retry mechanism
     if (retryCallback) {
       setTimeout(() => {
-        debugLog("errorHandling", "Veri kaydetme otomatik olarak yeniden deneniyor...");
+        debugLog("errorHandling", "Auto-retrying data save...");
         retryCallback();
       }, 3000);
-      return; // İşlemi sonlandır ve hata fırlatma
+      return; // End execution and don't throw error
     }
   } 
   
-  // Bilinmeyen hatalar
+  // Unknown errors
   else {
-    toast.error(`${context} kaydedilemedi. Hata kodu: ${error?.code || 'bilinmiyor'}`, {
+    toast.error(translate("errors.saveFailed", context, error?.code || translate("errors.unknown")), {
       id: "unknown-error-toast"
     });
   }
   
-  // Normal akışı devam ettirme veya kesme kontrolü
-  // Bu örnekte, hata işlendi ancak üst katmana bildirilmesi gerekiyor
+  // Normal flow continuation or interruption check
+  // In this example, the error was handled but needs to be reported to the upper layer
   throw error;
 }
