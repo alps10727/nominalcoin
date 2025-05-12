@@ -1,4 +1,3 @@
-
 import { MiningState, MiningData } from "@/types/mining";
 import { useMiningProcess } from "./mining/useMiningProcess";
 import { useMiningInitialization } from "./mining/useMiningInitialization";
@@ -30,7 +29,7 @@ export function useMiningData(): MiningData {
     return initialBalance;
   });
   
-  // En güncel durumu referansta tut
+  // Keep latest state in the ref for access in callbacks
   useEffect(() => {
     latestStateRef.current = state;
     
@@ -42,7 +41,7 @@ export function useMiningData(): MiningData {
     }
   }, [state, persistentBalance]);
   
-  // Real-time mining simulation with precise timing
+  // Real-time mining simulation with precise timing - FIX CALCULATION HERE
   useEffect(() => {
     let timer: number | undefined;
     
@@ -52,14 +51,24 @@ export function useMiningData(): MiningData {
         // Calculate exact elapsed time in milliseconds
         const elapsedMs = now - lastUpdateTimeRef.current;
         
+        // FIXED: Ensure we use the current mining rate from state
+        const currentMiningRate = state.miningRate; 
+        
         // Calculate earnings for the exact elapsed time (converting rate from per minute to per millisecond)
         const minuteFraction = elapsedMs / 60000; // Convert ms to minutes
-        const earnings = parseFloat((state.miningRate * minuteFraction).toFixed(6));
+        const earnings = parseFloat((currentMiningRate * minuteFraction).toFixed(6));
+        
+        // Debug log for mining rate verification
+        if (minuteFraction > 0.5) { // Log approximately every 30 seconds
+          debugLog("useMiningData", `Current mining rate: ${currentMiningRate}, Earned: ${earnings} in ${minuteFraction.toFixed(2)} minutes`);
+        }
         
         // Update balance with precise calculation
         setState(prev => ({
           ...prev,
-          balance: parseFloat((prev.balance + earnings).toFixed(6))
+          balance: parseFloat((prev.balance + earnings).toFixed(6)),
+          // Also increase mining session amount
+          miningSession: parseFloat((prev.miningSession + earnings).toFixed(6))
         }));
         
         // Update last update time for next calculation
@@ -141,7 +150,7 @@ export function useMiningData(): MiningData {
     balance: parseFloat(Math.max(persistentBalance, state.balance || 0).toFixed(6)), // Always use highest reliable balance with fixed precision
     handleStartMining: memoizedStartMining,
     handleStopMining: memoizedStopMining,
-    isOffline: isOffline // Added offline status
+    isOffline: isOffline
   };
 }
 

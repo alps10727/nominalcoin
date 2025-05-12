@@ -9,7 +9,7 @@ const processedRewardTimes = new Set<number>();
 
 /**
  * Process traditional time-based mining (fallback when no end timestamp is available)
- * Enhanced timing precision with exact second calculation
+ * Enhanced timing precision with exact second calculation and fixed mining rate
  */
 export function processTraditionalMining(
   prev: MiningState,
@@ -48,6 +48,9 @@ export function processTraditionalMining(
   // Create key for timestamp to prevent duplicate rewards
   const rewardTimeKey = Math.floor(now / 180000); // Group by 3-min intervals
   
+  // FIXED: Get the current mining rate to ensure rewards use the correct rate
+  const currentMiningRate = prev.miningRate;
+  
   // Long absence handling - use exact 180-second (3-minute) cycles
   if (elapsedSeconds >= 180) {
     // Only process if we haven't already given rewards for this time
@@ -63,11 +66,11 @@ export function processTraditionalMining(
       
       // Calculate complete 3-minute cycles with exact counting
       const completeCycles = Math.floor(elapsedSeconds / 180);
-      debugLog("useTraditionalMining", `Processing ${completeCycles} complete cycles`);
+      debugLog("useTraditionalMining", `Processing ${completeCycles} complete cycles with mining rate ${currentMiningRate}`);
       
       // Mining rate is per minute, so multiply by 3 for each cycle (3 minutes)
       // Use toFixed(6) for balance precision
-      const rewardAmount = parseFloat((completeCycles * (prev.miningRate * 3)).toFixed(6));
+      const rewardAmount = parseFloat((completeCycles * (currentMiningRate * 3)).toFixed(6));
       
       rewardUpdates = {
         balance: parseFloat((prev.balance + rewardAmount).toFixed(6)),

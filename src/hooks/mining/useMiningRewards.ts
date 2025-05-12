@@ -36,9 +36,15 @@ export function addMiningReward(
     currentBalance = localData.balance;
   }
   
+  // FIXED: Ensure we use the exact mining rate from state for calculations
+  const currentMiningRate = prevState.miningRate;
+  
+  // Log verification for mining rate
+  debugLog("useMiningRewards", `Using mining rate for reward: ${currentMiningRate}`);
+  
   // Per 3-minute reward calculation - Fixed to 6 decimal places for precision
   // Mining rate is per minute, so multiply by 3 for a complete cycle (3 minutes)
-  const rewardAmount = parseFloat((prevState.miningRate * 3).toFixed(6));
+  const rewardAmount = parseFloat((currentMiningRate * 3).toFixed(6));
   const newBalance = parseFloat((currentBalance + rewardAmount).toFixed(6));
   const newSession = parseFloat((prevState.miningSession + rewardAmount).toFixed(6));
   
@@ -47,7 +53,7 @@ export function addMiningReward(
   // CRITICAL: Save balance to storage IMMEDIATELY after earning reward
   saveUserData({
     balance: newBalance,
-    miningRate: prevState.miningRate,
+    miningRate: currentMiningRate, // Use exact current mining rate
     lastSaved: getCurrentTime(),
     miningActive: true, // Keep mining active
     miningTime: prevState.miningTime,

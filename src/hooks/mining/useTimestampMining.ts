@@ -1,3 +1,4 @@
+
 import { MiningState } from "@/types/mining";
 import { calculateProgress } from '@/utils/miningUtils';
 import { addMiningReward, handleMiningCompletion } from './useMiningRewards';
@@ -9,7 +10,7 @@ const processedRewardTimes = new Set<number>();
 
 /**
  * Process mining based on absolute timestamps (most reliable method)
- * Enhanced with precise timing calculations
+ * Enhanced with precise timing calculations and fixed mining rate issue
  */
 export function processTimestampBasedMining(
   state: MiningState,
@@ -37,6 +38,9 @@ export function processTimestampBasedMining(
   const previousVisitTime = lastVisitTimeRef.current;
   lastVisitTimeRef.current = now;
   lastUpdateTimeRef.current = now;
+  
+  // FIXED: Get the current mining rate to ensure rewards use the correct rate
+  const currentMiningRate = state.miningRate;
   
   // If mining completed
   if (remainingMs <= 0) {
@@ -84,8 +88,11 @@ export function processTimestampBasedMining(
           values.forEach(v => processedRewardTimes.add(v));
         }
         
+        // FIXED: Use the current mining rate for calculations
+        debugLog("useTimestampMining", `Processing rewards with mining rate: ${currentMiningRate}`);
+        
         // Mining rate is per minute, so multiply by 3 for each 3-minute cycle
-        const rewardAmount = parseFloat((completeCycles * (state.miningRate * 3)).toFixed(6));
+        const rewardAmount = parseFloat((completeCycles * (currentMiningRate * 3)).toFixed(6));
         
         // Update state with rewards (fixed precision)
         const updatedState = {

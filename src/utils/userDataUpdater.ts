@@ -1,4 +1,3 @@
-
 import { UserData, saveUserData } from '@/utils/storage';
 import { saveUserDataToFirebase } from '@/services/userDataSaver';
 import { debugLog, errorLog } from '@/utils/debugUtils';
@@ -23,19 +22,26 @@ export async function updateUserDataWithStatus(
     // Use current data or create defaults
     const baseData: UserData = currentData || {
       balance: 0,
-      miningRate: 0.003, // Sabit mining rate: 0.003
+      miningRate: 0.003, // Base mining rate constant
       lastSaved: Date.now()
     };
+    
+    // Important: Preserve mining rate if updates don't include it
+    const effectiveMiningRate = updates.miningRate !== undefined ? 
+      updates.miningRate : baseData.miningRate;
     
     // Create updated data object
     const updatedData: UserData = {
       ...baseData,
       ...updates,
-      // Sabit mining rate olarak tanımladığımız değeri korumak için miningRate'i özellikle burada set ediyoruz
-      // Bu sayede updates içerisinde farklı bir değer gelse bile her zaman 0.003 kullanılacak
-      miningRate: 0.003,
+      // Only override mining rate if it's specifically being updated
+      // Otherwise use the current mining rate (could be from boosts or upgrades)
+      miningRate: effectiveMiningRate,
       lastSaved: Date.now()
     };
+    
+    // Log the mining rate for debugging
+    debugLog("userDataUpdater", `Using mining rate: ${updatedData.miningRate}`);
     
     // Special handling for mining end time if mining is active
     if (updates.miningActive === true && !updatedData.miningEndTime) {
@@ -119,7 +125,7 @@ export async function updateUserDataWithStatus(
     // Tüm hatalardan kurtulma - en azından default veri döndür
     const fallbackData: UserData = {
       balance: currentData?.balance || 0,
-      miningRate: 0.003,
+      miningRate: currentData?.miningRate || 0.003,
       lastSaved: Date.now()
     };
     
