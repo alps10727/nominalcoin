@@ -1,6 +1,5 @@
 
 apply plugin: 'com.android.application'
-apply plugin: 'com.google.gms.google-services'
 
 android {
     namespace "app.lovable.a9a24b2dbd35a4f6fb98b43e035a57e11"
@@ -41,17 +40,8 @@ dependencies {
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation project(':capacitor-android')
-    implementation project(':capacitor-community-admob')
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation "androidx.core:core:$androidxCoreVersion"
-    
-    // AdMob SDK bağımlılığını ekle
-    implementation 'com.google.android.gms:play-services-ads:22.6.0'
-}
-
-// Eğer google-services.json dosyası varsa çalışacak olan kısım
-if (file('../google-services.json').exists()) {
-    apply plugin: 'com.google.gms.google-services'
 }

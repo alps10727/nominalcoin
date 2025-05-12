@@ -1,18 +1,15 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle, ArrowRight } from "lucide-react";
 import { Mission } from '@/pages/Upgrades';
-import { useAdMob } from '@/hooks/useAdMob';
-import { toast } from 'sonner';
-import { debugLog } from '@/utils/debugUtils';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface MissionItemProps {
   mission: Mission;
-  onClaim: (mission: Mission, byAdReward?: boolean) => void;
+  onClaim: (mission: Mission) => void;
   onConnect?: () => void;
   isLoading: boolean;
 }
@@ -20,40 +17,7 @@ interface MissionItemProps {
 const MissionItem = ({ mission, onClaim, onConnect, isLoading }: MissionItemProps) => {
   const progressPercentage = (mission.progress / mission.total) * 100;
   const isCompleted = mission.progress >= mission.total;
-  const [isAdLoading, setIsAdLoading] = useState(false);
-  const { showRewardAd, isInitialized } = useAdMob();
   const { t } = useLanguage();
-  
-  // Mining Speed Mission - Add special handling for showing reward ad
-  const isMiningSpeedMission = mission.id === "mining-time";
-  
-  // For handling ad-based claim
-  const handleAdRewardClaim = async () => {
-    if (!isInitialized) {
-      toast.error(t("mining.adServiceNotReady") || "Ad service is not ready yet");
-      return;
-    }
-    
-    try {
-      setIsAdLoading(true);
-      debugLog('MissionItem', 'Attempting to show reward ad');
-      
-      const rewarded = await showRewardAd();
-      if (rewarded) {
-        debugLog('MissionItem', 'Ad reward successful');
-        // Pass true as second parameter to indicate this is an ad-based reward
-        onClaim(mission, true);
-        toast.success(t("mining.speedIncreased") || "Mining speed increased!");
-      } else {
-        toast.error(t("mining.adFailed") || "Failed to complete ad viewing. Please try again.");
-      }
-    } catch (error) {
-      debugLog('MissionItem', 'Error showing reward ad', error);
-      toast.error(t("mining.adError") || "Error showing advertisement. Please try again.");
-    } finally {
-      setIsAdLoading(false);
-    }
-  };
   
   return (
     <Card className="bg-gradient-to-br from-gray-900/80 to-gray-800/80 border border-gray-700/50 overflow-hidden">
@@ -85,31 +49,19 @@ const MissionItem = ({ mission, onClaim, onConnect, isLoading }: MissionItemProp
           <div className="text-sm">
             <span className="text-gray-400">{t("missions.reward")} </span> 
             <span className="text-indigo-400 font-semibold">
-              {isMiningSpeedMission ? t("missions.speedBoost") : `${mission.reward} NC`}
+              {`${mission.reward} NC`}
             </span>
           </div>
           
           {isCompleted ? (
-            isMiningSpeedMission ? (
-              <Button 
-                onClick={handleAdRewardClaim} 
-                disabled={isLoading || mission.claimed || isAdLoading}
-                size="sm" 
-                className={`${mission.claimed ? 'bg-green-900/50' : 'bg-gradient-to-r from-indigo-600 to-purple-600'} h-8`}
-              >
-                {mission.claimed ? t("missions.claimed") : isAdLoading ? t("missions.loading") : t("missions.claim")} 
-                {!mission.claimed && !isAdLoading && <ArrowRight className="ml-1 h-3 w-3" />}
-              </Button>
-            ) : (
-              <Button 
-                onClick={() => onClaim(mission)}
-                disabled={isLoading || mission.claimed}
-                size="sm" 
-                className={`${mission.claimed ? 'bg-green-900/50' : 'bg-gradient-to-r from-indigo-600 to-purple-600'} h-8`}
-              >
-                {mission.claimed ? t("missions.claimed") : t("missions.claim")} {!mission.claimed && <ArrowRight className="ml-1 h-3 w-3" />}
-              </Button>
-            )
+            <Button 
+              onClick={() => onClaim(mission)}
+              disabled={isLoading || mission.claimed}
+              size="sm" 
+              className={`${mission.claimed ? 'bg-green-900/50' : 'bg-gradient-to-r from-indigo-600 to-purple-600'} h-8`}
+            >
+              {mission.claimed ? t("missions.claimed") : t("missions.claim")} {!mission.claimed && <ArrowRight className="ml-1 h-3 w-3" />}
+            </Button>
           ) : mission.id === 'social-twitter' ? (
             <Button 
               onClick={onConnect} 

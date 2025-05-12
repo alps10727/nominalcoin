@@ -6,7 +6,6 @@ import { useMiningData } from "@/hooks/useMiningData";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState, useRef, useMemo } from "react";
-import { useAdMob } from "@/hooks/useAdMob";
 
 // Imported components
 import BalanceCard from "@/components/dashboard/BalanceCard";
@@ -115,12 +114,6 @@ const Index = () => {
     />
   ), [miningActive, progress, miningRate, miningSession, miningTime, handleStartMining, handleStopMining]);
 
-  const { showBannerAd } = useAdMob();
-
-  useEffect(() => {
-    showBannerAd();
-  }, [showBannerAd]);
-
   return (
     <div className="min-h-[100dvh] w-full flex flex-col relative pb-20">
       {showOfflineIndicator && (
@@ -155,7 +148,6 @@ const Index = () => {
                 title={t("dashboard.boosts")}
                 icon={ChevronRight}
                 to="/upgrades"
-                showAd={true}
               />
             </div>
             

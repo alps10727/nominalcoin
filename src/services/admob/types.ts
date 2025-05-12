@@ -1,4 +1,3 @@
-
 export interface AdMobServiceInterface {
   initialize(): Promise<void>;
   showRewardAd(): Promise<boolean>;

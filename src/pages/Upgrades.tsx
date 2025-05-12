@@ -7,7 +7,6 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { debugLog } from "@/utils/debugUtils";
 import { supabase } from "@/integrations/supabase/client";
 import MissionsList from "@/components/upgrades/MissionsList";
-import BannerAdContainer from "@/components/ads/BannerAdContainer";
 
 export type Mission = {
   id: string;
@@ -43,7 +42,7 @@ const Upgrades = () => {
       id: "mining-time",
       title: t("missions.miningTime") || "Mine for 2 Hours",
       description: t("missions.miningTimeDesc") || "Keep mining active for 2 hours to increase mining speed",
-      reward: 0, // This is now a mining rate boost instead of NC
+      reward: 5, // Artık NC veren bir görev olarak değiştirildi
       progress: 0,
       total: 120,
       completed: false,
@@ -135,7 +134,7 @@ const Upgrades = () => {
     );
   };
 
-  const claimReward = async (mission: Mission, byAdReward = false) => {
+  const claimReward = async (mission: Mission) => {
     if (!currentUser) {
       toast.error(t("tasks.loginRequired"));
       return;
@@ -154,36 +153,6 @@ const Upgrades = () => {
     try {
       setIsLoading(true);
       
-      // Handle mining rate increase from ad reward
-      if (mission.id === "mining-time" && byAdReward) {
-        // Get current mining rate
-        const currentRate = userData?.miningRate || 0.003;
-        const newRate = parseFloat((currentRate + 0.001).toFixed(4));
-        
-        debugLog("Upgrades", `Increasing mining rate from ${currentRate} to ${newRate}`);
-        
-        // Update user data with new mining rate
-        if (updateUserData) {
-          const updatedMissions = userData?.completedMissions || [];
-          await updateUserData({
-            miningRate: newRate,
-            completedMissions: [...updatedMissions, mission.id]
-          });
-        }
-        
-        // Update mission state
-        setMissions(prevMissions => 
-          prevMissions.map(m => 
-            m.id === mission.id 
-              ? { ...m, completed: true, claimed: true } 
-              : m
-          )
-        );
-        
-        toast.success(t("mining.speedIncreased") || "Congratulations! Your mining speed has been increased");
-        return;
-      }
-      
       // Standard NC reward process
       const { data, error } = await supabase.rpc('update_user_balance', {
         p_user_id: currentUser.id,
@@ -200,11 +169,18 @@ const Upgrades = () => {
       const currentBalance = userData?.balance || 0;
       const newBalance = currentBalance + mission.reward;
       
+      // Mining rate güncelleme - mining-time görevi için
+      let updatedMiningRate = userData?.miningRate || 0.003;
+      if (mission.id === "mining-time") {
+        updatedMiningRate = parseFloat((updatedMiningRate + 0.001).toFixed(4));
+      }
+      
       // Update userData
       if (updateUserData) {
         const updatedMissions = userData?.completedMissions || [];
         await updateUserData({
           balance: newBalance,
+          miningRate: updatedMiningRate,
           completedMissions: [...updatedMissions, mission.id]
         });
       }
@@ -249,9 +225,6 @@ const Upgrades = () => {
         </p>
       </div>
 
-      {/* Banner ad at the top */}
-      <BannerAdContainer />
-
       <div className="space-y-4 mt-4">
         <MissionsList 
           missions={missions}
@@ -260,9 +233,6 @@ const Upgrades = () => {
           isLoading={isLoading}
         />
       </div>
-
-      {/* Banner ad at the bottom */}
-      <BannerAdContainer className="mt-6" />
     </div>
   );
 };

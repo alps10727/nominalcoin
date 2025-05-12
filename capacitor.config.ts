@@ -24,19 +24,7 @@ const config: CapacitorConfig = {
       NSFaceIDUsageDescription: "Güvenli giriş için FaceID kullanımına izin verin.",
       CFBundleLocalizations: ["tr", "en"],
       CFBundleDevelopmentRegion: "tr",
-      NSUserTrackingUsageDescription: "Bu izin, size kişiselleştirilmiş reklamlar sunmak için kullanılacaktır.",
-      GADApplicationIdentifier: "ca-app-pub-3940256099942544~1458002511", // Test App ID for iOS
-      SKAdNetworkItems: [
-        {
-          SKAdNetworkIdentifier: "cstr6suwn9.skadnetwork"
-        },
-        {
-          SKAdNetworkIdentifier: "4pfyvq9l8r.skadnetwork"
-        },
-        {
-          SKAdNetworkIdentifier: "2fnua5tdw4.skadnetwork"
-        }
-      ]
+      NSUserTrackingUsageDescription: "Bu izin, size kişiselleştirilmiş reklamlar sunmak için kullanılacaktır."
     }
   },
   android: {
@@ -53,7 +41,7 @@ const config: CapacitorConfig = {
       "android.permission.INTERNET"
     ],
     appendUserAgent: "NominalCoin",
-    includePlugins: ["@capacitor/app", "@capacitor-community/admob"],
+    includePlugins: ["@capacitor/app"],
     buildOptions: {
       keystorePath: "nominalcoin.keystore",
       keystoreAlias: "nominalalias",
@@ -74,18 +62,6 @@ const config: CapacitorConfig = {
     LocalNotifications: {
       smallIcon: "ic_stat_notification",
       iconColor: "#488AFF"
-    },
-    CapacitorAdMob: {
-      appId: {
-        android: "ca-app-pub-3940256099942544~3347511713", // Test App ID for Android
-        ios: "ca-app-pub-3940256099942544~1458002511" // Test App ID for iOS
-      },
-      publisherId: "",
-      hasUserConsent: true,
-      childDirected: false,
-      useBrowserKit: false,
-      testingDevices: ["EMULATOR"],
-      manualInit: false
     }
   }
 };
