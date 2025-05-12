@@ -55,7 +55,7 @@ export async function fetchAllTasks(): Promise<Task[]> {
       return [];
     }
     
-    debugLog("taskService", `${data.length} görev bulundu`);
+    debugLog("taskService", `${data.length} görev bulundu:`, data);
     return data.map(mapDbTaskToTask);
   } catch (error) {
     errorLog("taskService", "Görevler yüklenirken hata:", error);

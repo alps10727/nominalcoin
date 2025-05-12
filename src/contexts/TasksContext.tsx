@@ -2,7 +2,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Task } from '@/types/tasks';
 import { useAuth } from './AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { debugLog, errorLog } from '@/utils/debugUtils';
 import { fetchAllTasks, fetchUserTasks, addNewTask, updateExistingTask, deleteTaskById } from '@/services/taskService';
@@ -46,11 +45,12 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setError(null);
       debugLog("TasksContext", "Görevler yükleniyor...");
       
-      // Doğrudan taskService kullanarak görevleri yükle
+      // Supabase'den tüm görevleri yükle
       const loadedTasks = await fetchAllTasks();
       
       if (loadedTasks && loadedTasks.length > 0) {
         debugLog("TasksContext", `${loadedTasks.length} görev yüklendi`);
+        console.log("Yüklenen görevler:", loadedTasks); // Ek debug için
         setTasks(loadedTasks);
       } else {
         debugLog("TasksContext", "Hiç görev bulunamadı");
@@ -67,6 +67,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  // Kullanıcı değiştiğinde ve sayfa yüklendiğinde görevleri yenile
   useEffect(() => {
     loadTasks();
   }, [currentUser]);
@@ -93,10 +94,13 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         attachmentUrl: null
       };
 
-      // Use the taskService to add a task
+      // taskService kullanarak görev ekle
       const addedTask = await addNewTask(newTask);
-      setTasks([...tasks, addedTask]);
+      setTasks(prevTasks => [...prevTasks, addedTask]);
       toast.success("Görev başarıyla eklendi.");
+      
+      // Görev eklendikten sonra listeyi yenile
+      await refreshTasks();
     } catch (error) {
       errorLog("TasksContext", "Görev eklenirken hata oluştu:", error);
       toast.error("Görev eklenirken bir hata oluştu.");
@@ -105,7 +109,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const updateTask = async (task: Task) => {
     try {
-      // Use the taskService to update a task
+      // taskService kullanarak görevi güncelle
       await updateExistingTask(task);
       setTasks(tasks.map(t => t.id === task.id ? task : t));
       toast.success("Görev güncellendi.");
@@ -117,7 +121,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const deleteTask = async (task: Task) => {
     try {
-      // Use the taskService to delete a task
+      // taskService kullanarak görevi sil
       await deleteTaskById(task.id);
       setTasks(tasks.filter(t => t.id !== task.id));
       toast.success("Görev silindi.");

@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { useTasks } from '@/contexts/TasksContext';
 import { Task, Badge } from '@/types/tasks';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { getInitialTasks, getInitialBadges } from '@/data/initialTasks';
+import { getInitialBadges } from '@/data/initialTasks';
 import { useTaskProgress } from '@/hooks/tasks/useTaskProgress';
 import { useBadgeProgress } from '@/hooks/tasks/useBadgeProgress';
 import { useTaskRewards } from '@/hooks/tasks/useTaskRewards';
@@ -120,35 +119,34 @@ export const useTasksData = () => {
   const [loading, setLoading] = useState(true);
   const [dailyTasks, setDailyTasks] = useState<Task[]>([]);
   const [badges, setBadges] = useState<Badge[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Veritabanından yüklenen görevleri kullanma
     if (dbTasks && dbTasks.length > 0) {
+      console.log("useTasksData hook: Veritabanından görevler yüklendi:", dbTasks.length, dbTasks);
       debugLog('useTasksData', 'Veritabanından görevler yüklendi:', dbTasks.length);
       setDailyTasks(dbTasks);
       setBadges(getInitialBadges(t));
       setLoading(false);
+      setError(null);
     } else if (!tasksLoading) {
-      // Veritabanında görev yoksa veya yükleme tamamlandıysa varsayılan görevleri yükle
-      try {
-        debugLog('useTasksData', 'Varsayılan görevler yükleniyor');
-        const initialTasks = getInitialTasks(t);
-        debugLog('useTasksData', `${initialTasks.length} varsayılan görev yüklendi`);
-        setDailyTasks(initialTasks);
-        setBadges(getInitialBadges(t));
-      } catch (error) {
-        errorLog('useTasksData', 'Görevler yüklenirken hata:', error);
-      } finally {
-        setLoading(false);
-      }
+      // Veritabanında görev yoksa ve tasksLoading false ise
+      console.log("useTasksData hook: Veritabanında görev bulunamadı veya yükleme tamamlandı.");
+      setDailyTasks([]);
+      setBadges(getInitialBadges(t));
+      setLoading(false);
     }
   }, [t, dbTasks, tasksLoading]);
 
   // Sayfa açıldığında görevleri yeniden yükle
   useEffect(() => {
+    console.log("useTasksData hook: Görevler yenileniyor...");
     debugLog('useTasksData', 'Görevler yenileniyor...');
     refreshTasks().catch(error => {
+      console.error("useTasksData hook: Görevler yenilenirken hata:", error);
       errorLog('useTasksData', 'Görevler yenilenirken hata:', error);
+      setError("Görevler yenilenirken bir hata oluştu.");
     });
   }, [refreshTasks]);
 
@@ -171,7 +169,7 @@ export const useTasksData = () => {
     badges, 
     claimReward,
     loading: loading || tasksLoading,
-    error: tasksError
+    error: error || tasksError
   };
 };
 

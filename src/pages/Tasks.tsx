@@ -11,7 +11,7 @@ import { debugLog } from "@/utils/debugUtils";
 import { toast } from "sonner";
 
 const Tasks = () => {
-  const { dailyTasks, badges, claimReward, loading: tasksDataLoading } = useTasksData();
+  const { dailyTasks, badges, claimReward, loading: tasksDataLoading, error: tasksDataError } = useTasksData();
   const { error: tasksError, loading: tasksContextLoading, refreshTasks } = useTasks();
   const { userData } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
@@ -19,14 +19,24 @@ const Tasks = () => {
   
   // Sayfa açıldığında görevleri yenile
   useEffect(() => {
+    console.log("Tasks sayfası yükleniyor, görevler yenileniyor...");
     debugLog("Tasks", "Görevler yükleniyor...");
     refreshTasks().then(() => {
+      console.log("Görevler başarıyla yüklendi");
       debugLog("Tasks", "Görevler başarıyla yüklendi");
       toast.success("Görevler yüklendi", { duration: 2000 });
     }).catch(error => {
+      console.error("Görevler yüklenirken hata oluştu:", error);
       debugLog("Tasks", "Görevler yüklenirken hata oluştu:", error);
     });
   }, [refreshTasks]);
+  
+  // Eklenen ek kontrol - dailyTasks değiştiğinde logla
+  useEffect(() => {
+    if (dailyTasks && dailyTasks.length > 0) {
+      console.log("Günlük görevler güncellendi:", dailyTasks.length, dailyTasks);
+    }
+  }, [dailyTasks]);
   
   const indexOfLastTask = currentPage * itemsPerPage;
   const indexOfFirstTask = indexOfLastTask - itemsPerPage;
@@ -40,17 +50,18 @@ const Tasks = () => {
   };
 
   const isLoading = tasksDataLoading || tasksContextLoading;
+  const error = tasksError || tasksDataError;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-navy-950 to-blue-950 dark:from-navy-950 dark:to-blue-950 flex flex-col">
       <main className="flex-1 p-5 max-w-3xl mx-auto w-full pb-24 md:pb-5">
         <TasksHeader />
 
-        {tasksError && <TasksError error={tasksError} />}
+        {error && <TasksError error={error} />}
 
         {isLoading && <TasksLoading />}
 
-        {!isLoading && !tasksError && dailyTasks.length > 0 ? (
+        {!isLoading && !error && dailyTasks.length > 0 ? (
           <>
             <div className="mb-4 bg-teal-500/10 p-3 rounded-lg border border-teal-500/30">
               <p className="text-sm text-teal-200">
@@ -67,7 +78,7 @@ const Tasks = () => {
               onPageChange={goToPage}
             />
           </>
-        ) : !isLoading && !tasksError ? (
+        ) : !isLoading && !error ? (
           <div className="flex flex-col items-center justify-center p-10 bg-navy-800/50 border border-navy-700 rounded-lg">
             <p className="text-gray-300 mb-3">Henüz hiç görev bulunamadı.</p>
             <button 
