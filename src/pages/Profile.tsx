@@ -81,11 +81,11 @@ const Profile = () => {
   return (
     <div className="container max-w-4xl mx-auto p-4">
       <div className="flex flex-col items-center mb-8">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent">
+        <h1 className="text-3xl font-bold mb-2">
           {t("profile.title")}
         </h1>
         {isOffline && (
-          <div className="mt-2 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 p-2 px-4 rounded-full text-sm flex items-center">
+          <div className="mt-2 bg-yellow-50 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 p-2 px-4 rounded-full text-sm flex items-center">
             <span className="inline-block w-2 h-2 bg-yellow-500 rounded-full mr-2 animate-pulse"></span>
             {t("app.offlineMode")}
           </div>
@@ -128,9 +128,9 @@ const Profile = () => {
         </TabsContent>
         
         <TabsContent value="settings" className="space-y-4 animate-fade-in">
-          <div className="bg-gradient-to-br from-navy-900/90 to-navy-950/90 rounded-lg p-6 shadow-md border border-navy-800">
+          <div className="bg-white dark:bg-gray-900 rounded-lg p-6 shadow-md border border-gray-200 dark:border-gray-800">
             <h2 className="text-xl font-semibold mb-4">{t("profile.comingSoon")}</h2>
-            <p className="text-gray-400">{t("profile.settingsDescription")}</p>
+            <p className="text-gray-600 dark:text-gray-400">{t("profile.settingsDescription")}</p>
           </div>
         </TabsContent>
       </Tabs>

@@ -56,9 +56,8 @@ const ProfileInformationCard = ({
   };
   
   return (
-    <Card className="bg-gradient-to-br from-navy-900/90 to-navy-950/90 overflow-hidden border-navy-800">
-      <div className="absolute top-0 left-0 w-full h-16 bg-gradient-to-r from-indigo-600/20 to-purple-600/20"></div>
-      <CardHeader className="relative z-10">
+    <Card className="shadow-md border border-gray-200 dark:border-gray-800">
+      <CardHeader>
         <div className="flex justify-between items-center">
           <CardTitle>{t("profile.information")}</CardTitle>
           {!isEditing ? (
@@ -103,7 +102,7 @@ const ProfileInformationCard = ({
         
         <div className="w-full lg:w-2/3 space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-sm font-medium text-gray-300">
+            <Label htmlFor="name" className="text-sm font-medium">
               {t("profile.name")}
             </Label>
             {isEditing ? (
@@ -112,29 +111,28 @@ const ProfileInformationCard = ({
                 value={editableName} 
                 onChange={(e) => setEditableName(e.target.value)}
                 placeholder={t("profile.namePlaceholder")}
-                className="bg-navy-800/50 border-navy-700 focus:border-primary/50"
               />
             ) : (
-              <div className="p-2 px-3 rounded-md bg-navy-800/50 border border-navy-700 text-white">
+              <div className="p-2 px-3 rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
                 {name || t("profile.namePlaceholder")}
               </div>
             )}
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium text-gray-300">
+            <Label htmlFor="email" className="text-sm font-medium">
               {t("profile.email")}
             </Label>
-            <div className="p-2 px-3 rounded-md bg-navy-800/50 border border-navy-700 text-gray-300">
+            <div className="p-2 px-3 rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400">
               {currentUser?.email || ""}
             </div>
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="userId" className="text-sm font-medium text-gray-300">
+            <Label htmlFor="userId" className="text-sm font-medium">
               {t("profile.userId")}
             </Label>
-            <div className="p-2 px-3 rounded-md bg-navy-800/50 border border-navy-700 font-mono text-xs text-gray-400 break-all">
+            <div className="p-2 px-3 rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 font-mono text-xs text-gray-500 dark:text-gray-400 break-all">
               {currentUser?.id || ""}
             </div>
           </div>
