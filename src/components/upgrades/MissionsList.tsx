@@ -6,11 +6,20 @@ import MissionItem from './MissionItem';
 interface MissionsListProps {
   missions: Mission[];
   onClaim: (mission: Mission, byAdReward?: boolean) => void;
+  onActivateBoost?: () => void;
+  onWheel?: () => void;
   onConnect?: (missionId: string) => void;
   isLoading: boolean;
 }
 
-const MissionsList = ({ missions, onClaim, onConnect, isLoading }: MissionsListProps) => {
+const MissionsList = ({ 
+  missions, 
+  onClaim, 
+  onActivateBoost,
+  onWheel,
+  onConnect, 
+  isLoading 
+}: MissionsListProps) => {
   // Add safety check to ensure missions is always an array
   const safeMissions = Array.isArray(missions) ? missions : [];
   
@@ -21,6 +30,8 @@ const MissionsList = ({ missions, onClaim, onConnect, isLoading }: MissionsListP
           key={mission.id} 
           mission={mission} 
           onClaim={onClaim}
+          onActivateBoost={mission.id === "mining-boost" ? onActivateBoost : undefined}
+          onWheel={mission.id === "wheel-of-fortune" ? onWheel : undefined}
           onConnect={mission.id === "social-twitter" ? () => onConnect?.("social-twitter") : undefined}
           isLoading={isLoading}
         />

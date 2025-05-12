@@ -1,23 +1,106 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle, ArrowRight } from "lucide-react";
+import { CheckCircle, ArrowRight, Lock } from "lucide-react";
 import { Mission } from '@/types/missions';
 import { useLanguage } from '@/contexts/LanguageContext';
+import FortuneWheel from './FortuneWheel';
 
 interface MissionItemProps {
   mission: Mission;
   onClaim: (mission: Mission) => void;
+  onActivateBoost?: () => void;
+  onWheel?: () => void;
   onConnect?: () => void;
   isLoading: boolean;
 }
 
-const MissionItem = ({ mission, onClaim, onConnect, isLoading }: MissionItemProps) => {
+const MissionItem = ({ 
+  mission, 
+  onClaim, 
+  onActivateBoost, 
+  onWheel,
+  onConnect, 
+  isLoading 
+}: MissionItemProps) => {
   const progressPercentage = (mission.progress / mission.total) * 100;
   const isCompleted = mission.progress >= mission.total;
   const { t } = useLanguage();
+  
+  const [timeLeft, setTimeLeft] = useState<string | null>(null);
+  const [isWheelOpen, setIsWheelOpen] = useState(false);
+  
+  // Geri sayım süresini kontrol et
+  useEffect(() => {
+    const checkCooldown = () => {
+      if (!mission.cooldownEnd) return null;
+      
+      const now = Date.now();
+      const cooldownEnd = mission.cooldownEnd;
+      
+      if (now < cooldownEnd) {
+        const remaining = Math.ceil((cooldownEnd - now) / 1000);
+        const hours = Math.floor(remaining / 3600);
+        const minutes = Math.floor((remaining % 3600) / 60);
+        const seconds = remaining % 60;
+        
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      }
+      
+      return null;
+    };
+    
+    // İlk kontrol
+    setTimeLeft(checkCooldown());
+    
+    // 1 saniyede bir güncelle
+    const intervalId = setInterval(() => {
+      const remaining = checkCooldown();
+      setTimeLeft(remaining);
+      
+      if (!remaining && mission.cooldownEnd) {
+        // Soğuma süresi bittiyse interval'i temizle
+        clearInterval(intervalId);
+      }
+    }, 1000);
+    
+    return () => clearInterval(intervalId);
+  }, [mission.cooldownEnd]);
+  
+  // Tek seferlik görev ve tamamlanmış mı kontrol et
+  const isSingleUse = mission.id === 'purchase-reward';
+  const isDisabled = !!timeLeft || (isSingleUse && mission.claimed);
+  
+  // Görev tipine göre özel buton işlevlerini belirle
+  const handleAction = () => {
+    if (mission.id === 'mining-boost' && onActivateBoost) {
+      onActivateBoost();
+    } else if (mission.id === 'wheel-of-fortune' && onWheel) {
+      setIsWheelOpen(true);
+    } else {
+      onClaim(mission);
+    }
+  };
+  
+  // Özel buton metinleri
+  const getButtonText = () => {
+    if (timeLeft) {
+      return timeLeft;
+    }
+    
+    switch (mission.id) {
+      case 'mining-boost':
+        return t("missions.activate") || "Aktifleştir";
+      case 'wheel-of-fortune':
+        return t("missions.spin") || "Çevir";
+      case 'purchase-reward':
+        return mission.claimed ? t("missions.claimed") : (t("missions.claim") || "Talep Et");
+      default:
+        return mission.claimed ? t("missions.claimed") : (t("missions.claim") || "Talep Et");
+    }
+  };
   
   return (
     <Card className="bg-gradient-to-br from-gray-900/80 to-gray-800/80 border border-gray-700/50 overflow-hidden">
@@ -32,7 +115,7 @@ const MissionItem = ({ mission, onClaim, onConnect, isLoading }: MissionItemProp
               <p className="text-xs text-gray-400">{mission.description}</p>
             </div>
           </div>
-          {isCompleted && (
+          {(mission.claimed && isSingleUse) && (
             <CheckCircle className="h-5 w-5 text-green-500 mt-1" />
           )}
         </div>
@@ -47,41 +130,55 @@ const MissionItem = ({ mission, onClaim, onConnect, isLoading }: MissionItemProp
         
         <div className="mt-4 flex justify-between items-center">
           <div className="text-sm">
-            <span className="text-gray-400">{t("missions.reward")} </span> 
-            <span className="text-indigo-400 font-semibold">
-              {`${mission.reward} NC`}
-            </span>
+            {mission.id !== 'wheel-of-fortune' && (
+              <>
+                <span className="text-gray-400">{t("missions.reward")} </span> 
+                <span className="text-indigo-400 font-semibold">
+                  {`${mission.reward} NC`}
+                </span>
+              </>
+            )}
+            {mission.id === 'wheel-of-fortune' && (
+              <span className="text-indigo-400 font-semibold">
+                {t("missions.randomReward") || "Rastgele Ödül"}
+              </span>
+            )}
           </div>
           
-          {isCompleted ? (
-            <Button 
-              onClick={() => onClaim(mission)}
-              disabled={isLoading || mission.claimed}
-              size="sm" 
-              className={`${mission.claimed ? 'bg-green-900/50' : 'bg-gradient-to-r from-indigo-600 to-purple-600'} h-8`}
-            >
-              {mission.claimed ? t("missions.claimed") : t("missions.claim")} {!mission.claimed && <ArrowRight className="ml-1 h-3 w-3" />}
-            </Button>
-          ) : mission.id === 'social-twitter' ? (
-            <Button 
-              onClick={onConnect} 
-              size="sm"
-              className="bg-blue-600 hover:bg-blue-700 h-8"
-            >
-              {t("missions.connect")} <ArrowRight className="ml-1 h-3 w-3" />
-            </Button>
-          ) : (
-            <Button
-              size="sm"
-              variant="outline"
-              className="border-gray-700 text-gray-400 h-8"
-              disabled
-            >
-              {t("missions.inProgress")}
-            </Button>
-          )}
+          <Button 
+            onClick={handleAction}
+            disabled={isDisabled || isLoading}
+            size="sm" 
+            className={`${
+              isDisabled 
+                ? 'bg-gray-700 text-gray-400' 
+                : 'bg-gradient-to-r from-indigo-600 to-purple-600'
+            } h-8`}
+          >
+            {isDisabled && timeLeft ? (
+              <Lock className="mr-1 h-3 w-3" />
+            ) : null}
+            {getButtonText()} {!isDisabled && !mission.claimed && <ArrowRight className="ml-1 h-3 w-3" />}
+          </Button>
         </div>
       </CardContent>
+      
+      {/* Çark bileşeni */}
+      {mission.id === 'wheel-of-fortune' && (
+        <FortuneWheel 
+          isOpen={isWheelOpen} 
+          onClose={() => setIsWheelOpen(false)}
+          onPrizeWon={(prize) => {
+            setIsWheelOpen(false);
+            onClaim({
+              ...mission,
+              reward: prize.type === 'coins' ? prize.value : 0,
+              boostAmount: prize.type === 'mining_rate' ? prize.value : null,
+              boostEndTime: prize.type === 'mining_rate' ? Date.now() + (prize.duration || 0) : null
+            });
+          }}
+        />
+      )}
     </Card>
   );
 };
