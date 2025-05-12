@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Upload, Trash2 } from "lucide-react";
+import { Upload, Trash2, Camera } from "lucide-react";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { useAuth } from "@/contexts/AuthContext";
 import { Progress } from "@/components/ui/progress";
@@ -84,18 +84,36 @@ const ProfileAvatar = ({
   
   return (
     <div className="flex flex-col items-center space-y-4">
-      <Avatar className={`${sizeClasses[size]} ring-2 ring-primary/20 ring-offset-2`}>
-        {avatarUrl ? (
-          <AvatarImage src={avatarUrl} alt={name} />
-        ) : null}
-        <AvatarFallback className="bg-gradient-to-br from-indigo-600 to-purple-700 text-white">
-          {initials}
-        </AvatarFallback>
-      </Avatar>
+      <div className="relative group">
+        <Avatar className={`${sizeClasses[size]} ring-2 ring-primary/20 ring-offset-2 group-hover:ring-primary/40 transition-all duration-300`}>
+          {avatarUrl ? (
+            <AvatarImage src={avatarUrl} alt={name} className="object-cover" />
+          ) : null}
+          <AvatarFallback className="bg-gradient-to-br from-indigo-600 to-purple-700 text-white font-medium">
+            {initials}
+          </AvatarFallback>
+        </Avatar>
+        
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className="absolute bottom-0 right-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 bg-background/80 backdrop-blur-sm border-primary"
+          disabled={uploading}
+        >
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          />
+          <Camera className="h-4 w-4 text-primary" />
+        </Button>
+      </div>
       
       {uploading && (
         <div className="w-full max-w-[200px]">
           <Progress value={progress} className="h-2" />
+          <p className="text-xs text-center mt-1 text-muted-foreground">{progress}%</p>
         </div>
       )}
       
