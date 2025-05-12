@@ -2,7 +2,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Mission } from "@/types/missions";
 import { toast } from "sonner";
-import { Gift, TrendingUp, Clock, ShoppingCart } from "lucide-react";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 
 // Görevlerin soğuma süreleri (ms cinsinden)
@@ -145,7 +144,7 @@ export const getDefaultMissions = (): Mission[] => {
       id: "mining-boost",
       title: "Kazım Hızı Arttırma",
       description: "1 saatliğine kazım hızınızı arttırın",
-      icon: <TrendingUp className="h-5 w-5 text-green-400" />,
+      icon: "trending-up", // Changed to string icon name
       progress: 0,
       total: 1,
       reward: 5,
@@ -156,7 +155,7 @@ export const getDefaultMissions = (): Mission[] => {
       id: "purchase-reward",
       title: "Satın Alma Bonusu",
       description: "Herhangi bir satın alma yaparak bonus NC kazanın",
-      icon: <ShoppingCart className="h-5 w-5 text-purple-400" />,
+      icon: "shopping-cart", // Changed to string icon name
       progress: 0,
       total: 1,
       reward: 100,
@@ -167,7 +166,7 @@ export const getDefaultMissions = (): Mission[] => {
       id: "wheel-of-fortune",
       title: "Şans Çarkı",
       description: "Çarkı çevirerek ödül kazanın",
-      icon: <Clock className="h-5 w-5 text-blue-400" />,
+      icon: "clock", // Changed to string icon name
       progress: 0,
       total: 1,
       reward: 0, // Çark ödülü değişken olduğu için 0

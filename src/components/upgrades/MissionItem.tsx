@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle, ArrowRight, Lock } from "lucide-react";
+import { CheckCircle, ArrowRight, Lock, TrendingUp, ShoppingCart, Clock } from "lucide-react";
 import { Mission } from '@/types/missions';
 import { useLanguage } from '@/contexts/LanguageContext';
 import FortuneWheel from './FortuneWheel';
@@ -31,6 +30,20 @@ const MissionItem = ({
   
   const [timeLeft, setTimeLeft] = useState<string | null>(null);
   const [isWheelOpen, setIsWheelOpen] = useState(false);
+  
+  // Get the appropriate icon component based on the icon name
+  const getIconComponent = (iconName: string) => {
+    switch (iconName) {
+      case 'trending-up':
+        return <TrendingUp className="h-5 w-5 text-green-400" />;
+      case 'shopping-cart':
+        return <ShoppingCart className="h-5 w-5 text-purple-400" />;
+      case 'clock':
+        return <Clock className="h-5 w-5 text-blue-400" />;
+      default:
+        return <CheckCircle className="h-5 w-5 text-blue-400" />;
+    }
+  };
   
   // Geri sayım süresini kontrol et
   useEffect(() => {
@@ -108,7 +121,7 @@ const MissionItem = ({
         <div className="flex items-start justify-between mb-2">
           <div className="flex items-center">
             <div className="p-2 rounded-lg bg-gray-800/70 mr-3">
-              {mission.icon}
+              {getIconComponent(mission.icon)}
             </div>
             <div>
               <h3 className="font-medium text-gray-200">{mission.title}</h3>

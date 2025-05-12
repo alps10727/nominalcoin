@@ -5,7 +5,7 @@ export interface Mission {
   id: string;
   title: string;
   description: string;
-  icon: ReactElement;
+  icon: string; // Changed from ReactElement to string to store the icon name
   progress: number;
   total: number;
   reward: number;
