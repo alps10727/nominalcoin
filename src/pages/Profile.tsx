@@ -27,8 +27,9 @@ const Profile = () => {
     if (userData) {
       setName(userData.name || "");
       setEditableName(userData.name || "");
-      // Handle avatarUrl from custom storage since it's not in UserData type
-      setAvatarUrl(userData.avatarUrl as string || null);
+      // Get avatarUrl from custom properties using type assertion
+      const userDataWithAvatar = userData as any;
+      setAvatarUrl(userDataWithAvatar.avatarUrl || null);
     }
   }, [userData]);
   
@@ -48,14 +49,20 @@ const Profile = () => {
   const handleSave = async () => {
     if (userData) {
       try {
-        // Use type assertion to add avatarUrl to the update object
-        await updateUserData({
+        // Create an extended data object that includes avatarUrl
+        const updatedData = {
           ...userData,
           name: editableName,
-          // Need to use type assertion since avatarUrl is not in UserData type
-        } as any);
+        };
         
-        // Also set avatarUrl in a separate local update if needed
+        // Use type assertion to add avatarUrl to the update object
+        const updatedDataWithAvatar = updatedData as any;
+        if (avatarUrl) {
+          updatedDataWithAvatar.avatarUrl = avatarUrl;
+        }
+        
+        await updateUserData(updatedDataWithAvatar);
+        
         setName(editableName);
         setIsEditing(false);
         toast.success(t("profile.updateSuccess"));
