@@ -4,18 +4,6 @@ import { Gift } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 
-// Export the Mission interface so it can be used by other components
-export interface Mission {
-  id: string;
-  title: string;
-  description: string;
-  icon: JSX.Element;
-  progress: number;
-  total: number;
-  reward: number;
-  claimed: boolean;
-}
-
 const Upgrades = () => {
   const { t } = useLanguage();
   

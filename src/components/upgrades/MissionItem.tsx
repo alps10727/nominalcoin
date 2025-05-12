@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle, ArrowRight } from "lucide-react";
-import { Mission } from '@/pages/Upgrades';
+import { Mission } from '@/types/missions';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface MissionItemProps {

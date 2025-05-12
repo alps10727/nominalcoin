@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Mission } from '@/pages/Upgrades';
+import { Mission } from '@/types/missions';
 import MissionItem from './MissionItem';
 
 interface MissionsListProps {
