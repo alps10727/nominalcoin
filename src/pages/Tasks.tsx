@@ -3,7 +3,6 @@ import { useState } from "react";
 import { useTasksData } from "@/components/tasks/TasksData";
 import { useTasks } from "@/contexts/TasksContext";
 import { useAuth } from "@/contexts/AuthContext";
-import AdminTaskForm from "@/components/admin/AdminTaskForm";
 import { TasksHeader } from "@/components/tasks/TasksHeader";
 import { TasksError } from "@/components/tasks/TasksError";
 import { TasksLoading } from "@/components/tasks/TasksLoading";
@@ -33,8 +32,6 @@ const Tasks = () => {
     <div className="min-h-screen bg-gradient-to-br from-navy-950 to-blue-950 dark:from-navy-950 dark:to-blue-950 flex flex-col">
       <main className="flex-1 p-5 max-w-3xl mx-auto w-full pb-24 md:pb-5">
         <TasksHeader />
-
-        {userData?.isAdmin && <AdminTaskForm />}
 
         {tasksError && <TasksError error={tasksError} />}
 
