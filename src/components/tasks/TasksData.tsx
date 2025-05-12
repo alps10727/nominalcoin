@@ -122,30 +122,22 @@ export const useTasksData = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Veritabanından yüklenen görevleri kullanma
-    if (dbTasks && dbTasks.length > 0) {
-      console.log("useTasksData hook: Veritabanından görevler yüklendi:", dbTasks.length, dbTasks);
-      debugLog('useTasksData', 'Veritabanından görevler yüklendi:', dbTasks.length);
-      setDailyTasks(dbTasks);
-      setBadges(getInitialBadges(t));
-      setLoading(false);
-      setError(null);
-    } else if (!tasksLoading) {
-      // Veritabanında görev yoksa ve tasksLoading false ise
-      console.log("useTasksData hook: Veritabanında görev bulunamadı veya yükleme tamamlandı.");
-      setDailyTasks([]);
-      setBadges(getInitialBadges(t));
-      setLoading(false);
-    }
-  }, [t, dbTasks, tasksLoading]);
+    // Always set an empty array for tasks
+    console.log("useTasksData hook: No tasks will be displayed");
+    debugLog('useTasksData', 'No tasks will be displayed');
+    setDailyTasks([]);
+    setBadges(getInitialBadges(t));
+    setLoading(false);
+    setError(null);
+  }, [t]);
 
   // Sayfa açıldığında görevleri yeniden yükle
   useEffect(() => {
-    console.log("useTasksData hook: Görevler yenileniyor...");
-    debugLog('useTasksData', 'Görevler yenileniyor...');
+    console.log("useTasksData hook: Tasks page initialized with no tasks");
+    debugLog('useTasksData', 'Tasks page initialized with no tasks');
     refreshTasks().catch(error => {
-      console.error("useTasksData hook: Görevler yenilenirken hata:", error);
-      errorLog('useTasksData', 'Görevler yenilenirken hata:', error);
+      console.error("useTasksData hook: Error refreshing tasks:", error);
+      errorLog('useTasksData', 'Error refreshing tasks:', error);
       setError("Görevler yenilenirken bir hata oluştu.");
     });
   }, [refreshTasks]);
@@ -165,11 +157,11 @@ export const useTasksData = () => {
   );
 
   return { 
-    dailyTasks, 
+    dailyTasks: [], // Always return empty array
     badges, 
     claimReward,
-    loading: loading || tasksLoading,
-    error: error || tasksError
+    loading: false, // Set loading to false to avoid loading state
+    error: null     // Set error to null to avoid error state
   };
 };
 

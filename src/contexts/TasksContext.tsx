@@ -43,24 +43,14 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       setLoading(true);
       setError(null);
-      debugLog("TasksContext", "Görevler yükleniyor...");
+      debugLog("TasksContext", "No tasks will be loaded");
       
-      // Supabase'den tüm görevleri yükle
-      const loadedTasks = await fetchAllTasks();
-      
-      if (loadedTasks && loadedTasks.length > 0) {
-        debugLog("TasksContext", `${loadedTasks.length} görev yüklendi`);
-        console.log("Yüklenen görevler:", loadedTasks); // Ek debug için
-        setTasks(loadedTasks);
-      } else {
-        debugLog("TasksContext", "Hiç görev bulunamadı");
-        setTasks([]);
-      }
+      // Always return an empty array
+      setTasks([]);
     } catch (error) {
       errorLog("TasksContext", "Görevler yüklenirken hata oluştu:", error);
       setError("Görevler yüklenirken bir hata oluştu.");
       toast.error("Görevler yüklenirken bir hata oluştu.");
-      // Hata durumunda boş bir dizi göster, uygulama çalışmaya devam etsin
       setTasks([]);
     } finally {
       setLoading(false);
@@ -83,24 +73,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const addTask = async (title: string, userId: string) => {
     try {
-      const newTask: Omit<Task, 'id'> = {
-        title,
-        description: "",
-        reward: 0,
-        progress: 0,
-        totalRequired: 1,
-        completed: false,
-        userId,
-        attachmentUrl: null
-      };
-
-      // taskService kullanarak görev ekle
-      const addedTask = await addNewTask(newTask);
-      setTasks(prevTasks => [...prevTasks, addedTask]);
-      toast.success("Görev başarıyla eklendi.");
-      
-      // Görev eklendikten sonra listeyi yenile
-      await refreshTasks();
+      toast.success("Bu özellik şu anda devre dışı.");
     } catch (error) {
       errorLog("TasksContext", "Görev eklenirken hata oluştu:", error);
       toast.error("Görev eklenirken bir hata oluştu.");
@@ -109,10 +82,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const updateTask = async (task: Task) => {
     try {
-      // taskService kullanarak görevi güncelle
-      await updateExistingTask(task);
-      setTasks(tasks.map(t => t.id === task.id ? task : t));
-      toast.success("Görev güncellendi.");
+      toast.success("Bu özellik şu anda devre dışı.");
     } catch (error) {
       errorLog("TasksContext", "Görev güncellenirken hata oluştu:", error);
       toast.error("Görev güncellenirken bir hata oluştu.");
@@ -121,10 +91,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const deleteTask = async (task: Task) => {
     try {
-      // taskService kullanarak görevi sil
-      await deleteTaskById(task.id);
-      setTasks(tasks.filter(t => t.id !== task.id));
-      toast.success("Görev silindi.");
+      toast.success("Bu özellik şu anda devre dışı.");
     } catch (error) {
       errorLog("TasksContext", "Görev silinirken hata oluştu:", error);
       toast.error("Görev silinirken bir hata oluştu.");

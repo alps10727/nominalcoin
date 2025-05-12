@@ -19,76 +19,36 @@ const Tasks = () => {
   
   // Sayfa açıldığında görevleri yenile
   useEffect(() => {
-    console.log("Tasks sayfası yükleniyor, görevler yenileniyor...");
-    debugLog("Tasks", "Görevler yükleniyor...");
-    refreshTasks().then(() => {
-      console.log("Görevler başarıyla yüklendi");
-      debugLog("Tasks", "Görevler başarıyla yüklendi");
-      toast.success("Görevler yüklendi", { duration: 2000 });
-    }).catch(error => {
-      console.error("Görevler yüklenirken hata oluştu:", error);
-      debugLog("Tasks", "Görevler yüklenirken hata oluştu:", error);
-    });
-  }, [refreshTasks]);
+    console.log("Tasks sayfası yükleniyor, görev yükleme devre dışı.");
+    debugLog("Tasks", "Görev yükleme devre dışı bırakıldı");
+    toast.success("Görev listesi temizlendi", { duration: 2000 });
+  }, []);
   
-  // Eklenen ek kontrol - dailyTasks değiştiğinde logla
-  useEffect(() => {
-    if (dailyTasks && dailyTasks.length > 0) {
-      console.log("Günlük görevler güncellendi:", dailyTasks.length, dailyTasks);
-    }
-  }, [dailyTasks]);
-  
-  const indexOfLastTask = currentPage * itemsPerPage;
-  const indexOfFirstTask = indexOfLastTask - itemsPerPage;
-  const currentTasks = dailyTasks.slice(indexOfFirstTask, indexOfLastTask);
-  const totalPages = Math.ceil(dailyTasks.length / itemsPerPage);
+  // Always use empty task list
+  const currentTasks: any[] = [];
+  const totalPages = 0;
 
   const goToPage = (pageNumber: number) => {
-    if (pageNumber >= 1 && pageNumber <= totalPages) {
-      setCurrentPage(pageNumber);
-    }
+    // No-op since there are no pages
   };
 
-  const isLoading = tasksDataLoading || tasksContextLoading;
-  const error = tasksError || tasksDataError;
+  const isLoading = false;
+  const error = null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-navy-950 to-blue-950 dark:from-navy-950 dark:to-blue-950 flex flex-col">
       <main className="flex-1 p-5 max-w-3xl mx-auto w-full pb-24 md:pb-5">
         <TasksHeader />
 
-        {error && <TasksError error={error} />}
-
-        {isLoading && <TasksLoading />}
-
-        {!isLoading && !error && dailyTasks.length > 0 ? (
-          <>
-            <div className="mb-4 bg-teal-500/10 p-3 rounded-lg border border-teal-500/30">
-              <p className="text-sm text-teal-200">
-                {dailyTasks.length} görev bulundu. Görevleri tamamlayarak ödüller kazanabilirsiniz.
-              </p>
-            </div>
-            <TasksContent
-              dailyTasks={dailyTasks}
-              badges={badges}
-              currentPage={currentPage}
-              totalPages={totalPages}
-              currentTasks={currentTasks}
-              onClaim={claimReward}
-              onPageChange={goToPage}
-            />
-          </>
-        ) : !isLoading && !error ? (
-          <div className="flex flex-col items-center justify-center p-10 bg-navy-800/50 border border-navy-700 rounded-lg">
-            <p className="text-gray-300 mb-3">Henüz hiç görev bulunamadı.</p>
-            <button 
-              onClick={refreshTasks}
-              className="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition"
-            >
-              Görevleri Yenile
-            </button>
-          </div>
-        ) : null}
+        <div className="flex flex-col items-center justify-center p-10 bg-navy-800/50 border border-navy-700 rounded-lg">
+          <p className="text-gray-300 mb-3">Görevler şu an için devre dışı bırakılmıştır.</p>
+          <button 
+            onClick={refreshTasks}
+            className="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition"
+          >
+            Yenile
+          </button>
+        </div>
       </main>
     </div>
   );
