@@ -27,7 +27,7 @@ const Upgrades = () => {
     
     try {
       setIsLoading(true);
-      // Changed from currentUser.uid to currentUser.id for Supabase compatibility
+      // Supabase için currentUser.id kullanılıyor
       const loadedMissions = await fetchMissions(currentUser.id);
       setMissions(loadedMissions);
     } catch (error) {
@@ -54,11 +54,9 @@ const Upgrades = () => {
         const boostAmount = mission.boostAmount;
         const newRate = currentRate + boostAmount;
         
-        // Firebase'e kaydet - Added type safety with miningBoostData
+        // Supabase'e kaydet - Tip güvenliği sağlandı
         const miningBoostData = {
           miningRate: newRate,
-          // Add these properties to UserData interface if needed or handle differently
-          // For now, we'll store them separately in userData
           miningStats: {
             ...(userData.miningStats || {}),
             boostEndTime: mission.boostEndTime,
@@ -74,7 +72,7 @@ const Upgrades = () => {
       if (mission.reward > 0) {
         // Normal ödül işlemi (NC)
         const currentBalance = userData.balance || 0;
-        // Changed from currentUser.uid to currentUser.id for Supabase compatibility
+        // Supabase için currentUser.id kullanılıyor
         const result = await claimMissionReward(currentUser.id, mission, currentBalance);
         
         if (result.success) {
@@ -115,15 +113,13 @@ const Upgrades = () => {
     try {
       setIsLoading(true);
       const currentRate = userData.miningRate || 0.003;
-      // Changed from currentUser.uid to currentUser.id for Supabase compatibility
+      // Supabase için currentUser.id kullanılıyor
       const result = await activateMiningBoost(currentUser.id, currentRate);
       
       if (result.success) {
-        // Kullanıcı verilerini güncelle - Added type safety with boostData
+        // Kullanıcı verilerini güncelle - Tip güvenliği sağlandı
         const boostData = {
           miningRate: result.newRate,
-          // Add these properties to UserData interface if needed or handle differently
-          // For now, we'll store them separately in userData
           miningStats: {
             ...(userData.miningStats || {}),
             boostEndTime: result.boostEndTime

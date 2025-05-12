@@ -327,6 +327,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_missions: {
+        Row: {
+          boost_amount: number | null
+          boost_end_time: number | null
+          claimed: boolean | null
+          cooldown_end: number | null
+          created_at: string | null
+          id: string
+          last_claimed: number | null
+          mission_id: string
+          progress: number | null
+          user_id: string
+        }
+        Insert: {
+          boost_amount?: number | null
+          boost_end_time?: number | null
+          claimed?: boolean | null
+          cooldown_end?: number | null
+          created_at?: string | null
+          id?: string
+          last_claimed?: number | null
+          mission_id: string
+          progress?: number | null
+          user_id: string
+        }
+        Update: {
+          boost_amount?: number | null
+          boost_end_time?: number | null
+          claimed?: boolean | null
+          cooldown_end?: number | null
+          created_at?: string | null
+          id?: string
+          last_claimed?: number | null
+          mission_id?: string
+          progress?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
