@@ -128,24 +128,29 @@ export const useTasksData = () => {
       setDailyTasks(dbTasks);
       setBadges(getInitialBadges(t));
       setLoading(false);
-    } else {
-      // Veritabanından görev gelmezse varsayılan görevleri yükle
+    } else if (!tasksLoading) {
+      // Veritabanında görev yoksa veya yükleme tamamlandıysa varsayılan görevleri yükle
       try {
         debugLog('useTasksData', 'Varsayılan görevler yükleniyor');
-        setDailyTasks(getInitialTasks(t));
+        const initialTasks = getInitialTasks(t);
+        debugLog('useTasksData', `${initialTasks.length} varsayılan görev yüklendi`);
+        setDailyTasks(initialTasks);
         setBadges(getInitialBadges(t));
-        setLoading(false);
       } catch (error) {
         errorLog('useTasksData', 'Görevler yüklenirken hata:', error);
+      } finally {
         setLoading(false);
       }
     }
-  }, [t, dbTasks]);
+  }, [t, dbTasks, tasksLoading]);
 
   // Sayfa açıldığında görevleri yeniden yükle
   useEffect(() => {
-    refreshTasks();
-  }, []);
+    debugLog('useTasksData', 'Görevler yenileniyor...');
+    refreshTasks().catch(error => {
+      errorLog('useTasksData', 'Görevler yenilenirken hata:', error);
+    });
+  }, [refreshTasks]);
 
   // Task ilerleme durumlarını kullanıcı verilerine göre güncelle
   useTaskProgress(dailyTasks, setDailyTasks, userData);

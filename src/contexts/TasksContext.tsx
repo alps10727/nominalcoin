@@ -5,7 +5,7 @@ import { useAuth } from './AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { debugLog, errorLog } from '@/utils/debugUtils';
-import { fetchUserTasks, addNewTask, updateExistingTask, deleteTaskById } from '@/services/taskService';
+import { fetchAllTasks, fetchUserTasks, addNewTask, updateExistingTask, deleteTaskById } from '@/services/taskService';
 
 interface TasksContextProps {
   tasks: Task[];
@@ -46,33 +46,15 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setError(null);
       debugLog("TasksContext", "Görevler yükleniyor...");
       
-      // Supabase'den tüm görevleri yükle (tüm kullanıcılar için)
-      const { data, error } = await supabase
-        .from('tasks')
-        .select('*')
-        .order('created_at', { ascending: false });
-        
-      if (error) {
-        throw error;
-      }
+      // Doğrudan taskService kullanarak görevleri yükle
+      const loadedTasks = await fetchAllTasks();
       
-      if (data) {
-        // Görevleri Task türüne dönüştür
-        const mappedTasks = data.map(item => ({
-          id: item.id,
-          title: item.title,
-          description: item.description || '',
-          reward: item.reward,
-          progress: item.progress || 0,
-          totalRequired: item.total_required,
-          completed: item.completed || false,
-          attachmentUrl: item.attachment_url,
-          userId: item.user_id,
-          createdAt: item.created_at
-        }));
-        
-        debugLog("TasksContext", `${mappedTasks.length} görev yüklendi`);
-        setTasks(mappedTasks);
+      if (loadedTasks && loadedTasks.length > 0) {
+        debugLog("TasksContext", `${loadedTasks.length} görev yüklendi`);
+        setTasks(loadedTasks);
+      } else {
+        debugLog("TasksContext", "Hiç görev bulunamadı");
+        setTasks([]);
       }
     } catch (error) {
       errorLog("TasksContext", "Görevler yüklenirken hata oluştu:", error);
@@ -90,7 +72,12 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [currentUser]);
 
   const refreshTasks = async () => {
-    await loadTasks();
+    try {
+      await loadTasks();
+      return Promise.resolve();
+    } catch (err) {
+      return Promise.reject(err);
+    }
   };
 
   const addTask = async (title: string, userId: string) => {
