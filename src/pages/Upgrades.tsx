@@ -6,7 +6,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import MissionsList from "@/components/upgrades/MissionsList";
 import { Mission, WheelPrize } from "@/types/missions";
 import { toast } from "sonner";
-import { fetchMissions, claimMissionReward, activateMiningBoost } from "@/services/missionsService";
+import { 
+  fetchMissions, 
+  claimMissionReward, 
+  activateMiningBoost 
+} from "@/services/missions";  // Updated import path
 import { debugLog, errorLog } from "@/utils/debugUtils";
 
 const Upgrades = () => {
