@@ -81,23 +81,23 @@ const ProfileAvatar = ({
   
   return (
     <div className="flex flex-col items-center space-y-4">
-      <Avatar className={`${sizeClasses[size]} border-2 border-primary/10`}>
+      <Avatar className={`${sizeClasses[size]} ring-2 ring-primary/10`}>
         {avatarUrl ? (
           <AvatarImage src={avatarUrl} alt={name} className="object-cover" />
         ) : null}
-        <AvatarFallback className="bg-primary/10 text-primary font-medium">
+        <AvatarFallback className="bg-primary/5 text-primary">
           {initials}
         </AvatarFallback>
       </Avatar>
       
       {uploading && (
         <div className="w-full max-w-[200px]">
-          <Progress value={progress} className="h-2" />
+          <Progress value={progress} className="h-1.5" />
           <p className="text-xs text-center mt-1 text-muted-foreground">{progress}%</p>
         </div>
       )}
       
-      <div className="flex space-x-2">
+      <div className="flex flex-wrap gap-2 justify-center">
         <Button variant="outline" size="sm" className="relative" disabled={uploading}>
           <input
             type="file"
