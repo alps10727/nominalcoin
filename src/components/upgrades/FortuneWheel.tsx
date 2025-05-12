@@ -26,10 +26,18 @@ const FortuneWheel: React.FC<FortuneWheelProps> = ({ isOpen, onClose, onPrizeWon
   const [spinning, setSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [selectedPrize, setSelectedPrize] = useState<WheelPrize | null>(null);
-  const wheelRef = useRef<HTMLDivElement>(null);
+  const spinCompleted = useRef(false);
+
+  useEffect(() => {
+    if (!isOpen) {
+      // Reset state when dialog closes
+      setSelectedPrize(null);
+      spinCompleted.current = false;
+    }
+  }, [isOpen]);
 
   const spinWheel = () => {
-    if (spinning) return;
+    if (spinning || spinCompleted.current) return;
     
     setSpinning(true);
     setSelectedPrize(null);
@@ -48,6 +56,7 @@ const FortuneWheel: React.FC<FortuneWheelProps> = ({ isOpen, onClose, onPrizeWon
     setTimeout(() => {
       setSpinning(false);
       setSelectedPrize(prize);
+      spinCompleted.current = true;
       
       // Ödülü kullanıcıya bildir
       if (prize.type === 'coins') {
@@ -55,14 +64,21 @@ const FortuneWheel: React.FC<FortuneWheelProps> = ({ isOpen, onClose, onPrizeWon
       } else {
         toast.success(`Tebrikler! ${prize.value} kazım hızı artışı kazandınız!`);
       }
-      
-      onPrizeWon(prize);
     }, 5000); // 5 saniyelik animasyon
+  };
+  
+  const handleClaimPrize = () => {
+    if (!selectedPrize || !spinCompleted.current) return;
+    
+    onPrizeWon(selectedPrize);
+    onClose();
+    // Durumu sıfırla
+    spinCompleted.current = false;
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[500px] bg-gray-900 border-gray-700">
+      <DialogContent className="sm:max-w-[500px] bg-gray-900 border-gray-700 max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle className="text-xl text-center mb-4">Şans Çarkı</DialogTitle>
         </DialogHeader>
@@ -85,7 +101,6 @@ const FortuneWheel: React.FC<FortuneWheelProps> = ({ isOpen, onClose, onPrizeWon
             
             {/* Çark */}
             <div 
-              ref={wheelRef}
               className="w-full h-full rounded-full bg-gradient-to-br from-indigo-900 to-purple-900 border-4 border-indigo-600 relative overflow-hidden"
               style={{ 
                 transform: `rotate(${rotation}deg)`,
@@ -123,13 +138,24 @@ const FortuneWheel: React.FC<FortuneWheelProps> = ({ isOpen, onClose, onPrizeWon
             </div>
           </div>
           
-          <Button
-            onClick={spinWheel}
-            disabled={spinning}
-            className="w-32 h-10 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50"
-          >
-            {spinning ? 'Çevriliyor...' : 'Çevir'}
-          </Button>
+          <div className="flex space-x-4 mt-2 mb-2">
+            <Button
+              onClick={spinWheel}
+              disabled={spinning || spinCompleted.current}
+              className="w-32 h-10 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50"
+            >
+              {spinning ? 'Çevriliyor...' : 'Çevir'}
+            </Button>
+            
+            {selectedPrize && (
+              <Button
+                onClick={handleClaimPrize}
+                className="w-32 h-10 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+              >
+                Ödülü Al
+              </Button>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

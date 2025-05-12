@@ -1,38 +1,43 @@
 
 import React from 'react';
-import { Mission } from '@/types/missions';
 import MissionItem from './MissionItem';
+import { Mission, WheelPrize } from '@/types/missions';
 
 interface MissionsListProps {
   missions: Mission[];
-  onClaim: (mission: Mission, byAdReward?: boolean) => void;
+  onClaim: (mission: Mission) => void;
   onActivateBoost?: () => void;
   onWheel?: () => void;
-  onConnect?: (missionId: string) => void;
+  onWheelPrize?: (prize: WheelPrize, mission: Mission) => void;
   isLoading: boolean;
 }
 
 const MissionsList = ({ 
   missions, 
   onClaim, 
-  onActivateBoost,
+  onActivateBoost, 
   onWheel,
-  onConnect, 
+  onWheelPrize,
   isLoading 
 }: MissionsListProps) => {
-  // Add safety check to ensure missions is always an array
-  const safeMissions = Array.isArray(missions) ? missions : [];
-  
+  if (!missions || missions.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center p-10 bg-gray-900/50 border border-gray-800 rounded-lg">
+        <p className="text-gray-400">Henüz görev bulunmuyor.</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {safeMissions.map(mission => (
-        <MissionItem 
-          key={mission.id} 
-          mission={mission} 
+    <div className="grid gap-4 md:grid-cols-2">
+      {missions.map(mission => (
+        <MissionItem
+          key={mission.id}
+          mission={mission}
           onClaim={onClaim}
-          onActivateBoost={mission.id === "mining-boost" ? onActivateBoost : undefined}
-          onWheel={mission.id === "wheel-of-fortune" ? onWheel : undefined}
-          onConnect={mission.id === "social-twitter" ? () => onConnect?.("social-twitter") : undefined}
+          onActivateBoost={mission.id === 'mining-boost' ? onActivateBoost : undefined}
+          onWheel={mission.id === 'wheel-of-fortune' ? onWheel : undefined}
+          onWheelPrize={onWheelPrize}
           isLoading={isLoading}
         />
       ))}

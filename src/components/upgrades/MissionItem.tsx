@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle, ArrowRight, Lock, TrendingUp, ShoppingCart, Clock } from "lucide-react";
-import { Mission } from '@/types/missions';
+import { Mission, WheelPrize } from '@/types/missions';
 import { useLanguage } from '@/contexts/LanguageContext';
 import FortuneWheel from './FortuneWheel';
 
@@ -12,6 +13,7 @@ interface MissionItemProps {
   onClaim: (mission: Mission) => void;
   onActivateBoost?: () => void;
   onWheel?: () => void;
+  onWheelPrize?: (prize: WheelPrize, mission: Mission) => void;
   onConnect?: () => void;
   isLoading: boolean;
 }
@@ -21,6 +23,7 @@ const MissionItem = ({
   onClaim, 
   onActivateBoost, 
   onWheel,
+  onWheelPrize,
   onConnect, 
   isLoading 
 }: MissionItemProps) => {
@@ -91,10 +94,19 @@ const MissionItem = ({
     if (mission.id === 'mining-boost' && onActivateBoost) {
       onActivateBoost();
     } else if (mission.id === 'wheel-of-fortune' && onWheel) {
+      if (onWheel) onWheel();
       setIsWheelOpen(true);
     } else {
       onClaim(mission);
     }
+  };
+  
+  // Çark ödülünü işle
+  const handlePrizeWon = (prize: WheelPrize) => {
+    if (onWheelPrize) {
+      onWheelPrize(prize, mission);
+    }
+    setIsWheelOpen(false);
   };
   
   // Özel buton metinleri
@@ -181,15 +193,7 @@ const MissionItem = ({
         <FortuneWheel 
           isOpen={isWheelOpen} 
           onClose={() => setIsWheelOpen(false)}
-          onPrizeWon={(prize) => {
-            setIsWheelOpen(false);
-            onClaim({
-              ...mission,
-              reward: prize.type === 'coins' ? prize.value : 0,
-              boostAmount: prize.type === 'mining_rate' ? prize.value : null,
-              boostEndTime: prize.type === 'mining_rate' ? Date.now() + (prize.duration || 0) : null
-            });
-          }}
+          onPrizeWon={handlePrizeWon}
         />
       )}
     </Card>

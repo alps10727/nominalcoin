@@ -4,7 +4,7 @@ import { Gift } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import MissionsList from "@/components/upgrades/MissionsList";
-import { Mission } from "@/types/missions";
+import { Mission, WheelPrize } from "@/types/missions";
 import { toast } from "sonner";
 import { fetchMissions, claimMissionReward, activateMiningBoost } from "@/services/missionsService";
 import { debugLog, errorLog } from "@/utils/debugUtils";
@@ -138,6 +138,8 @@ const Upgrades = () => {
               } 
             : m
         ));
+        
+        toast.success(`Kazım hızınız 1 saatliğine arttı!`);
       }
     } catch (error) {
       errorLog("Upgrades", "Error activating mining boost:", error);
@@ -148,12 +150,67 @@ const Upgrades = () => {
   };
   
   const handleWheelSpin = () => {
-    // FortuneWheel komponenti içinde işleniyor
+    // FortuneWheel bileşeni içinde işleniyor
     debugLog("Upgrades", "Wheel spin initiated");
+  };
+  
+  const handleWheelPrize = async (prize: WheelPrize, mission: Mission) => {
+    if (!currentUser || !userData) {
+      toast.error("Bu ödülü almak için giriş yapmalısınız");
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      
+      if (prize.type === 'coins') {
+        // Para ödülü
+        const currentBalance = userData.balance || 0;
+        const newBalance = currentBalance + prize.value;
+        
+        // Kullanıcı bakiyesini güncelle
+        await updateUserData({ balance: newBalance });
+        toast.success(`${prize.value} NC bakiyenize eklendi!`);
+      } else if (prize.type === 'mining_rate') {
+        // Kazım hızı artışı
+        const currentRate = userData.miningRate || 0.003;
+        const newRate = currentRate + prize.value;
+        const boostEndTime = Date.now() + (prize.duration || 0);
+        
+        // Kullanıcı kazım hızını güncelle
+        await updateUserData({
+          miningRate: newRate,
+          miningStats: {
+            ...(userData.miningStats || {}),
+            boostEndTime: boostEndTime,
+            boostAmount: prize.value
+          }
+        });
+        
+        toast.success(`Kazım hızınız 24 saatliğine ${prize.value} arttı!`);
+      }
+      
+      // Görevi güncelle
+      setMissions(prev => prev.map(m => 
+        m.id === mission.id 
+          ? { 
+              ...m, 
+              cooldownEnd: Date.now() + (60 * 60 * 1000), // 1 saat
+              lastClaimed: Date.now()
+            } 
+          : m
+      ));
+      
+    } catch (error) {
+      errorLog("Upgrades", "Error processing wheel prize:", error);
+      toast.error("Ödül işlenirken bir hata oluştu");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="w-full min-h-[100dvh] px-4 py-6 relative">
+    <div className="w-full min-h-[100dvh] px-4 py-6 pb-24 relative">
       <div className="flex flex-col space-y-2">
         <h1 className="text-2xl font-bold fc-gradient-text flex items-center">
           <Gift className="mr-2 h-6 w-6 text-indigo-400" />
@@ -164,7 +221,7 @@ const Upgrades = () => {
         </p>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-6 mb-20">
         {!currentUser ? (
           <div className="flex flex-col items-center justify-center p-10 bg-navy-800/50 border border-navy-700 rounded-lg">
             <p className="text-gray-300 mb-3">Görevlere erişmek için giriş yapmalısınız.</p>
@@ -175,6 +232,7 @@ const Upgrades = () => {
             onClaim={handleClaimReward}
             onActivateBoost={handleActivateBoost}
             onWheel={handleWheelSpin}
+            onWheelPrize={handleWheelPrize}
             isLoading={isLoading}
           />
         )}
