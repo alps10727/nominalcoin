@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Mission, WheelPrize } from "@/types/missions";
+import { Mission } from "@/types/missions";
 import { toast } from "sonner";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 
