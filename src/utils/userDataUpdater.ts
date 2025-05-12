@@ -1,3 +1,4 @@
+
 import { UserData, saveUserData } from '@/utils/storage';
 import { saveUserDataToFirebase } from '@/services/userDataSaver';
 import { debugLog, errorLog } from '@/utils/debugUtils';
@@ -26,9 +27,13 @@ export async function updateUserDataWithStatus(
       lastSaved: Date.now()
     };
     
-    // Important: Preserve mining rate if updates don't include it
+    // CRITICAL: Ensure we preserve the current mining rate unless explicitly changing it
     const effectiveMiningRate = updates.miningRate !== undefined ? 
-      updates.miningRate : baseData.miningRate;
+      parseFloat(updates.miningRate.toFixed(6)) : 
+      parseFloat(baseData.miningRate.toFixed(6));
+    
+    // Debug the mining rate being applied
+    debugLog("userDataUpdater", `Current mining rate: ${baseData.miningRate}, Updates mining rate: ${updates.miningRate}, Effective rate: ${effectiveMiningRate}`);
     
     // Create updated data object
     const updatedData: UserData = {
@@ -41,7 +46,7 @@ export async function updateUserDataWithStatus(
     };
     
     // Log the mining rate for debugging
-    debugLog("userDataUpdater", `Using mining rate: ${updatedData.miningRate}`);
+    debugLog("userDataUpdater", `Final mining rate being saved: ${updatedData.miningRate}`);
     
     // Special handling for mining end time if mining is active
     if (updates.miningActive === true && !updatedData.miningEndTime) {

@@ -14,6 +14,7 @@ export const COOLDOWN_TIMES = {
 // Tüm görevleri getiren fonksiyon
 export const fetchMissions = async (userId: string): Promise<Mission[]> => {
   try {
+    debugLog("missionsService", "Fetching missions for user: " + userId);
     // Kullanıcının mevcut görev durumlarını kontrol et
     const { data: userMissions, error: userMissionsError } = await supabase
       .from('user_missions')
@@ -28,7 +29,7 @@ export const fetchMissions = async (userId: string): Promise<Mission[]> => {
     // Varsayılan görevleri al ve kullanıcı durumlarını birleştir
     const defaultMissions = getDefaultMissions();
     
-    return defaultMissions.map(mission => {
+    const result = defaultMissions.map(mission => {
       // Kullanıcının bu göreve ait kaydı bul
       const userMission = userMissions?.find(m => m.mission_id === mission.id);
       
@@ -40,11 +41,16 @@ export const fetchMissions = async (userId: string): Promise<Mission[]> => {
           lastClaimed: userMission.last_claimed || null,
           progress: userMission.progress || 0,
           cooldownEnd: userMission.cooldown_end || null,
+          boostEndTime: userMission.boost_end_time || null,
+          boostAmount: userMission.boost_amount || null,
         };
       }
       
       return mission;
     });
+    
+    debugLog("missionsService", `Fetched ${result.length} missions`);
+    return result;
   } catch (error) {
     errorLog("missionsService", "Error in fetchMissions:", error);
     return getDefaultMissions();
@@ -58,7 +64,7 @@ export const claimMissionReward = async (
   currentBalance: number
 ): Promise<{ success: boolean, newBalance: number }> => {
   try {
-    debugLog("missionsService", `Claiming reward for mission: ${mission.id}`);
+    debugLog("missionsService", `Claiming reward for mission: ${mission.id}, reward: ${mission.reward}`);
     
     // Görevin soğuma süresini al
     const cooldownTime = COOLDOWN_TIMES[mission.id as keyof typeof COOLDOWN_TIMES] || 0;
@@ -87,7 +93,9 @@ export const claimMissionReward = async (
     }
     
     // Ödülü bakiyeye ekle
-    const newBalance = currentBalance + mission.reward;
+    const newBalance = parseFloat((currentBalance + mission.reward).toFixed(6));
+    
+    debugLog("missionsService", `Adding reward: Current balance ${currentBalance}, Reward: ${mission.reward}, New balance: ${newBalance}`);
     
     // Kullanıcının bakiyesini güncelle
     const { error: balanceError } = await supabase
@@ -187,6 +195,8 @@ export const activateMiningBoost = async (
     const boostEndTime = now + boostDuration;
     const boostAmount = 0.005;
     
+    debugLog("missionsService", `Activating mining boost: Current rate ${currentRate}, Boost: ${boostAmount}`);
+    
     // Kullanıcının boost durumunu güncelle
     const { error } = await supabase
       .from('user_missions')
@@ -205,7 +215,10 @@ export const activateMiningBoost = async (
       return { success: false, newRate: currentRate, boostEndTime: null };
     }
     
-    const newRate = currentRate + boostAmount;
+    // Calculate precise new rate with fixed precision to avoid floating point issues
+    const newRate = parseFloat((currentRate + boostAmount).toFixed(6));
+    
+    debugLog("missionsService", `Mining boost activated: New rate: ${newRate}, Boost end: ${new Date(boostEndTime).toISOString()}`);
     
     toast.success(`Kazım hızınız 1 saatliğine ${boostAmount} arttı!`);
     return { success: true, newRate, boostEndTime };

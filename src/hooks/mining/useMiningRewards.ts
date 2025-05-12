@@ -36,7 +36,7 @@ export function addMiningReward(
     currentBalance = localData.balance;
   }
   
-  // FIXED: Ensure we use the exact mining rate from state for calculations
+  // Get current mining rate from state, ensuring it's the exact rate being used
   const currentMiningRate = prevState.miningRate;
   
   // Log verification for mining rate
@@ -102,7 +102,7 @@ export function handleMiningCompletion(prevState: MiningState): Partial<MiningSt
   // CRITICAL: Save final state to storage immediately
   saveUserData({
     balance: finalBalance,
-    miningRate: prevState.miningRate,
+    miningRate: prevState.miningRate, // Preserve current mining rate
     lastSaved: getCurrentTime(),
     miningActive: false,
     miningTime: prevState.miningPeriod,

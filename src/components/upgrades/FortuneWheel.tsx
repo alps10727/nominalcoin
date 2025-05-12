@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { WheelPrize } from '@/types/missions';
 import { toast } from 'sonner';
+import { debugLog } from '@/utils/debugUtils';
 
 interface FortuneWheelProps {
   isOpen: boolean;
@@ -28,11 +29,18 @@ const FortuneWheel: React.FC<FortuneWheelProps> = ({ isOpen, onClose, onPrizeWon
   const [selectedPrize, setSelectedPrize] = useState<WheelPrize | null>(null);
   const spinCompleted = useRef(false);
 
+  // Debug logging for component state
   useEffect(() => {
+    if (isOpen) {
+      debugLog("FortuneWheel", "Wheel opened");
+    }
+    
     if (!isOpen) {
       // Reset state when dialog closes
       setSelectedPrize(null);
       spinCompleted.current = false;
+      setRotation(0);
+      debugLog("FortuneWheel", "Wheel closed, state reset");
     }
   }, [isOpen]);
 
@@ -41,10 +49,12 @@ const FortuneWheel: React.FC<FortuneWheelProps> = ({ isOpen, onClose, onPrizeWon
     
     setSpinning(true);
     setSelectedPrize(null);
+    debugLog("FortuneWheel", "Starting wheel spin");
     
     // Rastgele bir ödül seç
     const prizeIndex = Math.floor(Math.random() * prizes.length);
     const prize = prizes[prizeIndex];
+    debugLog("FortuneWheel", `Selected prize: ${JSON.stringify(prize)}`);
     
     // Çarkı döndür
     const spinAngle = 5 * 360 + (360 / prizes.length) * (prizes.length - prizeIndex);
@@ -58,6 +68,10 @@ const FortuneWheel: React.FC<FortuneWheelProps> = ({ isOpen, onClose, onPrizeWon
       setSelectedPrize(prize);
       spinCompleted.current = true;
       
+      // Debug log to verify animation completion
+      debugLog("FortuneWheel", "Spin animation completed");
+      debugLog("FortuneWheel", `Final prize: ${JSON.stringify(prize)}`);
+      
       // Ödülü kullanıcıya bildir
       if (prize.type === 'coins') {
         toast.success(`Tebrikler! ${prize.value} NC kazandınız!`);
@@ -70,10 +84,15 @@ const FortuneWheel: React.FC<FortuneWheelProps> = ({ isOpen, onClose, onPrizeWon
   const handleClaimPrize = () => {
     if (!selectedPrize || !spinCompleted.current) return;
     
+    debugLog("FortuneWheel", `Claiming prize: ${JSON.stringify(selectedPrize)}`);
     onPrizeWon(selectedPrize);
-    onClose();
-    // Durumu sıfırla
-    spinCompleted.current = false;
+    
+    // Important: Close the dialog AFTER prize is processed
+    setTimeout(() => {
+      onClose();
+      // Durumu sıfırla
+      spinCompleted.current = false;
+    }, 500);
   };
 
   return (

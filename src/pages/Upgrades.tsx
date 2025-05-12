@@ -47,31 +47,39 @@ const Upgrades = () => {
     try {
       setIsLoading(true);
       
+      debugLog("Upgrades", `Claiming reward for mission: ${mission.id}`);
+      
       // Görev özel işlemi (çark ödülü, boost vs.)
       if (mission.boostAmount && mission.boostEndTime) {
         // Kazım hızı artışı için özel işlem
         const currentRate = userData.miningRate || 0.003;
         const boostAmount = mission.boostAmount;
-        const newRate = currentRate + boostAmount;
+        const newRate = parseFloat((currentRate + boostAmount).toFixed(6));
+        
+        debugLog("Upgrades", `Adding mining boost: Current rate ${currentRate}, Boost amount: ${boostAmount}, New rate: ${newRate}`);
         
         // Supabase'e kaydet - Tip güvenliği sağlandı
-        const miningBoostData = {
+        await updateUserData({
           miningRate: newRate,
           miningStats: {
             ...(userData.miningStats || {}),
             boostEndTime: mission.boostEndTime,
             boostAmount: boostAmount
           }
-        };
-        
-        await updateUserData(miningBoostData);
+        });
         
         toast.success(`Kazım hızınız 24 saatliğine ${boostAmount} arttı!`);
+        
+        // Force reload missions
+        await loadMissions();
       }
       
       if (mission.reward > 0) {
         // Normal ödül işlemi (NC)
         const currentBalance = userData.balance || 0;
+        
+        debugLog("Upgrades", `Processing standard reward: ${mission.reward} NC`);
+        
         // Supabase için currentUser.id kullanılıyor
         const result = await claimMissionReward(currentUser.id, mission, currentBalance);
         
@@ -113,6 +121,9 @@ const Upgrades = () => {
     try {
       setIsLoading(true);
       const currentRate = userData.miningRate || 0.003;
+      
+      debugLog("Upgrades", `Activating mining boost with current rate: ${currentRate}`);
+      
       // Supabase için currentUser.id kullanılıyor
       const result = await activateMiningBoost(currentUser.id, currentRate);
       
@@ -122,9 +133,12 @@ const Upgrades = () => {
           miningRate: result.newRate,
           miningStats: {
             ...(userData.miningStats || {}),
-            boostEndTime: result.boostEndTime
+            boostEndTime: result.boostEndTime,
+            boostAmount: 0.005 // Explicitly set the boost amount
           }
         };
+        
+        debugLog("Upgrades", `Applying mining boost: New rate ${result.newRate}, Boost end time: ${new Date(result.boostEndTime || 0).toISOString()}`);
         
         await updateUserData(boostData);
         
@@ -140,6 +154,9 @@ const Upgrades = () => {
         ));
         
         toast.success(`Kazım hızınız 1 saatliğine arttı!`);
+        
+        // Force reload userData to get updated mining rate
+        await loadMissions();
       }
     } catch (error) {
       errorLog("Upgrades", "Error activating mining boost:", error);
@@ -163,10 +180,14 @@ const Upgrades = () => {
     try {
       setIsLoading(true);
       
+      debugLog("Upgrades", `Processing wheel prize: ${JSON.stringify(prize)}`);
+      
       if (prize.type === 'coins') {
         // Para ödülü
         const currentBalance = userData.balance || 0;
-        const newBalance = currentBalance + prize.value;
+        const newBalance = parseFloat((currentBalance + prize.value).toFixed(6));
+        
+        debugLog("Upgrades", `Adding coins: Current balance ${currentBalance}, Prize: ${prize.value}, New balance: ${newBalance}`);
         
         // Kullanıcı bakiyesini güncelle
         await updateUserData({ balance: newBalance });
@@ -174,8 +195,10 @@ const Upgrades = () => {
       } else if (prize.type === 'mining_rate') {
         // Kazım hızı artışı
         const currentRate = userData.miningRate || 0.003;
-        const newRate = currentRate + prize.value;
-        const boostEndTime = Date.now() + (prize.duration || 0);
+        const newRate = parseFloat((currentRate + prize.value).toFixed(6));
+        const boostEndTime = Date.now() + (prize.duration || 24 * 60 * 60 * 1000);
+        
+        debugLog("Upgrades", `Adding mining rate boost: Current rate ${currentRate}, Boost: ${prize.value}, New rate: ${newRate}`);
         
         // Kullanıcı kazım hızını güncelle
         await updateUserData({
@@ -201,6 +224,9 @@ const Upgrades = () => {
           : m
       ));
       
+      // Force reload missions
+      await loadMissions();
+      
     } catch (error) {
       errorLog("Upgrades", "Error processing wheel prize:", error);
       toast.error("Ödül işlenirken bir hata oluştu");
@@ -210,7 +236,7 @@ const Upgrades = () => {
   };
 
   return (
-    <div className="w-full min-h-[100dvh] px-4 py-6 pb-24 relative">
+    <div className="w-full min-h-[100dvh] px-4 py-6 pb-28 relative">
       <div className="flex flex-col space-y-2">
         <h1 className="text-2xl font-bold fc-gradient-text flex items-center">
           <Gift className="mr-2 h-6 w-6 text-indigo-400" />
