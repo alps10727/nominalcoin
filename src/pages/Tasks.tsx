@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTasksData } from "@/components/tasks/TasksData";
 import { useTasks } from "@/contexts/TasksContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,10 +10,15 @@ import { TasksContent } from "@/components/tasks/TasksContent";
 
 const Tasks = () => {
   const { dailyTasks, badges, claimReward, loading: tasksDataLoading } = useTasksData();
-  const { error: tasksError, loading: tasksContextLoading } = useTasks();
+  const { error: tasksError, loading: tasksContextLoading, refreshTasks } = useTasks();
   const { userData } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 3;
+  
+  // Sayfa açıldığında görevleri yenile
+  useEffect(() => {
+    refreshTasks();
+  }, []);
   
   const indexOfLastTask = currentPage * itemsPerPage;
   const indexOfFirstTask = indexOfLastTask - itemsPerPage;

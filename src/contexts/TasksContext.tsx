@@ -14,6 +14,7 @@ interface TasksContextProps {
   deleteTask: (task: Task) => Promise<void>;
   loading: boolean;
   error: string | null;
+  refreshTasks: () => Promise<void>;
 }
 
 const TasksContext = createContext<TasksContextProps | undefined>(undefined);
@@ -32,37 +33,65 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [error, setError] = useState<string | null>(null);
   const { currentUser } = useAuth();
 
-  useEffect(() => {
-    const loadTasks = async () => {
-      if (!currentUser) {
-        setTasks([]);
-        setLoading(false);
-        setError(null);
-        return;
-      }
+  const loadTasks = async () => {
+    if (!currentUser) {
+      setTasks([]);
+      setLoading(false);
+      setError(null);
+      return;
+    }
 
-      try {
-        setLoading(true);
-        setError(null);
-        debugLog("TasksContext", "Görevler yükleniyor...");
+    try {
+      setLoading(true);
+      setError(null);
+      debugLog("TasksContext", "Görevler yükleniyor...");
+      
+      // Supabase'den tüm görevleri yükle (tüm kullanıcılar için)
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .order('created_at', { ascending: false });
         
-        // Use the taskService to load tasks
-        const loadedTasks = await fetchUserTasks(currentUser.id);
-        debugLog("TasksContext", `${loadedTasks.length} görev yüklendi`);
-        setTasks(loadedTasks);
-      } catch (error) {
-        errorLog("TasksContext", "Görevler yüklenirken hata oluştu:", error);
-        setError("Görevler yüklenirken bir hata oluştu.");
-        toast.error("Görevler yüklenirken bir hata oluştu.");
-        // Hata durumunda boş bir dizi göster, uygulama çalışmaya devam etsin
-        setTasks([]);
-      } finally {
-        setLoading(false);
+      if (error) {
+        throw error;
       }
-    };
+      
+      if (data) {
+        // Görevleri Task türüne dönüştür
+        const mappedTasks = data.map(item => ({
+          id: item.id,
+          title: item.title,
+          description: item.description || '',
+          reward: item.reward,
+          progress: item.progress || 0,
+          totalRequired: item.total_required,
+          completed: item.completed || false,
+          attachmentUrl: item.attachment_url,
+          userId: item.user_id,
+          createdAt: item.created_at
+        }));
+        
+        debugLog("TasksContext", `${mappedTasks.length} görev yüklendi`);
+        setTasks(mappedTasks);
+      }
+    } catch (error) {
+      errorLog("TasksContext", "Görevler yüklenirken hata oluştu:", error);
+      setError("Görevler yüklenirken bir hata oluştu.");
+      toast.error("Görevler yüklenirken bir hata oluştu.");
+      // Hata durumunda boş bir dizi göster, uygulama çalışmaya devam etsin
+      setTasks([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     loadTasks();
   }, [currentUser]);
+
+  const refreshTasks = async () => {
+    await loadTasks();
+  };
 
   const addTask = async (title: string, userId: string) => {
     try {
@@ -117,7 +146,8 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     updateTask,
     deleteTask,
     loading,
-    error
+    error,
+    refreshTasks
   };
 
   return (

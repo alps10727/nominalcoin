@@ -115,23 +115,37 @@ const TasksData = () => {
 export const useTasksData = () => {
   const { t } = useLanguage();
   const { userData, currentUser } = useAuth();
-  const { error: tasksError } = useTasks();
+  const { error: tasksError, loading: tasksLoading, tasks: dbTasks, refreshTasks } = useTasks();
   
   const [loading, setLoading] = useState(true);
   const [dailyTasks, setDailyTasks] = useState<Task[]>([]);
   const [badges, setBadges] = useState<Badge[]>([]);
 
   useEffect(() => {
-    // Başlangıç verilerini yükleme 
-    try {
-      setDailyTasks(getInitialTasks(t));
+    // Veritabanından yüklenen görevleri kullanma
+    if (dbTasks && dbTasks.length > 0) {
+      debugLog('useTasksData', 'Veritabanından görevler yüklendi:', dbTasks.length);
+      setDailyTasks(dbTasks);
       setBadges(getInitialBadges(t));
       setLoading(false);
-    } catch (error) {
-      errorLog('useTasksData', 'Görevler yüklenirken hata:', error);
-      setLoading(false);
+    } else {
+      // Veritabanından görev gelmezse varsayılan görevleri yükle
+      try {
+        debugLog('useTasksData', 'Varsayılan görevler yükleniyor');
+        setDailyTasks(getInitialTasks(t));
+        setBadges(getInitialBadges(t));
+        setLoading(false);
+      } catch (error) {
+        errorLog('useTasksData', 'Görevler yüklenirken hata:', error);
+        setLoading(false);
+      }
     }
-  }, [t]);
+  }, [t, dbTasks]);
+
+  // Sayfa açıldığında görevleri yeniden yükle
+  useEffect(() => {
+    refreshTasks();
+  }, []);
 
   // Task ilerleme durumlarını kullanıcı verilerine göre güncelle
   useTaskProgress(dailyTasks, setDailyTasks, userData);
@@ -151,7 +165,7 @@ export const useTasksData = () => {
     dailyTasks, 
     badges, 
     claimReward,
-    loading,
+    loading: loading || tasksLoading,
     error: tasksError
   };
 };
