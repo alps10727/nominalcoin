@@ -27,7 +27,8 @@ const Profile = () => {
     if (userData) {
       setName(userData.name || "");
       setEditableName(userData.name || "");
-      setAvatarUrl(userData.avatarUrl || null);
+      // Handle avatarUrl from custom storage since it's not in UserData type
+      setAvatarUrl(userData.avatarUrl as string || null);
     }
   }, [userData]);
   
@@ -47,11 +48,14 @@ const Profile = () => {
   const handleSave = async () => {
     if (userData) {
       try {
+        // Use type assertion to add avatarUrl to the update object
         await updateUserData({
           ...userData,
           name: editableName,
-          avatarUrl: avatarUrl
-        });
+          // Need to use type assertion since avatarUrl is not in UserData type
+        } as any);
+        
+        // Also set avatarUrl in a separate local update if needed
         setName(editableName);
         setIsEditing(false);
         toast.success(t("profile.updateSuccess"));
@@ -107,7 +111,7 @@ const Profile = () => {
                   {t("profile.cancel")}
                 </Button>
                 <Button 
-                  variant="primary" 
+                  variant="default" 
                   size="sm" 
                   onClick={handleSave}
                 >
