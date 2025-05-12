@@ -30,6 +30,8 @@ export interface UserData {
     totalDays?: number;
     dailyAverage?: number;
     rank?: string;
+    boostEndTime?: number | null; // Added for mission boost tracking
+    boostAmount?: number | null;  // Added for mission boost amount tracking
   };
   socialConnections?: {
     twitter?: boolean;

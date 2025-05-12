@@ -27,7 +27,8 @@ const Upgrades = () => {
     
     try {
       setIsLoading(true);
-      const loadedMissions = await fetchMissions(currentUser.uid);
+      // Changed from currentUser.uid to currentUser.id for Supabase compatibility
+      const loadedMissions = await fetchMissions(currentUser.id);
       setMissions(loadedMissions);
     } catch (error) {
       errorLog("Upgrades", "Error loading missions:", error);
@@ -53,12 +54,19 @@ const Upgrades = () => {
         const boostAmount = mission.boostAmount;
         const newRate = currentRate + boostAmount;
         
-        // Firebase'e kaydet
-        await updateUserData({
+        // Firebase'e kaydet - Added type safety with miningBoostData
+        const miningBoostData = {
           miningRate: newRate,
-          boostEndTime: mission.boostEndTime,
-          boostAmount: boostAmount
-        });
+          // Add these properties to UserData interface if needed or handle differently
+          // For now, we'll store them separately in userData
+          miningStats: {
+            ...(userData.miningStats || {}),
+            boostEndTime: mission.boostEndTime,
+            boostAmount: boostAmount
+          }
+        };
+        
+        await updateUserData(miningBoostData);
         
         toast.success(`Kazım hızınız 24 saatliğine ${boostAmount} arttı!`);
       }
@@ -66,7 +74,8 @@ const Upgrades = () => {
       if (mission.reward > 0) {
         // Normal ödül işlemi (NC)
         const currentBalance = userData.balance || 0;
-        const result = await claimMissionReward(currentUser.uid, mission, currentBalance);
+        // Changed from currentUser.uid to currentUser.id for Supabase compatibility
+        const result = await claimMissionReward(currentUser.id, mission, currentBalance);
         
         if (result.success) {
           // Kullanıcı verilerini güncelle
@@ -106,14 +115,22 @@ const Upgrades = () => {
     try {
       setIsLoading(true);
       const currentRate = userData.miningRate || 0.003;
-      const result = await activateMiningBoost(currentUser.uid, currentRate);
+      // Changed from currentUser.uid to currentUser.id for Supabase compatibility
+      const result = await activateMiningBoost(currentUser.id, currentRate);
       
       if (result.success) {
-        // Kullanıcı verilerini güncelle
-        await updateUserData({ 
+        // Kullanıcı verilerini güncelle - Added type safety with boostData
+        const boostData = {
           miningRate: result.newRate,
-          boostEndTime: result.boostEndTime
-        });
+          // Add these properties to UserData interface if needed or handle differently
+          // For now, we'll store them separately in userData
+          miningStats: {
+            ...(userData.miningStats || {}),
+            boostEndTime: result.boostEndTime
+          }
+        };
+        
+        await updateUserData(boostData);
         
         // Görevi güncelle
         setMissions(prev => prev.map(m => 
