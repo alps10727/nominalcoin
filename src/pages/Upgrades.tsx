@@ -1,242 +1,203 @@
 
-import React, { useEffect, useState } from "react";
-import { Gift } from "lucide-react";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { useAuth } from "@/contexts/AuthContext";
-import MissionsList from "@/components/upgrades/MissionsList";
-import { Mission, WheelPrize } from "@/types/missions";
-import { toast } from "sonner";
-import { fetchMissions, claimMissionReward, activateMiningBoost } from "@/services/missionsService";
-import { debugLog, errorLog } from "@/utils/debugUtils";
+import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
+import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { fetchMissions, claimMissionReward, activateMiningBoost } from '@/services/missionsService';
+import { Mission, WheelPrize } from '@/types/missions';
+import MissionsList from '@/components/upgrades/MissionsList';
+import { toast } from 'sonner';
+import LoadingScreen from '@/components/dashboard/LoadingScreen';
+import { debugLog, errorLog } from '@/utils/debugUtils';
 
 const Upgrades = () => {
+  const { userData, currentUser, updateUserData } = useAuth();
   const { t } = useLanguage();
-  const { currentUser, userData, updateUserData } = useAuth();
   const [missions, setMissions] = useState<Mission[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  
+  const [loading, setLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
+
   useEffect(() => {
+    const loadMissions = async () => {
+      if (!currentUser) {
+        setLoading(false);
+        return;
+      }
+      
+      try {
+        setLoading(true);
+        const missionData = await fetchMissions(currentUser.id);
+        setMissions(missionData);
+      } catch (error) {
+        errorLog("Upgrades", "Error loading missions", error);
+        toast.error("Görevler yüklenirken bir hata oluştu");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
     loadMissions();
   }, [currentUser]);
-  
-  const loadMissions = async () => {
-    if (!currentUser) {
-      setIsLoading(false);
-      return;
-    }
+
+  const handleClaimMission = async (mission: Mission) => {
+    if (!currentUser || !userData) return;
     
     try {
-      setIsLoading(true);
-      // Supabase için currentUser.id kullanılıyor
-      const loadedMissions = await fetchMissions(currentUser.id);
-      setMissions(loadedMissions);
-    } catch (error) {
-      errorLog("Upgrades", "Error loading missions:", error);
-      toast.error("Görevler yüklenirken bir hata oluştu");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  const handleClaimReward = async (mission: Mission) => {
-    if (!currentUser || !userData) {
-      toast.error("Bu görevi tamamlamak için giriş yapmalısınız");
-      return;
-    }
-    
-    try {
-      setIsLoading(true);
+      setIsUpdating(true);
       
-      // Görev özel işlemi (çark ödülü, boost vs.)
-      if (mission.boostAmount && mission.boostEndTime) {
-        // Kazım hızı artışı için özel işlem
-        const currentRate = userData.miningRate || 0.003;
-        const boostAmount = mission.boostAmount;
-        const newRate = currentRate + boostAmount;
-        
-        // Supabase'e kaydet - Tip güvenliği sağlandı
-        const miningBoostData = {
-          miningRate: newRate,
-          miningStats: {
-            ...(userData.miningStats || {}),
-            boostEndTime: mission.boostEndTime,
-            boostAmount: boostAmount
-          }
-        };
-        
-        await updateUserData(miningBoostData);
-        
-        toast.success(`Kazım hızınız 24 saatliğine ${boostAmount} arttı!`);
-      }
+      // Görev ödülünü talep et
+      const { success, newBalance } = await claimMissionReward(
+        currentUser.id,
+        mission,
+        userData.balance || 0
+      );
       
-      if (mission.reward > 0) {
-        // Normal ödül işlemi (NC)
-        const currentBalance = userData.balance || 0;
-        // Supabase için currentUser.id kullanılıyor
-        const result = await claimMissionReward(currentUser.id, mission, currentBalance);
+      if (success) {
+        // Bakiyeyi güncelle
+        await updateUserData({ balance: newBalance });
         
-        if (result.success) {
-          // Kullanıcı verilerini güncelle
-          await updateUserData({ balance: result.newBalance });
-          
-          // Satın alma görevi tek kullanımlık olduğu için listeden kaldır
-          if (mission.id === 'purchase-reward' && missions) {
-            setMissions(missions.filter(m => m.id !== 'purchase-reward'));
-          } else {
-            // Diğer görevleri güncelle
-            setMissions(prev => prev.map(m => 
-              m.id === mission.id 
-                ? { 
-                    ...m, 
-                    cooldownEnd: Date.now() + (60 * 60 * 1000), // 1 saat
-                    lastClaimed: Date.now()
-                  } 
-                : m
-            ));
-          }
-        }
+        // Görevleri yenile
+        const updatedMissions = await fetchMissions(currentUser.id);
+        setMissions(updatedMissions);
       }
     } catch (error) {
-      errorLog("Upgrades", "Error claiming reward:", error);
-      toast.error("Ödül alınırken bir hata oluştu");
+      errorLog("Upgrades", "Error claiming mission", error);
+      toast.error("Görev ödülü alınırken bir hata oluştu");
     } finally {
-      setIsLoading(false);
+      setIsUpdating(false);
     }
   };
   
   const handleActivateBoost = async () => {
-    if (!currentUser || !userData) {
-      toast.error("Bu görevi tamamlamak için giriş yapmalısınız");
-      return;
-    }
+    if (!currentUser || !userData) return;
     
     try {
-      setIsLoading(true);
-      const currentRate = userData.miningRate || 0.003;
-      // Supabase için currentUser.id kullanılıyor
-      const result = await activateMiningBoost(currentUser.id, currentRate);
+      setIsUpdating(true);
       
-      if (result.success) {
-        // Kullanıcı verilerini güncelle - Tip güvenliği sağlandı
-        const boostData = {
-          miningRate: result.newRate,
+      const currentRate = userData.miningRate || 0.003;
+      
+      const { success, newRate, boostEndTime } = await activateMiningBoost(
+        currentUser.id,
+        currentRate
+      );
+      
+      if (success) {
+        // Kazım hızını güncelle
+        await updateUserData({ 
+          miningRate: newRate,
           miningStats: {
             ...(userData.miningStats || {}),
-            boostEndTime: result.boostEndTime
+            boostEndTime,
+            boostAmount: 0.005
           }
-        };
+        });
         
-        await updateUserData(boostData);
-        
-        // Görevi güncelle
-        setMissions(prev => prev.map(m => 
-          m.id === 'mining-boost' 
-            ? { 
-                ...m, 
-                cooldownEnd: result.boostEndTime,
-                lastClaimed: Date.now()
-              } 
-            : m
-        ));
-        
-        toast.success(`Kazım hızınız 1 saatliğine arttı!`);
+        // Görevleri yenile
+        const updatedMissions = await fetchMissions(currentUser.id);
+        setMissions(updatedMissions);
       }
     } catch (error) {
-      errorLog("Upgrades", "Error activating mining boost:", error);
+      errorLog("Upgrades", "Error activating boost", error);
       toast.error("Kazım hızı arttırılırken bir hata oluştu");
     } finally {
-      setIsLoading(false);
+      setIsUpdating(false);
     }
   };
   
-  const handleWheelSpin = () => {
-    // FortuneWheel bileşeni içinde işleniyor
-    debugLog("Upgrades", "Wheel spin initiated");
+  const handleOpenWheel = async () => {
+    // Çark açma işlemi için sadece bildirim ver, çark komponenti içinde işlenecek
+    debugLog("Upgrades", "Fortune wheel opened");
   };
   
   const handleWheelPrize = async (prize: WheelPrize, mission: Mission) => {
-    if (!currentUser || !userData) {
-      toast.error("Bu ödülü almak için giriş yapmalısınız");
-      return;
-    }
+    if (!currentUser || !userData) return;
     
     try {
-      setIsLoading(true);
+      setIsUpdating(true);
       
+      // Ödül tipine göre farklı işlemler yap
       if (prize.type === 'coins') {
-        // Para ödülü
-        const currentBalance = userData.balance || 0;
-        const newBalance = currentBalance + prize.value;
+        // Bakiye güncellemesi
+        const newBalance = (userData.balance || 0) + prize.value;
         
-        // Kullanıcı bakiyesini güncelle
+        // Bakiyeyi güncelle
         await updateUserData({ balance: newBalance });
-        toast.success(`${prize.value} NC bakiyenize eklendi!`);
+        
+        toast.success(`${prize.value} NC kazandınız!`);
       } else if (prize.type === 'mining_rate') {
         // Kazım hızı artışı
         const currentRate = userData.miningRate || 0.003;
         const newRate = currentRate + prize.value;
         const boostEndTime = Date.now() + (prize.duration || 0);
         
-        // Kullanıcı kazım hızını güncelle
-        await updateUserData({
+        // Kazım hızını ve istatistikleri güncelle
+        await updateUserData({ 
           miningRate: newRate,
           miningStats: {
             ...(userData.miningStats || {}),
-            boostEndTime: boostEndTime,
+            boostEndTime,
             boostAmount: prize.value
           }
         });
         
-        toast.success(`Kazım hızınız 24 saatliğine ${prize.value} arttı!`);
+        toast.success(`${prize.value} kazım hızı artışı 24 saat boyunca aktif!`);
       }
       
-      // Görevi güncelle
-      setMissions(prev => prev.map(m => 
-        m.id === mission.id 
-          ? { 
-              ...m, 
-              cooldownEnd: Date.now() + (60 * 60 * 1000), // 1 saat
-              lastClaimed: Date.now()
-            } 
-          : m
-      ));
-      
+      // Görevleri yenile
+      const updatedMissions = await fetchMissions(currentUser.id);
+      setMissions(updatedMissions);
     } catch (error) {
-      errorLog("Upgrades", "Error processing wheel prize:", error);
-      toast.error("Ödül işlenirken bir hata oluştu");
+      errorLog("Upgrades", "Error processing wheel prize", error);
+      toast.error("Çark ödülü işlenirken bir hata oluştu");
     } finally {
-      setIsLoading(false);
+      setIsUpdating(false);
     }
   };
 
-  return (
-    <div className="w-full min-h-[100dvh] px-4 py-6 pb-24 relative">
-      <div className="flex flex-col space-y-2">
-        <h1 className="text-2xl font-bold fc-gradient-text flex items-center">
-          <Gift className="mr-2 h-6 w-6 text-indigo-400" />
-          {t("missions.title") || "Görevler"}
-        </h1>
-        <p className="text-gray-400">
-          {t("missions.subtitle") || "Görevleri tamamlayarak ödüller kazanın"}
-        </p>
+  if (!currentUser) {
+    return (
+      <div className="min-h-[100vh] flex items-center justify-center">
+        <p className="text-gray-400">{t("common.loginRequired")}</p>
       </div>
+    );
+  }
 
-      <div className="mt-6 mb-20">
-        {!currentUser ? (
-          <div className="flex flex-col items-center justify-center p-10 bg-navy-800/50 border border-navy-700 rounded-lg">
-            <p className="text-gray-300 mb-3">Görevlere erişmek için giriş yapmalısınız.</p>
-          </div>
-        ) : (
-          <MissionsList 
-            missions={missions}
-            onClaim={handleClaimReward}
-            onActivateBoost={handleActivateBoost}
-            onWheel={handleWheelSpin}
-            onWheelPrize={handleWheelPrize}
-            isLoading={isLoading}
-          />
-        )}
-      </div>
+  return (
+    <div className="min-h-[100vh] w-full flex flex-col">
+      <Helmet>
+        <title>{t("upgrades.pageTitle")} | NCoin</title>
+      </Helmet>
+      
+      <main className="flex-1 px-4 py-4 md:px-6 md:py-6 pb-32 w-full mx-auto">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-purple-300">{t("upgrades.title")}</h1>
+          <p className="text-purple-300/80 text-sm mt-1">
+            {t("upgrades.description")}
+          </p>
+        </div>
+        
+        <div className="space-y-6">
+          {loading ? (
+            <div className="py-10">
+              <LoadingScreen text={t("upgrades.loading")} />
+            </div>
+          ) : (
+            <>
+              <div>
+                <h2 className="text-xl font-semibold text-purple-200 mb-4">{t("upgrades.dailyMissions")}</h2>
+                <MissionsList 
+                  missions={missions} 
+                  onClaim={handleClaimMission}
+                  onActivateBoost={handleActivateBoost}
+                  onWheel={handleOpenWheel}
+                  onWheelPrize={handleWheelPrize}
+                  isLoading={isUpdating}
+                />
+              </div>
+            </>
+          )}
+        </div>
+      </main>
     </div>
   );
 };

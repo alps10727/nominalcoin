@@ -31,8 +31,10 @@ const FortuneWheel: React.FC<FortuneWheelProps> = ({ isOpen, onClose, onPrizeWon
   useEffect(() => {
     if (!isOpen) {
       // Reset state when dialog closes
+      setSpinning(false);
       setSelectedPrize(null);
       spinCompleted.current = false;
+      setRotation(0);
     }
   }, [isOpen]);
 
@@ -72,8 +74,6 @@ const FortuneWheel: React.FC<FortuneWheelProps> = ({ isOpen, onClose, onPrizeWon
     
     onPrizeWon(selectedPrize);
     onClose();
-    // Durumu sıfırla
-    spinCompleted.current = false;
   };
 
   return (
