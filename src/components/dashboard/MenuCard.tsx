@@ -4,9 +4,6 @@ import { Link } from "react-router-dom";
 import { LucideIcon } from "lucide-react";
 import { ChevronRight } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useAdMob } from "@/hooks/useAdMob";
-import { useCallback } from "react";
-import { toast } from "sonner";
 import { debugLog } from "@/utils/debugUtils";
 
 interface MenuCardProps {
@@ -18,28 +15,20 @@ interface MenuCardProps {
 
 const MenuCard = ({ title, icon: Icon, to, showAd }: MenuCardProps) => {
   const isMobile = useIsMobile();
-  const { showInterstitialAd } = useAdMob();
 
-  const handleClick = useCallback(async (e: React.MouseEvent) => {
+  const handleClick = (e: React.MouseEvent) => {
     if (showAd) {
       e.preventDefault();
       
       try {
-        debugLog("MenuCard", `Displaying interstitial ad before navigating to ${to}`);
-        const success = await showInterstitialAd();
-        debugLog("MenuCard", "Ad display result:", success);
-        // Using a small timeout to ensure ad has time to complete
-        setTimeout(() => {
-          debugLog("MenuCard", `Navigating to ${to} after ad`);
-          window.location.href = to;
-        }, 300);
+        debugLog("MenuCard", `Navigating to ${to}`);
+        window.location.href = to;
       } catch (error) {
-        console.error('Ad display error:', error);
-        toast.error("Reklam yüklenemedi, devam ediliyor...");
+        console.error('Navigation error:', error);
         window.location.href = to;
       }
     }
-  }, [showAd, to, showInterstitialAd]);
+  };
 
   return (
     <Link to={to} onClick={showAd ? handleClick : undefined}>

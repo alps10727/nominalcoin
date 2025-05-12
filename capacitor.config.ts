@@ -23,8 +23,7 @@ const config: CapacitorConfig = {
       NSLocationWhenInUseUsageDescription: "Size yakın etkinlikleri ve fırsatları göstermek için konum erişimi gereklidir.",
       NSFaceIDUsageDescription: "Güvenli giriş için FaceID kullanımına izin verin.",
       CFBundleLocalizations: ["tr", "en"],
-      CFBundleDevelopmentRegion: "tr",
-      NSUserTrackingUsageDescription: "Bu izin, size kişiselleştirilmiş reklamlar sunmak için kullanılacaktır."
+      CFBundleDevelopmentRegion: "tr"
     }
   },
   android: {

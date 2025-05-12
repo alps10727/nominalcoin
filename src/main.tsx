@@ -4,16 +4,11 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 
-// AdMob ve Capacitor durumunu kontrol et
+// Capacitor durumunu kontrol et
 console.log("Capacitor mevcut mu:", typeof window !== 'undefined' && !!window.Capacitor);
 if (typeof window !== 'undefined' && window.Capacitor) {
   console.log("Capacitor platform:", window.Capacitor.getPlatform());
-  console.log("@capacitor-community/admob plugin mevcut mu:", 
-             window.Capacitor.isPluginAvailable('@capacitor-community/admob'));
-  
-  // Global Admob nesnesini kontrol et
-  console.log("Admob nesnesi mevcut mu:", typeof window !== 'undefined' && !!window.Admob);
-  console.log("CapacitorAdMob nesnesi mevcut mu:", typeof window !== 'undefined' && !!window.CapacitorAdMob);
+  console.log("Plugin durumu kontrol ediliyor:", window.Capacitor.isPluginAvailable('@capacitor-community/admob'));
 }
 
 // Uygulamayı daha güvenli bir şekilde başlatmak için try-catch ekleyelim

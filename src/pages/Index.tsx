@@ -1,4 +1,3 @@
-
 import { Diamond, Activity, Zap, ChevronRight } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "@/contexts/ThemeContext";
