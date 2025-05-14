@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Gift } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -131,6 +132,8 @@ const Upgrades = () => {
       const result = await activateMiningBoost(currentUser.id, currentRate);
       
       if (result.success) {
+        debugLog("Upgrades", `Mining boost activated successfully, new rate: ${result.newRate}`);
+        
         // Kullanıcı verilerini güncelle - Tip güvenliği sağlandı
         const boostData = {
           miningRate: result.newRate,
