@@ -1,7 +1,7 @@
 
 import React from 'react';
-import MissionItem from './MissionItem';
 import { Mission, WheelPrize } from '@/types/missions';
+import MissionItem from './mission-item/MissionItem';
 
 interface MissionsListProps {
   missions: Mission[];
