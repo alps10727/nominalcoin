@@ -42,8 +42,20 @@ export function useMiningInitialization() {
       if (localData) {
         debugLog("useMiningInitialization", "USING LOCAL STORAGE DATA ONLY:", localData);
         
-        // Calculate mining rate based on referrals
-        const calculatedMiningRate = calculateMiningRate(localData);
+        // Calculate mining rate based on local data
+        const calculatedMiningRate = localData.miningRate || BASE_MINING_RATE;
+        
+        // Debug mining rate ve boost bilgisi
+        debugLog("useMiningInitialization", `Mining rate from local storage: ${calculatedMiningRate}`);
+        
+        if (localData.miningStats?.boostEndTime && localData.miningStats?.boostAmount) {
+          const now = getCurrentTime();
+          if (now < localData.miningStats.boostEndTime) {
+            debugLog("useMiningInitialization", `Active boost detected: +${localData.miningStats.boostAmount} until ${new Date(localData.miningStats.boostEndTime).toLocaleString()}`);
+          } else {
+            debugLog("useMiningInitialization", "Boost has expired");
+          }
+        }
         
         // Enhanced restart recovery logic
         let miningActive = localData.miningActive || false;
@@ -97,6 +109,7 @@ export function useMiningInitialization() {
           active: miningActive,
           remainingTime: miningTime,
           balance: localData.balance,
+          miningRate: calculatedMiningRate,
           endTime: localData.miningEndTime ? new Date(localData.miningEndTime).toISOString() : 'none'
         });
       } else {

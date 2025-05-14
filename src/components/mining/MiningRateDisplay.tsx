@@ -1,32 +1,43 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Users } from "lucide-react";
+import { Users, Zap } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { calculateMiningRate, BASE_MINING_RATE } from "@/utils/miningCalculator";
 import { REFERRAL_BONUS_RATE } from "@/utils/referral/bonusCalculator";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useMiningData } from "@/hooks/useMiningData";
+import { debugLog } from "@/utils/debugUtils";
 
 export function MiningRateDisplay() {
   const { userData } = useAuth();
   const { t } = useLanguage();
+  const { miningRate } = useMiningData(); // ÖNEMLİ DEĞİŞİKLİK: Direkt useMiningData'dan alıyoruz
+  
   const [animatedReferralBonus, setAnimatedReferralBonus] = useState(0);
   const [animatedBoostBonus, setAnimatedBoostBonus] = useState(0);
   
   // Calculate various rates
   const baseRate = BASE_MINING_RATE; // Base mining rate per minute
-  const totalRate = parseFloat(calculateMiningRate(userData).toFixed(4)); // Total rate with precision
+  const totalRate = miningRate; // ÖNEMLİ DEĞİŞİKLİK: Direkt useMiningData'dan gelen hızı kullanıyoruz
   
   // Calculate referral bonus
   const referralCount = userData?.referralCount || 0;
   const referralBonus = parseFloat((referralCount * REFERRAL_BONUS_RATE).toFixed(4));
   
   // Calculate boost bonus if any
-  const boostAmount = userData?.miningStats?.boostAmount || 0;
   const boostEndTime = userData?.miningStats?.boostEndTime || 0;
+  const boostAmount = userData?.miningStats?.boostAmount || 0;
   const now = Date.now();
   const isBoostActive = boostEndTime > now;
   const boostBonus = isBoostActive ? boostAmount : 0;
+  
+  useEffect(() => {
+    // Debug log ekliyoruz
+    debugLog("MiningRateDisplay", 
+      `Mining rate data: Total: ${totalRate}, Base: ${baseRate}, Referral: ${referralBonus}, Boost: ${boostBonus}, Active: ${isBoostActive}`
+    );
+  }, [totalRate, baseRate, referralBonus, boostBonus, isBoostActive]);
   
   // Animate referral bonus change
   useEffect(() => {
@@ -106,7 +117,7 @@ export function MiningRateDisplay() {
           {isBoostActive && (
             <div className={`flex items-center justify-between text-sm ${boostBonus !== animatedBoostBonus ? 'animate-pulse' : ''}`}>
               <div className="flex items-center">
-                <Users className="h-4 w-4 mr-1 text-green-300" />
+                <Zap className="h-4 w-4 mr-1 text-green-300" />
                 <span className="text-green-300">{t("mining.boostBonus") || "Speed Boost"}:</span>
               </div>
               <span className="font-mono text-green-300">+{animatedBoostBonus.toFixed(4)} NC/min</span>

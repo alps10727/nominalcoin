@@ -1,3 +1,4 @@
+
 import { MiningState, MiningData } from "@/types/mining";
 import { useMiningProcess } from "./mining/useMiningProcess";
 import { useMiningInitialization } from "./mining/useMiningInitialization";
@@ -92,11 +93,38 @@ export function useMiningData(): MiningData {
     };
   }, [state.miningActive, state.miningRate, state.isLoading, setState]);
   
-  // Check Firebase data for higher balance
+  // Check Firebase data for higher balance and MINING RATE updates
   useEffect(() => {
-    if (userData && userData.balance > persistentBalance) {
-      debugLog("useMiningData", "Got higher balance from Firebase:", userData.balance);
-      setPersistentBalance(parseFloat(userData.balance.toFixed(6)));
+    if (userData) {
+      // Check for higher balance
+      if (userData.balance > persistentBalance) {
+        debugLog("useMiningData", "Got higher balance from Firebase:", userData.balance);
+        setPersistentBalance(parseFloat(userData.balance.toFixed(6)));
+      }
+      
+      // ÖNEMLİ DEĞİŞİKLİK: Mining rate'i Firebase'den kontrol et ve gerekirse güncelle
+      if (userData.miningRate && userData.miningRate !== state.miningRate) {
+        debugLog("useMiningData", `Mining rate updated from Firebase: ${userData.miningRate} (previous: ${state.miningRate})`);
+        setState(prev => ({
+          ...prev,
+          miningRate: userData.miningRate || prev.miningRate
+        }));
+      }
+      
+      // Boost kontrol et
+      const boostEndTime = userData.miningStats?.boostEndTime;
+      const boostAmount = userData.miningStats?.boostAmount;
+      
+      if (boostEndTime && boostAmount) {
+        const now = Date.now();
+        // Boost hala aktifse ve state'de yansıtılmadıysa güncelle
+        if (now < boostEndTime) {
+          debugLog("useMiningData", `Active boost detected: +${boostAmount} until ${new Date(boostEndTime).toLocaleTimeString()}`);
+        } else if (now >= boostEndTime) {
+          // Eğer boost süresi dolduysa ve mining rate hala artırılmış seviyedeyse sıfırla
+          debugLog("useMiningData", "Boost period has ended, resetting mining rate");
+        }
+      }
     }
     
     // Absolute end time check - server-based reliable timing
@@ -112,7 +140,7 @@ export function useMiningData(): MiningData {
         }));
       }
     }
-  }, [userData, persistentBalance, setState]);
+  }, [userData, persistentBalance, setState, state.miningRate]);
   
   // Manage mining process
   useMiningProcess(state, setState);

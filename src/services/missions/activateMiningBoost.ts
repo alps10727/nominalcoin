@@ -69,6 +69,19 @@ export const activateMiningBoost = async (
     
     debugLog("missionsService", `Mining boost activated: New rate: ${newRate}, Boost end: ${new Date(boostEndTime).toISOString()}`);
     
+    // ÖNEMLİ DEĞİŞİKLİK: Ayrıca profiles tablosundaki mining_rate'i güncelle
+    const { error: profileUpdateError } = await supabase
+      .from('profiles')
+      .update({ 
+        mining_rate: newRate,
+      })
+      .eq('id', userId);
+      
+    if (profileUpdateError) {
+      errorLog("missionsService", "Error updating profile mining rate:", profileUpdateError);
+      // Ana fonksiyon başarılı olduğu için hata döndürmeyelim ama loglayalım
+    }
+    
     toast.success(`Kazım hızınız 1 saatliğine ${boostAmount} arttı!`);
     return { success: true, newRate, boostEndTime };
   } catch (error) {

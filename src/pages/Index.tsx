@@ -1,3 +1,4 @@
+
 import { Diamond, Activity, Zap, ChevronRight } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -48,6 +49,16 @@ const Index = () => {
   const [isInitialized, setIsInitialized] = useState(!!loadUserData());
   const { t } = useLanguage();
   
+  // Ana sayfayı miningRate değişikliklerinde yenilememiz gerekiyor
+  useEffect(() => {
+    debugLog("Index", `Current mining rate from useMiningData: ${miningRate}`);
+    
+    // İlk yükleme tamamlandıktan sonra miningRate değişikliklerini logla
+    if (!miningLoading && !isFirstRender.current) {
+      debugLog("Index", `Mining rate updated to: ${miningRate}`);
+    }
+  }, [miningRate, miningLoading]);
+  
   useEffect(() => {
     if (!isFirstRender.current && !miningLoading && miningBalance > 0) {
       debugLog("Index", `Checking mining balance: ${miningBalance}, Current: ${storedBalanceRef.current}`);
@@ -73,8 +84,16 @@ const Index = () => {
         setBalance(userData.balance);
         storedBalanceRef.current = userData.balance;
       }
+      
+      // Debug: Mining rate güncellemelerini kontrol et
+      debugLog("Index", `User data mining rate: ${userData.miningRate}, Current: ${miningRate}`);
+      
+      // Eğer boost varsa kontrol et
+      if (userData.miningStats?.boostEndTime && userData.miningStats?.boostAmount) {
+        debugLog("Index", `Boost detected: ${userData.miningStats.boostAmount} until ${new Date(userData.miningStats.boostEndTime).toLocaleString()}`);
+      }
     }
-  }, [userData, authLoading]);
+  }, [userData, authLoading, miningRate]);
   
   useEffect(() => {
     const cleanupInterval = setInterval(() => {
