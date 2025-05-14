@@ -117,13 +117,13 @@ const MissionItem = ({
     
     switch (mission.id) {
       case 'mining-boost':
-        return t("missions.activate") || "Aktifleştir";
+        return "Aktifleştir";
       case 'wheel-of-fortune':
-        return t("missions.spin") || "Çevir";
+        return "Çevir";
       case 'purchase-reward':
-        return mission.claimed ? t("missions.claimed") : (t("missions.claim") || "Talep Et");
+        return mission.claimed ? "Alındı" : "Talep Et";
       default:
-        return mission.claimed ? t("missions.claimed") : (t("missions.claim") || "Talep Et");
+        return mission.claimed ? "Alındı" : "Talep Et";
     }
   };
   
@@ -147,7 +147,7 @@ const MissionItem = ({
         
         <div className="mt-3">
           <div className="flex justify-between text-xs text-gray-400 mb-1">
-            <span>{t("missions.progress")}</span>
+            <span>{t("missions.progress") || "İlerleme"}</span>
             <span>{mission.progress}/{mission.total}</span>
           </div>
           <Progress value={progressPercentage} className="h-2 bg-gray-700" />
@@ -157,9 +157,11 @@ const MissionItem = ({
           <div className="text-sm">
             {mission.id !== 'wheel-of-fortune' && (
               <>
-                <span className="text-gray-400">{t("missions.reward")} </span> 
+                <span className="text-gray-400">{t("missions.reward") || "Ödül"} </span> 
                 <span className="text-indigo-400 font-semibold">
-                  {`${mission.reward} NC`}
+                  {mission.id === 'mining-boost' ? 
+                    "+0.005 Kazım Hızı" : 
+                    `${mission.reward} NC`}
                 </span>
               </>
             )}

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Gift } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -151,15 +150,15 @@ const Upgrades = () => {
           m.id === 'mining-boost' 
             ? { 
                 ...m, 
-                cooldownEnd: result.boostEndTime,
-                lastClaimed: Date.now()
+                cooldown_end: result.boostEndTime,
+                last_claimed: Date.now()
               } 
             : m
         ));
         
         toast.success(`Kazım hızınız 1 saatliğine arttı!`);
         
-        // Force reload userData to get updated mining rate
+        // Force reload missions
         await loadMissions();
       }
     } catch (error) {

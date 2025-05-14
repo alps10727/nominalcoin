@@ -18,17 +18,45 @@ export const activateMiningBoost = async (
     
     debugLog("missionsService", `Activating mining boost: Current rate ${currentRate}, Boost: ${boostAmount}`);
     
-    // Kullanıcının boost durumunu güncelle
-    const { error } = await supabase
+    // Önce mevcut kaydı kontrol et
+    const { data: existingRecord } = await supabase
       .from('user_missions')
-      .upsert({
-        user_id: userId,
-        mission_id: 'mining-boost',
-        last_claimed: now,
-        cooldown_end: boostEndTime,
-        boost_end_time: boostEndTime,
-        boost_amount: boostAmount
-      });
+      .select('*')
+      .eq('user_id', userId)
+      .eq('mission_id', 'mining-boost')
+      .single();
+      
+    let error;
+    
+    if (existingRecord) {
+      // Kayıt varsa güncelle
+      const { error: updateError } = await supabase
+        .from('user_missions')
+        .update({
+          last_claimed: now,
+          cooldown_end: boostEndTime,
+          boost_end_time: boostEndTime,
+          boost_amount: boostAmount
+        })
+        .eq('user_id', userId)
+        .eq('mission_id', 'mining-boost');
+        
+      error = updateError;
+    } else {
+      // Kayıt yoksa yeni ekle
+      const { error: insertError } = await supabase
+        .from('user_missions')
+        .insert({
+          user_id: userId,
+          mission_id: 'mining-boost',
+          last_claimed: now,
+          cooldown_end: boostEndTime,
+          boost_end_time: boostEndTime,
+          boost_amount: boostAmount
+        });
+        
+      error = insertError;
+    }
       
     if (error) {
       errorLog("missionsService", "Error activating mining boost:", error);
