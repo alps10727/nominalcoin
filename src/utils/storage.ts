@@ -186,4 +186,5 @@ export function clearUserData(clearAllUsers: boolean = false): void {
   }
 }
 
-export { UserData };
+// Export UserData as a type
+export type { UserData };
