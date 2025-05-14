@@ -196,6 +196,7 @@ const MissionItem = ({
           isOpen={isWheelOpen} 
           onClose={() => setIsWheelOpen(false)}
           onPrizeWon={handlePrizeWon}
+          cooldownEnd={mission.cooldownEnd}
         />
       )}
     </Card>

@@ -219,13 +219,18 @@ const Upgrades = () => {
         toast.success(`Kazım hızınız 24 saatliğine ${prize.value} arttı!`);
       }
       
-      // Görevi güncelle
+      // Set cooldown time for the wheel-of-fortune mission (2 hours)
+      const cooldownTime = 2 * 60 * 60 * 1000; // 2 saat
+      const now = Date.now();
+      const cooldownEnd = now + cooldownTime;
+      
+      // Update mission state locally
       setMissions(prev => prev.map(m => 
         m.id === mission.id 
           ? { 
               ...m, 
-              cooldownEnd: Date.now() + (60 * 60 * 1000), // 1 saat
-              lastClaimed: Date.now()
+              cooldownEnd: cooldownEnd,
+              lastClaimed: now
             } 
           : m
       ));

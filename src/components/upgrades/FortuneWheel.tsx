@@ -10,6 +10,7 @@ interface FortuneWheelProps {
   isOpen: boolean;
   onClose: () => void;
   onPrizeWon: (prize: WheelPrize) => void;
+  cooldownEnd?: number | null;
 }
 
 const prizes: WheelPrize[] = [
@@ -23,10 +24,11 @@ const prizes: WheelPrize[] = [
   { id: 'nc-2', label: '2 NC', value: 2, type: 'coins' },
 ];
 
-const FortuneWheel: React.FC<FortuneWheelProps> = ({ isOpen, onClose, onPrizeWon }) => {
+const FortuneWheel: React.FC<FortuneWheelProps> = ({ isOpen, onClose, onPrizeWon, cooldownEnd }) => {
   const [spinning, setSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [selectedPrize, setSelectedPrize] = useState<WheelPrize | null>(null);
+  const [timeLeft, setTimeLeft] = useState<string | null>(null);
   const spinCompleted = useRef(false);
 
   // Debug logging for component state
@@ -44,8 +46,42 @@ const FortuneWheel: React.FC<FortuneWheelProps> = ({ isOpen, onClose, onPrizeWon
     }
   }, [isOpen]);
 
+  // Check for cooldown timer
+  useEffect(() => {
+    const checkCooldown = () => {
+      if (!cooldownEnd) return null;
+      
+      const now = Date.now();
+      if (now < cooldownEnd) {
+        const remaining = Math.ceil((cooldownEnd - now) / 1000);
+        const hours = Math.floor(remaining / 3600);
+        const minutes = Math.floor((remaining % 3600) / 60);
+        const seconds = remaining % 60;
+        
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      }
+      
+      return null;
+    };
+    
+    // Initial check
+    setTimeLeft(checkCooldown());
+    
+    // Update every second
+    const intervalId = setInterval(() => {
+      const remaining = checkCooldown();
+      setTimeLeft(remaining);
+      
+      if (!remaining && cooldownEnd) {
+        clearInterval(intervalId);
+      }
+    }, 1000);
+    
+    return () => clearInterval(intervalId);
+  }, [cooldownEnd]);
+
   const spinWheel = () => {
-    if (spinning || spinCompleted.current) return;
+    if (spinning || spinCompleted.current || timeLeft) return;
     
     setSpinning(true);
     setSelectedPrize(null);
@@ -95,6 +131,8 @@ const FortuneWheel: React.FC<FortuneWheelProps> = ({ isOpen, onClose, onPrizeWon
     }, 500);
   };
 
+  const isButtonDisabled = spinning || (cooldownEnd && Date.now() < cooldownEnd) || timeLeft !== null;
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[500px] bg-gray-900 border-gray-700 max-h-[90vh] overflow-auto">
@@ -103,6 +141,12 @@ const FortuneWheel: React.FC<FortuneWheelProps> = ({ isOpen, onClose, onPrizeWon
         </DialogHeader>
         
         <div className="flex flex-col items-center justify-center">
+          {timeLeft && (
+            <div className="mb-4 p-3 bg-gradient-to-r from-amber-600 to-red-600 rounded-lg text-white font-bold text-center">
+              Bir sonraki çevirme için bekleyiniz: {timeLeft}
+            </div>
+          )}
+          
           {selectedPrize && (
             <div className="mb-4 p-3 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg text-white font-bold text-center">
               {selectedPrize.type === 'coins' 
@@ -160,10 +204,18 @@ const FortuneWheel: React.FC<FortuneWheelProps> = ({ isOpen, onClose, onPrizeWon
           <div className="flex space-x-4 mt-2 mb-2">
             <Button
               onClick={spinWheel}
-              disabled={spinning || spinCompleted.current}
-              className="w-32 h-10 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50"
+              disabled={isButtonDisabled}
+              className={`w-32 h-10 ${
+                isButtonDisabled 
+                  ? 'bg-gray-700 text-gray-400' 
+                  : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700'
+              } disabled:opacity-50`}
             >
-              {spinning ? 'Çevriliyor...' : 'Çevir'}
+              {spinning 
+                ? 'Çevriliyor...' 
+                : timeLeft 
+                  ? 'Bekleniyor' 
+                  : 'Çevir'}
             </Button>
             
             {selectedPrize && (
