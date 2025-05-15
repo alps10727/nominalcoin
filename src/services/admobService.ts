@@ -189,7 +189,8 @@ export async function showRewardedAd(): Promise<AdMobRewardItem | null> {
       // Preload the next ad immediately
       setTimeout(() => preloadRewardedAd(), 1000);
       
-      return result.rewardItem || null;
+      // Fix: Access the reward directly from result, not from rewardItem property
+      return result || null;
     }
     
     return null;
