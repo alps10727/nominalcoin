@@ -7,6 +7,8 @@ import { ButtonContent } from "./button/ButtonContent";
 import { MiningButtonBase } from "./button/MiningButtonBase";
 import { formatTimeDisplay } from "@/utils/miningUtils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { toast } from "sonner";
+import { useAdMob } from "@/hooks/useAdMob";
 
 interface MiningButtonProps {
   miningActive: boolean;
@@ -21,19 +23,37 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
 }) => {
   const [displayTime, setDisplayTime] = useState("");
   const [buttonHovered, setButtonHovered] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { t } = useLanguage();
+  const { showRewardedAd, adMobSupported } = useAdMob();
   
   // Format and update time display
   React.useEffect(() => {
     setDisplayTime(formatTimeDisplay(miningTime));
   }, [miningTime]);
   
-  // Only allow starting mining, not stopping
-  const handleClick = useCallback(() => {
-    if (!miningActive) {
-      onButtonClick();
+  // Enhanced click handler that shows an ad before starting mining
+  const handleClick = useCallback(async () => {
+    if (miningActive || isLoading) return;
+    
+    setIsLoading(true);
+    
+    try {
+      const adShown = await showRewardedAd(() => {
+        // This callback is executed when the ad completes or isn't available
+        onButtonClick();
+      });
+      
+      // If ad couldn't be shown on a supported platform, show message
+      if (!adShown && adMobSupported) {
+        toast.error(t("mining.adLoadError") || "Reklam yüklenemedi, lütfen daha sonra tekrar deneyin");
+      }
+    } catch (error) {
+      console.error("Error showing ad:", error);
+    } finally {
+      setIsLoading(false);
     }
-  }, [miningActive, onButtonClick]);
+  }, [miningActive, onButtonClick, showRewardedAd, adMobSupported, t, isLoading]);
   
   // Optimized hover handlers with useCallback
   const handleMouseEnter = useCallback(() => {
@@ -63,7 +83,7 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
         onClick={handleClick}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        disabled={miningActive} // Button is disabled when mining is active
+        disabled={miningActive || isLoading} // Button is disabled when mining is active or loading
       >
         {/* Background layers */}
         <ButtonBackground miningActive={miningActive} />
@@ -72,6 +92,7 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
         <ButtonContent 
           miningActive={miningActive} 
           displayTime={displayTime} 
+          isLoading={isLoading}
         />
       </MiningButtonBase>
       
@@ -79,6 +100,13 @@ export const MiningButton: React.FC<MiningButtonProps> = ({
       {miningActive && (
         <div className="absolute top-full left-0 right-0 text-xs text-purple-400/80 text-center mt-2">
           {t("mining.activeInfo") || "Mining process is ongoing. It will automatically stop after 6 hours."}
+        </div>
+      )}
+      
+      {/* Info text about rewarded ads */}
+      {!miningActive && !isLoading && (
+        <div className="absolute top-full left-0 right-0 text-xs text-purple-400/80 text-center mt-2">
+          {t("mining.adInfo") || "Watch an ad to start mining and earn bonus rewards"}
         </div>
       )}
     </div>

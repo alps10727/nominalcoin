@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Gift } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -10,12 +9,14 @@ import {
   fetchMissions, 
   claimMissionReward, 
   activateMiningBoost 
-} from "@/services/missions";  // Updated import path
+} from "@/services/missions";
 import { debugLog, errorLog } from "@/utils/debugUtils";
+import { useAdMob } from "@/hooks/useAdMob";
 
 const Upgrades = () => {
   const { t } = useLanguage();
   const { currentUser, userData, updateUserData } = useAuth();
+  const { showInterstitialAd, showRewardedAd } = useAdMob();
   const [missions, setMissions] = useState<Mission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -124,46 +125,51 @@ const Upgrades = () => {
     
     try {
       setIsLoading(true);
-      const currentRate = userData.miningRate || 0.003;
       
-      debugLog("Upgrades", `Activating mining boost with current rate: ${currentRate}`);
-      
-      // Supabase için currentUser.id kullanılıyor
-      const result = await activateMiningBoost(currentUser.id, currentRate);
-      
-      if (result.success) {
-        debugLog("Upgrades", `Mining boost activated successfully, new rate: ${result.newRate}`);
+      // Show interstitial ad before activating boost
+      await showInterstitialAd(async () => {
+        // This callback runs after the ad is shown or skipped
+        const currentRate = userData.miningRate || 0.003;
         
-        // Kullanıcı verilerini güncelle - Tip güvenliği sağlandı
-        const boostData = {
-          miningRate: result.newRate,
-          miningStats: {
-            ...(userData.miningStats || {}),
-            boostEndTime: result.boostEndTime,
-            boostAmount: 0.005 // Explicitly set the boost amount
-          }
-        };
+        debugLog("Upgrades", `Activating mining boost with current rate: ${currentRate}`);
         
-        debugLog("Upgrades", `Applying mining boost: New rate ${result.newRate}, Boost end time: ${new Date(result.boostEndTime || 0).toISOString()}`);
+        // Supabase için currentUser.id kullanılıyor
+        const result = await activateMiningBoost(currentUser.id, currentRate);
         
-        await updateUserData(boostData);
-        
-        // Görevi güncelle
-        setMissions(prev => prev.map(m => 
-          m.id === 'mining-boost' 
-            ? { 
-                ...m, 
-                cooldown_end: result.boostEndTime,
-                last_claimed: Date.now()
-              } 
-            : m
-        ));
-        
-        toast.success(`Kazım hızınız 1 saatliğine arttı!`);
-        
-        // Force reload missions
-        await loadMissions();
-      }
+        if (result.success) {
+          debugLog("Upgrades", `Mining boost activated successfully, new rate: ${result.newRate}`);
+          
+          // Kullanıcı verilerini güncelle - Tip güvenliği sağlandı
+          const boostData = {
+            miningRate: result.newRate,
+            miningStats: {
+              ...(userData.miningStats || {}),
+              boostEndTime: result.boostEndTime,
+              boostAmount: 0.005 // Explicitly set the boost amount
+            }
+          };
+          
+          debugLog("Upgrades", `Applying mining boost: New rate ${result.newRate}, Boost end time: ${new Date(result.boostEndTime || 0).toISOString()}`);
+          
+          await updateUserData(boostData);
+          
+          // Görevi güncelle
+          setMissions(prev => prev.map(m => 
+            m.id === 'mining-boost' 
+              ? { 
+                  ...m, 
+                  cooldown_end: result.boostEndTime,
+                  last_claimed: Date.now()
+                } 
+              : m
+          ));
+          
+          toast.success(`Kazım hızınız 1 saatliğine arttı!`);
+          
+          // Force reload missions
+          await loadMissions();
+        }
+      });
     } catch (error) {
       errorLog("Upgrades", "Error activating mining boost:", error);
       toast.error("Kazım hızı arttırılırken bir hata oluştu");
@@ -186,58 +192,60 @@ const Upgrades = () => {
     try {
       setIsLoading(true);
       
-      debugLog("Upgrades", `Processing wheel prize: ${JSON.stringify(prize)}`);
-      
-      if (prize.type === 'coins') {
-        // Para ödülü
-        const currentBalance = userData.balance || 0;
-        const newBalance = parseFloat((currentBalance + prize.value).toFixed(6));
+      // Show rewarded ad before giving wheel prize
+      await showRewardedAd(async () => {
+        debugLog("Upgrades", `Processing wheel prize: ${JSON.stringify(prize)}`);
         
-        debugLog("Upgrades", `Adding coins: Current balance ${currentBalance}, Prize: ${prize.value}, New balance: ${newBalance}`);
+        if (prize.type === 'coins') {
+          // Para ödülü
+          const currentBalance = userData.balance || 0;
+          const newBalance = parseFloat((currentBalance + prize.value).toFixed(6));
+          
+          debugLog("Upgrades", `Adding coins: Current balance ${currentBalance}, Prize: ${prize.value}, New balance: ${newBalance}`);
+          
+          // Kullanıcı bakiyesini güncelle
+          await updateUserData({ balance: newBalance });
+          toast.success(`${prize.value} NC bakiyenize eklendi!`);
+        } else if (prize.type === 'mining_rate') {
+          // Kazım hızı artışı
+          const currentRate = userData.miningRate || 0.003;
+          const newRate = parseFloat((currentRate + prize.value).toFixed(6));
+          const boostEndTime = Date.now() + (prize.duration || 24 * 60 * 60 * 1000);
+          
+          debugLog("Upgrades", `Adding mining rate boost: Current rate ${currentRate}, Boost: ${prize.value}, New rate: ${newRate}`);
+          
+          // Kullanıcı kazım hızını güncelle
+          await updateUserData({
+            miningRate: newRate,
+            miningStats: {
+              ...(userData.miningStats || {}),
+              boostEndTime: boostEndTime,
+              boostAmount: prize.value
+            }
+          });
+          
+          toast.success(`Kazım hızınız 24 saatliğine ${prize.value} arttı!`);
+        }
         
-        // Kullanıcı bakiyesini güncelle
-        await updateUserData({ balance: newBalance });
-        toast.success(`${prize.value} NC bakiyenize eklendi!`);
-      } else if (prize.type === 'mining_rate') {
-        // Kazım hızı artışı
-        const currentRate = userData.miningRate || 0.003;
-        const newRate = parseFloat((currentRate + prize.value).toFixed(6));
-        const boostEndTime = Date.now() + (prize.duration || 24 * 60 * 60 * 1000);
+        // Set cooldown time for the wheel-of-fortune mission (2 hours)
+        const cooldownTime = 2 * 60 * 60 * 1000; // 2 saat
+        const now = Date.now();
+        const cooldownEnd = now + cooldownTime;
         
-        debugLog("Upgrades", `Adding mining rate boost: Current rate ${currentRate}, Boost: ${prize.value}, New rate: ${newRate}`);
+        // Update mission state locally
+        setMissions(prev => prev.map(m => 
+          m.id === mission.id 
+            ? { 
+                ...m, 
+                cooldownEnd: cooldownEnd,
+                lastClaimed: now
+              } 
+            : m
+        ));
         
-        // Kullanıcı kazım hızını güncelle
-        await updateUserData({
-          miningRate: newRate,
-          miningStats: {
-            ...(userData.miningStats || {}),
-            boostEndTime: boostEndTime,
-            boostAmount: prize.value
-          }
-        });
-        
-        toast.success(`Kazım hızınız 24 saatliğine ${prize.value} arttı!`);
-      }
-      
-      // Set cooldown time for the wheel-of-fortune mission (2 hours)
-      const cooldownTime = 2 * 60 * 60 * 1000; // 2 saat
-      const now = Date.now();
-      const cooldownEnd = now + cooldownTime;
-      
-      // Update mission state locally
-      setMissions(prev => prev.map(m => 
-        m.id === mission.id 
-          ? { 
-              ...m, 
-              cooldownEnd: cooldownEnd,
-              lastClaimed: now
-            } 
-          : m
-      ));
-      
-      // Force reload missions
-      await loadMissions();
-      
+        // Force reload missions
+        await loadMissions();
+      });
     } catch (error) {
       errorLog("Upgrades", "Error processing wheel prize:", error);
       toast.error("Ödül işlenirken bir hata oluştu");

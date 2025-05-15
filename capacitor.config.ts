@@ -61,6 +61,10 @@ const config: CapacitorConfig = {
     LocalNotifications: {
       smallIcon: "ic_stat_notification",
       iconColor: "#488AFF"
+    },
+    AdMob: {
+      applicationID: "ca-app-pub-2373579046576398~2384328016",
+      requestTrackingAuthorization: true
     }
   }
 };
