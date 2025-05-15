@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { 
-  initializeAdMob, 
+  initializeAds,
   isPlatformSupported, 
   isRewardedAdReady, 
   isInterstitialAdReady,
@@ -9,7 +9,7 @@ import {
   showInterstitialAd,
   preloadRewardedAd,
   preloadInterstitialAd
-} from '@/services/admobService';
+} from '@/services/admob';
 import { debugLog } from '@/utils/debugUtils';
 
 export function useAdMob() {
@@ -23,7 +23,7 @@ export function useAdMob() {
       setAdMobSupported(supported);
       
       if (supported) {
-        await initializeAdMob();
+        await initializeAds();
         setAdMobInitialized(true);
         debugLog('useAdMob', 'AdMob initialized successfully');
       }
