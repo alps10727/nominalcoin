@@ -21,6 +21,19 @@ export const fetchMissions = async (userId: string): Promise<Mission[]> => {
       return getDefaultMissions();
     }
     
+    // Debug için mevcut görev durumlarını logla
+    if (userMissions && userMissions.length > 0) {
+      userMissions.forEach(mission => {
+        if (mission.cooldown_end) {
+          const now = Date.now();
+          const cooldownEnd = mission.cooldown_end;
+          const isActive = now < cooldownEnd;
+          debugLog("missionsService", 
+            `Mission ${mission.mission_id} cooldown: ${new Date(cooldownEnd).toISOString()}, Active: ${isActive}`);
+        }
+      });
+    }
+    
     // Varsayılan görevleri al ve kullanıcı durumlarını birleştir
     const defaultMissions = getDefaultMissions();
     

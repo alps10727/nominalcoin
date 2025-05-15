@@ -21,6 +21,8 @@ export const claimMissionReward = async (
     const now = Date.now();
     const cooldownEnd = cooldownTime > 0 ? now + cooldownTime : null;
     
+    debugLog("missionsService", `Setting cooldown for ${mission.id}: ${cooldownTime}ms, end: ${cooldownEnd ? new Date(cooldownEnd).toISOString() : 'none'}`);
+    
     // Tek kullanımlık görev mi kontrol et
     const isSingleUse = mission.id === 'purchase-reward';
     

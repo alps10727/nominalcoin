@@ -35,6 +35,7 @@ const FortuneWheel: React.FC<FortuneWheelProps> = ({ isOpen, onClose, onPrizeWon
   useEffect(() => {
     if (isOpen) {
       debugLog("FortuneWheel", "Wheel opened");
+      debugLog("FortuneWheel", `Cooldown end: ${cooldownEnd ? new Date(cooldownEnd).toISOString() : 'none'}`);
     }
     
     if (!isOpen) {
@@ -66,6 +67,7 @@ const FortuneWheel: React.FC<FortuneWheelProps> = ({ isOpen, onClose, onPrizeWon
     
     // Initial check
     setTimeLeft(checkCooldown());
+    debugLog("FortuneWheel", `Initial timeLeft check: ${checkCooldown()}`);
     
     // Update every second
     const intervalId = setInterval(() => {
@@ -81,7 +83,11 @@ const FortuneWheel: React.FC<FortuneWheelProps> = ({ isOpen, onClose, onPrizeWon
   }, [cooldownEnd]);
 
   const spinWheel = () => {
-    if (spinning || spinCompleted.current || timeLeft) return;
+    if (spinning || spinCompleted.current || timeLeft) {
+      debugLog("FortuneWheel", "Spin prevented - conditions not met", 
+        { spinning, spinCompleted: spinCompleted.current, timeLeft });
+      return;
+    }
     
     setSpinning(true);
     setSelectedPrize(null);

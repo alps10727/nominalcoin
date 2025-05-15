@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Gift } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -232,6 +233,8 @@ const Upgrades = () => {
         const now = Date.now();
         const cooldownEnd = now + cooldownTime;
         
+        debugLog("Upgrades", `Setting wheel cooldown: Now: ${now}, End: ${cooldownEnd}, Duration: ${cooldownTime}ms`);
+        
         // Update mission state locally
         setMissions(prev => prev.map(m => 
           m.id === mission.id 
@@ -242,6 +245,28 @@ const Upgrades = () => {
               } 
             : m
         ));
+        
+        // Update mission in database (important!)
+        try {
+          const { data, error } = await window.supabase
+            .from('user_missions')
+            .upsert({
+              user_id: currentUser.id,
+              mission_id: mission.id,
+              claimed: false,
+              last_claimed: now,
+              cooldown_end: cooldownEnd,
+              progress: mission.progress || 0
+            });
+            
+          if (error) {
+            errorLog("Upgrades", "Error updating mission cooldown in database:", error);
+          } else {
+            debugLog("Upgrades", "Successfully updated mission cooldown in database");
+          }
+        } catch (err) {
+          errorLog("Upgrades", "Exception updating mission cooldown:", err);
+        }
         
         // Force reload missions
         await loadMissions();

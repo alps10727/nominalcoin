@@ -39,6 +39,11 @@ const MissionItem = ({
   
   // Görev tipine göre özel buton işlevlerini belirle
   const handleAction = () => {
+    // Devre dışı bırakılmış butonlar için hiçbir işlem yapma
+    if (isDisabled) {
+      return;
+    }
+    
     if (mission.id === 'mining-boost' && onActivateBoost) {
       onActivateBoost();
     } else if (mission.id === 'wheel-of-fortune' && onWheel) {
