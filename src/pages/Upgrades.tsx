@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Gift } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -6,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import MissionsList from "@/components/upgrades/MissionsList";
 import { Mission, WheelPrize } from "@/types/missions";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   fetchMissions, 
   claimMissionReward, 
@@ -248,7 +248,7 @@ const Upgrades = () => {
         
         // Update mission in database (important!)
         try {
-          const { data, error } = await window.supabase
+          const { data, error } = await supabase
             .from('user_missions')
             .upsert({
               user_id: currentUser.id,
