@@ -1,6 +1,6 @@
 
 import { Capacitor } from '@capacitor/core';
-import { AdMob, AdOptions, RewardItem, AdLoadInfo, InterstitialAdPluginEvents, RewardAdPluginEvents } from '@capacitor-community/admob';
+import { AdMob, AdOptions, AdMobRewardItem, AdLoadInfo, InterstitialAdPluginEvents, RewardAdPluginEvents } from '@capacitor-community/admob';
 import { debugLog, errorLog } from '@/utils/debugUtils';
 
 // Test ad units from Google
@@ -31,8 +31,6 @@ export async function initializeAdMob() {
 
   try {
     await AdMob.initialize({
-      requestTrackingAuthorization: true,
-      testingDevices: ['EMULATOR'],
       initializeForTesting: true,
     });
     debugLog('AdMobService', 'AdMob initialized successfully');
@@ -172,7 +170,7 @@ export async function preloadRewardedAd(): Promise<boolean> {
 /**
  * Show rewarded ad and return a Promise that resolves with reward information
  */
-export async function showRewardedAd(): Promise<RewardItem | null> {
+export async function showRewardedAd(): Promise<AdMobRewardItem | null> {
   if (!isPlatformSupported()) {
     return null;
   }
@@ -191,7 +189,7 @@ export async function showRewardedAd(): Promise<RewardItem | null> {
       // Preload the next ad immediately
       setTimeout(() => preloadRewardedAd(), 1000);
       
-      return result.reward || null;
+      return result.rewardItem || null;
     }
     
     return null;

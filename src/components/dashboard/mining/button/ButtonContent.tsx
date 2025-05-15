@@ -1,5 +1,5 @@
 
-import { Pulse, Pause, Loader2 } from "lucide-react";
+import { Pause, Loader2, Play } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
 
@@ -34,7 +34,7 @@ export const ButtonContent = ({
         </>
       ) : (
         <>
-          <Pulse 
+          <Play 
             className={cn(
               "h-6 w-6 text-white mb-1",
               "animate-pulse-gentle"
