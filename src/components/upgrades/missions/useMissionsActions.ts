@@ -66,7 +66,7 @@ export const useMissionsActions = (
           await updateUserData({ balance: result.newBalance });
           
           // Satın alma görevi tek kullanımlık olduğu için listeden kaldır
-          if (mission.id === 'purchase-reward' && missions) {
+          if (mission.id === 'purchase-reward') {
             setMissions(prev => prev.filter(m => m.id !== 'purchase-reward'));
           } else {
             // Diğer görevleri güncelle
