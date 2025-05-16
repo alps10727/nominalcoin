@@ -1,5 +1,5 @@
 
-import { getDocument } from "../dbService";
+import { getDocument } from "../db/document";
 import { debugLog, errorLog } from "@/utils/debugUtils";
 
 /**

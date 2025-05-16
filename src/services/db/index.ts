@@ -5,7 +5,7 @@
  */
 
 // Document operations
-export { getDocument, saveDocument } from './documentService';
+export { getDocument, saveDocument } from './document';
 
 // Batch operations
 export { batchWriteDocuments } from './batchService';
