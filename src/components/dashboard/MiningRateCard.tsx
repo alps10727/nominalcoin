@@ -31,17 +31,6 @@ const MiningRateCard = ({ miningRate }: MiningRateCardProps) => {
       {/* Subtle background pattern */}
       <div className="absolute inset-0 opacity-5 bg-grid-pattern"></div>
       
-      <CardHeader className={`relative z-10 ${isMobile ? "px-4 py-3" : ""} border-b border-purple-700/30`}>
-        <CardTitle className="flex items-center gap-2 text-lg font-semibold text-white">
-          <div className="p-1.5 rounded-lg bg-gradient-to-br from-purple-800 to-indigo-900">
-            <Activity className="h-4 w-4 text-purple-300" />
-          </div>
-          <span className="text-white">
-            {t('mining.stats')}
-          </span>
-        </CardTitle>
-      </CardHeader>
-      
       <CardContent className={`p-4 relative z-10 grid grid-cols-2 gap-3`}>
         {/* Mining Power - Sol Üst */}
         <div className="flex flex-col justify-between bg-purple-900/60 rounded-lg p-3 border border-purple-700/30 backdrop-blur-sm 

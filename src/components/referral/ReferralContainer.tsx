@@ -9,6 +9,7 @@ import ReferralCodeCard from "./ReferralCodeCard";
 import ReferralBenefits from "./ReferralBenefits";
 import ReferralList from "./ReferralList";
 import LoadingState from "./LoadingState";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const ReferralContainer = () => {
   const { currentUser } = useAuth();
@@ -72,13 +73,15 @@ const ReferralContainer = () => {
   }
 
   return (
-    <div className="container max-w-md px-4 py-8 mx-auto space-y-6">
-      <ReferralHeader onRefresh={handleRefresh} isRefreshing={isRefreshing} />
-      <ReferralStats referralCount={referralCount} />
-      <ReferralCodeCard referralCode={referralCode} />
-      <ReferralBenefits />
-      <ReferralList referrals={referrals} />
-    </div>
+    <ScrollArea className="h-[calc(100vh-4rem)]">
+      <div className="container max-w-md px-4 py-8 mx-auto space-y-6 pb-20">
+        <ReferralHeader onRefresh={handleRefresh} isRefreshing={isRefreshing} />
+        <ReferralStats referralCount={referralCount} />
+        <ReferralCodeCard referralCode={referralCode} />
+        <ReferralBenefits />
+        <ReferralList referrals={referrals} />
+      </div>
+    </ScrollArea>
   );
 };
 

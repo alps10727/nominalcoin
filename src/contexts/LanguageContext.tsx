@@ -44,6 +44,9 @@ export const LanguageProvider = ({ children }: LanguageProviderProps) => {
       window.clearToasts();
     }
     
+    // Force a component re-render when language changes
+    window.dispatchEvent(new Event('languageChanged'));
+    
     // Debug için konsola yazdırma
     console.log(`Language changed to: ${lang}`);
   };
