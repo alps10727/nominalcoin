@@ -4,7 +4,7 @@ import { Gift } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import MissionsList from "@/components/upgrades/MissionsList";
-import { Mission, WheelPrize } from "@/types/missions";
+import { Mission } from "@/types/missions";
 import { toast } from "sonner";
 import { fetchMissions } from "@/services/missions";
 import { debugLog, errorLog } from "@/utils/debugUtils";
@@ -16,6 +16,7 @@ const MissionContainer = () => {
   const [missions, setMissions] = useState<Mission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
+  // Use the refactored hook
   const { 
     handleClaimReward, 
     handleActivateBoost, 
