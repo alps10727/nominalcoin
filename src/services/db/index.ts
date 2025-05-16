@@ -11,7 +11,7 @@ export { getDocument, saveDocument } from './document';
 export { batchWriteDocuments } from './batch';
 
 // Transaction operations
-export { runAtomicTransaction } from './transactionService';
+export { runAtomicTransaction, runReferralTransaction } from './transaction';
 
 // Rate limiting
 export { checkUserRateLimit } from './rateLimitService';

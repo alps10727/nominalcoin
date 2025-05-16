@@ -11,6 +11,7 @@ export {
   saveDocument,
   batchWriteDocuments,
   runAtomicTransaction,
+  runReferralTransaction,
   checkUserRateLimit,
   QueryCacheManager,
   DatabaseScaler,
