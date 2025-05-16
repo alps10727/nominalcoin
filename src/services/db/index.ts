@@ -8,7 +8,7 @@
 export { getDocument, saveDocument } from './document';
 
 // Batch operations
-export { batchWriteDocuments } from './batchService';
+export { batchWriteDocuments } from './batch';
 
 // Transaction operations
 export { runAtomicTransaction } from './transactionService';

@@ -6,7 +6,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/config/firebase";
 import { debugLog, errorLog } from "@/utils/debugUtils";
-import { QueryCacheManager } from "./queryCacheManager";
+import { QueryCacheManager } from "../queryCacheManager";
 
 /**
  * Batched yazma işlemleri - 500'e kadar işlemi atomik olarak gerçekleştirir
